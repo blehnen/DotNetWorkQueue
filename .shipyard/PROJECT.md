@@ -1,66 +1,65 @@
-# Project: Dashboard API History Tests — Redis & LiteDb
+# Project: Publish Aq.ExpressionJsonSerializer as NuGet Package (issue #102)
 
 ## Description
 
-Add end-to-end Dashboard API integration tests for Redis and LiteDb transports covering history endpoints. These transports are missing from the existing history test coverage (Memory, SQLite, SqlServer, PostgreSQL already have tests). The Redis history purge bug (#103) went undetected for 7 days after release because no integration test exercised the Redis purge code path.
+Aq.ExpressionJsonSerializer is currently bundled as pre-compiled DLLs in `/Lib` with no XML docs, no symbols, and no Source Link. This causes NuGet Package Explorer health warnings on every DotNetWorkQueue package. The library's source code lives in a fork at `github.com/blehnen/expression-json-serializer` (local: `F:\Git\expression-json-serializer`).
 
-Both test files follow the established `MemoryHistoryTests.cs` pattern with Disabled + Enabled test classes.
+This project publishes the fork as `DotNetWorkQueue.Aq.ExpressionJsonSerializer` on nuget.org, then replaces the bundled DLL reference in DotNetWorkQueue with a proper PackageReference.
 
 ## Goals
 
-1. Add `RedisHistoryTests.cs` with `RedisHistoryDisabledTests` + `RedisHistoryEnabledTests` (~15 tests)
-2. Add `LiteDbHistoryTests.cs` with `LiteDbHistoryDisabledTests` + `LiteDbHistoryEnabledTests` (~15 tests)
-3. Both follow the exact `MemoryHistoryTests.cs` pattern: send + consume messages, then test listing, pagination, status filtering, count, individual record lookup, purge
-4. Tests run in Jenkins CI (Redis available) and locally for LiteDb (no server dependency)
+1. Publish `DotNetWorkQueue.Aq.ExpressionJsonSerializer` v1.0.0 to nuget.org with deterministic build, Source Link, XML docs, and `.snupkg` symbols
+2. Set up GitHub Actions CI in the fork: build + test on PR/push, publish to nuget.org on version tag (`v*`)
+3. Set up Jenkinsfile in the fork for internal CI (build + test)
+4. Replace bundled DLL references in DotNetWorkQueue with a proper PackageReference
+5. Remove `/Lib/Aq.ExpressionJsonSerializer/` from DotNetWorkQueue
+6. Resolve NuGet Package Explorer health warnings
 
 ## Non-Goals
 
-- Improving DashboardExtensions.cs coverage (separate effort)
-- Adding SqlServer/PostgreSQL/SQLite history tests (already exist)
-- Adding Docker Compose or testcontainers for local Redis
-- Changing the Dashboard API itself
-- Adding new test infrastructure beyond what already exists
+- Renaming the assembly or namespace (stays `Aq.ExpressionJsonSerializer`)
+- Changing any source code in the serializer library
+- Updating DotNetWorkQueue's own NuGet package version
+- Publishing any other `/Lib` libraries (Schyntax #100, JpLabs #101 are separate)
 
 ## Requirements
 
-### RedisHistoryTests.cs
-- `RedisHistoryDisabledTests`: history endpoints return empty/zero/NotFound when `EnableHistory = false`
-- `RedisHistoryEnabledTests`: send + consume messages, verify all history endpoints work correctly
-- Connection string from `connectionstring.txt` (matching existing Redis integration test pattern)
-- Uses `RedisDashboardInit` and appropriate queue creation type
-- Skipped when Redis is not available (no connection string)
+### NuGet Package (expression-json-serializer repo)
+- Package ID: `DotNetWorkQueue.Aq.ExpressionJsonSerializer`
+- Version: `1.0.0`
+- Assembly name and namespace: `Aq.ExpressionJsonSerializer` (unchanged)
+- Target frameworks: `net10.0;net8.0;net48;netstandard2.0`
+- Dependency: `Newtonsoft.Json` aligned to `13.0.4` (matches DotNetWorkQueue)
+- Deterministic build, Source Link, XML doc generation, `.snupkg` symbol package
+- Full NuGet metadata: license expression, repository URL, description, readme
 
-### LiteDbHistoryTests.cs
-- `LiteDbHistoryDisabledTests`: history endpoints return empty/zero/NotFound when `EnableHistory = false`
-- `LiteDbHistoryEnabledTests`: send + consume messages, verify all history endpoints work correctly
-- File-based connection string (no server dependency)
-- Uses `LiteDbDashboardInit` and appropriate queue creation type
+### CI Pipelines (expression-json-serializer repo)
+- GitHub Actions: build + test on PR/push to main, publish to nuget.org on `v*` tag
+- Uses `NUGET_API_KEY` GitHub secret (user sets up before first publish)
+- Jenkinsfile: build + test on all 4 TFMs
 
-### Test coverage per Enabled class
-- History listing with pagination (page 0, page 1, beyond last)
-- Status filtering (Complete, Error, Processing)
-- History count (with and without status filter)
-- History by queue ID (found and not found)
-- Record field validation (QueueId, Status, EnqueuedUtc)
-- Purge with date filter (removes completed records)
-- Purge with future days (removes nothing)
+### DotNetWorkQueue Integration (this repo)
+- Replace 4 per-TFM `<Reference>` + `<HintPath>` blocks with single `<PackageReference>`
+- Remove `<_PackageFiles>` manual packing entries
+- Add to `Directory.Packages.props` (Central Package Management)
+- Delete `/Lib/Aq.ExpressionJsonSerializer/` directory
 
 ## Non-Functional Requirements
 
-- Tests must be independent (no shared state between test methods)
-- Cleanup must remove queues/files after each test class
-- Redis tests must not fail when Redis is unavailable (skip gracefully)
+- Package must be published to nuget.org before DotNetWorkQueue can reference it
+- All existing DotNetWorkQueue tests must pass after the swap
 
 ## Success Criteria
 
-1. `RedisHistoryTests.cs` passes when Redis is available (Jenkins CI)
-2. `LiteDbHistoryTests.cs` passes everywhere (no external dependencies)
-3. All existing Dashboard integration tests continue to pass
-4. `dotnet build "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj"` succeeds
+1. `DotNetWorkQueue.Aq.ExpressionJsonSerializer` v1.0.0 available on nuget.org
+2. `dotnet build "Source/DotNetWorkQueue.sln"` succeeds with PackageReference (no `/Lib` DLLs)
+3. All unit and integration tests pass
+4. NuGet Package Explorer shows no health warnings for the serializer dependency
+5. Source Link works (consumers can step into serializer code)
 
 ## Constraints
 
-- Must follow existing `MemoryHistoryTests.cs` pattern exactly
-- Must use existing test infrastructure (`DashboardTestServer`, `TransportFixture`, `ConnectionStrings`, etc.)
-- Redis tests run in Jenkins CI only (connection string gated)
-- No changes to production code
+- Two-repo project: Phase 1 in `expression-json-serializer`, Phase 2 in `DotNetWorkQueue`
+- Package must be published to nuget.org before Phase 2 can begin
+- User must create `NUGET_API_KEY` secret in GitHub before first tag push
+- Newtonsoft.Json version must align with DotNetWorkQueue (13.0.4)

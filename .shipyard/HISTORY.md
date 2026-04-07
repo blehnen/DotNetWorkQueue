@@ -508,3 +508,71 @@
 - **Pre-ship verification:** 19/19 LiteDb history tests passing (net8.0 + net10.0), Redis builds clean
 - **Lessons captured:** LiteDB query engine bug, test race condition with CommitMessage.Commit
 - **Status:** Shipped
+
+## 2026-04-07 — New Milestone: Publish Aq.ExpressionJsonSerializer as NuGet Package (issue #102)
+
+- **Action:** `/shipyard:brainstorm`
+- **Scope:** Publish vendored DLL as `DotNetWorkQueue.Aq.ExpressionJsonSerializer` v1.0.0 on nuget.org, then swap DotNetWorkQueue to PackageReference
+- **Decisions:**
+  - Package ID: `DotNetWorkQueue.Aq.ExpressionJsonSerializer`, assembly/namespace unchanged
+  - Publish to nuget.org (consistent with DotNetWorkQueue)
+  - Version 1.0.0 (independent lifecycle from DotNetWorkQueue)
+  - Merge upstream (aquilae) loop/goto expression support before v1.0.0
+  - GitHub Actions CI with tag-triggered publish + Jenkinsfile for internal CI
+  - NUGET_API_KEY stored as GitHub secret
+- **Roadmap:** 2 phases + manual gate
+  - Phase 1: Prepare fork (merge upstream, NuGet metadata, CI pipelines)
+  - Manual Gate: User creates secret, pushes v1.0.0 tag, verifies nuget.org
+  - Phase 2: Swap DotNetWorkQueue to PackageReference, delete /Lib
+- **Status:** Roadmap approved, ready for Phase 1 planning
+
+## 2026-04-07 — Phase 1 Planned
+
+- **Action:** `/shipyard:plan 1`
+- **Plans:** 1 plan (01-PLAN), 3 sequential tasks
+  - Task 1: Merge upstream (loop/goto support) + update csproj with NuGet metadata + update test project TFMs
+  - Task 2: Add GitHub Actions CI (matrix: ubuntu for net10.0/net8.0, windows for net48, publish on v* tag)
+  - Task 3: Add Jenkinsfile (net10.0 + net8.0 only, Docker agent)
+- **Discovery:** Test project targets stale `netcoreapp3.1;net48` — updated to `net10.0;net8.0;net48`
+- **Decisions:** MIT license, Jenkins net10.0+net8.0 only, GH Actions matrix with windows-latest for net48
+- **Critique verdict:** READY — all file paths verified, API surface confirmed
+- **Status:** Ready for /shipyard:build 1
+
+## 2026-04-07 — Phase 1 Build Complete
+
+- **Action:** `/shipyard:build 1`
+- **Repo:** `F:\Git\expression-json-serializer` (fork)
+- **Plan executed:** 01-PLAN (3/3 tasks)
+- **Commits (8 in fork):**
+  - `9edeaaa` — Merge upstream (loop/goto)
+  - `dbb844f` — NuGet metadata + csproj updates + test TFM updates
+  - `58d0297` — GitHub Actions CI workflow
+  - `700e43f` — Jenkinsfile
+  - `32f22ec` — Fix review findings (SDK version floating, fetch-depth)
+  - `3e7ae03` — Suppress CS1591 for fork library
+  - `05eaa11` — Restrict CI workflow permissions (audit advisory)
+  - `220a01f` — Update README for NuGet package page
+- **Review:** MINOR_ISSUES → fixed (SDK pin, fetch-depth for Source Link)
+- **Verification:** PASS (after CS1591 suppression — 0 warnings, 0 errors in Release)
+- **Security audit:** PASS — no critical findings; applied permissions advisory
+- **Simplification:** Ship as-is — 2 unused imports in upstream code, no action needed
+- **Documentation:** README rewritten from stub to full content (install, usage, publish instructions)
+- **Tests:** 33/33 passing on net10.0 and net8.0
+- **Discoveries:** Upstream merge conflict in Deserializer.cs (resolved); TypeAs test exception changed in .NET 10 (fixed)
+- **Status:** Phase 1 complete — ready for manual gate (push to origin, create NUGET_API_KEY, tag v1.0.0)
+
+## 2026-04-07 — Manual Gate Complete
+
+- **Action:** Published `DotNetWorkQueue.Aq.ExpressionJsonSerializer` v1.0.0 to nuget.org
+- **Post-publish fixes (in fork):** ConcurrentDictionary for 3 Dictionary fields, NETFULL define for net48 tests
+- **Status:** Package live, indexed, CI green
+
+## 2026-04-07 — Phase 2 Build Complete
+
+- **Action:** `/shipyard:build 2`
+- **Repo:** DotNetWorkQueue (this repo)
+- **Plan executed:** 01-PLAN (1/1 task)
+- **Commit:** `b00b8536` — swap to PackageReference, delete Lib/Aq.ExpressionJsonSerializer/
+- **Files:** 2 modified (Directory.Packages.props, DotNetWorkQueue.csproj), 10 deleted (vendored DLLs)
+- **Tests:** 878 passing on net10.0
+- **Status:** Phase 2 complete — all phases done, ready to ship
