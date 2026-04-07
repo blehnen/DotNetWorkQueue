@@ -37,16 +37,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation
                                     queueContainer.CreateTimeSync(queueConnection.Connection),
                                     oCreation.Scope, LoggerShared.Create(queueConnection.Queue, GetType().Name));
                             }
-#if NETFULL
-                            else
-                            {
-                                tests.RunEnqueueTestDynamic<TTransportInit, TJobQueueCreator>(
-                                    queueConnection, interceptors,
-                                    verify, setErrorFlag,
-                                    queueContainer.CreateTimeSync(queueConnection.Connection),
-                                    oCreation.Scope, LoggerShared.Create(queueConnection.Queue, GetType().Name));
-                            }
-#endif
                         }
                         finally
                         {

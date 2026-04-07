@@ -233,9 +233,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
     public enum LinqMethodTypes
     {
-        Compiled,
-#if NETFULL
-        Dynamic
-#endif
+        Compiled
     }
 }

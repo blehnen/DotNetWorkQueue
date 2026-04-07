@@ -45,16 +45,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
                             verify, false, id, GenerateMethod.CreateCancelCompiled, runtime,
                             scope, false);
                     }
-#if NETFULL
-                    else
-                    {
-                        producer.RunTestDynamic<TTransportInit>(queueConnection, false, messageCount,
-                            logProvider, generateData,
-                            verify, false, id, GenerateMethod.CreateCancelDynamic, runtime, scope,
-                            false);
-
-                    }
-#endif
 
                     var consumer = new ConsumerMethodCancelWorkShared<TTransportInit>();
                     consumer.RunConsumer(queueConnection, false, logProvider,

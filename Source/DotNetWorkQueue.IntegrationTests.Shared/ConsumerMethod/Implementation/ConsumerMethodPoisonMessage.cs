@@ -46,14 +46,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
                             verify, false, id, GenerateMethod.CreateNoOpCompiled, 0, oCreation.Scope,
                             false);
                     }
-#if NETFULL
-                    else
-                    {
-                        producer.RunTestDynamic<TTransportInit>(queueConnection, false, messageCount,
-                            logProvider, generateData,
-                            verify, false, id, GenerateMethod.CreateNoOpDynamic, 0, oCreation.Scope, false);
-                    }
-#endif
 
                     //process data
                     var consumer = new ConsumerMethodPoisonMessageShared();

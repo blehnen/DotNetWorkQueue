@@ -90,17 +90,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                             .ConfigureAwait(false);
                     }
                     break;
-
-#if NETFULL
-                case LinqMethodTypes.Dynamic:
-                    {
-                        var jobs = Enumerable.Range(0, numberOfJobs)
-                            .Select(i => GenerateMethod.CreateDynamic(id, runTime));
-                        await RunProducerInternalAsync(queue, generateData, sendViaBatch, jobs, numberOfJobs)
-                            .ConfigureAwait(false);
-                    }
-                    break;
-#endif
             }
         }
 
@@ -144,41 +133,5 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                 }
             }
         }
-
-#if NETFULL
-        private async Task RunProducerInternalAsync(
-          IProducerMethodQueue
-              queue, Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-                   bool sendViaBatch, IEnumerable<LinqExpressionToRun> jobs, int numberOfJobs)
-        {
-            if (sendViaBatch)
-            {
-                var messages = new List<QueueMessage<LinqExpressionToRun, IAdditionalMessageData>>(numberOfJobs);
-                messages.AddRange(from job in jobs
-                                  let data =
-generateData(queue.Configuration)
-                                  select data != null ? new QueueMessage<LinqExpressionToRun, IAdditionalMessageData>(job, data) : new QueueMessage<LinqExpressionToRun, IAdditionalMessageData>(job, null));
-                var results = await queue.SendAsync(messages).ConfigureAwait(false);
-                Assert.IsFalse(results.HasErrors);
-            }
-            else
-            {
-                foreach (var job in jobs)
-                {
-                    var data = generateData(queue.Configuration);
-                    if (data != null)
-                    {
-                        var result = await queue.SendAsync(job, data).ConfigureAwait(false);
-                        Assert.IsFalse(result.HasError);
-                    }
-                    else
-                    {
-                        var result = await queue.SendAsync(job).ConfigureAwait(false);
-                        Assert.IsFalse(result.HasError);
-                    }
-                }
-            }
-        }
-#endif
     }
 }
