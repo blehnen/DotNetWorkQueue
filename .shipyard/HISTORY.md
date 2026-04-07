@@ -560,3 +560,19 @@
 - **Tests:** 33/33 passing on net10.0 and net8.0
 - **Discoveries:** Upstream merge conflict in Deserializer.cs (resolved); TypeAs test exception changed in .NET 10 (fixed)
 - **Status:** Phase 1 complete — ready for manual gate (push to origin, create NUGET_API_KEY, tag v1.0.0)
+
+## 2026-04-07 — Manual Gate Complete
+
+- **Action:** Published `DotNetWorkQueue.Aq.ExpressionJsonSerializer` v1.0.0 to nuget.org
+- **Post-publish fixes (in fork):** ConcurrentDictionary for 3 Dictionary fields, NETFULL define for net48 tests
+- **Status:** Package live, indexed, CI green
+
+## 2026-04-07 — Phase 2 Build Complete
+
+- **Action:** `/shipyard:build 2`
+- **Repo:** DotNetWorkQueue (this repo)
+- **Plan executed:** 01-PLAN (1/1 task)
+- **Commit:** `b00b8536` — swap to PackageReference, delete Lib/Aq.ExpressionJsonSerializer/
+- **Files:** 2 modified (Directory.Packages.props, DotNetWorkQueue.csproj), 10 deleted (vendored DLLs)
+- **Tests:** 878 passing on net10.0
+- **Status:** Phase 2 complete — all phases done, ready to ship

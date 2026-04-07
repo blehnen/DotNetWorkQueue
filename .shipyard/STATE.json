@@ -1,7 +1,7 @@
 {
   "phase": 2,
-  "status": "planned",
-  "position": "Phase 2 planned, ready for build",
-  "message": "Publish Aq.ExpressionJsonSerializer as NuGet package (issue #102). 1 plan, 1 task — mechanical reference swap.",
+  "status": "complete",
+  "position": "Phase 2 build complete",
+  "message": "Publish Aq.ExpressionJsonSerializer as NuGet package (issue #102). Both phases complete — ready to ship.",
   "last_updated": "2026-04-07T00:00:00Z"
 }
