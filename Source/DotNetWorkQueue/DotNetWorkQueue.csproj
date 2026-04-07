@@ -1,13 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0;net8.0;net48;netstandard2.0;</TargetFrameworks>
+    <TargetFrameworks>net10.0;net8.0;</TargetFrameworks>
     <Authors>Brian Lehnen</Authors>
     <Company />
     <Version>0.9.18</Version>
-	  <Description>
-		  Work queue for dot net 4.8, dot net standard 2.0, 8.0 and 10.0. Supports scheduling, delayed processing, prioritized queues, message expiration, retries with configurable back-off and more.
-		  SQL server, SQLite, Redis and PostgreSQL transports are available.</Description>
+	  <Description>Work queue for dot net 8.0 and 10.0. Supports scheduling, delayed processing, prioritized queues, message expiration, retries with configurable back-off and more.</Description>
     <Copyright>Copyright © Brian Lehnen 2015-2026</Copyright>
     <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
@@ -21,9 +19,6 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;CODE_ANALYSIS;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
-  </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
 		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
@@ -33,16 +28,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
 	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net48|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;NETFULL</DefineConstants>
-  </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
-    <DefineConstants>NETSTANDARD2_0;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
-    <DocumentationFile>DotNetWorkQueue.xml</DocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-  </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
 		<DefineConstants>LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
@@ -59,12 +45,6 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 		<WarningsAsErrors />
 	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net48|AnyCPU'">
-    <DefineConstants>LIBLOG_PUBLIC;NETFULL</DefineConstants>
-    <DocumentationFile>DotNetWorkQueue.xml</DocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="DotNetWorkQueue.Aq.ExpressionJsonSerializer" />
@@ -91,38 +71,16 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 		</Reference>
 	</ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Schyntax">
-      <HintPath>..\..\Lib\Schyntax\net48\Schyntax.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <Reference Include="Schyntax">
-      <HintPath>..\..\Lib\Schyntax\netstandard2.0\Schyntax.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="JpLabs.DynamicCode">
-      <HintPath>..\..\Lib\JpLabs.DynamicCode\JpLabs.DynamicCode.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <!-- Pack vendored DLLs into the correct lib/ TFM folders in the nupkg -->
   <!-- Pack vendored DLLs into the correct lib/ TFM folders in the nupkg -->
   <Target Name="IncludeVendoredDllsInPack" BeforeTargets="GenerateNuspec">
     <ItemGroup>
       <_PackageFiles Include="..\..\Lib\Schyntax\net8.0\Schyntax.dll" PackagePath="lib\net8.0" />
       <_PackageFiles Include="..\..\Lib\Schyntax\net10.0\Schyntax.dll" PackagePath="lib\net10.0" />
-      <_PackageFiles Include="..\..\Lib\Schyntax\net48\Schyntax.dll" PackagePath="lib\net48" />
-      <_PackageFiles Include="..\..\Lib\JpLabs.DynamicCode\JpLabs.DynamicCode.dll" PackagePath="lib\net48" />
-      <_PackageFiles Include="..\..\Lib\Schyntax\netstandard2.0\Schyntax.dll" PackagePath="lib\netstandard2.0" />
     </ItemGroup>
   </Target>
 </Project>

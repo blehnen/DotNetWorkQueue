@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -17,10 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Threading;
-using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Messages;
-using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.LinqCompile
 {
@@ -30,14 +27,11 @@ namespace DotNetWorkQueue.LinqCompile
     /// <seealso cref="ILinqCompiler" />
     internal class LinqCompiler : ILinqCompiler
     {
-        private readonly IObjectPool<DynamicCodeCompiler> _objectPool;
         /// <summary>
         /// Initializes a new instance of the <see cref="LinqCompiler" /> class.
         /// </summary>
-        /// <param name="objectPool">The object pool.</param>
-        public LinqCompiler(IObjectPool<DynamicCodeCompiler> objectPool)
+        public LinqCompiler()
         {
-            _objectPool = objectPool;
         }
 
         /// <summary>
@@ -47,45 +41,14 @@ namespace DotNetWorkQueue.LinqCompile
         /// <returns></returns>
         public Action<object, object> CompileAction(LinqExpressionToRun linqExpression)
         {
-            Guard.NotNull(() => linqExpression, linqExpression);
-            Guard.NotNullOrEmpty(() => linqExpression.Linq, linqExpression.Linq);
-            var compiler = _objectPool.GetObject();
-            try
-            {
-                return compiler.CompileAction(linqExpression);
-            }
-            catch (Exception error)
-            {
-                throw new CompileException($"Failed to compile linq expression {linqExpression.Linq}", error,
-                    linqExpression.Linq);
-            }
-            finally
-            {
-                _objectPool.ReturnObject(compiler);
-            }
+            throw new NotSupportedException("Dynamic LINQ string compilation is no longer supported. Use compiled Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> instead.");
         }
 
-        #region IDisposable Support
-        private int _disposeCount;
-        /// <summary>
-        /// Releases unmanaged and - optionally - managed resources.
-        /// </summary>
-        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposing) return;
-            if (Interlocked.Increment(ref _disposeCount) != 1) return;
-
-            _objectPool.Dispose();
-        }
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
-        #endregion
     }
 }
