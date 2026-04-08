@@ -59,7 +59,7 @@ namespace DotNetWorkQueue
         /// How often the heartbeat will be updated.
         /// </summary>
         /// <remarks>
-        /// This is expected to be in schyntax format - https://github.com/schyntax/cs-schyntax
+        /// This is expected to be in standard cron format (5-field) or cron format with seconds (6-field).
         /// </remarks>
         string UpdateTime { get; set; }
     }
