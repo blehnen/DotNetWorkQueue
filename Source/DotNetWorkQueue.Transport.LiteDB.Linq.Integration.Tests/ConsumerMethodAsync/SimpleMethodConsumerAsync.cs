@@ -10,10 +10,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
     public class SimpleMethodConsumerAsync
     {
         [TestMethod]
-        [DataRow(50, 5, 200, 10, 1, 2, 1, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Memory)]
+        [DataRow(50, 5, 200, 10, 1, 2, 1, false, IntegrationConnectionInfo.ConnectionTypes.Memory)]
         public void Run(int messageCount, int runtime, int timeOut,
             int workerCount, int readerCount, int queueSize,
-           int messageType, LinqMethodTypes linqMethodTypes, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
+           int messageType, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
 
                 consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
                         connectionInfo.ConnectionString),
-                    messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x, true, false, true),
+                    messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, enableChaos, x => Helpers.SetOptions(x, true, false, true),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
             }
         }

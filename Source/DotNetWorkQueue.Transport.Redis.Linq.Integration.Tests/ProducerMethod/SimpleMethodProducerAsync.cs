@@ -11,15 +11,14 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducerAsync
     {
         [TestMethod]
-        [DataRow(100, true, false, LinqMethodTypes.Compiled),
-         DataRow(100, false, false, LinqMethodTypes.Compiled),
-         DataRow(100, true, true, LinqMethodTypes.Compiled),
-         DataRow(100, false, true, LinqMethodTypes.Compiled)]
+        [DataRow(100, true, false),
+         DataRow(100, false, false),
+         DataRow(100, true, true),
+         DataRow(100, false, true)]
         public async Task Run(
            int messageCount,
            bool interceptors,
-           bool batchSending,
-           LinqMethodTypes linqMethodTypes)
+           bool batchSending)
         {
             var queueName = GenerateQueueName.Create();
             var connectionString = ConnectionInfo.ConnectionString;
@@ -27,7 +26,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
                 new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducerAsync();
 
             await consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
-                messageCount, linqMethodTypes, interceptors, false, batchSending, x => { },
+                messageCount, interceptors, false, batchSending, x => { },
                 Helpers.GenerateData, Helpers.Verify);
         }
     }

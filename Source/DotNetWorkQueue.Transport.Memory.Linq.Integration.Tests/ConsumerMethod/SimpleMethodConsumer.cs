@@ -13,9 +13,9 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
     public class SimpleMethodConsumer
     {
         [TestMethod]
-        [DataRow(10, 15, 60, 7, LinqMethodTypes.Compiled)]
+        [DataRow(10, 15, 60, 7)]
         public void Run(int messageCount, int runtime,
-            int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)
+            int timeOut, int workerCount)
         {
 
             using (var connectionInfo = new IntegrationConnectionInfo())
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
                         SimpleMethodConsumer();
                 consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(new QueueConnection(queueName,
                         connectionInfo.ConnectionString),
-                    messageCount, runtime, timeOut, workerCount, linqMethodTypes, false, x => { },
+                    messageCount, runtime, timeOut, workerCount, false, x => { },
                     Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
             }
         }

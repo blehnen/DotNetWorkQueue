@@ -14,10 +14,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodCancelWork
     {
         [TestMethod]
-        [DataRow(2, 45, 90, 3, false, LinqMethodTypes.Compiled, false),
-         DataRow(2, 45, 90, 3, true, LinqMethodTypes.Compiled, false)]
+        [DataRow(2, 45, 90, 3, false, false),
+         DataRow(2, 45, 90, 3, true, false)]
         public void Run(int messageCount, int runtime,
-            int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
+            int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
                         ConsumerMethodCancelWork();
                 consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
-                    messageCount, runtime, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                    messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
                         true, true, false,
                         false, true, true, false),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);

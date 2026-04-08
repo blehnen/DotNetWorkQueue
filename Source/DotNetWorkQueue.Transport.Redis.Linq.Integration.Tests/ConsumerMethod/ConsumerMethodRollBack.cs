@@ -15,8 +15,8 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     {
 
         [TestMethod]
-        [DataRow(10, 15, 180, 7, LinqMethodTypes.Compiled)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)
+        [DataRow(10, 15, 180, 7)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount)
         {
             var queueName = GenerateQueueName.Create();
             var connectionString = ConnectionInfo.ConnectionString;
@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                     ConsumerMethodRollBack();
 
             consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
-                messageCount, runtime, timeOut, workerCount, linqMethodTypes, false, x => { },
+                messageCount, runtime, timeOut, workerCount, false, x => { },
                 Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
         }
 

@@ -14,10 +14,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class SimpleMethodConsumer
     {
         [TestMethod]
-        [DataRow(5, 5, 200, 10, false, LinqMethodTypes.Compiled, true),
-         DataRow(10, 15, 180, 7, true, LinqMethodTypes.Compiled, false)]
+        [DataRow(5, 5, 200, 10, false, true),
+         DataRow(10, 15, 180, 7, true, false)]
         public void Run(int messageCount, int runtime,
-            int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
+            int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
                         SimpleMethodConsumer();
                 consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
-                    messageCount, runtime, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                    messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
                         false, true, false,
                         false, true, true, false),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);

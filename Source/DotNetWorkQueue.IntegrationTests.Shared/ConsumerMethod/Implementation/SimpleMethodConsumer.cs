@@ -10,7 +10,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
     {
         public void Run<TTransportInit, TTransportCreate>(
             QueueConnection queueConnection,
-            int messageCount, int runtime, int timeOut, int workerCount, LinqMethodTypes linqMethodTypes,
+            int messageCount, int runtime, int timeOut, int workerCount,
             bool enableChaos,
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
@@ -38,13 +38,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
 
                     var producer = new ProducerMethodShared();
                     var id = Guid.NewGuid();
-                    if (linqMethodTypes == LinqMethodTypes.Compiled)
-                    {
-                        producer.RunTestCompiled<TTransportInit>(queueConnection, false, messageCount,
-                            logProvider, generateData,
-                            verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope,
-                            false);
-                    }
+                    producer.RunTestCompiled<TTransportInit>(queueConnection, false, messageCount,
+                        logProvider, generateData,
+                        verify, false, id, GenerateMethod.CreateCompiled, runtime, oCreation.Scope,
+                        false);
 
                     var consumer = new ConsumerMethodShared();
                     consumer.RunConsumer<TTransportInit>(queueConnection,

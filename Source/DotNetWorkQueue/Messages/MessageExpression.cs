@@ -93,10 +93,6 @@ namespace DotNetWorkQueue.Messages
         /// </summary>
         Action,
         /// <summary>
-        /// A linq action expression, specified as a string to be compiled.
-        /// </summary>
-        ActionText,
-        /// <summary>
         /// A linq action expression; not serialized and passed around the queues as-is
         /// </summary>
         /// <remarks>Only suitable for the in-memory queue</remarks>

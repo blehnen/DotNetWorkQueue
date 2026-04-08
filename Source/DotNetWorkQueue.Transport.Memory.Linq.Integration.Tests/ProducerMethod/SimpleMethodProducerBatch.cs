@@ -11,10 +11,9 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducerBatch
     {
         [TestMethod]
-        [DataRow(1000, LinqMethodTypes.Compiled)]
+        [DataRow(1000)]
         public void Run(
-            int messageCount,
-            LinqMethodTypes linqMethodTypes)
+            int messageCount)
         {
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
@@ -23,7 +22,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
                     new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducer();
 
                 consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(new QueueConnection(queueName,
-                        connectionInfo.ConnectionString), messageCount, linqMethodTypes, false, false, true,
+                        connectionInfo.ConnectionString), messageCount, false, false, true,
                     x => { }, Helpers.GenerateData, Verify);
             }
         }

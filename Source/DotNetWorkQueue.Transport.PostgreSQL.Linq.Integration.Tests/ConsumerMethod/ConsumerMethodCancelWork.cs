@@ -13,16 +13,16 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class ConsumerMethodCancelWork
     {
         [TestMethod]
-        [DataRow(7, 60, 90, 3, LinqMethodTypes.Compiled, false)]
+        [DataRow(7, 60, 90, 3, false)]
         public void Run(int messageCount, int runtime, int timeOut,
-            int workerCount, LinqMethodTypes linqMethodTypes, bool enableChaos)
+            int workerCount, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.ConsumerMethodCancelWork();
             consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
                     ConnectionInfo.ConnectionString),
-                messageCount, runtime, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
                     true, true, false, false,
                     false, true, true, false),
                 Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);

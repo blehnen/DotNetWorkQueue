@@ -15,8 +15,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
     public class MultiMethodProducer
     {
         [TestMethod]
-        [DataRow(LinqMethodTypes.Compiled)]
-        public void Run(LinqMethodTypes linqMethodTypes)
+        public void Run()
         {
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
@@ -25,7 +24,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
                     new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.MultiMethodProducer();
 
                 consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(new QueueConnection(queueName,
-                        connectionInfo.ConnectionString), 100, 10, linqMethodTypes, false,
+                        connectionInfo.ConnectionString), 100, 10, false,
                     Helpers.GenerateData, VerifyQueueCount);
             }
         }

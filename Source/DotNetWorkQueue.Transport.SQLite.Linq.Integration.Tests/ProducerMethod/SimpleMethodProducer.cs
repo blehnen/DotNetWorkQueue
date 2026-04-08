@@ -13,14 +13,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducer
     {
         [TestMethod]
-        [DataRow(100, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, false),
-         DataRow(100, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, false),
-         DataRow(100, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, false),
-         DataRow(1000, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, false),
-         DataRow(10, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, true),
-         DataRow(10, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, true),
-         DataRow(10, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true),
-         DataRow(100, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true)]
+        [DataRow(100, true, true, true, false, false, true, false, false, true, false),
+         DataRow(100, false, true, true, false, false, true, false, false, true, false),
+         DataRow(100, false, false, false, false, false, false, false, false, true, false),
+         DataRow(1000, true, false, false, false, false, false, false, false, true, false),
+         DataRow(10, true, true, true, false, false, true, false, false, true, true),
+         DataRow(10, false, true, true, false, false, true, false, false, true, true),
+         DataRow(10, false, false, false, false, false, false, false, false, true, true),
+         DataRow(100, true, false, false, false, false, false, false, false, true, true)]
         public void Run(
             int messageCount,
             bool interceptors,
@@ -32,7 +32,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
             bool enableStatusTable,
             bool additionalColumn,
             bool inMemoryDb,
-            LinqMethodTypes linqMethodTypes,
             bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
@@ -41,7 +40,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducer();
                 consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
-                    messageCount, linqMethodTypes, interceptors, enableChaos, false, x =>
+                    messageCount, interceptors, enableChaos, false, x =>
                         Helpers.SetOptions(x,
                             enableDelayedProcessing, enableHeartBeat, enableMessageExpiration, enablePriority, enableStatus,
                             enableStatusTable, additionalColumn, false),

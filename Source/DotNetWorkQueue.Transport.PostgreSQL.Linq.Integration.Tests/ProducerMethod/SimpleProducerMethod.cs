@@ -13,21 +13,21 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
     public class SimpleProducerMethod
     {
         [TestMethod]
-        [DataRow(100, true, true, false, false, false, false, false, LinqMethodTypes.Compiled, false),
-         DataRow(100, false, true, false, false, false, true, false, LinqMethodTypes.Compiled, false),
-         DataRow(100, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, false),
-         DataRow(100, true, false, false, false, false, false, false, LinqMethodTypes.Compiled, false),
-         DataRow(100, false, false, false, false, false, true, false, LinqMethodTypes.Compiled, false),
-         DataRow(100, false, true, true, true, true, false, false, LinqMethodTypes.Compiled, false),
-         DataRow(100, false, true, false, true, true, true, false, LinqMethodTypes.Compiled, false),
-         DataRow(100, true, true, false, false, false, true, true, LinqMethodTypes.Compiled, false),
-         DataRow(10, false, true, false, false, false, true, false, LinqMethodTypes.Compiled, true),
-         DataRow(10, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, true),
-         DataRow(10, true, false, false, false, false, false, false, LinqMethodTypes.Compiled, true),
-         DataRow(10, false, false, false, false, false, true, false, LinqMethodTypes.Compiled, true),
-         DataRow(10, false, true, true, true, true, false, false, LinqMethodTypes.Compiled, true),
-         DataRow(10, false, true, false, true, true, true, false, LinqMethodTypes.Compiled, true),
-         DataRow(10, true, true, false, false, false, true, true, LinqMethodTypes.Compiled, true)]
+        [DataRow(100, true, true, false, false, false, false, false, false),
+         DataRow(100, false, true, false, false, false, true, false, false),
+         DataRow(100, false, false, false, false, false, false, false, false),
+         DataRow(100, true, false, false, false, false, false, false, false),
+         DataRow(100, false, false, false, false, false, true, false, false),
+         DataRow(100, false, true, true, true, true, false, false, false),
+         DataRow(100, false, true, false, true, true, true, false, false),
+         DataRow(100, true, true, false, false, false, true, true, false),
+         DataRow(10, false, true, false, false, false, true, false, true),
+         DataRow(10, false, false, false, false, false, false, false, true),
+         DataRow(10, true, false, false, false, false, false, false, true),
+         DataRow(10, false, false, false, false, false, true, false, true),
+         DataRow(10, false, true, true, true, true, false, false, true),
+         DataRow(10, false, true, false, true, true, true, false, true),
+         DataRow(10, true, true, false, false, false, true, true, true)]
         public void Run(
             int messageCount,
             bool interceptors,
@@ -37,7 +37,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
             bool enablePriority,
             bool enableStatusTable,
             bool additionalColumn,
-            LinqMethodTypes linqMethodTypes,
             bool enableChaos)
         {
 
@@ -47,7 +46,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
 
             consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
                     ConnectionInfo.ConnectionString),
-                messageCount, linqMethodTypes, interceptors, enableChaos, false, x => Helpers.SetOptions(x,
+                messageCount, interceptors, enableChaos, false, x => Helpers.SetOptions(x,
                     enableDelayedProcessing, !enableHoldTransactionUntilMessageCommitted, enableHoldTransactionUntilMessageCommitted, enableMessageExpiration,
                     enablePriority, !enableHoldTransactionUntilMessageCommitted, enableStatusTable, additionalColumn),
                 Helpers.GenerateData, Helpers.Verify);

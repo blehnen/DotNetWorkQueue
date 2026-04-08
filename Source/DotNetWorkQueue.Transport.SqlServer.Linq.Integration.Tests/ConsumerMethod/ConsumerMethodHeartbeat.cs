@@ -14,8 +14,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodHeartbeat
     {
         [TestMethod]
-        [DataRow(7, 15, 190, 3, LinqMethodTypes.Compiled, true)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, LinqMethodTypes linqMethodTypes, bool enableChaos)
+        [DataRow(7, 15, 190, 3, true)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, bool enableChaos)
         {
 
             var queueName = GenerateQueueName.Create();
@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
                     ConsumerMethodHeartbeat();
             consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(new QueueConnection(queueName, ConnectionInfo.ConnectionString),
-                messageCount, runtime, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
                     true, true, false,
                     false,
                     false, true, true, false),

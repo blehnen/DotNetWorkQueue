@@ -16,11 +16,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
         private ITaskFactory Factory { get; set; }
 
         [TestMethod]
-        [DataRow(50, 1, 400, 10, 5, 5, 1, false, LinqMethodTypes.Compiled, true),
-         DataRow(50, 5, 200, 10, 1, 2, 1, true, LinqMethodTypes.Compiled, false)]
+        [DataRow(50, 1, 400, 10, 5, 5, 1, false, true),
+         DataRow(50, 5, 200, 10, 1, 2, 1, true, false)]
         public void Run(int messageCount, int runtime, int timeOut,
             int workerCount, int readerCount, int queueSize,
-           int messageType, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
+           int messageType, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation.
                         SimpleMethodConsumerAsync();
                 consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
-                    messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                    messageCount, runtime, timeOut, workerCount, readerCount, queueSize, messageType, enableChaos, x => Helpers.SetOptions(x,
                         false, true, false,
                         false, true, true, false),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);

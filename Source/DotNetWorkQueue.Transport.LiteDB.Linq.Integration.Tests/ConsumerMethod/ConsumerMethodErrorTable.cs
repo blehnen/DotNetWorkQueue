@@ -10,9 +10,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodErrorTable
     {
         [TestMethod]
-        [DataRow(1, 60, 1, LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Memory)]
-        public void Run(int messageCount, int timeOut, int workerCount, LinqMethodTypes linqMethodTypes,
-            bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
+        [DataRow(1, 60, 1, true, IntegrationConnectionInfo.ConnectionTypes.Memory)]
+        public void Run(int messageCount, int timeOut, int workerCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
@@ -22,7 +21,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
                         ConsumerMethodErrorTable();
                 consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
                         connectionInfo.ConnectionString),
-                    messageCount, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x, true, false, true),
+                    messageCount, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x, true, false, true),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);
             }
         }

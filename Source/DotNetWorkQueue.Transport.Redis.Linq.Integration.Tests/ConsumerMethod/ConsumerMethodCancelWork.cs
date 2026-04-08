@@ -14,9 +14,9 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodCancelWork
     {
         [TestMethod]
-        [DataRow(7, 5, 90, 3, LinqMethodTypes.Compiled)]
+        [DataRow(7, 5, 90, 3)]
         public void Run(int messageCount, int runtime,
-            int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)
+            int timeOut, int workerCount)
         {
             var queueName = GenerateQueueName.Create();
             var connectionString = ConnectionInfo.ConnectionString;
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.ConsumerMethodCancelWork();
 
             consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
-                messageCount, runtime, timeOut, workerCount, linqMethodTypes, false, x => { },
+                messageCount, runtime, timeOut, workerCount, false, x => { },
                 Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
         }
 

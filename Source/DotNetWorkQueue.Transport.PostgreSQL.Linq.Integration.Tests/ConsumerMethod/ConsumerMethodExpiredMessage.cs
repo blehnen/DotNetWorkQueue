@@ -13,9 +13,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class ConsumerMethodExpiredMessage
     {
         [TestMethod]
-        [DataRow(100, 0, 60, 5, false, LinqMethodTypes.Compiled, false)]
+        [DataRow(100, 0, 60, 5, false, false)]
         public void Run(int messageCount, int runtime, int timeOut,
-            int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
+            int workerCount, bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var consumer =
@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
                     ConsumerMethodExpiredMessage();
             consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
                     ConnectionInfo.ConnectionString),
-                messageCount, runtime, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
                     true, !useTransactions, useTransactions, true,
                     false, !useTransactions, true, false),
                 Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);

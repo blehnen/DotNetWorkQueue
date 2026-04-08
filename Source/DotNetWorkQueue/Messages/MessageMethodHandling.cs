@@ -28,27 +28,17 @@ namespace DotNetWorkQueue.Messages
     public class MessageMethodHandling : IMessageMethodHandling
     {
         private readonly IExpressionSerializer _serializer;
-        private readonly ILinqCompiler _linqCompiler;
-        private readonly ICompositeSerialization _compositeSerialization;
         private int _disposeCount;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageMethodHandling" /> class.
         /// </summary>
         /// <param name="serializer">The serializer.</param>
-        /// <param name="linqCompiler">The method compiler.</param>
-        /// <param name="compositeSerialization">The composite serialization.</param>
-        public MessageMethodHandling(IExpressionSerializer serializer,
-            ILinqCompiler linqCompiler,
-            ICompositeSerialization compositeSerialization)
+        public MessageMethodHandling(IExpressionSerializer serializer)
         {
             Guard.NotNull(() => serializer, serializer);
-            Guard.NotNull(() => linqCompiler, linqCompiler);
-            Guard.NotNull(() => compositeSerialization, compositeSerialization);
 
             _serializer = serializer;
-            _linqCompiler = linqCompiler;
-            _compositeSerialization = compositeSerialization;
         }
 
         /// <inheritdoc />
@@ -65,27 +55,6 @@ namespace DotNetWorkQueue.Messages
                     break;
                 case MessageExpressionPayloads.ActionRaw:
                     HandleRawAction(receivedMessage, workerNotification);
-                    break;
-                case MessageExpressionPayloads.ActionText:
-                    var targetMethod =
-                        _linqCompiler.CompileAction(
-                            _compositeSerialization.InternalSerializer.ConvertBytesTo<LinqExpressionToRun>(
-                                receivedMessage.Body.SerializedExpression));
-
-                    try
-                    {
-                        HandleAction(targetMethod, receivedMessage, workerNotification);
-                    }
-                    catch (Exception error) //throw the real exception if needed
-                    {
-                        if (error.Message == "Exception has been thrown by the target of an invocation." &&
-                            error.InnerException != null)
-                        {
-                            throw error.InnerException;
-                        }
-                        throw;
-                    }
-
                     break;
                 default:
                     throw new DotNetWorkQueueException($"The method type of {receivedMessage.Body.PayLoad} is not implemented");
@@ -179,7 +148,6 @@ namespace DotNetWorkQueue.Messages
             if (!disposing) return;
 
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
-            _linqCompiler.Dispose();
         }
 
         /// <summary>

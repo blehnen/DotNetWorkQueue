@@ -15,9 +15,9 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodExpiredMessage
     {
         [TestMethod]
-        [DataRow(100, 0, 20, 5, LinqMethodTypes.Compiled)]
+        [DataRow(100, 0, 20, 5)]
         public void Run(int messageCount, int runtime,
-            int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)
+            int timeOut, int workerCount)
         {
             var queueName = GenerateQueueName.Create();
             var connectionString = ConnectionInfo.ConnectionString;
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                     ConsumerMethodExpiredMessage();
 
             consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
-                messageCount, runtime, timeOut, workerCount, linqMethodTypes, false, x => { },
+                messageCount, runtime, timeOut, workerCount, false, x => { },
                 Helpers.GenerateDelayExpiredData, Helpers.Verify, VerifyQueueCount);
         }
 

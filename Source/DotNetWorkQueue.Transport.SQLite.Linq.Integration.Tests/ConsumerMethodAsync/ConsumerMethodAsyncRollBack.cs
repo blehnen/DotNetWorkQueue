@@ -14,10 +14,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodAsyncRollBack
     {
         [TestMethod]
-        [DataRow(10, 1, 400, 5, 5, 5, false, LinqMethodTypes.Compiled, true),
-         DataRow(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Compiled, false)]
+        [DataRow(10, 1, 400, 5, 5, 5, false, true),
+         DataRow(50, 5, 200, 5, 1, 3, true, false)]
         public void Run(int messageCount, int runtime, int timeOut,
-            int workerCount, int readerCount, int queueSize, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
+            int workerCount, int readerCount, int queueSize, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation.
                         ConsumerMethodAsyncRollBack();
                 consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
-                    messageCount, runtime, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                    messageCount, runtime, timeOut, workerCount, readerCount, queueSize, enableChaos, x => Helpers.SetOptions(x,
                         true, true, false,
                         false, true, true, false),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);

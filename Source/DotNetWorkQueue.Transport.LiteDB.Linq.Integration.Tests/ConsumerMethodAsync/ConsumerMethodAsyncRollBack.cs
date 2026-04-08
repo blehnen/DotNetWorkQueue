@@ -13,9 +13,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodAsyncRollBack
     {
         [TestMethod]
-        [DataRow(50, 5, 200, 5, 1, 3, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Memory)]
+        [DataRow(50, 5, 200, 5, 1, 3, false, IntegrationConnectionInfo.ConnectionTypes.Memory)]
         public void Run(int messageCount, int runtime, int timeOut,
-            int workerCount, int readerCount, int queueSize, LinqMethodTypes linqMethodTypes, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
+            int workerCount, int readerCount, int queueSize, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
 
                 consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
                         connectionInfo.ConnectionString),
-                    messageCount, runtime, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x, true, false, true),
+                    messageCount, runtime, timeOut, workerCount, readerCount, queueSize, enableChaos, x => Helpers.SetOptions(x, true, false, true),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
             }
         }

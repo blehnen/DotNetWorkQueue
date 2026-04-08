@@ -14,7 +14,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
             QueueConnection queueConnection,
             int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType,
-            LinqMethodTypes linqMethodTypes,
             bool enableChaos,
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
@@ -48,7 +47,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                         var producer = new ProducerMethodAsyncShared();
                         producer.RunTestAsync<TTransportInit>(queueConnection, false, messageCount, logProvider,
                             generateData,
-                            verify, false, runtime, id, linqMethodTypes, oCreation.Scope, false).Wait(timeOut);
+                            verify, false, runtime, id, oCreation.Scope, false).Wait(timeOut);
 
                         var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
                         consumer.RunConsumer<TTransportInit>(queueConnection,
@@ -63,7 +62,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                         var producer = new ProducerMethodAsyncShared();
                         producer.RunTestAsync<TTransportInit>(queueConnection, false, messageCount, logProvider,
                             generateData,
-                            verify, false, runtime, id, linqMethodTypes, oCreation.Scope, false).Wait(timeOut);
+                            verify, false, runtime, id, oCreation.Scope, false).Wait(timeOut);
 
                         var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
                         consumer.RunConsumer<TTransportInit>(queueConnection,
@@ -78,7 +77,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                         var producer = new ProducerMethodAsyncShared();
                         producer.RunTestAsync<TTransportInit>(queueConnection, false, messageCount, logProvider,
                             generateData,
-                            verify, false, runtime, id, linqMethodTypes, oCreation.Scope, false).Wait(timeOut);
+                            verify, false, runtime, id, oCreation.Scope, false).Wait(timeOut);
 
                         var consumer = new ConsumerMethodAsyncShared { Factory = Factory };
                         consumer.RunConsumer<TTransportInit>(queueConnection,
@@ -104,7 +103,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
             QueueConnection queueConnection,
             int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType, ITaskFactory factory,
-            LinqMethodTypes linqMethodTypes,
             bool enableChaos,
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
@@ -115,7 +113,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
         {
             Factory = factory;
             Run<TTransportInit, TTransportCreate>(queueConnection, messageCount, runtime, timeOut, workerCount, readerCount,
-                queueSize, messageType, linqMethodTypes, enableChaos, setOptions, generateData,
+                queueSize, messageType, enableChaos, setOptions, generateData,
                 verify, verifyQueueCount);
         }
 

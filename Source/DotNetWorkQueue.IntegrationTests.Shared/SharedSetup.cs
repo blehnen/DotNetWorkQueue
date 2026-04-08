@@ -231,8 +231,4 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         No
     }
 
-    public enum LinqMethodTypes
-    {
-        Compiled
-    }
 }

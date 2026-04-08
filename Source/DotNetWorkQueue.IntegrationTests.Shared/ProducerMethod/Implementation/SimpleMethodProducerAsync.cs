@@ -11,7 +11,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
         public async Task Run<TTransportInit, TTransportCreate>(
             QueueConnection queueConnection,
             int messageCount,
-            LinqMethodTypes linqMethodTypes,
             bool interceptors,
             bool enableChaos,
             bool sendViaBatch,
@@ -42,7 +41,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
                     await producer.RunTestAsync<TTransportInit>(queueConnection, interceptors, messageCount,
                             logProvider,
                             generateData,
-                            verify, sendViaBatch, 0, id, linqMethodTypes, oCreation.Scope, enableChaos)
+                            verify, sendViaBatch, 0, id, oCreation.Scope, enableChaos)
                         .ConfigureAwait(false);
                 }
                 finally

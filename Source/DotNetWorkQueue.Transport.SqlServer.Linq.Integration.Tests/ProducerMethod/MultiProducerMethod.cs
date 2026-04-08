@@ -16,14 +16,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMet
     public class MultiProducerMethod
     {
         [TestMethod]
-        [DataRow(10,LinqMethodTypes.Compiled, true)]
-        public void Run(int messageCount, LinqMethodTypes linqMethodTypes, bool enableChaos)
+        [DataRow(10, true)]
+        public void Run(int messageCount, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.MultiMethodProducer();
             consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(new QueueConnection(queueName, ConnectionInfo.ConnectionString),
-                messageCount, 10, linqMethodTypes, enableChaos, Helpers.GenerateData, VerifyQueueCount);
+                messageCount, 10, enableChaos, Helpers.GenerateData, VerifyQueueCount);
         }
 
         private void VerifyQueueCount(QueueConnection arg1, IBaseTransportOptions arg2, ICreationScope arg3, int arg4,

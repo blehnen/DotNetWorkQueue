@@ -13,10 +13,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class ConsumerMethodAsyncRollBack
     {
         [TestMethod]
-        [DataRow(5, 5, 200, 5, 1, 3, false, LinqMethodTypes.Compiled, true),
-         DataRow(10, 5, 180, 7, 1, 1, true, LinqMethodTypes.Compiled, false)]
+        [DataRow(5, 5, 200, 5, 1, 3, false, true),
+         DataRow(10, 5, 180, 7, 1, 1, true, false)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
-            bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
+            bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var consumer =
@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
 
             consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
                     ConnectionInfo.ConnectionString),
-                messageCount, runtime, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                messageCount, runtime, timeOut, workerCount, readerCount, queueSize, enableChaos, x => Helpers.SetOptions(x,
                     true, !useTransactions, useTransactions, false,
                     false, !useTransactions, true, false),
                 Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);

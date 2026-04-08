@@ -19,7 +19,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             ILogger logProvider,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify, bool sendViaBatch,
-            int runTime, Guid id, LinqMethodTypes linqMethodTypes,
+            int runTime, Guid id,
             ICreationScope scope, bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
@@ -48,8 +48,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                             await
                                 RunProducerAsync(queue, queueConnection, messageCount, generateData, verify,
                                     sendViaBatch,
-                                    runTime, id,
-                                    linqMethodTypes, scope).ConfigureAwait(false);
+                                    runTime, id, scope).ConfigureAwait(false);
                         }
 
                         VerifyMetrics.VerifyProducedAsyncCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
@@ -65,9 +64,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             long messageCount,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify, bool sendViaBatch,
-            int runTime, Guid id, LinqMethodTypes type, ICreationScope scope)
+            int runTime, Guid id, ICreationScope scope)
         {
-            await RunProducerInternalAsync(queue, messageCount, generateData, sendViaBatch, runTime, id, type)
+            await RunProducerInternalAsync(queue, messageCount, generateData, sendViaBatch, runTime, id)
                 .ConfigureAwait(false);
             LoggerShared.CheckForErrors(queueConnection.Queue);
             verify(queueConnection,
@@ -77,20 +76,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
         private async Task RunProducerInternalAsync(
             IProducerMethodQueue
                 queue, long messageCount, Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-            bool sendViaBatch, int runTime, Guid id, LinqMethodTypes methodType)
+            bool sendViaBatch, int runTime, Guid id)
         {
             var numberOfJobs = Convert.ToInt32(messageCount);
-            switch (methodType)
-            {
-                case LinqMethodTypes.Compiled:
-                    {
-                        var jobs = Enumerable.Range(0, numberOfJobs)
-                            .Select(i => GenerateMethod.CreateCompiled(id, runTime));
-                        await RunProducerInternalAsync(queue, generateData, sendViaBatch, jobs, numberOfJobs)
-                            .ConfigureAwait(false);
-                    }
-                    break;
-            }
+            var jobs = Enumerable.Range(0, numberOfJobs)
+                .Select(i => GenerateMethod.CreateCompiled(id, runTime));
+            await RunProducerInternalAsync(queue, generateData, sendViaBatch, jobs, numberOfJobs)
+                .ConfigureAwait(false);
         }
 
         private async Task RunProducerInternalAsync(

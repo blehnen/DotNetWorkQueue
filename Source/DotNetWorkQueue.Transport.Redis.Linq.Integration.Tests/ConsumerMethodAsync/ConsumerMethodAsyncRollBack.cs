@@ -14,8 +14,8 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
     public class ConsumerMethodAsyncRollBack
     {
         [TestMethod]
-        [DataRow(100, 1, 400, 5, 5, 5, LinqMethodTypes.Compiled)]
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize, LinqMethodTypes linqMethodTypes)
+        [DataRow(100, 1, 400, 5, 5, 5)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize)
         {
             var queueName = GenerateQueueName.Create();
             var connectionString = ConnectionInfo.ConnectionString;
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                     ConsumerMethodAsyncRollBack();
 
             consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
-                messageCount, runtime, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, false, x => { },
+                messageCount, runtime, timeOut, workerCount, readerCount, queueSize, false, x => { },
                 Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
         }
 
