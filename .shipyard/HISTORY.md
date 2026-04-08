@@ -663,3 +663,16 @@
 - **Phase 4:** CronExpressionDescriptor logging — 2 structured log lines in JobScheduler.cs, 1 commit (`bfcf666c`). Builder adapted plan: used `schedule.OriginalText` instead of raw string param.
 - **Verification:** 0 Schyntax schedule strings remain, Release build 0 errors
 - **Status:** Phases 2/3/4 complete, ready for Phase 5 (cleanup + docs + version bump)
+
+## 2026-04-08 — Phase 5 Build Complete
+
+- **Action:** `/shipyard:build 5`
+- **Plans executed:** 1/1 (PLAN-1.1)
+- **Commits:**
+  - `b06b1713` — Delete vendored Lib/Schyntax DLLs
+  - `1f8477cc` — Update README.md + CLAUDE.md (Schyntax → Cronos/cron)
+  - `327f5965` — CHANGELOG entry + version bump
+  - `bde1c3c3` — Fix version to 0.9.3 (builder deviation)
+  - `076fa078` — Correct to 0.9.30 (0.9.3 < 0.9.19 in NuGet versioning)
+- **Builder deviation:** Used 0.9.20 instead of 0.9.3; corrected to 0.9.30 per user direction
+- **Status:** All 5 phases complete — ready for /shipyard:ship
