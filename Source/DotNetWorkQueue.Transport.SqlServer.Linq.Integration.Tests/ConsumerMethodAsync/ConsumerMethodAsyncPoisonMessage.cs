@@ -14,17 +14,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodAsyncPoisonMessage
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(10, 60, 5, 1, 0, true, LinqMethodTypes.Compiled, false),
-#if NETFULL
-        DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Dynamic, false),
-        DataRow(10, 60, 5, 1, 0, true, LinqMethodTypes.Dynamic, false),
-#endif
-        DataRow(10, 80, 20, 2, 2, false, LinqMethodTypes.Compiled, true)]
-#else
         [DataRow(10, 60, 5, 1, 0, true, LinqMethodTypes.Compiled, false),
          DataRow(10, 80, 20, 2, 2, false, LinqMethodTypes.Compiled, true)]
-#endif
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

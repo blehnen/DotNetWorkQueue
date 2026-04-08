@@ -15,16 +15,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodAsyncErrorTable
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Dynamic, false),
-        DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
-#else
-        [DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
-#endif
-#else
         [DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, false)]
-#endif
         public void Run(int messageCount, int timeOut, int workerCount,
             int readerCount, int queueSize, bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

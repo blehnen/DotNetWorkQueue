@@ -11,12 +11,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
     public class JobSchedulerTests
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(true, false),
-         DataRow(true, true)]
-#else
         [DataRow(true, false)]
-#endif
         public void Run(
             bool interceptors,
             bool dynamic)

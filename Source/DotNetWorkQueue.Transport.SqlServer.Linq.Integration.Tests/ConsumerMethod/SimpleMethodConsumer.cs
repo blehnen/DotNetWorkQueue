@@ -13,17 +13,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class SimpleMethodConsumer
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(1000, 0, 240, 5, false, LinqMethodTypes.Compiled, false),
-#if NETFULL
-         DataRow(50, 5, 200, 10, true, LinqMethodTypes.Dynamic, false),
-         DataRow(10, 15, 180, 7, false, LinqMethodTypes.Dynamic, false),
-#endif
-         DataRow(5, 5, 200, 10, true, LinqMethodTypes.Compiled, true)]
-#else
         [DataRow(1000, 0, 240, 5, false, LinqMethodTypes.Compiled, false),
          DataRow(5, 5, 200, 10, true, LinqMethodTypes.Compiled, true)]
-#endif
         public void Run(int messageCount, int runtime, int timeOut, int workerCount,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

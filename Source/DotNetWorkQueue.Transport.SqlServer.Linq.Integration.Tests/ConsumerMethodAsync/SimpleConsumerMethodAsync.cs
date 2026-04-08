@@ -14,17 +14,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class SimpleConsumerMethodAsync
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(50, 5, 200, 10, 1, 1, true, 1, LinqMethodTypes.Compiled, false),
-#if NETFULL
-         DataRow(50, 5, 200, 10, 1, 2, false, 1, LinqMethodTypes.Dynamic, false),
-         DataRow(10, 5, 180, 7, 1, 1, true, 1, LinqMethodTypes.Dynamic, false),
-#endif
-         DataRow(10, 5, 180, 7, 1, 2, false, 1, LinqMethodTypes.Compiled, true)]
-#else
         [DataRow(50, 5, 200, 10, 1, 1, true, 1, LinqMethodTypes.Compiled, false),
          DataRow(10, 5, 180, 7, 1, 2, false, 1, LinqMethodTypes.Compiled, true)]
-#endif
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, int messageType, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
