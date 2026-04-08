@@ -121,6 +121,7 @@ Projects target net10.0 and net8.0. Legacy conditional compilation symbols (NETF
 - SQL UPDATE tests that only assert parameter values can pass while the UPDATE is a silent no-op: a WHERE clause guard may exclude the very rows you're trying to fix. Capture and assert the actual `CommandText` to catch this — the parameter assertion alone is a false positive.
 - StackExchange.Redis `ConnectionMultiplexer` cannot be mocked with NSubstitute (sealed types + extension methods). Expose a `protected virtual GetDb()` seam on Redis handlers for testability; keep classes internal to contain the scope.
 - `RedisValue.Null` cast to `(int)` yields `0`, not an exception. When comparing against enums where `0` is a valid member (e.g., `MessageHistoryStatus.Enqueued`), always check `.HasValue` before casting to avoid null-value collisions.
+- NuGet version ordering: `0.9.3` < `0.9.19`, so you can't go back to a lower version number after incrementing past it.
 
 ## Code Quality
 - Prefer correct, complete implementations over minimal ones.
