@@ -11,25 +11,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducerAsyncBatch
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(1000, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic, false),
-         DataRow(100, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic, false),
-         DataRow(100, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic, false),
-         DataRow(100, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic, false),
-         DataRow(100, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, false),
-         DataRow(100, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, false),
-         DataRow(100, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, false),
-         DataRow(1000, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, false),
-
-         DataRow(100, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic, true),
-         DataRow(10, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Dynamic, true),
-         DataRow(10, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic, true),
-         DataRow(10, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Dynamic, true),
-         DataRow(10, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, true),
-         DataRow(10, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, true),
-         DataRow(10, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true),
-         DataRow(100, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true)]
-#else
         [DataRow(100, true, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, false),
          DataRow(100, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, false),
          DataRow(100, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, false),
@@ -38,7 +19,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
          DataRow(10, false, true, true, false, false, true, false, false, true, LinqMethodTypes.Compiled, true),
          DataRow(10, false, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true),
          DataRow(100, true, false, false, false, false, false, false, false, true, LinqMethodTypes.Compiled, true)]
-#endif
         public async Task Run(
             int messageCount,
             bool interceptors,

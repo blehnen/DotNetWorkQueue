@@ -14,15 +14,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodHeartbeat
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(7, 15, 90, 3, true, LinqMethodTypes.Dynamic, false),
-        DataRow(7, 15, 190, 3, false, LinqMethodTypes.Dynamic, true),
-        DataRow(7, 15, 190, 3, true, LinqMethodTypes.Compiled, true),
-        DataRow(7, 15, 90, 3, false, LinqMethodTypes.Compiled, false)]
-#else
         [DataRow(7, 15, 190, 3, true, LinqMethodTypes.Compiled, true),
          DataRow(7, 15, 90, 3, false, LinqMethodTypes.Compiled, false)]
-#endif
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
