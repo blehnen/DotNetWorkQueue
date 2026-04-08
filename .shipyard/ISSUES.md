@@ -2,6 +2,41 @@
 
 ## Open
 
+### ISSUE-021: Empty shell files after NETFULL removal
+- **Severity:** Suggestion
+- **Source:** Phase 3 Plan 1.1 + 1.2 Reviews
+- **Status:** Open
+- **Files:**
+  - `Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs`
+  - `Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs`
+  - `Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs`
+  - `Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs`
+  - `Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs`
+  - `Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs`
+  - `Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/ProducerMethod/SimpleMethodProducerDynamicListSend.cs`
+- **Description:** After removing `#if NETFULL` blocks, these files contain only unused `using` directives and an empty namespace (or in the case of SimpleMethodProducerDynamicListSend.cs, only `using` directives with no namespace or class at all). The entire class in each file was NETFULL-only, so nothing meaningful remains. The files compile but are dead weight.
+- **Remediation:** Delete all seven files in a batch cleanup pass.
+
+### ISSUE-022: No-op `dynamic=true` test case in PostgreSQL JobSchedulerTests
+- **Severity:** Important
+- **Source:** simplifier (Phase 3)
+- **Status:** Open
+- **Files:**
+  - `Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs` (line 16, `DataRow(true, true)`)
+  - `Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs` (pre-existing, `DataRow(true)`)
+- **Description:** The shared `JobSchedulerTests.Run<>()` implementation guards all test logic with `if (!dynamic)`. When `dynamic=true`, the test creates a queue, executes zero assertions, then tears down -- a vacuously passing no-op. PostgreSQL has `DataRow(true, true)` (preserved from pre-phase-3 `#else` block) and LiteDb has `DataRow(true)` (pre-existing, not modified in phase 3). Both waste CI time and provide false confidence.
+- **Remediation:** Remove `DataRow(true, true)` from PostgreSQL and `DataRow(true)` from LiteDb JobSchedulerTests. Optionally, remove the `bool dynamic` parameter from the shared implementation and all 7 callers, since dynamic LINQ is no longer available without NETFULL.
+
+### ISSUE-023: Stray blank line and double blank line artifacts from NETFULL removal
+- **Severity:** Suggestion
+- **Source:** simplifier (Phase 3)
+- **Status:** Open
+- **Files:**
+  - `Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs` (line 14, blank line between `[TestMethod]` and `[DataRow]`)
+  - `Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj` (lines 22-23, double blank line where net48 ItemGroup was removed)
+- **Description:** Phase 3 NETFULL removal left cosmetic artifacts: a stray blank line in PostgreSQL JobSchedulerTests where an empty `#if NETFULL`/`#else`/`#endif` block was removed, and a double blank line in the Memory csproj where the net48 conditional ItemGroup was deleted.
+- **Remediation:** Delete the blank line on PostgreSQL JobSchedulerTests line 14. Remove one of the two blank lines on Memory csproj lines 22-23. Can be batched with ISSUE-021 cleanup.
+
 ### ISSUE-019: Missing SUMMARY-1.1.md artifact for Plan 1.1 (LiteDb history tests)
 - **Severity:** Important
 - **Source:** Plan 1.1 Review

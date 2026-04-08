@@ -1,35 +1,67 @@
 # Verification Report
 **Phase:** 3 -- Linq Integration Tests (SqlServer, PostgreSQL, SQLite, Redis, LiteDB, Memory)
 **Date:** 2026-04-07
-**Type:** plan-review
+**Type:** build-verify
 
 ## Results
 
 | # | Criterion | Status | Evidence |
 |---|-----------|--------|----------|
-| 1 | All 6 sub-phase requirements (3a-3f) covered by the 2 plans | PASS | PLAN-1.1 covers 3a (SqlServer), 3b (PostgreSQL), 3c (SQLite). PLAN-1.2 covers 3d (Redis), 3e (LiteDB), 3f (Memory). Each plan has 3 tasks = 6 total tasks covering 6 sub-phases. |
-| 2 | No plan exceeds 3 tasks | PASS | PLAN-1.1 has 3 tasks, PLAN-1.2 has 3 tasks. |
-| 3 | Wave ordering respects dependencies | PASS | Both plans are Wave 1 with `dependencies: []`. All 6 sub-phases depend only on Phase 2 (already PASS per `.shipyard/phases/2/VERIFICATION.md`). No inter-plan dependencies. |
-| 4 | No file conflicts between parallel plans | PASS | PLAN-1.1 touches `SqlServer.Linq.Integration.Tests/`, `PostgreSQL.Linq.Integration.Tests/`, `SQLite.Linq.Integration.Tests/`. PLAN-1.2 touches `Redis.Linq.Integration.Tests/`, `LiteDB.Linq.Integration.Tests/`, `Memory.Linq.Integration.Tests/`. Zero overlap. |
-| 5 | All 6 project directories exist | PASS | Glob confirmed all 6 directories exist and contain .cs files with `#if NETFULL`. |
-| 6 | Plan .cs file counts match actual NETFULL occurrences | PASS | SqlServer: plan=18, actual=18. PostgreSQL: plan=18, actual=18. SQLite: plan=17, actual=17. Redis: plan=15, actual=15. LiteDB: plan=17, actual=17. Memory: plan=12, actual=12. All exact matches. |
-| 7 | Plan subdirectory breakdowns match actual | PASS | SqlServer: ConsumerMethod(8)+ConsumerMethodAsync(4)+ProducerMethod(5)+JobScheduler(1)=18. PostgreSQL: 8+4+5+1=18. SQLite: 8+4+5+0=17. Redis: 8+4+2+1=15. LiteDB: 8+4+5+0=17. Memory: 2+1+7+2=12. All match plan claims. |
-| 8 | All 6 csproj files exist and contain net48 | PASS | grep confirmed `<TargetFrameworks>net10.0;net48</TargetFrameworks>` in all 6 csproj files. All also have conditional PropertyGroup blocks for net48. |
-| 9 | No NETSTANDARD2_0 references in scope (plans correctly omit) | PASS | `grep -rl "NETSTANDARD2_0"` across all 6 directories returned 0 matches. Plans correctly target only NETFULL removal. |
-| 10 | Verification commands are syntactically correct and runnable | PASS | All 6 verify blocks use `grep -r "NETFULL\|net48" ... --include="*.cs" --include="*.csproj" \| grep -v "/obj/"` followed by `dotnet build`. The `/obj/` exclusion correctly handles build artifact residue. |
-| 11 | Acceptance criteria are measurable and objective | PASS | Each task defines: (a) zero grep matches for NETFULL/net48, (b) successful dotnet build. Both are binary pass/fail. |
-| 12 | No forward references between plans in same wave | PASS | PLAN-1.1 and PLAN-1.2 touch completely independent project directories with no shared code. |
-| 13 | Prior phases still passing (regression check) | PASS | Phase 1 VERIFICATION.md: all 7 criteria PASS. Phase 2 VERIFICATION.md: all 5 criteria PASS. Phase 2 notes 23 NU1201 errors from Phase 3 projects -- this is the expected intermediate state that Phase 3 resolves. |
-| 14 | No deferred issues from ISSUES.md relevant to Phase 3 | PASS | Open issues (ISSUE-016 through ISSUE-020) concern Redis PurgeMessageHistoryHandler, Redis tests, LiteDb dashboard tests, and missing summary artifacts -- none touch the Linq integration test projects in scope. |
+| 1 | Zero residual `NETFULL` references in .cs files across all 6 Linq integration test projects | PASS | `grep -r "NETFULL" Source/*Linq.Integration.Tests/ --include="*.cs"` returned 0 matches. |
+| 2 | Zero residual `net48` references in .csproj files across all 6 Linq integration test projects | PASS | `grep -r "net48" Source/*Linq.Integration.Tests/ --include="*.csproj"` returned 0 matches. |
+| 3 | All 6 csproj files use singular `<TargetFramework>net10.0</TargetFramework>` | PASS | Grep confirmed line 4 of each csproj contains `<TargetFramework>net10.0</TargetFramework>`: SqlServer, PostgreSQL, SQLite, Redis, LiteDb, Memory. No plural `<TargetFrameworks>` found. |
+| 4 | No conditional `Condition="...net48..."` blocks remain in csproj files | PASS | `grep -r "Condition.*net48" Source/*Linq.Integration.Tests/*.csproj` returned 0 matches. |
+| 5 | SqlServer Linq integration tests build (Phase 3a) | PASS | `dotnet build` succeeded: 0 errors, 0 warnings. |
+| 6 | PostgreSQL Linq integration tests build (Phase 3b) | PASS | `dotnet build` succeeded: 0 errors, 0 warnings. |
+| 7 | SQLite Linq integration tests build (Phase 3c) | PASS | `dotnet build` succeeded: 0 errors, 0 warnings. 1 warning from dependency project `SQLite.Integration.Tests/ConnectionString.cs:24` (SYSLIB0012 Assembly.CodeBase) -- not in Phase 3 scope. |
+| 8 | Redis Linq integration tests build (Phase 3d) | PASS | `dotnet build` succeeded: 0 errors, 0 warnings. |
+| 9 | LiteDB Linq integration tests build (Phase 3e) | PASS | `dotnet build` succeeded: 0 errors, 0 warnings. 1 warning from dependency project `LiteDB.IntegrationTests/ConnectionString.cs:28` (SYSLIB0012 Assembly.CodeBase) -- not in Phase 3 scope. |
+| 10 | Memory Linq integration tests build (Phase 3f) | PASS | `dotnet build` succeeded: 0 errors, 0 warnings. |
+| 11 | Memory Linq integration tests pass (runtime verification) | PASS | `dotnet test` after clean rebuild: Passed 20, Failed 0, Skipped 0, Duration 10m 26s. Initial run hit transient WSL file copy race (MSB3026 for Aq.ExpressionJsonSerializer.dll); clean rebuild resolved it. |
+| 12 | No orphaned preprocessor directives (`#if`, `#else`, `#endif`) in Linq integration test .cs files | PASS | `grep -r "#if \|#else\|#endif" Source/*Linq.Integration.Tests/ --include="*.cs"` returned 0 matches. All conditional blocks fully removed. |
+| 13 | Correct file counts per commit match plan specifications | PASS | SqlServer: 19 files (18 .cs + 1 csproj). PostgreSQL: 19 files (18 .cs + 1 csproj). SQLite: 18 files (17 .cs + 1 csproj). Redis: 16 files (15 .cs + 1 csproj). LiteDB: 18 files (17 .cs + 1 csproj). Memory: 13 files (12 .cs + 1 csproj). All match PLAN-1.1 and PLAN-1.2. |
+| 14 | Full solution build succeeds (resolves Phase 2 NU1201 errors) | PASS | `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` succeeded: 0 errors, 0 warnings. The 23 NU1201 errors noted in Phase 2 verification (from Linq projects still targeting net48) are now resolved. |
+| 15 | Phase 1 regression check: core solution builds | PASS | `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Debug` succeeded: 0 errors, 0 warnings. |
+| 16 | Phase 2 regression check: core unit tests pass | PASS | `dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj"`: Passed 878, Failed 0, Skipped 0, Duration 1m 7s. |
+| 17 | Phase 2 regression check: IntegrationTests.Shared has no NETFULL/NETSTANDARD2_0 | PASS | `grep -r "NETFULL\|NETSTANDARD2_0" Source/DotNetWorkQueue.IntegrationTests.Shared/ --include="*.cs" --include="*.csproj"` returned 0 matches. |
+| 18 | Non-Linq Memory integration tests still pass (regression) | PASS | `dotnet test "Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/"`: Passed 56, Failed 0, Skipped 0, Duration 8m 21s. |
+
+## Plan must_haves Coverage
+
+| Plan | must_have | Status |
+|------|-----------|--------|
+| PLAN-1.1 | Remove all `#if NETFULL` blocks from SqlServer, PostgreSQL, SQLite .cs files | PASS (criteria 1, 12) |
+| PLAN-1.1 | Remove net48 target and conditional blocks from SqlServer, PostgreSQL, SQLite csproj files | PASS (criteria 2, 3, 4) |
+| PLAN-1.1 | All three projects build successfully targeting net10.0 only | PASS (criteria 5, 6, 7) |
+| PLAN-1.2 | Remove all `#if NETFULL` blocks from Redis, LiteDB, Memory .cs files | PASS (criteria 1, 12) |
+| PLAN-1.2 | Remove net48 target and conditional blocks from Redis, LiteDB, Memory csproj files | PASS (criteria 2, 3, 4) |
+| PLAN-1.2 | All three projects build successfully targeting net10.0 only | PASS (criteria 8, 9, 10) |
+
+## Roadmap Success Criteria Coverage
+
+| Sub-phase | Criterion 1: Zero NETFULL in .cs | Criterion 2: Zero net48 in .csproj | Criterion 3: dotnet build succeeds |
+|-----------|----------------------------------|------------------------------------|------------------------------------|
+| 3a SqlServer | PASS | PASS | PASS |
+| 3b PostgreSQL | PASS | PASS | PASS |
+| 3c SQLite | PASS | PASS | PASS |
+| 3d Redis | PASS | PASS | PASS |
+| 3e LiteDB | PASS | PASS | PASS |
+| 3f Memory | PASS | PASS | PASS |
 
 ## Gaps
 
-- **Roadmap file counts are stale.** The roadmap lists 13/13/13/14/13/10 .cs files for sub-phases 3a-3f, but the actual counts are 18/18/17/15/17/12. The plans correctly use the actual counts. This is a documentation inaccuracy in ROADMAP.md, not a plan defect. It does not block execution.
+- None identified. All 18 criteria pass with concrete evidence.
+
+## Notes
+
+- **Transient WSL file copy issue:** The initial `dotnet test` for Memory Linq tests failed because a prior build hit MSB3026/MSB3027 (file copy retry exhaustion for `Aq.ExpressionJsonSerializer.dll`). This is a known WSL cross-mount race condition, not a code defect. Cleaning `bin/obj` and rebuilding resolved the issue. The DLL exists in the NuGet cache at `/home/brian/.nuget/packages/dotnetworkqueue.aq.expressionjsonserializer/1.0.1/lib/net10.0/`.
+- **SYSLIB0012 warnings:** Two dependency projects (`SQLite.Integration.Tests` and `LiteDB.IntegrationTests`) emit SYSLIB0012 warnings for `Assembly.CodeBase` usage. These are outside Phase 3 scope and pre-existing.
+- **Roadmap file count discrepancy (carried forward from plan-review):** ROADMAP.md lists lower .cs file counts (13/13/13/14/13/10) than the actual counts (18/18/17/15/17/12). The plans and commits used the correct actual counts.
 
 ## Recommendations
 
-- After Phase 3 execution, verify that the full solution build (`dotnet build "Source/DotNetWorkQueue.sln" -c Debug`) succeeds with 0 errors -- this resolves the 23 NU1201 errors noted in the Phase 2 verification.
-- Consider updating the ROADMAP.md file counts to match reality during Phase 4 (CI/Docs), since that phase already updates documentation.
+- Consider addressing the SYSLIB0012 warnings in `SQLite.Integration.Tests/ConnectionString.cs:24` and `LiteDB.IntegrationTests/ConnectionString.cs:28` during Phase 4 or as a follow-up -- replace `Assembly.CodeBase` with `Assembly.Location`.
+- Update ROADMAP.md file counts during Phase 4 documentation work.
 
 ## Verdict
-**PASS** -- Both plans are well-constructed, accurate, and ready for execution. File counts verified against the filesystem, all directories and csproj files confirmed, no conflicts, no missing coverage, no regressions.
+**PASS** -- All 18 verification criteria pass with concrete evidence. All 6 Linq integration test projects have been successfully cleaned of net48/NETFULL references, target net10.0 only, build with 0 errors, and the Memory Linq integration tests pass at runtime (20/20). No regressions detected in Phase 1 or Phase 2. The full solution build now succeeds with 0 errors, resolving the intermediate NU1201 state from Phase 2.

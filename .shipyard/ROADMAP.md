@@ -108,7 +108,7 @@ Phase 4 depends on all prior phases completing (CI and docs reflect the final st
 
 ---
 
-## Phase 3a: SqlServer Linq Integration Tests
+## Phase 3a: SqlServer Linq Integration Tests -- COMPLETE
 
 **Risk:** LOW -- mechanical removal of `#if NETFULL` blocks. Pattern identical across all transport Linq tests.
 **Scope:** ~8% of total files.
@@ -131,7 +131,7 @@ Remove `#if NETFULL` blocks from 13 .cs files (dynamic LINQ test methods using `
 
 ---
 
-## Phase 3b: PostgreSQL Linq Integration Tests
+## Phase 3b: PostgreSQL Linq Integration Tests -- COMPLETE
 
 **Risk:** LOW -- identical pattern to Phase 3a.
 **Scope:** ~8% of total files.
@@ -154,7 +154,7 @@ Remove `#if NETFULL` blocks from 13 .cs files. Update 1 csproj.
 
 ---
 
-## Phase 3c: SQLite Linq Integration Tests
+## Phase 3c: SQLite Linq Integration Tests -- COMPLETE
 
 **Risk:** LOW -- identical pattern.
 **Scope:** ~8% of total files.
@@ -177,7 +177,7 @@ Remove `#if NETFULL` blocks from 13 .cs files. Update 1 csproj.
 
 ---
 
-## Phase 3d: Redis Linq Integration Tests
+## Phase 3d: Redis Linq Integration Tests -- COMPLETE
 
 **Risk:** LOW -- identical pattern.
 **Scope:** ~8% of total files.
@@ -200,7 +200,7 @@ Remove `#if NETFULL` blocks from 14 .cs files. Update 1 csproj.
 
 ---
 
-## Phase 3e: LiteDB Linq Integration Tests
+## Phase 3e: LiteDB Linq Integration Tests -- COMPLETE
 
 **Risk:** LOW -- identical pattern.
 **Scope:** ~8% of total files.
@@ -223,7 +223,7 @@ Remove `#if NETFULL` blocks from 13 .cs files. Update 1 csproj.
 
 ---
 
-## Phase 3f: Memory Linq Integration Tests
+## Phase 3f: Memory Linq Integration Tests -- COMPLETE
 
 **Risk:** LOW -- identical pattern.
 **Scope:** ~7% of total files.
