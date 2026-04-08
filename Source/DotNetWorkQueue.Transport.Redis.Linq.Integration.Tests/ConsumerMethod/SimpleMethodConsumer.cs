@@ -10,16 +10,8 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class SimpleMethodConsumer
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(100, 0, 240, 5, LinqMethodTypes.Dynamic),
-        DataRow(50, 5, 200, 10, LinqMethodTypes.Dynamic)]
-#else
-#endif
-#else
-        [DataRow(10, 5, 180, 7, LinqMethodTypes.Compiled)]
-#endif
-        public void Run(int messageCount, int runtime, int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)
+        [DataRow(10, 5, 180, 7)]
+        public void Run(int messageCount, int runtime, int timeOut, int workerCount)
         {
             var queueName = GenerateQueueName.Create();
             var connectionString = ConnectionInfo.ConnectionString;
@@ -28,7 +20,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                     SimpleMethodConsumer();
 
             consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
-                messageCount, runtime, timeOut, workerCount, linqMethodTypes, false, x => { },
+                messageCount, runtime, timeOut, workerCount, false, x => { },
                 Helpers.GenerateData, Helpers.Verify, VerifyQueueCount);
         }
 

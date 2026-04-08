@@ -13,26 +13,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class SimpleMethodConsumer
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(1000, 0, 240, 5, false, LinqMethodTypes.Compiled, false),
-#if NETFULL
-         DataRow(50, 5, 200, 10, true, LinqMethodTypes.Dynamic, false),
-         DataRow(10, 15, 180, 7, false, LinqMethodTypes.Dynamic, false),
-#endif
-         DataRow(5, 5, 200, 10, true, LinqMethodTypes.Compiled, true)]
-#else
-        [DataRow(1000, 0, 240, 5, false, LinqMethodTypes.Compiled, false),
-         DataRow(5, 5, 200, 10, true, LinqMethodTypes.Compiled, true)]
-#endif
+        [DataRow(1000, 0, 240, 5, false, false),
+         DataRow(5, 5, 200, 10, true, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount,
-            bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
+            bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
                     SimpleMethodConsumer();
             consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(new QueueConnection(queueName, ConnectionInfo.ConnectionString),
-                messageCount, runtime, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
                     true, !useTransactions, useTransactions,
                     false,
                     false, !useTransactions, true, false),

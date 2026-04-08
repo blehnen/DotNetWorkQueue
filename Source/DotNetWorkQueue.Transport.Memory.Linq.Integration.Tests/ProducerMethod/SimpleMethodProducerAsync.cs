@@ -10,15 +10,9 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducerAsync
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(1000, LinqMethodTypes.Dynamic),
-         DataRow(1000, LinqMethodTypes.Compiled)]
-#else
-        [DataRow(1000, LinqMethodTypes.Compiled)]
-#endif
+        [DataRow(1000)]
         public async Task Run(
-            int messageCount,
-            LinqMethodTypes linqMethodTypes)
+            int messageCount)
         {
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
@@ -28,7 +22,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
                         SimpleMethodProducerAsync();
 
                 await consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(new QueueConnection(queueName,
-                        connectionInfo.ConnectionString), messageCount, linqMethodTypes, false, false, false,
+                        connectionInfo.ConnectionString), messageCount, false, false, false,
                     x => { }, Helpers.GenerateData, Verify);
             }
         }

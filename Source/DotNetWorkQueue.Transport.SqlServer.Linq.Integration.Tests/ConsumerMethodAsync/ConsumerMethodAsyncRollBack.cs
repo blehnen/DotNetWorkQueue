@@ -14,26 +14,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodAsyncRollBack
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Compiled, false),
-#if NETFULL
-         DataRow(100, 1, 400, 5, 5, 5, false, LinqMethodTypes.Dynamic, false),
-         DataRow(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Dynamic, false),
-#endif
-         DataRow(10, 5, 280, 7, 1, 1, false, LinqMethodTypes.Compiled, true)]
-#else
-        [DataRow(50, 5, 200, 5, 1, 3, true, LinqMethodTypes.Compiled, false),
-         DataRow(10, 5, 280, 7, 1, 1, false, LinqMethodTypes.Compiled, true)]
-#endif
+        [DataRow(50, 5, 200, 5, 1, 3, true, false),
+         DataRow(10, 5, 280, 7, 1, 1, false, true)]
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
-            bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
+            bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation.
                     ConsumerMethodAsyncRollBack();
             consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(new QueueConnection(queueName, ConnectionInfo.ConnectionString),
-                messageCount, runtime, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                messageCount, runtime, timeOut, workerCount, readerCount, queueSize, enableChaos, x => Helpers.SetOptions(x,
                     true, !useTransactions, useTransactions,
                     false,
                     false, !useTransactions, true, false),

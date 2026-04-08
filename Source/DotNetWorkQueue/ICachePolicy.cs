@@ -24,7 +24,7 @@ namespace DotNetWorkQueue
     /// Defines the cache behavior for a type
     /// </summary>
     /// <typeparam name="TType">The type of the class that implements caching.</typeparam>
-    /// <remarks>Only implemented for very specific interfaces. An example would be <see cref="ILinqCompiler"/></remarks>
+    /// <remarks>Only implemented for very specific interfaces.</remarks>
     // ReSharper disable once UnusedTypeParameter
     public interface ICachePolicy<TType>
     {

@@ -16,18 +16,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
     public class MultiProducerMethod
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(100, LinqMethodTypes.Dynamic, true),
-         DataRow(1000, LinqMethodTypes.Compiled, false)]
-#else
-        [DataRow(1000, LinqMethodTypes.Compiled, false)]
-#endif
-#else
-        [DataRow(1000, LinqMethodTypes.Compiled, false),
-        DataRow(100, LinqMethodTypes.Compiled, true)]
-#endif
-        public void Run(int messageCount, LinqMethodTypes linqMethodTypes, bool enableChaos)
+        [DataRow(1000, false),
+        DataRow(100, true)]
+        public void Run(int messageCount, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var consumer =
@@ -35,7 +26,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
 
             consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
                     ConnectionInfo.ConnectionString),
-                messageCount, 10, linqMethodTypes, enableChaos, Helpers.GenerateData, VerifyQueueCount);
+                messageCount, 10, enableChaos, Helpers.GenerateData, VerifyQueueCount);
         }
 
         private void VerifyQueueCount(QueueConnection arg1, IBaseTransportOptions arg2, ICreationScope arg3, int arg4, string arg5)

@@ -14,7 +14,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
     {
         public void Run<TTransportInit, TTransportCreate>(
             QueueConnection queueConnection,
-            int messageCount, int queueCount, LinqMethodTypes linqMethodTypes, bool enableChaos,
+            int messageCount, int queueCount, bool enableChaos,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, IBaseTransportOptions, ICreationScope, int, string> verifyQueueCount)
             where TTransportInit : ITransportInit, new()
@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
                     Assert.IsTrue(result.Success, result.ErrorMessage);
                     scope = oCreation.Scope;
 
-                    RunTest<TTransportInit>(queueConnection, messageCount, queueCount, logProvider, linqMethodTypes, oCreation.Scope,
+                    RunTest<TTransportInit>(queueConnection, messageCount, queueCount, logProvider, oCreation.Scope,
                         enableChaos, generateData);
                     LoggerShared.CheckForErrors(queueConnection.Queue);
                     verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, messageCount * queueCount, null);
@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
         }
 
         private void RunTest<TTransportInit>(QueueConnection queueConnection,
-            int messageCount, int queueCount, ILogger logProvider, LinqMethodTypes linqMethodTypes, ICreationScope scope, bool enableChaos,
+            int messageCount, int queueCount, ILogger logProvider, ICreationScope scope, bool enableChaos,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData)
             where TTransportInit : ITransportInit, new()
         {
@@ -61,18 +61,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
             {
                 var id = Guid.NewGuid();
                 var producer = new ProducerMethodShared();
-                if (linqMethodTypes == LinqMethodTypes.Compiled)
-                {
-                    tasks.Add(new Task(() => producer.RunTestCompiled<TTransportInit>(queueConnection, false, messageCount,
-                        logProvider, generateData, Verify, true, false, id, GenerateMethod.CreateCompiled, 0, scope, enableChaos)));
-                }
-#if NETFULL
-                else
-                {
-                    tasks.Add(new Task(() => producer.RunTestDynamic<TTransportInit>(queueConnection, false, messageCount,
-                        logProvider, generateData, Verify, true, false, id, GenerateMethod.CreateDynamic, 0, scope, enableChaos)));
-                }
-#endif
+                tasks.Add(new Task(() => producer.RunTestCompiled<TTransportInit>(queueConnection, false, messageCount,
+                    logProvider, generateData, Verify, true, false, id, GenerateMethod.CreateCompiled, 0, scope, enableChaos)));
             }
             tasks.AsParallel().ForAll(x => x.Start());
             Task.WaitAll(tasks.ToArray());

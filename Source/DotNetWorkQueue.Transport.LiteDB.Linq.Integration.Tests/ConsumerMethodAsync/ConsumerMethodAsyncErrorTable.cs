@@ -13,15 +13,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodAsyncErrorTable
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(1, 60, 1, 1, 0, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-        DataRow(25, 200, 20, 1, 5, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
-        DataRow(1, 60, 1, 1, 0, LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
-#else
-        [DataRow(1, 60, 1, 1, 0, LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
-#endif
+        [DataRow(1, 60, 1, 1, 0, true, IntegrationConnectionInfo.ConnectionTypes.Shared)]
         public void Run(int messageCount, int timeOut, int workerCount,
-            int readerCount, int queueSize, LinqMethodTypes linqMethodTypes, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
+            int readerCount, int queueSize, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
@@ -32,7 +26,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
 
                 consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
                         connectionInfo.ConnectionString),
-                    messageCount, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x, true, false, true),
+                    messageCount, timeOut, workerCount, readerCount, queueSize, enableChaos, x => Helpers.SetOptions(x, true, false, true),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);
             }
         }

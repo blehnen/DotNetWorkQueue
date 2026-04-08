@@ -14,16 +14,9 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodErrorTable
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(10, 60, 5, LinqMethodTypes.Dynamic)]
-#else
-#endif
-#else
-        [DataRow(1, 40, 1, LinqMethodTypes.Compiled)]
-#endif
+        [DataRow(1, 40, 1)]
         public void Run(int messageCount, int timeOut,
-            int workerCount, LinqMethodTypes linqMethodTypes)
+            int workerCount)
         {
             var queueName = GenerateQueueName.Create();
             var connectionString = ConnectionInfo.ConnectionString;
@@ -31,7 +24,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.ConsumerMethodErrorTable();
 
             consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
-                messageCount, timeOut, workerCount, linqMethodTypes, false, x => { },
+                messageCount, timeOut, workerCount, false, x => { },
                 Helpers.GenerateData, Helpers.Verify, VerifyQueueCount, ValidateErrorCounts);
         }
 

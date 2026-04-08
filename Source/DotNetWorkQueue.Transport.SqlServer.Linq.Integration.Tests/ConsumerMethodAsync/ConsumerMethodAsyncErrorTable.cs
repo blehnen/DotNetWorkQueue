@@ -15,25 +15,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodAsyncErrorTable
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Dynamic, false),
-        DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
-#else
-        [DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
-#endif
-#else
-        [DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, false)]
-#endif
+        [DataRow(1, 60, 1, 1, 0, false, false)]
         public void Run(int messageCount, int timeOut, int workerCount,
-            int readerCount, int queueSize, bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
+            int readerCount, int queueSize, bool useTransactions, bool enableChaos)
         {
             var queueName = GenerateQueueName.Create();
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation.
                     ConsumerMethodAsyncErrorTable();
             consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(new QueueConnection(queueName, ConnectionInfo.ConnectionString),
-                messageCount, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                messageCount, timeOut, workerCount, readerCount, queueSize, enableChaos, x => Helpers.SetOptions(x,
                     true, !useTransactions, useTransactions,
                     false,
                     false, !useTransactions, true, false),

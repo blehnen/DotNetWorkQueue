@@ -14,17 +14,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodRollBack
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(10, 45, 200, 10, true, LinqMethodTypes.Dynamic, false),
-         DataRow(1, 45, 220, 7, false, LinqMethodTypes.Dynamic, true),
-         DataRow(5, 5, 200, 10, true, LinqMethodTypes.Compiled, true),
-         DataRow(10, 15, 180, 7, true, LinqMethodTypes.Compiled, false)]
-#else
-        [DataRow(5, 5, 200, 10, true, LinqMethodTypes.Compiled, true),
-         DataRow(10, 15, 180, 7, true, LinqMethodTypes.Compiled, false)]
-#endif
+        [DataRow(5, 5, 200, 10, true, true),
+         DataRow(10, 15, 180, 7, true, false)]
         public void Run(int messageCount, int runtime,
-            int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
+            int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -33,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
                         ConsumerMethodRollBack();
                 consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
-                    messageCount, runtime, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                    messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
                         true, true, false,
                         false, true, true, false),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);

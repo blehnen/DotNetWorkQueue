@@ -19,7 +19,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             ILogger logProvider,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify, bool sendViaBatch,
-            int runTime, Guid id, LinqMethodTypes linqMethodTypes,
+            int runTime, Guid id,
             ICreationScope scope, bool enableChaos)
             where TTransportInit : ITransportInit, new()
         {
@@ -48,8 +48,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                             await
                                 RunProducerAsync(queue, queueConnection, messageCount, generateData, verify,
                                     sendViaBatch,
-                                    runTime, id,
-                                    linqMethodTypes, scope).ConfigureAwait(false);
+                                    runTime, id, scope).ConfigureAwait(false);
                         }
 
                         VerifyMetrics.VerifyProducedAsyncCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
@@ -65,9 +64,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
             long messageCount,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify, bool sendViaBatch,
-            int runTime, Guid id, LinqMethodTypes type, ICreationScope scope)
+            int runTime, Guid id, ICreationScope scope)
         {
-            await RunProducerInternalAsync(queue, messageCount, generateData, sendViaBatch, runTime, id, type)
+            await RunProducerInternalAsync(queue, messageCount, generateData, sendViaBatch, runTime, id)
                 .ConfigureAwait(false);
             LoggerShared.CheckForErrors(queueConnection.Queue);
             verify(queueConnection,
@@ -77,31 +76,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
         private async Task RunProducerInternalAsync(
             IProducerMethodQueue
                 queue, long messageCount, Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-            bool sendViaBatch, int runTime, Guid id, LinqMethodTypes methodType)
+            bool sendViaBatch, int runTime, Guid id)
         {
             var numberOfJobs = Convert.ToInt32(messageCount);
-            switch (methodType)
-            {
-                case LinqMethodTypes.Compiled:
-                    {
-                        var jobs = Enumerable.Range(0, numberOfJobs)
-                            .Select(i => GenerateMethod.CreateCompiled(id, runTime));
-                        await RunProducerInternalAsync(queue, generateData, sendViaBatch, jobs, numberOfJobs)
-                            .ConfigureAwait(false);
-                    }
-                    break;
-
-#if NETFULL
-                case LinqMethodTypes.Dynamic:
-                    {
-                        var jobs = Enumerable.Range(0, numberOfJobs)
-                            .Select(i => GenerateMethod.CreateDynamic(id, runTime));
-                        await RunProducerInternalAsync(queue, generateData, sendViaBatch, jobs, numberOfJobs)
-                            .ConfigureAwait(false);
-                    }
-                    break;
-#endif
-            }
+            var jobs = Enumerable.Range(0, numberOfJobs)
+                .Select(i => GenerateMethod.CreateCompiled(id, runTime));
+            await RunProducerInternalAsync(queue, generateData, sendViaBatch, jobs, numberOfJobs)
+                .ConfigureAwait(false);
         }
 
         private async Task RunProducerInternalAsync(
@@ -144,41 +125,5 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                 }
             }
         }
-
-#if NETFULL
-        private async Task RunProducerInternalAsync(
-          IProducerMethodQueue
-              queue, Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
-                   bool sendViaBatch, IEnumerable<LinqExpressionToRun> jobs, int numberOfJobs)
-        {
-            if (sendViaBatch)
-            {
-                var messages = new List<QueueMessage<LinqExpressionToRun, IAdditionalMessageData>>(numberOfJobs);
-                messages.AddRange(from job in jobs
-                                  let data =
-generateData(queue.Configuration)
-                                  select data != null ? new QueueMessage<LinqExpressionToRun, IAdditionalMessageData>(job, data) : new QueueMessage<LinqExpressionToRun, IAdditionalMessageData>(job, null));
-                var results = await queue.SendAsync(messages).ConfigureAwait(false);
-                Assert.IsFalse(results.HasErrors);
-            }
-            else
-            {
-                foreach (var job in jobs)
-                {
-                    var data = generateData(queue.Configuration);
-                    if (data != null)
-                    {
-                        var result = await queue.SendAsync(job, data).ConfigureAwait(false);
-                        Assert.IsFalse(result.HasError);
-                    }
-                    else
-                    {
-                        var result = await queue.SendAsync(job).ConfigureAwait(false);
-                        Assert.IsFalse(result.HasError);
-                    }
-                }
-            }
-        }
-#endif
     }
 }

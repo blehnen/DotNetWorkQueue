@@ -14,13 +14,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodErrorTable
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(10, 60, 5, false, LinqMethodTypes.Dynamic, false),
-         DataRow(1, 60, 1, false, LinqMethodTypes.Compiled, true)]
-#else
-        [DataRow(1, 60, 1, false, LinqMethodTypes.Compiled, true)]
-#endif
-        public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
+        [DataRow(1, 60, 1, false, true)]
+        public void Run(int messageCount, int timeOut, int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -29,7 +24,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
                         ConsumerMethodErrorTable();
                 consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
-                    messageCount, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                    messageCount, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
                        true, true, false,
                        false, true, true, false),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);

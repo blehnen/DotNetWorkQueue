@@ -10,16 +10,9 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
     public class ConsumerMethodAsyncPoisonMessage
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(1, 20, 1, 1, 0, LinqMethodTypes.Dynamic)]
-#else
-#endif
-#else
-        [DataRow(1, 20, 1, 1, 0, LinqMethodTypes.Compiled)]
-#endif
+        [DataRow(1, 20, 1, 1, 0)]
         public void Run(int messageCount, int timeOut, int workerCount,
-            int readerCount, int queueSize, LinqMethodTypes linqMethodTypes)
+            int readerCount, int queueSize)
         {
             var queueName = GenerateQueueName.Create();
             var connectionString = ConnectionInfo.ConnectionString;
@@ -28,7 +21,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
                     ConsumerMethodAsyncPoisonMessage();
 
             consumer.Run<RedisQueueInit, RedisQueueCreation>(new QueueConnection(queueName, connectionString),
-                messageCount, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, false, x => { },
+                messageCount, timeOut, workerCount, readerCount, queueSize, false, x => { },
                 Helpers.GenerateData, Helpers.Verify, VerifyQueueCount, ValidateErrorCounts);
         }
 

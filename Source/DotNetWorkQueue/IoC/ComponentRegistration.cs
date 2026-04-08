@@ -22,8 +22,6 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.JobScheduler;
-using DotNetWorkQueue.LinqCompile;
-using DotNetWorkQueue.LinqCompile.Decorator;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Metrics.Net;
 using DotNetWorkQueue.Metrics.NoOp;
@@ -107,12 +105,6 @@ namespace DotNetWorkQueue.IoC
             var memoryCache = new MemoryCache(new MemoryCacheOptions());
             container.Register<IMemoryCache>(() => memoryCache, LifeStyles.Singleton);
 
-            //object pool for linq 
-            container.Register<IObjectPool<DynamicCodeCompiler>>(
-                () =>
-                    new ObjectPool<DynamicCodeCompiler>(20,
-                        () => new DynamicCodeCompiler(container.GetInstance<ILogger>())), LifeStyles.Singleton);
-
             //created outside of the queue as part of setup, this must be a singleton.
             //all queues created from the setup class share the same message interceptors
             container.Register<IMessageInterceptorRegistrar, MessageInterceptors>(LifeStyles.Singleton);
@@ -130,7 +122,6 @@ namespace DotNetWorkQueue.IoC
             container.Register<ISerializer, JsonSerializer>(LifeStyles.Singleton);
             container.Register<IExpressionSerializer, JsonExpressionSerializer>(LifeStyles.Singleton);
             container.Register<IQueueDelayFactory, QueueDelayFactory>(LifeStyles.Singleton);
-            container.Register<ILinqCompiler, LinqCompiler>(LifeStyles.Singleton);
             container.Register<IGetHeader, GetHeaderDefault>(LifeStyles.Singleton);
 
             container.Register<IInternalSerializer, JsonSerializerInternal>(LifeStyles.Singleton);
@@ -341,8 +332,6 @@ namespace DotNetWorkQueue.IoC
             RegisterLoggerDecorators(container);
             RegisterTraceDecorators(container);
 
-            //register the linq cache decorator
-            container.RegisterDecorator<ILinqCompiler, LinqCompileCacheDecorator>(LifeStyles.Singleton);
         }
 
         /// <summary>
@@ -486,8 +475,6 @@ namespace DotNetWorkQueue.IoC
             container.RegisterDecorator<IClearErrorMessages, Metrics.Decorator.ClearErrorMessagesDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IExpressionSerializer, Metrics.Decorator.ExpressionSerializerDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IMessageMethodHandling, Metrics.Decorator.MessageMethodHandlingDecorator>(LifeStyles.Singleton);
-            container.RegisterDecorator<ILinqCompiler, Metrics.Decorator.LinqCompilerDecorator>(LifeStyles.Singleton);
-
             //while this is registered as transient, it ends up being a singleton because the interceptor host is a singleton
             container.RegisterDecorator<IMessageInterceptor, Metrics.Decorator.MessageInterceptorDecorator>(LifeStyles.Transient);
         }

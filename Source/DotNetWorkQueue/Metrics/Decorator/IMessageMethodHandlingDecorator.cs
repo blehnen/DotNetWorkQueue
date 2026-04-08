@@ -29,7 +29,6 @@ namespace DotNetWorkQueue.Metrics.Decorator
     {
         private readonly IMessageMethodHandling _handler;
         private readonly ITimer _runMethodCompiledCodeTimer;
-        private readonly ITimer _runMethodDynamicCodeTimer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageMethodHandlingDecorator" /> class.
@@ -43,7 +42,6 @@ namespace DotNetWorkQueue.Metrics.Decorator
         {
             var name = "MessageMethodHandling";
             _runMethodCompiledCodeTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.HandleCompiledMethodTimer", Units.Calls);
-            _runMethodDynamicCodeTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.HandleDynamicMethodTimer", Units.Calls);
             _handler = handler;
         }
 
@@ -70,12 +68,6 @@ namespace DotNetWorkQueue.Metrics.Decorator
                 case MessageExpressionPayloads.Action:
                 case MessageExpressionPayloads.ActionRaw:
                     using (_runMethodCompiledCodeTimer.NewContext())
-                    {
-                        _handler.HandleExecution(receivedMessage, workerNotification);
-                    }
-                    break;
-                case MessageExpressionPayloads.ActionText:
-                    using (_runMethodDynamicCodeTimer.NewContext())
                     {
                         _handler.HandleExecution(receivedMessage, workerNotification);
                     }

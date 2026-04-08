@@ -14,19 +14,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
     public class ConsumerMethodAsyncPoisonMessage
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(10, 60, 5, 1, 0, true, LinqMethodTypes.Compiled, false),
-#if NETFULL
-        DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Dynamic, false),
-        DataRow(10, 60, 5, 1, 0, true, LinqMethodTypes.Dynamic, false),
-#endif
-        DataRow(10, 80, 20, 2, 2, false, LinqMethodTypes.Compiled, true)]
-#else
-        [DataRow(10, 60, 5, 1, 0, true, LinqMethodTypes.Compiled, false),
-         DataRow(10, 80, 20, 2, 2, false, LinqMethodTypes.Compiled, true)]
-#endif
+        [DataRow(10, 60, 5, 1, 0, true, false),
+         DataRow(10, 80, 20, 2, 2, false, true)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize,
-            bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
+            bool useTransactions, bool enableChaos)
         {
 
             var queueName = GenerateQueueName.Create();
@@ -34,7 +25,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMet
                 new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation.
                     ConsumerMethodAsyncPoisonMessage();
             consumer.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(new QueueConnection(queueName, ConnectionInfo.ConnectionString),
-                messageCount, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                messageCount, timeOut, workerCount, readerCount, queueSize, enableChaos, x => Helpers.SetOptions(x,
                     true, !useTransactions, useTransactions,
                     false,
                     false, !useTransactions, true, false),

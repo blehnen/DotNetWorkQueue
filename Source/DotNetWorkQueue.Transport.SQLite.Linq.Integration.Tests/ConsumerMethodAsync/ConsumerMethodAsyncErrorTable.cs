@@ -14,17 +14,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodAsyncErrorTable
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(1, 60, 1, 1, 0, true, LinqMethodTypes.Dynamic, false),
-        DataRow(25, 120, 20, 1, 5, false, LinqMethodTypes.Dynamic, false),
-        DataRow(25, 120, 20, 1, 5, true, LinqMethodTypes.Compiled, false),
-        DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
-#else
-        [DataRow(25, 120, 20, 1, 5, true, LinqMethodTypes.Compiled, false),
-         DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
-#endif
+        [DataRow(25, 120, 20, 1, 5, true, false),
+         DataRow(1, 60, 1, 1, 0, false, true)]
         public void Run(int messageCount, int timeOut, int workerCount,
-            int readerCount, int queueSize, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
+            int readerCount, int queueSize, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -33,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementation.
                         ConsumerMethodAsyncErrorTable();
                 consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
-                    messageCount, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                    messageCount, timeOut, workerCount, readerCount, queueSize, enableChaos, x => Helpers.SetOptions(x,
                        true, true, false,
                        false, true, true, false),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);

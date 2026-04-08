@@ -1,61 +1,38 @@
-# Milestone Report: Fix History Status for Errored Messages (Issue #97)
+# Milestone Report: Drop net48/netstandard2.0 (Issue #101)
 
-**Completed:** 2026-04-06
-**Phases:** 1/1 complete
-**GitHub Issue:** #97
+**Completed:** 2026-04-07
+**Version:** 0.9.19
+**Phases:** 4/4 complete
+**Branch:** issue-101-drop-net48
 
-## Milestone Summary
+## Overview
 
-A single-phase bug fix addressing GitHub issue #97: Dashboard history shows `Status=Processing` for messages that exhausted retries and moved to the error queue. Two distinct bugs contributed:
-
-**Bug A:** `ReceiveMessagesErrorHistoryDecorator` read `context.MessageId` after the inner handler cleared it via `SetMessageAndHeaders(null, ...)`, so `RecordError` was never called for terminal errors.
-
-**Bug B:** Redis and Memory `RecordProcessingStart` unconditionally set `Status=Processing`, overwriting Error status on retries. RelationalDatabase and LiteDb already guarded this.
+Removed .NET Framework 4.8 and .NET Standard 2.0 targets from the entire DotNetWorkQueue solution. Deleted all `#if NETFULL` / `#if NETSTANDARD2_0` conditional compilation, removed vendored JpLabs.DynamicCode, cleaned up Schyntax net48/netstandard2.0 DLLs, updated CI, updated documentation. Breaking change: dynamic LINQ expressions are no longer supported.
 
 ## Phase Summaries
 
-### Phase 1: Fix History Error Recording and Retry Status Guard
+### Phase 1: Core Library, Transport Libraries, and Vendored DLL Cleanup
+Removed net48/netstandard2.0 from DotNetWorkQueue.csproj and 8 transport library csproj files. Removed `#if NETFULL` blocks from 10 core .cs files. Deleted Lib/JpLabs.DynamicCode/, Lib/Schyntax/net48/, Lib/Schyntax/netstandard2.0/.
 
-**Status:** Complete
+### Phase 2: Shared Test Infrastructure and Unit Tests
+Removed net48/NETFULL from IntegrationTests.Shared (19 .cs + 1 csproj) and 13 test/integration csproj files. All 878 unit tests pass.
 
-**Wave 1 (3 parallel plans):**
+### Phase 3: Linq Integration Tests
+Removed net48/NETFULL from all 6 Linq integration test projects: SqlServer, PostgreSQL, SQLite, Redis, LiteDB, Memory. 103 files changed, ~1500 lines deleted.
 
-- **PLAN-1.1 (Decorator fix):** Captures `messageId` before delegating to inner handler, ensuring `RecordError` is called with the correct value even when the inner handler clears context.
-- **PLAN-1.2 (RecordProcessingStart guard):** Redis and Memory transports now only transition from Enqueued to Processing, matching RelationalDatabase/LiteDb patterns.
-- **PLAN-1.3 (Regression tests):** 5 new tests covering both bugs across all affected transports.
-
-**Review fix:** Redis guard additionally checks `rawStatus.HasValue` before integer cast to prevent null-cast collision (`RedisValue.Null` casts to `0` = `MessageHistoryStatus.Enqueued`).
+### Phase 4: CI, Documentation, and Version Bump
+Updated GitHub Actions CI (ubuntu-latest, forward-slash paths), README.md, CLAUDE.md. Bumped version 0.9.18 -> 0.9.19. Added CHANGELOG entry. Resolved ISSUE-021 (7 empty shell files), ISSUE-022 (vestigial dynamic parameter), ISSUE-023 (cosmetic).
 
 ## Key Decisions
-
-1. Fix applied in decorator/shared layer, not per-transport (Bug A)
-2. Redis guard uses `HasValue` check before integer comparison (caught in review)
-3. Memory guard adds `&& r.Status == MessageHistoryStatus.Enqueued` to existing conditional
-4. All 3 plans executed in parallel (Wave 1) — disjoint file sets
-
-## Documentation Status
-
-- CHANGELOG updated with bug fix entry
-- No public API changes — no API/architecture doc updates needed
-
-## Known Issues
-
-- Filed #104: Redis `RecordComplete`/`RecordError` have same unchecked `(long)` cast on `StartedUtc` HashGet (pre-existing)
-
-## Quality Gates
-
-| Gate | Result |
-|------|--------|
-| Phase Verification | PASS — 878 core + 166 Redis tests |
-| Security Audit | PASS — no critical findings |
-| Simplification Review | Defer — no high-priority findings |
-| Documentation Review | Complete — CHANGELOG updated |
+- Version bumped to 0.9.19 (not 0.9.3 as originally planned -- version was already 0.9.18)
+- ISSUE-022 full cleanup: removed `bool dynamic` parameter entirely from shared JobSchedulerTests and all callers
+- CI moved to ubuntu-latest since net48 no longer requires Windows
+- Direct execution preferred over builder agents for bulk file edits (agents exhaust context)
 
 ## Metrics
-
-- **Phases:** 1
-- **Plans executed:** 3 + 1 review fix
-- **Commits:** 4 implementation + 1 artifacts
-- **Files modified:** 6 (3 production, 3 test)
-- **Tests added:** 5 new regression tests
-- **Bugs caught during review:** 1 (Redis null-cast collision)
+- Files changed: 223
+- Lines added: 2,813 (mostly .shipyard artifacts)
+- Lines removed: 3,231
+- Total commits: 28
+- Unit tests: 878 passed
+- Integration tests (Memory): 20 passed

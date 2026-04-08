@@ -10,7 +10,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
     {
         public void Run<TTransportInit, TTransportCreate>(
             QueueConnection queueConnection,
-            int messageCount, int runtime, int timeOut, int workerCount, LinqMethodTypes linqMethodTypes,
+            int messageCount, int runtime, int timeOut, int workerCount,
             bool enableChaos,
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
@@ -39,22 +39,10 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
                     //create data
                     var producer = new ProducerMethodShared();
                     var id = Guid.NewGuid();
-                    if (linqMethodTypes == LinqMethodTypes.Compiled)
-                    {
-                        producer.RunTestCompiled<TTransportInit>(queueConnection, false, messageCount,
-                            logProvider, generateData,
-                            verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime,
-                            oCreation.Scope, false);
-                    }
-#if NETFULL
-                    else
-                    {
-                        producer.RunTestDynamic<TTransportInit>(queueConnection, false, messageCount,
-                            logProvider, generateData,
-                            verify, false, id, GenerateMethod.CreateRollBackDynamic, runtime,
-                            oCreation.Scope, false);
-                    }
-#endif
+                    producer.RunTestCompiled<TTransportInit>(queueConnection, false, messageCount,
+                        logProvider, generateData,
+                        verify, false, id, GenerateMethod.CreateRollBackCompiled, runtime,
+                        oCreation.Scope, false);
 
                     //process data
                     var consumer = new ConsumerMethodRollBackShared();

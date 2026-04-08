@@ -104,24 +104,6 @@ namespace DotNetWorkQueue
             return result ?? new JobQueueOutputMessage(JobQueuedStatus.Failed);
         }
 
-#if NETFULL
-        /// <inheritdoc />
-        public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun expressionToRun)
-        {
-            var messageData = new AdditionalMessageData();
-            var data = StartSend(job, scheduledTime, messageData);
-            if (data != null)
-                return data;
-
-            var message = await Queue.SendAsync(expressionToRun, messageData).ConfigureAwait(false);
-            var result = ProcessResult(job, scheduledTime, message);
-            if (result != null) return result;
-            //try one more time
-            result = ProcessResult(job, scheduledTime,
-                await Queue.SendAsync(expressionToRun, messageData).ConfigureAwait(false));
-            return result ?? new JobQueueOutputMessage(JobQueuedStatus.Failed);
-        }
-#endif
         /// <summary>
         /// Begins the send process, if possible
         /// </summary>

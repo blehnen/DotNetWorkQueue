@@ -1,15 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0;net48</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net48|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net48|AnyCPU'">
-    <DefineConstants>NETFULL</DefineConstants>
+    <TargetFrameworks>net10.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,10 +12,6 @@
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
     <PackageReference Include="Tynamix.ObjectFiller" />
 </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
-    <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />

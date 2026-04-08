@@ -576,3 +576,24 @@
 - **Files:** 2 modified (Directory.Packages.props, DotNetWorkQueue.csproj), 10 deleted (vendored DLLs)
 - **Tests:** 878 passing on net10.0
 - **Status:** Phase 2 complete — all phases done, ready to ship
+
+## 2026-04-07 — New Milestone: Drop net48/netstandard2.0 and Remove JpLabs.DynamicCode (issue #101)
+
+- **Action:** `/shipyard:brainstorm`
+- **Scope:** Remove net48 and netstandard2.0 targets, delete JpLabs.DynamicCode, remove all `#if NETFULL` / `#if NETSTANDARD2_0` conditional compilation, update CI and README. Version 0.9.3.
+- **Decisions:**
+  - Drop both net48 and netstandard2.0 (remaining targets: net10.0 + net8.0)
+  - Remove all SoapFormatter/GetObjectData code (dead with net48 gone)
+  - Keep Schyntax NuGet publishing separate (issue #100)
+  - Employer stays on current version — blocker removed
+- **Roadmap:** 10 phases across 4 waves
+  - Phase 1: Core library + transport csproj + vendored DLL cleanup
+  - Phase 2: Shared test infra + unit tests + base integration test csproj
+  - Phases 3a-3f: Linq integration tests by transport (parallel)
+  - Phase 4: CI + README + version bump
+- **Status:** Roadmap approved, ready for Phase 1 planning
+- [2026-04-07T19:59:51Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-07T20:01:43Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-08T02:00:07Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-08T02:05:09Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-08T03:42:23Z] Session ended during build (may need /shipyard:resume)

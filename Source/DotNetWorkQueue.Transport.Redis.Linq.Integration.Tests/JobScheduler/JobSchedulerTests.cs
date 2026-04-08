@@ -12,13 +12,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
     public class JobSchedulerTests
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(true)]
-#else
-        [DataRow(false)]
-#endif
-        public void Run(
-            bool dynamic)
+        public void Run()
         {
             var queueName = GenerateQueueName.Create();
             var connectionString = ConnectionInfo.ConnectionString;
@@ -26,7 +20,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
                 new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();
 
             consumer.Run<RedisQueueInit, RedisJobQueueCreation, RedisQueueCreation>(
-                new QueueConnection(queueName, connectionString), false, dynamic, Helpers.Verify, Helpers.SetError);
+                new QueueConnection(queueName, connectionString), false, Helpers.Verify, Helpers.SetError);
         }
     }
 }

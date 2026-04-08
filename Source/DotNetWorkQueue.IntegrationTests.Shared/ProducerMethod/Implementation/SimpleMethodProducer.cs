@@ -10,7 +10,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
         public void Run<TTransportInit, TTransportCreate>(
             QueueConnection queueConnection,
             int messageCount,
-            LinqMethodTypes linqMethodTypes,
             bool interceptors,
             bool enableChaos,
             bool sendViaBatch,
@@ -37,24 +36,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation
 
                     var id = Guid.NewGuid();
                     var producer = new ProducerMethodShared();
-                    if (linqMethodTypes == LinqMethodTypes.Compiled)
-                    {
-                        producer.RunTestCompiled<TTransportInit>(queueConnection, interceptors,
-                            messageCount, logProvider,
-                            generateData,
-                            verify, sendViaBatch, id, GenerateMethod.CreateCompiled, 0, oCreation.Scope,
-                            enableChaos);
-                    }
-#if NETFULL
-                    else
-                    {
-                        producer.RunTestDynamic<TTransportInit>(queueConnection, interceptors, messageCount,
-                            logProvider,
-                            generateData,
-                            verify, sendViaBatch, id, GenerateMethod.CreateDynamic, 0, oCreation.Scope,
-                            enableChaos);
-                    }
-#endif
+                    producer.RunTestCompiled<TTransportInit>(queueConnection, interceptors,
+                        messageCount, logProvider,
+                        generateData,
+                        verify, sendViaBatch, id, GenerateMethod.CreateCompiled, 0, oCreation.Scope,
+                        enableChaos);
 
                 }
                 finally

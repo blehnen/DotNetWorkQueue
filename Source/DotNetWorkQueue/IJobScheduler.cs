@@ -37,58 +37,6 @@ namespace DotNetWorkQueue
         /// <remarks>No jobs will be scheduled until start is called</remarks>
         void Start();
 
-#if NETFULL
-        /// <summary>
-        /// Adds a new job or updates an existing one. Existing jobs must be stopped before being updated.
-        /// </summary>
-        /// <typeparam name="TTransportInit">The type of the transport.</typeparam>
-        /// <typeparam name="TQueue">The type of the queue.</typeparam>
-        /// <param name="jobname">The jobName.</param>
-        /// <param name="queueConnection">Queue and connection information.</param>
-        /// <param name="schedule">The schedule.</param>
-        /// <param name="job">The job.</param>
-        /// <param name="route">The route.</param>
-        /// <param name="producerConfiguration">The producer configuration. Allows producer specific options to be set.</param>
-        /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
-        /// <param name="window">The window.</param>
-        /// <returns></returns>
-        IScheduledJob AddUpdateJob<TTransportInit, TQueue>(string jobname,
-            QueueConnection queueConnection,
-            string schedule,
-            LinqExpressionToRun job,
-            string route = null,
-            Action<QueueProducerConfiguration> producerConfiguration = null,
-            bool autoRun = true,
-            TimeSpan window = default)
-                where TTransportInit : ITransportInit, new()
-                where TQueue : class, IJobQueueCreation;
-
-        /// <summary>
-        /// Adds a new job or updates an existing one. Existing jobs must be stopped before being updated.
-        /// </summary>
-        /// <typeparam name="TTransportInit">The type of the transport.</typeparam>
-        /// <param name="queueCreator">The queue creator. Will be used to create the queue if it does not exist.</param>
-        /// <param name="jobname">The jobName.</param>
-        /// <param name="queueConnection">Queue and connection information.</param>
-        /// <param name="schedule">The schedule.</param>
-        /// <param name="job">The job.</param>
-        /// <param name="route">The route.</param>
-        /// <param name="producerConfiguration">The producer configuration. Allows producer specific options to be set.</param>
-        /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
-        /// <param name="window">The window.</param>
-        /// <returns></returns>
-        IScheduledJob AddUpdateJob<TTransportInit>(IJobQueueCreation queueCreator,
-            string jobname,
-           QueueConnection queueConnection,
-            string schedule,
-            LinqExpressionToRun job,
-            string route = null,
-            Action<QueueProducerConfiguration> producerConfiguration = null,
-            bool autoRun = true,
-            TimeSpan window = default)
-            where TTransportInit : ITransportInit, new();
-#endif
-
         /// <summary>
         /// Adds a new job or updates an existing one. Existing jobs must be stopped before being updated.
         /// </summary>

@@ -14,15 +14,9 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducerInterceptor
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(100, LinqMethodTypes.Dynamic),
-         DataRow(100, LinqMethodTypes.Compiled)]
-#else
-        [DataRow(100, LinqMethodTypes.Compiled)]
-#endif
+        [DataRow(100)]
         public void Run(
-            int messageCount,
-            LinqMethodTypes linqMethodTypes)
+            int messageCount)
         {
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
@@ -31,7 +25,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
                     new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.SimpleMethodProducer();
 
                 consumer.Run<MemoryMessageQueueInit, MessageQueueCreation>(new QueueConnection(queueName,
-                        connectionInfo.ConnectionString), messageCount, linqMethodTypes, true, false, false,
+                        connectionInfo.ConnectionString), messageCount, true, false, false,
                     x => { }, Helpers.GenerateData, Verify);
             }
         }

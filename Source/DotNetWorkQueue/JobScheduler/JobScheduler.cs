@@ -85,72 +85,6 @@ namespace DotNetWorkQueue.JobScheduler
 
             Task.Run(PollAsync);
         }
-        /// <summary>
-        /// Adds a new job or updates an existing job.
-        /// </summary>
-        /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
-        /// <typeparam name="TQueue">The type of the queue.</typeparam>
-        /// <param name="jobname">The jobname.</param>
-        /// <param name="queueConnection">Queue and connection information.</param>
-        /// <param name="schedule">The schedule.</param>
-        /// <param name="actionToRun">The action to run.</param>
-        /// <param name="route">The route.</param>
-        /// <param name="producerConfiguration">The producer configuration.</param>
-        /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
-        /// <param name="window">The window.</param>
-        /// <returns></returns>
-        public IScheduledJob AddUpdateJob<TTransportInit, TQueue>(
-            string jobname,
-            QueueConnection queueConnection,
-            string schedule,
-            LinqExpressionToRun actionToRun,
-            string route = null,
-            Action<QueueProducerConfiguration> producerConfiguration = null,
-            bool autoRun = true,
-            TimeSpan window = default)
-             where TTransportInit : ITransportInit, new()
-             where TQueue : class, IJobQueueCreation
-        {
-            Guard.NotNullOrEmpty(() => schedule, schedule);
-            Guard.IsValid(() => jobname, jobname, i => i.Length < 256,
-               "The job name length must be 255 characters or less");
-
-            return AddTaskImpl<TTransportInit, TQueue>(jobname, queueConnection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, null, actionToRun, route, false, producerConfiguration);
-        }
-
-        /// <summary>
-        /// Adds a new job or updates an existing job.
-        /// </summary>
-        /// <typeparam name="TTransportInit">The type of the transport initialize.</typeparam>
-        /// <param name="jobQueueCreation">The job queue creation.</param>
-        /// <param name="jobname">The jobname.</param>
-        /// <param name="queueConnection">Queue and connection information.</param>
-        /// <param name="schedule">The schedule.</param>
-        /// <param name="actionToRun">The action to run.</param>
-        /// <param name="route">The route.</param>
-        /// <param name="producerConfiguration">The producer configuration.</param>
-        /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
-        /// <param name="window">The window.</param>
-        /// <returns></returns>
-        public IScheduledJob AddUpdateJob<TTransportInit>(
-            IJobQueueCreation jobQueueCreation,
-            string jobname,
-            QueueConnection queueConnection,
-            string schedule,
-            LinqExpressionToRun actionToRun,
-            string route = null,
-            Action<QueueProducerConfiguration> producerConfiguration = null,
-            bool autoRun = true,
-            TimeSpan window = default)
-             where TTransportInit : ITransportInit, new()
-        {
-            Guard.NotNullOrEmpty(() => schedule, schedule);
-            Guard.IsValid(() => jobname, jobname, i => i.Length < 256,
-               "The job name length must be 255 characters or less");
-
-            return AddTaskImpl<TTransportInit>(jobQueueCreation, jobname, queueConnection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, null, actionToRun, route, false, producerConfiguration);
-        }
-
         /// <inheritdoc />
         public IScheduledJob AddUpdateJob<TTransportInit, TQueue>(
             string jobName,
@@ -168,7 +102,7 @@ namespace DotNetWorkQueue.JobScheduler
             Guard.NotNullOrEmpty(() => schedule, schedule);
             Guard.IsValid(() => jobName, jobName, i => i.Length < 256,
               "The job name length must be 255 characters or less");
-            return AddTaskImpl<TTransportInit, TQueue>(jobName, queueConnection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, actionToRun, null, route, rawExpression, producerConfiguration);
+            return AddTaskImpl<TTransportInit, TQueue>(jobName, queueConnection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, actionToRun, route, rawExpression, producerConfiguration);
         }
         /// <inheritdoc />
         public IScheduledJob AddUpdateJob<TTransportInit>(
@@ -187,7 +121,7 @@ namespace DotNetWorkQueue.JobScheduler
             Guard.NotNullOrEmpty(() => schedule, schedule);
             Guard.IsValid(() => jobname, jobname, i => i.Length < 256,
               "The job name length must be 255 characters or less");
-            return AddTaskImpl<TTransportInit>(jobQueueCreation, jobname, queueConnection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, actionToRun, null, route, rawExpression, producerConfiguration);
+            return AddTaskImpl<TTransportInit>(jobQueueCreation, jobname, queueConnection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, actionToRun, route, rawExpression, producerConfiguration);
         }
         /// <summary>
         /// Adds the task
@@ -200,7 +134,6 @@ namespace DotNetWorkQueue.JobScheduler
         /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
         /// <param name="window">The window.</param>
         /// <param name="actionToRun">The action to run.</param>
-        /// <param name="expressionToRun">The expression to run.</param>
         /// <param name="route">The route.</param>
         /// <param name="rawExpression">if set to <c>true</c> this expression will not be serialized. This will fail unless an in-process queue is being used.</param>
         /// <param name="producerConfiguration">The producer configuration.</param>
@@ -213,7 +146,6 @@ namespace DotNetWorkQueue.JobScheduler
             bool autoRun,
             TimeSpan window,
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun,
-            LinqExpressionToRun expressionToRun,
             string route,
             bool rawExpression,
             Action<QueueProducerConfiguration> producerConfiguration = null)
@@ -222,7 +154,6 @@ namespace DotNetWorkQueue.JobScheduler
         {
             Guard.NotNull(() => schedule, schedule);
             Guard.NotNullOrEmpty(() => name, name);
-
 
             ScheduledJob job;
             lock (_lockTasks)
@@ -234,24 +165,12 @@ namespace DotNetWorkQueue.JobScheduler
                 {
                     RemoveJob(name);
                 }
-                if (expressionToRun != null)
+                job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit, TQueue>(queueConnection, producerConfiguration), actionToRun, _getTime.Create(), route, rawExpression)
                 {
-                    job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit, TQueue>(queueConnection, producerConfiguration), expressionToRun, _getTime.Create(), route)
-                    {
-                        Window = window,
-                        IsAttached = true
-                    };
-                    _tasks.Add(name, job);
-                }
-                else
-                {
-                    job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit, TQueue>(queueConnection, producerConfiguration), actionToRun, _getTime.Create(), route, rawExpression)
-                    {
-                        Window = window,
-                        IsAttached = true
-                    };
-                    _tasks.Add(name, job);
-                }
+                    Window = window,
+                    IsAttached = true
+                };
+                _tasks.Add(name, job);
             }
 
             job.OnException += TaskOnOnException;
@@ -274,7 +193,6 @@ namespace DotNetWorkQueue.JobScheduler
         /// <param name="autoRun">if set to <c>true</c> [automatic run].</param>
         /// <param name="window">The window.</param>
         /// <param name="actionToRun">The action to run.</param>
-        /// <param name="expressionToRun">The expression to run.</param>
         /// <param name="route">The route.</param>
         /// <param name="rawExpression">if set to <c>true</c> this expression will not be serialized. This will fail unless an in-process queue is being used.</param>
         /// <param name="producerConfiguration">The producer configuration.</param>
@@ -288,7 +206,6 @@ namespace DotNetWorkQueue.JobScheduler
             bool autoRun,
             TimeSpan window,
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun,
-            LinqExpressionToRun expressionToRun,
             string route,
             bool rawExpression,
             Action<QueueProducerConfiguration> producerConfiguration = null)
@@ -307,24 +224,12 @@ namespace DotNetWorkQueue.JobScheduler
                 {
                     RemoveJob(name);
                 }
-                if (expressionToRun != null)
+                job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit>(jobQueueCreation, queueConnection, producerConfiguration), actionToRun, _getTime.Create(), route, rawExpression)
                 {
-                    job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit>(jobQueueCreation, queueConnection, producerConfiguration), expressionToRun, _getTime.Create(), route)
-                    {
-                        Window = window,
-                        IsAttached = true
-                    };
-                    _tasks.Add(name, job);
-                }
-                else
-                {
-                    job = new ScheduledJob(this, name, schedule, _jobQueue.Get<TTransportInit>(jobQueueCreation, queueConnection, producerConfiguration), actionToRun, _getTime.Create(), route, rawExpression)
-                    {
-                        Window = window,
-                        IsAttached = true
-                    };
-                    _tasks.Add(name, job);
-                }
+                    Window = window,
+                    IsAttached = true
+                };
+                _tasks.Add(name, job);
             }
 
             job.OnException += TaskOnOnException;

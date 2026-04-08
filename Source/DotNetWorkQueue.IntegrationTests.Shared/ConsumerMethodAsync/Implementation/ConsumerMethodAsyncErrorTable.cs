@@ -10,7 +10,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
     {
         public void Run<TTransportInit, TTransportCreate>(
             QueueConnection queueConnection,
-            int messageCount, int timeOut, int workerCount, int readerCount, int queueSize, LinqMethodTypes linqMethodTypes,
+            int messageCount, int timeOut, int workerCount, int readerCount, int queueSize,
             bool enableChaos,
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
@@ -40,24 +40,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                     //create data
                     var producer = new ProducerMethodShared();
                     var id = Guid.NewGuid();
-                    if (linqMethodTypes == LinqMethodTypes.Compiled)
-                    {
-                        producer.RunTestCompiled<TTransportInit>(queueConnection, false, messageCount,
-                            logProvider,
-                            generateData,
-                            verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope,
-                            false);
-                    }
-#if NETFULL
-                    else
-                    {
-                        producer.RunTestDynamic<TTransportInit>(queueConnection, false, messageCount,
-                            logProvider,
-                            generateData,
-                            verify, false, id, GenerateMethod.CreateErrorDynamic, 0, oCreation.Scope,
-                            false);
-                    }
-#endif
+                    producer.RunTestCompiled<TTransportInit>(queueConnection, false, messageCount,
+                        logProvider,
+                        generateData,
+                        verify, false, id, GenerateMethod.CreateErrorCompiled, 0, oCreation.Scope,
+                        false);
 
                     //process data
                     var consumer = new ConsumerMethodAsyncErrorShared();

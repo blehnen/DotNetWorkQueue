@@ -11,10 +11,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
     public class JobSchedulerTests
     {
         [TestMethod]
-        [DataRow(false, false),
-        DataRow(false, true)]
+        [DataRow(false),
+        DataRow(true)]
         public void Run(
-            bool dynamic,
             bool inMemoryDb)
         {
             if (OsDetectionHelper.IsRunningOnServer(null))
@@ -28,7 +27,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.JobScheduler
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();
                 consumer.Run<SqLiteMessageQueueInit, SqliteJobQueueCreation, SqLiteMessageQueueCreation>(
-                    new QueueConnection(queueName, connectionInfo.ConnectionString), false, dynamic, Helpers.Verify, Helpers.SetError);
+                    new QueueConnection(queueName, connectionInfo.ConnectionString), false, Helpers.Verify, Helpers.SetError);
             }
         }
     }

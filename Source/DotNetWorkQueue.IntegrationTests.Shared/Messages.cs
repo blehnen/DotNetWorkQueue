@@ -100,41 +100,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             return (message, workerNotification) => StandardTesting.Error();
         }
 
-        public static LinqExpressionToRun CreateMultipleDynamic(Guid id, int counter, int runTime)
-        {
-            return CreateDefaultLinq($"(message, workerNotification) => DotNetWorkQueue.IntegrationTests.Shared.StandardTesting.Run(new Guid(\"{id}\"), int.Parse(\"{runTime}\"), int.Parse(\"{counter}\"))", true);
-        }
-        public static LinqExpressionToRun CreateDynamic(Guid id, int runTime)
-        {
-            return CreateDefaultLinq($"(message, workerNotification) => DotNetWorkQueue.IntegrationTests.Shared.StandardTesting.Run(new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
-        }
-
-        public static LinqExpressionToRun CreateRollBackDynamic(Guid id, int runTime)
-        {
-            return CreateDefaultLinq($"(message, workerNotification) => DotNetWorkQueue.IntegrationTests.Shared.RollBackTesting.Run((IReceivedMessage<MessageExpression>)message, new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
-        }
-
-        public static LinqExpressionToRun CreateNoOpDynamic(Guid id, int runTime)
-        {
-            return CreateDefaultLinq("(message, workerNotification) => DotNetWorkQueue.IntegrationTests.Shared.StandardTesting.NoOp()");
-        }
-
-        public static LinqExpressionToRun CreateCancelDynamic(Guid id, int runTime)
-        {
-            return
-                CreateDefaultLinq($"(message, workerNotification) => DotNetWorkQueue.IntegrationTests.Shared.CancelTesting.Run((IReceivedMessage<MessageExpression>)message, (IWorkerNotification)workerNotification, new Guid(\"{id}\"), int.Parse(\"{runTime}\"))");
-        }
-
-        public static LinqExpressionToRun CreateErrorDynamic(Guid id, int runTime)
-        {
-            return CreateDefaultLinq("(message, workerNotification) => DotNetWorkQueue.IntegrationTests.Shared.StandardTesting.Error()");
-        }
-
-        private static LinqExpressionToRun CreateDefaultLinq(string method, bool unique = false)
-        {
-            return new LinqExpressionToRun(method, new List<string> { "DotNetWorkQueue.IntegrationTests.Shared.dll" }, new List<string> { "DotNetWorkQueue.IntegrationTests.Shared" }, unique);
-        }
-
         public static void ClearCancel(Guid id)
         {
             CancelTesting.Clear(id);

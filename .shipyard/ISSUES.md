@@ -68,6 +68,41 @@
 
 ## Closed
 
+### ISSUE-023: Stray blank line and double blank line artifacts from NETFULL removal
+- **Severity:** Suggestion
+- **Source:** simplifier (Phase 3)
+- **Status:** Resolved -- commit 9df8c735, 2026-04-07
+- **Files:**
+  - `Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs` (line 14, blank line between `[TestMethod]` and `[DataRow]`)
+  - `Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj` (lines 22-23, double blank line where net48 ItemGroup was removed)
+- **Description:** Phase 3 NETFULL removal left cosmetic artifacts: a stray blank line in PostgreSQL JobSchedulerTests where an empty `#if NETFULL`/`#else`/`#endif` block was removed, and a double blank line in the Memory csproj where the net48 conditional ItemGroup was deleted.
+- **Resolution:** Deleted the blank line from PostgreSQL JobSchedulerTests. Removed one of the two blank lines from Memory csproj. Batched with ISSUE-021 cleanup.
+
+### ISSUE-022: No-op `dynamic=true` test case in PostgreSQL JobSchedulerTests
+- **Severity:** Important
+- **Source:** simplifier (Phase 3)
+- **Status:** Resolved -- commit 9df8c735, 2026-04-07
+- **Files:**
+  - `Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs` (line 16, `DataRow(true, true)`)
+  - `Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs` (pre-existing, `DataRow(true)`)
+- **Description:** The shared `JobSchedulerTests.Run<>()` implementation guards all test logic with `if (!dynamic)`. When `dynamic=true`, the test creates a queue, executes zero assertions, then tears down -- a vacuously passing no-op.
+- **Resolution:** Removed `DataRow(true, true)` from PostgreSQL and `DataRow(true)` from LiteDb. Removed vestigial `bool dynamic` parameter from shared implementation and all 6 transport callers.
+
+### ISSUE-021: Empty shell files after NETFULL removal
+- **Severity:** Suggestion
+- **Source:** Phase 3 Plan 1.1 + 1.2 Reviews
+- **Status:** Resolved -- commit d410f2f1, 2026-04-07
+- **Files:**
+  - `Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs`
+  - `Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs`
+  - `Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs`
+  - `Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs`
+  - `Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs`
+  - `Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs`
+  - `Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/ProducerMethod/SimpleMethodProducerDynamicListSend.cs`
+- **Description:** After removing `#if NETFULL` blocks, these files contained only unused `using` directives and an empty namespace. The entire class in each file was NETFULL-only, so nothing meaningful remained.
+- **Resolution:** Deleted all 7 empty shell files.
+
 ### ISSUE-001: Unused `fixture` variable in QueueCreatorTests after Plan 1.1 refactor
 - **Severity:** Important
 - **Source:** Plan 1.1 Review

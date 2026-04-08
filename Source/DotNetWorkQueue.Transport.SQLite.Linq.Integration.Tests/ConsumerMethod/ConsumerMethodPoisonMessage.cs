@@ -14,17 +14,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodPoisonMessage
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(1, 60, 1, false, LinqMethodTypes.Dynamic, false),
-         DataRow(1, 60, 5, false, LinqMethodTypes.Dynamic, true),
-            DataRow(1, 60, 1, true, LinqMethodTypes.Compiled, true),
-         DataRow(10, 60, 5, true, LinqMethodTypes.Compiled, false)]
-#else
-        [DataRow(1, 60, 1, true, LinqMethodTypes.Compiled, true),
-         DataRow(10, 60, 5, true, LinqMethodTypes.Compiled, false)]
-#endif
+        [DataRow(1, 60, 1, true, true),
+         DataRow(10, 60, 5, true, false)]
         public void Run(int messageCount, int timeOut,
-            int workerCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
+            int workerCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -33,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethod
                     new DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation.
                         ConsumerMethodPoisonMessage();
                 consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
-                    messageCount, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                    messageCount, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x,
                         false, true, false,
                         false, true, true, false),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);

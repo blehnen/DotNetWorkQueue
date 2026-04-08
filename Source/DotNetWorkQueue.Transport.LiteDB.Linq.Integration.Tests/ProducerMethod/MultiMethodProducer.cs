@@ -10,16 +10,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ProducerMethod
     public class MultiMethodProducer
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(100, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         DataRow(10, LinqMethodTypes.Dynamic, true, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         DataRow(10, LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Shared),
-         DataRow(100, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Direct)]
-#else
-        [DataRow(10, LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Shared),
-         DataRow(100, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Direct)]
-#endif
-        public void Run(int messageCount, LinqMethodTypes linqMethodTypes, bool enableChaos,
+        [DataRow(10, true, IntegrationConnectionInfo.ConnectionTypes.Shared),
+         DataRow(100, false, IntegrationConnectionInfo.ConnectionTypes.Direct)]
+        public void Run(int messageCount, bool enableChaos,
             IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
@@ -29,7 +22,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ProducerMethod
                     new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.MultiMethodProducer();
                 consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
                     connectionInfo.ConnectionString),
-                    messageCount, 10, linqMethodTypes, enableChaos,
+                    messageCount, 10, enableChaos,
                     Helpers.GenerateData, VerifyQueueCount);
             }
         }

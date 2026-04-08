@@ -16,16 +16,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
     public class MultiMethodProducer
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(100, true, LinqMethodTypes.Dynamic, false),
-        DataRow(10, false, LinqMethodTypes.Dynamic, true),
-        DataRow(10, true, LinqMethodTypes.Compiled, true),
-        DataRow(100, false, LinqMethodTypes.Compiled, false)]
-#else
-        [DataRow(10, true, LinqMethodTypes.Compiled, true),
-         DataRow(100, false, LinqMethodTypes.Compiled, false)]
-#endif
-        public void Run(int messageCount, bool inMemoryDb, LinqMethodTypes linqMethodTypes, bool enableChaos)
+        [DataRow(10, true, true),
+         DataRow(100, false, false)]
+        public void Run(int messageCount, bool inMemoryDb, bool enableChaos)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(inMemoryDb))
             {
@@ -33,7 +26,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ProducerMethod
                 var consumer =
                     new DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod.Implementation.MultiMethodProducer();
                 consumer.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(new QueueConnection(queueName, connectionInfo.ConnectionString),
-                    messageCount, 10, linqMethodTypes, enableChaos, Helpers.GenerateData, VerifyQueueCount);
+                    messageCount, 10, enableChaos, Helpers.GenerateData, VerifyQueueCount);
             }
         }
 

@@ -32,18 +32,5 @@ namespace DotNetWorkQueue.Tests.Exceptions
             Assert.AreEqual("code", e.CompileCode);
             Assert.AreEqual("errorinner", e.InnerException.Message);
         }
-
-#if NETFULL
-        [TestMethod]
-        public void GetObjectData_Test()
-        {
-            var e = new CompileException("error", "code");
-            var info = new SerializationInfo(typeof(CompileException), new FormatterConverter());
-            e.GetObjectData(info, new StreamingContext());
-            Assert.AreEqual("code", info.GetString("CompileCode"));
-            Assert.AreEqual("error", e.Message);
-            Assert.AreEqual("code", e.CompileCode);
-        }
-#endif
     }
 }

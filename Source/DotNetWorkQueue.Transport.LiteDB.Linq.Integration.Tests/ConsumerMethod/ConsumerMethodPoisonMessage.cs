@@ -13,14 +13,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodPoisonMessage
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(1, 60, 1, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         DataRow(10, 60, 5, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Memory)]
-#else
-        [DataRow(10, 60, 5, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Memory)]
-#endif
+        [DataRow(10, 60, 5, false, IntegrationConnectionInfo.ConnectionTypes.Memory)]
         public void Run(int messageCount, int timeOut,
-            int workerCount, LinqMethodTypes linqMethodTypes, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
+            int workerCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
@@ -30,7 +25,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
                         ConsumerMethodPoisonMessage();
                 consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
                         connectionInfo.ConnectionString),
-                    messageCount, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x, false, false, true),
+                    messageCount, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x, false, false, true),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);
             }
         }

@@ -31,16 +31,6 @@ namespace DotNetWorkQueue
     /// </summary>
     public interface ISendJobToQueue : IDisposable, IIsDisposed
     {
-#if NETFULL
-        /// <summary>
-        /// Sends the specified action to the specified queue.
-        /// </summary>
-        /// <param name="job">The job.</param>
-        /// <param name="scheduledTime">The scheduled time.</param>
-        /// <param name="expressionToRun">The expression to run.</param>
-        /// <returns></returns>
-        Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun expressionToRun);
-#endif
         /// <summary>
         /// Sends the specified action to the specified queue.
         /// </summary>

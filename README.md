@@ -5,11 +5,11 @@
 [![Coverity status](https://scan.coverity.com/projects/10126/badge.svg)](https://scan.coverity.com/projects/blehnen-dotnetworkqueue)
 [![codecov](https://codecov.io/gh/blehnen/DotNetWorkQueue/branch/master/graph/badge.svg?token=E23UZ6U9CU)](https://codecov.io/gh/blehnen/DotNetWorkQueue)
 
-A producer / distributed consumer library for .NET applications. Targets .NET 4.8, .NET 8.0, .NET 10.0, and .NET Standard 2.0.
+A producer / distributed consumer library for .NET applications. Targets .NET 8.0 and .NET 10.0.
 
 **High-level features:**
 - Queue / de-queue POCOs for distributed processing
-- Queue / process LINQ statements (compiled or dynamic, expressed as a string)
+- Queue / process compiled LINQ expressions
 - Re-occurring job scheduler
 
 See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for in-depth documentation.
@@ -58,14 +58,6 @@ See [Docker Hub](https://hub.docker.com/r/blehnen74/dotnetworkqueue-dashboard) f
 
 ---
 
-## Differences Between Versions
-
-.NET Standard 2.0, 8.0, and 10.0 are missing the following features compared to the full framework version:
-
-- No support for dynamic LINQ statements
-
----
-
 ## Usage — POCO
 
 | Transport | Producer | Consumer |
@@ -82,50 +74,15 @@ See [Docker Hub](https://hub.docker.com/r/blehnen74/dotnetworkqueue-dashboard) f
 
 You can queue LINQ expressions to be executed instead of POCOs. This makes producers and consumers generic — they no longer need to be message-specific. The examples below are not transport-specific and assume any queue creation steps have already been performed.
 
-> **Note:** It is possible for a producer to queue work that a consumer cannot process. In order for a consumer to execute a LINQ statement, all types must be resolvable. For dynamic statements, it is also possible to queue work that doesn't compile due to syntax errors — this won't be discovered until the consumer dequeues the work.
-
-### Producer
-
-> **Note:** When passing `message` or `workerNotification` as arguments to dynamic LINQ, you must cast them, as the internal compiler treats them as `object`. This is not necessary when using standard LINQ expressions.
-
-```csharp
-// Cast types when using dynamic LINQ:
-(IReceivedMessage<MessageExpression>) message
-(IWorkerNotification) workerNotification
-```
+> **Note:** It is possible for a producer to queue work that a consumer cannot process. In order for a consumer to execute a LINQ expression, all referenced types must be resolvable.
 
 [SQLiteProducerLinq/Program.cs](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/SQLite/SQLiteProducerLinq/Program.cs)
 
-When passing value types, you will need to parse them inline. For example, a `Guid` and an `int` can be embedded in string literals and parsed using built-in .NET methods:
-
-```csharp
-var id = Guid.NewGuid();
-var runTime = 200;
-$"(message, workerNotification) => StandardTesting.Run(new Guid(\"{id}\"), int.Parse(\"{runTime}\"))"
-```
-
-This produces a LINQ expression that can be compiled and executed by the consumer, provided it can resolve all referenced types.
-
 ### Consumer
 
-The consumer is generic and can process any LINQ expression, but it must be able to resolve all types the expression references. You may need to wire up an assembly resolver if your DLLs cannot be located automatically.
+The consumer is generic and can process any LINQ expression, but it must be able to resolve all types the expression references.
 
-- [AppDomain.AssemblyResolve (MSDN)](https://msdn.microsoft.com/en-us/library/system.appdomain.assemblyresolve(v=vs.110).aspx)
 - [SQLiteConsumerLinq/Program.cs](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/SQLite/SQLiteConsumerLinq/Program.cs)
-
-### Security Considerations
-
-No sandboxing or checking for risky commands is performed. For example, the following statement will cause the consumer host to exit:
-
-```csharp
-"(message, workerNotification) => Environment.Exit(0)"
-```
-
-If configuration files define dynamic LINQ statements, or if you cannot fully trust the producer, consider running the consumer in an application domain sandbox. Without that, the only protection against destructive commands is O/S user permissions:
-
-```csharp
-"(message, workerNotification) => System.IO.Directory.Delete(@\"C:\\Windows\\\", true)"
-```
 
 ---
 
@@ -184,7 +141,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 **Core (DotNetWorkQueue):** [SimpleInjector](https://simpleinjector.org/index.html), [Polly](https://github.com/App-vNext/Polly), [Newtonsoft.Json](http://www.newtonsoft.com/json), [OpenTelemetry](https://github.com/open-telemetry/opentelemetry-dotnet), [Microsoft.Extensions.Caching.Memory](https://github.com/dotnet/runtime), [Microsoft.IO.RecyclableMemoryStream](https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream), [GuerrillaNtp](https://guerrillantp.machinezoo.com/)
 
-Custom libraries in `/Lib`: [Schyntax](https://github.com/blehnen/cs-schyntax), [Aq.ExpressionJsonSerializer](https://github.com/blehnen/expression-json-serializer), [JpLabs.DynamicCode](http://jp-labs.blogspot.com/2008/11/dynamic-lambda-expressions-using.html)
+Custom libraries in `/Lib`: [Schyntax](https://github.com/blehnen/cs-schyntax), [Aq.ExpressionJsonSerializer](https://github.com/blehnen/expression-json-serializer)
 
 | Package | Dependencies |
 |---------|-------------|

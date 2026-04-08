@@ -76,24 +76,6 @@ namespace DotNetWorkQueue.Trace.Decorator
             }
         }
 
-#if NETFULL
-        /// <summary>
-        /// Sends the specified dynamic linqExpression to be executed.
-        /// </summary>
-        /// <param name="job">The job.</param>
-        /// <param name="scheduledTime">The scheduled time.</param>
-        /// <param name="linqExpression">The linqExpression to execute.</param>
-        /// <returns></returns>
-        public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun linqExpression)
-        {
-            using (var scope = _tracer.StartActivity("SendJobAsync"))
-            {
-                scope?.SetTag("JobName", job.Name);
-                return await _handler.SendAsync(job, scheduledTime, linqExpression).ConfigureAwait(false);
-            }
-        }
-#endif
-
         /// <inheritdoc />
         public void Start()
         {

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-DotNetWorkQueue is a producer/distributed consumer library for .NET. It supports queueing POCOs, LINQ statements (compiled or dynamic), and re-occurring job scheduling. Targets .NET 10.0, .NET 8.0, .NET Framework 4.8, and .NET Standard 2.0.
+DotNetWorkQueue is a producer/distributed consumer library for .NET. It supports queueing POCOs, compiled LINQ expressions, and re-occurring job scheduling. Targets .NET 10.0 and .NET 8.0.
 
 ## Build Commands
 
@@ -40,7 +40,6 @@ dotnet test "Source\DotNetWorkQueue.Transport.Redis.Tests\DotNetWorkQueue.Transp
 dotnet test "Source\DotNetWorkQueue.Transport.SQLite.Tests\DotNetWorkQueue.Transport.SQLite.Tests.csproj"
 dotnet test "Source\DotNetWorkQueue.Transport.LiteDb.Tests\DotNetWorkQueue.Transport.LiteDb.Tests.csproj"
 dotnet test "Source\DotNetWorkQueue.Transport.RelationalDatabase.Tests\DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj"
-dotnet test "Source\DotNetWorkQueue.AppMetrics.Tests\DotNetWorkQueue.AppMetrics.Tests.csproj"
 
 # Additional unit test projects:
 dotnet test "Source\DotNetWorkQueue.Dashboard.Api.Tests\DotNetWorkQueue.Dashboard.Api.Tests.csproj"
@@ -79,14 +78,14 @@ The main library containing all abstractions, interfaces, and default implementa
 ### Producer/Consumer Pattern
 - `IProducerQueue<T>` / `IConsumerQueue` - POCO message queues
 - `IProducerMethodQueue` / `IConsumerMethodQueue` - Delegate-based queues
-- LINQ expression variants for dynamic/compiled expressions
+- LINQ expression variants for compiled expressions
 - `IJobScheduler` for recurring scheduled jobs
 
 ### Dependency Injection
 SimpleInjector is the IoC container. Each transport has an init class implementing `ITransportInit` that registers its services. `IContainerFactory` provides root-level container access to avoid circular dependencies.
 
 ### Multi-targeting
-Projects use conditional compilation: `NETFULL` for .NET 4.8-specific code (dynamic LINQ, SoapFormatter), `NETSTANDARD2_0` for .NET Standard paths.
+Projects target net10.0 and net8.0. Legacy conditional compilation symbols (NETFULL, NETSTANDARD2_0) have been removed.
 
 ## Key Dependencies
 
@@ -96,7 +95,7 @@ Projects use conditional compilation: `NETFULL` for .NET 4.8-specific code (dyna
 - **Microsoft.Data.SqlClient 6.1.3** - SQL Server (replaced System.Data.SqlClient)
 - **OpenTelemetry 1.14.0** - Distributed tracing
 - **System.Diagnostics.Metrics** - Built-in metrics via `System.Diagnostics.DiagnosticSource` (users add OpenTelemetry.Metrics exporters to collect)
-- Custom libraries in `/Lib`: Schyntax (scheduling), Aq.ExpressionJsonSerializer (LINQ serialization), JpLabs.DynamicCode (dynamic lambdas)
+- Custom libraries in `/Lib`: Schyntax (scheduling), Aq.ExpressionJsonSerializer (LINQ serialization)
 
 ## Conventions
 
@@ -104,7 +103,7 @@ Projects use conditional compilation: `NETFULL` for .NET 4.8-specific code (dyna
 - Interface prefix: `I` (e.g., `IQueue`); Factory suffix: `Factory`; Config suffix: `Configuration`
 - Abstract base classes use prefix `A` or suffix `Base`
 - Thread-safe disposal via `Interlocked` operations throughout
-- **CI**: Jenkins is the local CI server (setup guide at `docs/jenkins-setup.md`). It runs 13 parallel integration test stages on Docker agents (net10.0 only) with Coverlet code coverage uploaded to Codecov.io. GitHub Actions (`.github/workflows/ci.yml`) runs net48 unit tests only for .NET Framework compatibility validation.
+- **CI**: Jenkins is the local CI server (setup guide at `docs/jenkins-setup.md`). It runs 13 parallel integration test stages on Docker agents (net10.0 only) with Coverlet code coverage uploaded to Codecov.io. GitHub Actions (`.github/workflows/ci.yml`) runs net10.0 unit tests on ubuntu-latest for CI validation.
 
 ## Lessons Learned
 
@@ -121,3 +120,9 @@ Projects use conditional compilation: `NETFULL` for .NET 4.8-specific code (dyna
 - SQL UPDATE tests that only assert parameter values can pass while the UPDATE is a silent no-op: a WHERE clause guard may exclude the very rows you're trying to fix. Capture and assert the actual `CommandText` to catch this — the parameter assertion alone is a false positive.
 - StackExchange.Redis `ConnectionMultiplexer` cannot be mocked with NSubstitute (sealed types + extension methods). Expose a `protected virtual GetDb()` seam on Redis handlers for testability; keep classes internal to contain the scope.
 - `RedisValue.Null` cast to `(int)` yields `0`, not an exception. When comparing against enums where `0` is a valid member (e.g., `MessageHistoryStatus.Enqueued`), always check `.HasValue` before casting to avoid null-value collisions.
+
+## Code Quality
+- Prefer correct, complete implementations over minimal ones.
+- Use appropriate data structures and algorithms — don't brute-force what has a known better solution.
+- When fixing a bug, fix the root cause, not the symptom.
+- If something I asked for requires error handling or validation to work reliably, include it without asking.

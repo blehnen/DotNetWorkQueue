@@ -3,9 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Interceptors;
-#if NETFULL
-using DotNetWorkQueue.Messages;
-#endif
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -49,45 +46,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
 
                 );
         }
-
-#if NETFULL
-        public void RunEnqueueTestDynamic<TTransportInit, TJobQueueCreator>(QueueConnection queueConnection,
-            bool addInterceptors,
-            Action<QueueConnection, long, ICreationScope> verify,
-            Action<QueueConnection, ICreationScope> setErrorFlag,
-            IGetTimeFactory timeFactory, ICreationScope scope,
-            ILogger logProvider)
-            where TTransportInit : ITransportInit, new()
-            where TJobQueueCreator : class, IJobQueueCreation
-        {
-            _timeFactory = timeFactory;
-            _logProvider = logProvider;
-            _scope = scope;
-            using (var jobQueueCreation =
-                new JobQueueCreationContainer<TTransportInit>(x => x.RegisterNonScopedSingleton(scope)))
-            {
-                using (
-                    var createQueue = jobQueueCreation.GetQueueCreation<TJobQueueCreator>(queueConnection)
-                    )
-                {
-                    RunEnqueueTest<TTransportInit>(queueConnection, addInterceptors, verify,
-                        setErrorFlag,
-                        (x, name) => x.AddUpdateJob<TTransportInit>(createQueue, name, queueConnection,
-                            "min(*)",
-                            new LinqExpressionToRun(
-                                "(message, workerNotification) => Console.WriteLine(DateTime.Now.Ticks)")),
-
-                        (x, name, time) =>
-                            x.AddUpdateJob<TTransportInit>(createQueue, name, queueConnection,
-                                "min(*)",
-                                new LinqExpressionToRun(
-                                    "(message, workerNotification) => Console.WriteLine(DateTime.Now.Ticks)"), null, null, true,
-                                time), timeFactory, scope, logProvider
-                        );
-                }
-            }
-        }
-#endif
 
         public
             void RunTestMultipleProducers<TTransportInit, TJobQueueCreator>(QueueConnection queueConnection,

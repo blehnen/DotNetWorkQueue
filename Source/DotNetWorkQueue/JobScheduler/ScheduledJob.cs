@@ -56,32 +56,9 @@ namespace DotNetWorkQueue.JobScheduler
         public event Action<IScheduledJob, IJobQueueOutputMessage> OnNonFatalFailureEnQueue;
         public event Action<IScheduledJob, IJobQueueOutputMessage> OnEnQueue;
 
-#if NETFULL
-        private readonly LinqExpressionToRun _expressionToRun;
-#endif
         private readonly Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> _actionToRun;
         private readonly IGetTime _getTime;
 
-        internal ScheduledJob(JobScheduler scheduler,
-            string name,
-            IJobSchedule schedule,
-            IProducerMethodJobQueue queue,
-            LinqExpressionToRun expressionToRun,
-            IGetTime time,
-            string route
-           )
-        {
-            _scheduler = scheduler;
-            Name = name;
-            Schedule = schedule;
-            _queue = queue;
-
-#if NETFULL
-            _expressionToRun = expressionToRun;
-#endif
-            _getTime = time;
-            Route = route;
-        }
         internal ScheduledJob(JobScheduler scheduler,
             string name,
             IJobSchedule schedule,
@@ -210,11 +187,7 @@ namespace DotNetWorkQueue.JobScheduler
                 {
                     try
                     {
-#if NETFULL
-                        var result = _expressionToRun != null ? await _queue.SendAsync(this, eventTime, _expressionToRun).ConfigureAwait(false) : await _queue.SendAsync(this, eventTime, _actionToRun, RawExpression).ConfigureAwait(false);
-#else
                         var result = await _queue.SendAsync(this, eventTime, _actionToRun, RawExpression).ConfigureAwait(false);
-#endif
                         if (result.Status == JobQueuedStatus.Success || result.Status == JobQueuedStatus.RequeuedDueToErrorStatus)
                         {
                             RaiseEnQueue(result);

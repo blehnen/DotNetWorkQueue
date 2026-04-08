@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>net10.0;net8.0;net48;netstandard2.0;</TargetFrameworks>
+	  <TargetFrameworks>net10.0;net8.0;</TargetFrameworks>
     <AssemblyName>DotNetWorkQueue.Transport.LiteDb</AssemblyName>
     <Description>LiteDB transport for https://github.com/blehnen/DotNetWorkQueue</Description>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
@@ -21,10 +21,6 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;CODE_ANALYSIS;</DefineConstants>
-  </PropertyGroup>
-
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
 		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
 	</PropertyGroup>
@@ -32,17 +28,6 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0|AnyCPU'">
 		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
 	</PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net48|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;NETFULL</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
-    <DefineConstants>NETSTANDARD2_0;</DefineConstants>
-    <DocumentationFile>DotNetWorkQueue.Transport.LiteDB.xml</DocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-  </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0|AnyCPU'">
 		<DefineConstants></DefineConstants>
@@ -57,15 +42,6 @@
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
 	</PropertyGroup>
-
-
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net48|AnyCPU'">
-    <DefineConstants>NETFULL</DefineConstants>
-    <DocumentationFile>DotNetWorkQueue.Transport.LiteDB.xml</DocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-  </PropertyGroup>
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />

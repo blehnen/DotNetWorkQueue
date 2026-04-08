@@ -79,50 +79,5 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         Task<IQueueOutputMessages> SendAsync(List<QueueMessage<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>, IAdditionalMessageData>> methods, bool rawExpression = false);
 
-#if NETFULL
-        /// <summary>
-        /// Sends the specified linqExpression to be executed. Additional message meta data is optional.
-        /// </summary>
-        /// <param name="linqExpression">The linqExpression to execute.</param>
-        /// <param name="data">The optional additional message data.</param>
-        /// <returns></returns>
-        IQueueOutputMessage Send(LinqExpressionToRun linqExpression, IAdditionalMessageData data = null);
-
-        /// <summary>
-        /// Sends the specified methods to be executed.
-        /// </summary>
-        /// <param name="methods">The methods to execute.</param>
-        /// <returns></returns>
-        IQueueOutputMessages Send(List<LinqExpressionToRun> methods);
-
-        /// <summary>
-        /// Sends the specified methods to be executed.
-        /// </summary>
-        /// <param name="methods">The methods to execute.</param>
-        /// <returns></returns>
-        IQueueOutputMessages Send(List<QueueMessage<LinqExpressionToRun, IAdditionalMessageData>> methods);
-
-        /// <summary>
-        /// Sends the specified linqExpression to be executed. Additional message meta data is optional.
-        /// </summary>
-        /// <param name="linqExpression">The linqExpression to execute.</param>
-        /// <param name="data">The optional additional message data.</param>
-        /// <returns></returns>
-        Task<IQueueOutputMessage> SendAsync(LinqExpressionToRun linqExpression, IAdditionalMessageData data = null);
-
-        /// <summary>
-        /// Sends the specified methods to be executed.
-        /// </summary>
-        /// <param name="methods">The messages.</param>
-        /// <returns></returns>
-        Task<IQueueOutputMessages> SendAsync(List<LinqExpressionToRun> methods);
-
-        /// <summary>
-        /// Sends the specified methods to be executed.
-        /// </summary>
-        /// <param name="methods">The messages.</param>
-        /// <returns></returns>
-        Task<IQueueOutputMessages> SendAsync(List<QueueMessage<LinqExpressionToRun, IAdditionalMessageData>> methods);
-#endif
     }
 }

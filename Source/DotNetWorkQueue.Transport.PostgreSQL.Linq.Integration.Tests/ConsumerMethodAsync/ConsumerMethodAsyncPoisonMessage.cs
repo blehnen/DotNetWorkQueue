@@ -13,19 +13,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class ConsumerMethodAsyncPoisonMessage
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true),
-#if NETFULL
-        DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Dynamic, true),
-         DataRow(50, 60, 20, 2, 2, true, LinqMethodTypes.Dynamic, false),
-#endif
-         DataRow(5, 60, 20, 2, 2, true, LinqMethodTypes.Compiled, true)]
-#else
-        [DataRow(1, 60, 1, 1, 0, false, LinqMethodTypes.Compiled, true),
-         DataRow(5, 60, 20, 2, 2, true, LinqMethodTypes.Compiled, true)]
-#endif
+        [DataRow(1, 60, 1, 1, 0, false, true),
+         DataRow(5, 60, 20, 2, 2, true, true)]
         public void Run(int messageCount, int timeOut, int workerCount, int readerCount, int queueSize,
-            bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
+            bool useTransactions, bool enableChaos)
         {
 
             var queueName = GenerateQueueName.Create();
@@ -35,7 +26,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
 
             consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlMessageQueueCreation>(new QueueConnection(queueName,
                     ConnectionInfo.ConnectionString),
-                messageCount, timeOut, workerCount, readerCount, queueSize, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x,
+                messageCount, timeOut, workerCount, readerCount, queueSize, enableChaos, x => Helpers.SetOptions(x,
                     true, !useTransactions, useTransactions, false,
                     false, !useTransactions, true, false),
                 Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);

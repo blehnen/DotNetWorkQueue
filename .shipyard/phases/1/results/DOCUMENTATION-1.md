@@ -1,98 +1,73 @@
 # Documentation Report
-**Phase:** 1 — Prepare fork for NuGet publishing
-**Date:** 2026-04-07
+**Phase:** 1 -- Drop net48/netstandard2.0 from library projects
 
 ## Summary
-- API/Code docs: 0 files changed (library is unchanged; no new public interfaces)
-- Architecture updates: none required
-- User-facing docs: README.md requires a full rewrite (current content is 4 lines)
+- API/Code docs: 0 files updated (Phase 4 scope)
+- Architecture updates: 0 sections updated (no structural changes, only TFM removal)
+- User-facing docs: 0 files updated now; 5 specific gaps identified for Phase 4
 
-## API Documentation
-No new or changed public interfaces in this phase. The library code itself was not modified. No action needed.
+## Documentation Gaps Identified
 
-## Architecture Updates
-No structural changes to the library. Phase 1 adds NuGet metadata and CI only.
+All gaps below are **deferred to Phase 4** (version bump + docs), per the task instructions. This report catalogs them so nothing is missed.
 
-## User Documentation
+### 1. README.md -- Target framework line (line 8)
+- **Type:** Reference
+- **File:** `/mnt/f/git/dotnetworkqueue/README.md`
+- **Issue:** States "Targets .NET 4.8, .NET 8.0, .NET 10.0, and .NET Standard 2.0." Must change to "Targets .NET 8.0 and .NET 10.0."
 
-### README.md — Requires Rewrite
-- **File:** `/mnt/f/Git/expression-json-serializer/README.md`
-- **Type:** README
-- **Status:** Needs update — current content is 4 lines with no usage, install, or publish information
-- **Critical gap:** The .csproj sets `PackageReadmeFile=README.md`, so this file becomes the NuGet package description on nuget.org. It must be useful before the first publish.
+### 2. README.md -- "Differences Between Versions" section (lines 61-66)
+- **Type:** Reference
+- **File:** `/mnt/f/git/dotnetworkqueue/README.md`
+- **Issue:** This entire section discusses .NET Standard 2.0 / .NET 8.0 / .NET 10.0 missing dynamic LINQ compared to "the full framework version." Since net48 is removed and dynamic LINQ is removed from ALL targets, this section should be deleted entirely.
 
-Recommended content (see proposed README below):
-1. Package name and install snippet (`DotNetWorkQueue.Aq.ExpressionJsonSerializer`)
-2. One-paragraph origin/fork statement
-3. Minimal usage example (serialize/deserialize a lambda)
-4. Supported targets (net10.0, net8.0, net48, netstandard2.0)
-5. Publishing workflow — how to trigger a release (push a `v*` tag; requires `NUGET_API_KEY` secret)
+### 3. README.md -- Dynamic LINQ usage sections (lines 81-128)
+- **Type:** Tutorial
+- **File:** `/mnt/f/git/dotnetworkqueue/README.md`
+- **Issue:** The "Usage -- LINQ Expressions" section includes extensive documentation on dynamic LINQ strings (casting `message`/`workerNotification`, string interpolation for value types, security warnings about `Environment.Exit`). Since `LinqExpressionToRun` overloads are removed from all public interfaces, this content needs significant revision. Compiled LINQ expressions (`Expression<Action<...>>`) still work; only the dynamic string-based path is gone. The security subsection about sandboxing dynamic LINQ can be removed.
 
-### CI/Publish Workflow — No Dedicated Doc Needed
-The publish workflow (`ci.yml`) is simple enough that a README paragraph covers it. A separate workflow doc would be over-engineering for a library this size.
+### 4. README.md -- Third-Party Libraries (line 187)
+- **Type:** Reference
+- **File:** `/mnt/f/git/dotnetworkqueue/README.md`
+- **Issue:** Lists "JpLabs.DynamicCode" under custom libraries in `/Lib`. This vendored DLL was deleted in Phase 1. Remove from list.
 
-### CHANGELOG — Optional
-No changelog exists. Given this is v1.0.0 of a fork, a single-entry CHANGELOG (or a "Fork history" section in the README) would be sufficient to record the upstream divergence point and what was added. This is a nice-to-have, not a blocker.
+### 5. SECURITY.md -- Dynamic LINQ compilation section (lines 85-113)
+- **Type:** Explanation
+- **File:** `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue/SECURITY.md`
+- **Issue:** The "Dynamic LINQ compilation" section (lines 85-113) describes `DynamicCodeCompiler`, `JpLabs.DynamicCode.Compiler`, `LinqExpressionToRun`, and the ".NET Framework 4.8 only" platform availability. Since net48 is dropped and `DynamicCodeCompiler` is deleted, this entire section can be simplified to state that dynamic LINQ string compilation is no longer supported. The "Platform availability" subsection (lines 99-102) and "What this means" subsection (lines 104-106) are now moot. The mitigations subsection (lines 108-113) can drop the ".NET 8+" bullet since all targets are now .NET 8+.
 
-## Gaps
-1. **README.md is nearly empty** — this is the primary gap. It is also the NuGet package description, making it high-priority before publish.
-2. No install/usage example anywhere in the repo.
-3. No record of what upstream commits were merged (loop/goto support) — a brief note in README under "Changes from upstream" would aid future maintainers.
+### 6. CHANGELOG.md -- Breaking changes entry needed
+- **Type:** Reference
+- **File:** `/mnt/f/git/dotnetworkqueue/CHANGELOG.md`
+- **Issue:** Phase 1 introduces multiple breaking changes that need a changelog entry for the next version:
+  - **Breaking:** Removed .NET Framework 4.8 and .NET Standard 2.0 targets. Now targets .NET 8.0 and .NET 10.0 only.
+  - **Breaking:** Removed dynamic LINQ string compilation (`LinqExpressionToRun`). 6 overloads removed from `IProducerMethodQueue`, 2 overloads removed from `IJobScheduler`. `LinqCompiler.CompileAction` now throws `NotSupportedException`.
+  - Deleted vendored `JpLabs.DynamicCode` DLL and `DynamicCodeCompiler` class.
+  - Deleted vendored `Schyntax` binaries for net48 and netstandard2.0.
+  - Removed `Microsoft.CSharp` PackageReference from core library (built-in on net8.0+).
 
-## Recommendations
-1. **Replace README.md** with the proposed content below before tagging v1.0.0. (File path: `/mnt/f/Git/expression-json-serializer/README.md`)
-2. Add a "Changes from upstream" bullet noting loop/goto expression support was merged.
-3. CHANGELOG is optional for v1.0.0 but add one at v1.1.0 or when a breaking change ships.
+### 7. CLAUDE.md -- Multi-targeting section
+- **Type:** Reference
+- **File:** `/mnt/f/git/dotnetworkqueue/CLAUDE.md`
+- **Issue:** Line referencing "Targets .NET 10.0, .NET 8.0, .NET Framework 4.8, and .NET Standard 2.0" and the "Multi-targeting" section mentioning `NETFULL` / `NETSTANDARD2_0` conditional compilation. After Phase 1, these conditionals no longer exist in library code. Phase 4 should update CLAUDE.md accordingly.
 
----
+## Removed Public API Surface (for changelog reference)
 
-## Proposed README.md Content
+### IProducerMethodQueue (6 overloads removed)
+All `Send`/`SendAsync` overloads accepting `LinqExpressionToRun`:
+- `Send(LinqExpressionToRun, List<QueueDelay>)`
+- `Send(LinqExpressionToRun, List<QueueDelay>, TimeSpan)`
+- `Send(LinqExpressionToRun, List<QueueDelay>, DateTimeOffset)`
+- `SendAsync(LinqExpressionToRun, List<QueueDelay>)`
+- `SendAsync(LinqExpressionToRun, List<QueueDelay>, TimeSpan)`
+- `SendAsync(LinqExpressionToRun, List<QueueDelay>, DateTimeOffset)`
 
-```markdown
-# DotNetWorkQueue.Aq.ExpressionJsonSerializer
+### IJobScheduler (2 overloads removed)
+- `AddUpdateJob(string, string, string, LinqExpressionToRun, ...)`
+- `AddUpdateJob(string, string, string, LinqExpressionToRun, ..., bool, ...)`
 
-Expression tree serializer/deserializer for [Newtonsoft.Json](https://www.nuget.org/packages/Newtonsoft.Json/).
+### Deleted types
+- `DotNetWorkQueue.LinqCompile.DynamicCodeCompiler` (entire class deleted)
+- `LinqCompiler` constructor with `ObjectPool<DynamicCodeCompiler>` parameter removed; `CompileAction` now throws `NotSupportedException`
 
-Fork of [aquilae/expression-json-serializer](https://github.com/aquilae/expression-json-serializer) with multi-target support and loop/goto expression handling. Published for use by [DotNetWorkQueue](https://github.com/blehnen/DotNetWorkQueue).
-
-## Install
-
-```
-dotnet add package DotNetWorkQueue.Aq.ExpressionJsonSerializer
-```
-
-## Supported targets
-
-- .NET 10.0
-- .NET 8.0
-- .NET Framework 4.8
-- .NET Standard 2.0
-
-## Usage
-
-```csharp
-var settings = new JsonSerializerSettings();
-settings.Converters.Add(new ExpressionJsonConverter(typeof(MyMessage)));
-
-Expression<Func<MyMessage, bool>> expr = m => m.Value > 10;
-
-string json = JsonConvert.SerializeObject(expr, settings);
-var restored = JsonConvert.DeserializeObject<Expression<Func<MyMessage, bool>>>(json, settings);
-```
-
-## Changes from upstream
-
-- Added net10.0, net8.0, net48, and netstandard2.0 multi-targeting
-- Merged loop and goto expression support
-- Added NuGet packaging and GitHub Actions CI/publish pipeline
-
-## Publishing a release
-
-1. Ensure the `NUGET_API_KEY` secret is set in the GitHub repository settings.
-2. Push a version tag: `git tag v1.0.0 && git push origin v1.0.0`
-3. GitHub Actions runs build + tests across all targets, then packs and pushes to nuget.org automatically.
-
-## License
-
-MIT
-```
+## No SECURITY.md Impact from GetObjectData Removal
+The `CompileException.GetObjectData` override (removed in Phase 1 along with `#if NETFULL`) was a .NET binary serialization hook unrelated to the security concerns documented in SECURITY.md. No security documentation update needed for this specific removal.

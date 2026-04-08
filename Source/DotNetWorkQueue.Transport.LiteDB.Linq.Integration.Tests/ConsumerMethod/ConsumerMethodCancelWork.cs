@@ -13,14 +13,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodCancelWork
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(2, 45, 90, 3, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         DataRow(2, 45, 90, 3, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Memory)]
-#else
-        [DataRow(2, 45, 90, 3, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Memory)]
-#endif
+        [DataRow(2, 45, 90, 3, false, IntegrationConnectionInfo.ConnectionTypes.Memory)]
         public void Run(int messageCount, int runtime,
-            int timeOut, int workerCount, LinqMethodTypes linqMethodTypes, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
+            int timeOut, int workerCount, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
             using (var connectionInfo = new IntegrationConnectionInfo(connectionType))
             {
@@ -30,7 +25,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
                         ConsumerMethodCancelWork();
                 consumer.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
                         connectionInfo.ConnectionString),
-                    messageCount, runtime, timeOut, workerCount, linqMethodTypes, enableChaos, x => Helpers.SetOptions(x, true, false, true),
+                    messageCount, runtime, timeOut, workerCount, enableChaos, x => Helpers.SetOptions(x, true, false, true),
                     Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
             }
         }
