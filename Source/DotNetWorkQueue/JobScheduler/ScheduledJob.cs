@@ -139,7 +139,7 @@ namespace DotNetWorkQueue.JobScheduler
             if (Schedule.OriginalText == schedule)
                 return;
 
-            UpdateSchedule(new JobSchedule(schedule, () => new DateTimeOffset(_getTime.GetCurrentUtcDate())));
+            UpdateSchedule(new JobSchedule(schedule, () => new DateTimeOffset(_getTime.GetCurrentUtcDate()), Window));
         }
 
         public void UpdateSchedule(IJobSchedule schedule)

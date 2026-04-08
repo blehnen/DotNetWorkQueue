@@ -24,15 +24,19 @@ namespace DotNetWorkQueue.JobScheduler
 {
     internal class JobSchedule : IJobSchedule
     {
+        private static readonly TimeSpan DefaultLookbackWindow = TimeSpan.FromHours(48);
+
         private readonly CronExpression _expression;
         private readonly string _originalText;
         private readonly Func<DateTimeOffset> _getCurrentOffset;
         private readonly Lazy<string> _description;
+        private readonly TimeSpan _previousLookbackWindow;
 
-        public JobSchedule(string schedule, Func<DateTimeOffset> getCurrentOffset)
+        public JobSchedule(string schedule, Func<DateTimeOffset> getCurrentOffset, TimeSpan previousLookbackWindow = default)
         {
             _originalText = schedule;
             _getCurrentOffset = getCurrentOffset;
+            _previousLookbackWindow = previousLookbackWindow > TimeSpan.Zero ? previousLookbackWindow : DefaultLookbackWindow;
 
             var fieldCount = schedule.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
             var format = fieldCount switch
@@ -82,7 +86,7 @@ namespace DotNetWorkQueue.JobScheduler
 
         private DateTimeOffset? PreviousInternal(DateTimeOffset before)
         {
-            var from = before - TimeSpan.FromHours(48);
+            var from = before - _previousLookbackWindow;
             var occurrences = _expression.GetOccurrences(
                 from.UtcDateTime,
                 before.UtcDateTime,

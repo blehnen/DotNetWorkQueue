@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
                         false,
                         logProvider,
                         runtime, messageCount,
-                        workerCount, timeOut, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)",
+                        workerCount, timeOut, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "*/10 * * * * *",
                         id, enableChaos, scope);
 
                     verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, 0, false, false);

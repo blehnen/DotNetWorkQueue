@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation
                     consumer.RunConsumer<TTransportInit>(queueConnection,
                         false,
                         workerCount, logProvider, timeOut, runtime, messageCount,
-                        TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos,
+                        TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "*/10 * * * * *", null, enableChaos,
                         scope);
 
                     verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, 0, false, false);
