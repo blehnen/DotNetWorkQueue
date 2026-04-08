@@ -74,14 +74,6 @@ namespace DotNetWorkQueue.Queue
         /// <inheritdoc />
         public ILogger Logger { get; }
 
-#if NETFULL
-        /// <inheritdoc />
-        public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime, LinqExpressionToRun linqExpression)
-        {
-            if(Interlocked.CompareExchange(ref _started, 0, 0) == 0) throw new DotNetWorkQueueException("Start must be called before sending jobs");
-            return await _sendJobToQueue.SendAsync(job, scheduledTime, linqExpression).ConfigureAwait(false);
-        }
-#endif
         /// <inheritdoc />
         public async Task<IJobQueueOutputMessage> SendAsync(IScheduledJob job, DateTimeOffset scheduledTime,
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method,

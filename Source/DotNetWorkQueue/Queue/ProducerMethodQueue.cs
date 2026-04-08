@@ -122,63 +122,6 @@ namespace DotNetWorkQueue.Queue
             return await _queue.SendAsync(messages).ConfigureAwait(false);
         }
 
-#if NETFULL
-        /// <inheritdoc />
-        public IQueueOutputMessage Send(LinqExpressionToRun linqExpression, IAdditionalMessageData data = null)
-        {
-            var message = new MessageExpression(MessageExpressionPayloads.ActionText,
-                _compositeSerialization.InternalSerializer.ConvertToBytes(linqExpression));
-            return _queue.Send(message, data);
-        }
-
-        /// <inheritdoc />
-        public IQueueOutputMessages Send(List<LinqExpressionToRun> methods)
-        {
-            var messages = new List<MessageExpression>(methods.Count);
-            messages.AddRange(methods.Select(method => new MessageExpression(MessageExpressionPayloads.ActionText, _compositeSerialization.InternalSerializer.ConvertToBytes(method))));
-            return _queue.Send(messages);
-        }
-
-        /// <inheritdoc />
-        public IQueueOutputMessages Send(List<QueueMessage<LinqExpressionToRun, IAdditionalMessageData>> methods)
-        {
-            var messages = new List<QueueMessage<MessageExpression, IAdditionalMessageData>>(methods.Count);
-            foreach (var method in methods)
-            {
-                var message = new MessageExpression(MessageExpressionPayloads.ActionText, _compositeSerialization.InternalSerializer.ConvertToBytes(method));
-                messages.Add(new QueueMessage<MessageExpression, IAdditionalMessageData>(message, method.MessageData));
-            }
-            return _queue.Send(messages);
-        }
-
-        /// <inheritdoc />
-        public async Task<IQueueOutputMessage> SendAsync(LinqExpressionToRun linqExpression, IAdditionalMessageData data = null)
-        {
-            var message = new MessageExpression(MessageExpressionPayloads.ActionText, _compositeSerialization.InternalSerializer.ConvertToBytes(linqExpression));
-            return await _queue.SendAsync(message, data).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc />
-        public async Task<IQueueOutputMessages> SendAsync(List<LinqExpressionToRun> methods)
-        {
-            var messages = new List<MessageExpression>(methods.Count);
-            messages.AddRange(methods.Select(method => new MessageExpression(MessageExpressionPayloads.ActionText, _compositeSerialization.InternalSerializer.ConvertToBytes(method))));
-            return await _queue.SendAsync(messages).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc />
-        public async Task<IQueueOutputMessages> SendAsync(List<QueueMessage<LinqExpressionToRun, IAdditionalMessageData>> methods)
-        {
-            var messages = new List<QueueMessage<MessageExpression, IAdditionalMessageData>>(methods.Count);
-            foreach (var method in methods)
-            {
-                var message = new MessageExpression(MessageExpressionPayloads.ActionText, _compositeSerialization.InternalSerializer.ConvertToBytes(method));
-                messages.Add(new QueueMessage<MessageExpression, IAdditionalMessageData>(message, method.MessageData));
-            }
-            return await _queue.SendAsync(messages).ConfigureAwait(false);
-        }
-#endif
-
         /// <inheritdoc />
         public async Task<IQueueOutputMessages> SendAsync(List<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>> methods, bool rawExpression = false)
         {
