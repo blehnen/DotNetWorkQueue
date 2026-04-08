@@ -628,3 +628,20 @@
 - **Research findings:** Cronos v0.12.0 just released (0 downloads) — pinning to v0.11.1. JobSchedule not DI-registered (new'd at 3 call sites). CronExpressionDescriptor 6-field handling needs runtime verification.
 - **Critique verdict:** READY — all file paths verified, API surface confirmed, no blocking issues
 - **Status:** Ready for /shipyard:build 1
+
+## 2026-04-08 — Phase 1 Build Complete
+
+- **Action:** `/shipyard:build 1`
+- **Plans executed:** 2/2 (PLAN-1.1, PLAN-1.2)
+- **Commits:**
+  - `8bbcf440` — NuGet deps (Cronos 0.11.1, CronExpressionDescriptor 2.45.0) + remove Schyntax refs
+  - `f5c07493` — IJobSchedule interface: Previous() nullable, add Description
+  - `9613da6e` — IHeartBeatConfiguration doc comment: Schyntax → cron
+  - `2b177e23` — JobSchedule.cs full rewrite to Cronos CronExpression
+  - `dc83c889` — ScheduledJob.cs null-check Previous() in catch-up logic
+  - `3fd7f899` — Remove unused System.Linq import (simplification fix)
+- **Reviews:** PLAN-1.1 PASS, PLAN-1.2 PASS
+- **Verification:** PASS — 878 unit tests, 0 errors Debug+Release, 0 Schyntax references
+- **Security audit:** PASS — no critical findings (3 advisory)
+- **Simplification:** 1 fix applied (unused import), rest clean
+- **Status:** Phase 1 complete, ready for Phases 2/3/4 (parallel)
