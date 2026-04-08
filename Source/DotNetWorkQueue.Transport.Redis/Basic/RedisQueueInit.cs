@@ -318,7 +318,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             var heartBeatConfiguration = container.GetInstance<IHeartBeatConfiguration>();
             heartBeatConfiguration.Time = TimeSpan.FromSeconds(30);
             heartBeatConfiguration.MonitorTime = TimeSpan.FromSeconds(120);
-            heartBeatConfiguration.UpdateTime = "sec(*%10)";
+            heartBeatConfiguration.UpdateTime = "*/10 * * * * *";
             heartBeatConfiguration.ThreadPoolConfiguration.ThreadsMax = 1;
             heartBeatConfiguration.ThreadPoolConfiguration.WaitForThreadPoolToFinish = TimeSpan.FromSeconds(5);
         }
