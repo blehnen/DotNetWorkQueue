@@ -645,3 +645,12 @@
 - **Security audit:** PASS — no critical findings (3 advisory)
 - **Simplification:** 1 fix applied (unused import), rest clean
 - **Status:** Phase 1 complete, ready for Phases 2/3/4 (parallel)
+
+## 2026-04-08 — Phases 2, 3, 4 Planned
+
+- **Action:** `/shipyard:plan 2` (also planned 3 and 4 — all parallel, all simple)
+- **Phase 2:** 1 plan — transport heartbeat defaults (3 string replacements in 3 files)
+- **Phase 3:** 1 plan — unit + integration test strings (2 files, 3 tasks)
+- **Phase 4:** 1 plan — CronExpressionDescriptor logging in JobScheduler.cs (scoped down: Dashboard API can't show description because DashboardJob lacks schedule expression field)
+- **Skipped:** Research, discussion capture, critique (all mechanical changes)
+- **Status:** Ready for /shipyard:build 2 (parallel with 3 and 4)
