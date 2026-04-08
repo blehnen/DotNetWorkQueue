@@ -66,7 +66,7 @@ The main library containing all abstractions, interfaces, and default implementa
 - `IoC` - DI abstractions (`IContainer`, `IContainerFactory`) using SimpleInjector
 - `Queue` - Queue implementations for producers and consumers
 - `Messages` - `IMessage<T>`, `IReceivedMessage<T>`, `ISentMessage`
-- `JobScheduler` - Recurring job scheduling using Schyntax format
+- `JobScheduler` - Recurring job scheduling using cron format
 - `Policies` - Polly-based resilience/retry policies
 - `Trace` - OpenTelemetry distributed tracing integration
 
@@ -95,7 +95,8 @@ Projects target net10.0 and net8.0. Legacy conditional compilation symbols (NETF
 - **Microsoft.Data.SqlClient 6.1.3** - SQL Server (replaced System.Data.SqlClient)
 - **OpenTelemetry 1.14.0** - Distributed tracing
 - **System.Diagnostics.Metrics** - Built-in metrics via `System.Diagnostics.DiagnosticSource` (users add OpenTelemetry.Metrics exporters to collect)
-- Custom libraries in `/Lib`: Schyntax (scheduling), Aq.ExpressionJsonSerializer (LINQ serialization)
+- **Cronos** - Cron expression parsing (5-field and 6-field with seconds)
+- **CronExpressionDescriptor** - Human-readable cron schedule descriptions
 
 ## Conventions
 

@@ -88,7 +88,7 @@ The consumer is generic and can process any LINQ expression, but it must be able
 
 ## Usage — Job Scheduler
 
-Jobs may be scheduled using [Schyntax](https://github.com/schyntax/cs-schyntax) format. The scheduler and consumers are separate — schedulers only queue work, while standard LINQ consumers handle processing.
+Jobs may be scheduled using standard cron expressions (5-field or 6-field with seconds), parsed by [Cronos](https://github.com/HangfireIO/Cronos). The scheduler and consumers are separate — schedulers only queue work, while standard LINQ consumers handle processing.
 
 Any LINQ statement supported by a LINQ producer can be scheduled via the scheduler.
 
@@ -96,7 +96,7 @@ Multiple schedulers sharing the same schedule can be run for redundancy, but it 
 
 > **Note:** Using multiple machines with out-of-sync clocks may produce unexpected results. Server-based transports often provide solutions for this. See the Wiki.
 
-See [Schyntax](https://github.com/schyntax/schyntax) for the event scheduling format.
+See [crontab.guru](https://crontab.guru/) for the cron expression format. 6-field expressions (with seconds) are also supported.
 
 ### Scheduler
 
@@ -121,7 +121,7 @@ To consume and process scheduled jobs, use a [LINQ Consumer](https://github.com/
 
 You'll need Visual Studio 2022/2026 (any edition) and the .NET 8.0 / 10.0 SDKs installed.
 
-All references are either on NuGet or in the `\lib` folder. Building from Visual Studio should restore all required files automatically.
+All references are on NuGet. Building from Visual Studio should restore all required packages automatically.
 
 ---
 
@@ -141,7 +141,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 **Core (DotNetWorkQueue):** [SimpleInjector](https://simpleinjector.org/index.html), [Polly](https://github.com/App-vNext/Polly), [Newtonsoft.Json](http://www.newtonsoft.com/json), [OpenTelemetry](https://github.com/open-telemetry/opentelemetry-dotnet), [Microsoft.Extensions.Caching.Memory](https://github.com/dotnet/runtime), [Microsoft.IO.RecyclableMemoryStream](https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream), [GuerrillaNtp](https://guerrillantp.machinezoo.com/)
 
-Custom libraries in `/Lib`: [Schyntax](https://github.com/blehnen/cs-schyntax), [Aq.ExpressionJsonSerializer](https://github.com/blehnen/expression-json-serializer)
+**Scheduling:** [Cronos](https://github.com/HangfireIO/Cronos) (cron parsing), [CronExpressionDescriptor](https://github.com/bradymholt/cron-expression-descriptor) (human-readable descriptions)
 
 | Package | Dependencies |
 |---------|-------------|
