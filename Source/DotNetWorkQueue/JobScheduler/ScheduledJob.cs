@@ -96,11 +96,14 @@ namespace DotNetWorkQueue.JobScheduler
                 {
                     // check if we actually want to run the first event right away
                     var prev = Schedule.Previous();
-                    lastKnownEvent = lastKnownEvent.AddSeconds(1); // add a second for good measure
-                    if (prev > lastKnownEvent && prev > new DateTimeOffset(_getTime.GetCurrentUtcDate()) - window)
+                    if (prev.HasValue)
                     {
-                        firstEvent = prev;
-                        firstEventSet = true;
+                        lastKnownEvent = lastKnownEvent.AddSeconds(1); // add a second for good measure
+                        if (prev.Value > lastKnownEvent && prev.Value > new DateTimeOffset(_getTime.GetCurrentUtcDate()) - window)
+                        {
+                            firstEvent = prev.Value;
+                            firstEventSet = true;
+                        }
                     }
                 }
 
