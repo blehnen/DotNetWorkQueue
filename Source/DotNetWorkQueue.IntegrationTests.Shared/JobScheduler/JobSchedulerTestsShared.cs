@@ -37,11 +37,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             RunEnqueueTest<TTransportInit>(queueConnection, addInterceptors, verify,
                 setErrorFlag,
                 (x, name) => x.AddUpdateJob<TTransportInit, TJobQueueCreator>(name, queueConnection,
-                    "min(*)",
+                    "* * * * *",
                     (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value), null, config => { }),
 
                 (x, name, time) => x.AddUpdateJob<TTransportInit, TJobQueueCreator>(name, queueConnection,
-                    "min(*)",
+                    "* * * * *",
                     (message, workerNotification) => Console.WriteLine(message.MessageId.Id.Value), null, config => { }, true, time), timeFactory, scope, logProvider
 
                 );
@@ -97,11 +97,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
                                         scheduler.Start();
 
                                         scheduler.AddUpdateJob<TTransportInit, TJobQueueCreator>(Job1, queueConnection,
-                                            "min(*)",
+                                            "* * * * *",
                                             (message, workerNotification) => Console.Write(""));
 
                                         scheduler.AddUpdateJob<TTransportInit, TJobQueueCreator>(Job2, queueConnection,
-                                            "min(*)",
+                                            "* * * * *",
                                             (message, workerNotification) =>
                                                 Console.Write(""));
 
