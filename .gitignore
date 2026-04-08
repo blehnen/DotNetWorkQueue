@@ -450,3 +450,4 @@ TeamCity_*.zip
 codcov*.txt
 codecov*.txt
 NuGetScratchbrian/
+Deploy.bat
