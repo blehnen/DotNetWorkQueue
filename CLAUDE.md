@@ -122,9 +122,12 @@ Projects target net10.0 and net8.0. Legacy conditional compilation symbols (NETF
 - StackExchange.Redis `ConnectionMultiplexer` cannot be mocked with NSubstitute (sealed types + extension methods). Expose a `protected virtual GetDb()` seam on Redis handlers for testability; keep classes internal to contain the scope.
 - `RedisValue.Null` cast to `(int)` yields `0`, not an exception. When comparing against enums where `0` is a valid member (e.g., `MessageHistoryStatus.Enqueued`), always check `.HasValue` before casting to avoid null-value collisions.
 - NuGet version ordering: `0.9.3` < `0.9.19`, so you can't go back to a lower version number after incrementing past it.
+- NuGet.org does not allow pushing `.snupkg` separately after the `.nupkg` is already published, and re-pushing the same version is blocked. Always push from the deploy directory using `dotnet nuget push "deploy/*.nupkg" --api-key KEY --source https://api.nuget.org/v3/index.json` — the CLI automatically picks up matching `.snupkg` files from the same directory.
 
 ## Code Quality
 - Prefer correct, complete implementations over minimal ones.
 - Use appropriate data structures and algorithms — don't brute-force what has a known better solution.
 - When fixing a bug, fix the root cause, not the symptom.
 - If something I asked for requires error handling or validation to work reliably, include it without asking.
+- New and changed features should be covered by either unit or integration Tests
+- Features that might vary by the transport implementation should have integration Tests; This has caused issues before with Redis History for example
