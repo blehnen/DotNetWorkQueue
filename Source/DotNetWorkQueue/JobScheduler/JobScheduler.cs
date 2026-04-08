@@ -173,6 +173,8 @@ namespace DotNetWorkQueue.JobScheduler
                 _tasks.Add(name, job);
             }
 
+            _log.LogInformation("Job {JobName} scheduled: {ScheduleExpression} ({ScheduleDescription})", name, schedule.OriginalText, schedule.Description);
+
             job.OnException += TaskOnOnException;
             job.OnEnQueue += JobOnOnEnQueue;
             job.OnNonFatalFailureEnQueue += JobOnOnNonFatalFailureEnQueue;
@@ -231,6 +233,8 @@ namespace DotNetWorkQueue.JobScheduler
                 };
                 _tasks.Add(name, job);
             }
+
+            _log.LogInformation("Job {JobName} scheduled: {ScheduleExpression} ({ScheduleDescription})", name, schedule.OriginalText, schedule.Description);
 
             job.OnException += TaskOnOnException;
             job.OnEnQueue += JobOnOnEnQueue;
