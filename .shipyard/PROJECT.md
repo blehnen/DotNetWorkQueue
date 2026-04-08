@@ -1,95 +1,118 @@
-# Project: Replace Schyntax with Cronos (issue #100)
+# Project: Dashboard UI — Support Multiple API Sources (issue #96)
 
 ## Description
 
-Schyntax is a bundled `/Lib` DLL with no XML docs, no symbols, and no NuGet package. It uses a custom DSL format that nobody outside this project knows, and it causes NuGet Package Explorer health warnings on the core DotNetWorkQueue package.
+The Dashboard UI currently connects to a single API instance (either in-process or one external `DashboardApi:BaseUrl`). This forces users with queues on multiple machines to run separate dashboard UIs for each. For example, a SQLite queue on one machine can't share its `.db3` file over a network — it needs a local API instance — while Redis and SQL Server queues are accessed from a central API.
 
-This milestone replaces Schyntax with Cronos (MIT, zero dependencies, standard cron expressions) and adds CronExpressionDescriptor for human-readable schedule descriptions in logging, the dashboard, and API responses. This is a breaking change — schedule strings change from Schyntax DSL to standard cron format, and the `Previous()` API becomes nullable. Version bumps to 0.9.3.
+This project adds multi-source support to the Dashboard UI, allowing a single UI deployment to aggregate queues from multiple Dashboard API instances. The UI handles connection routing and display aggregation, while each API instance retains full ownership of its transport logic. This is a breaking configuration change.
 
 ## Goals
 
-1. Replace Schyntax with Cronos as the schedule parser in `JobSchedule.cs`
-2. Add CronExpressionDescriptor for human-readable cron descriptions (logging, dashboard, API)
-3. Support both 5-field (standard) and 6-field (with seconds) cron expressions, auto-detected by field count
-4. Make `IJobSchedule.Previous()` return `DateTimeOffset?` (nullable) since Cronos has no native `Previous()`
-5. Add configurable `PreviousLookbackWindow` (default 48h) to job scheduler configuration
-6. Delete `Lib/Schyntax/` and the now-empty `Lib/` directory
-7. Remove all Schyntax DLL references and NuGet pack entries from `DotNetWorkQueue.csproj`
-8. Update all heartbeat default schedule strings from Schyntax to cron format
-9. Update all test schedule strings from Schyntax to cron format
-10. Update README.md, CLAUDE.md, and documentation
-11. Bump version to 0.9.3
+1. Allow the Dashboard UI to connect to multiple Dashboard API sources from a single deployment
+2. Add per-source configuration (name, baseUrl, apiKey) via a `Sources[]` array in config
+3. Route all API calls (reads and writes) to the correct source based on URL context
+4. Show source health/reachability status via background polling
+5. Group connections by source on the Home page (hidden when only one source)
+6. Treat in-process API as just another source (no special code path)
+7. Maintain full read + write operations across all sources
 
 ## Non-Goals
 
-- Publishing Schyntax as a NuGet package (was considered, replaced by this approach)
-- Changing the job scheduler architecture or API beyond what's needed for the Cronos swap
-- Adding new scheduling features (e.g., natural language scheduling)
-- Changing heartbeat intervals — only the format changes, not the values
+- Changing the Dashboard API contract or transport logic — each API instance stays as-is
+- Adding a proxy/gateway layer in the API — aggregation lives in the UI
+- Cross-source operations (e.g., moving a message from one source to another)
+- Source discovery or auto-detection — sources are explicitly configured
+- New transport support — this is purely a UI aggregation feature
 
 ## Requirements
 
-### Core Library
+### Configuration
 
-- `JobSchedule.cs`: Replace `Schyntax.Schedule` wrapper with `CronExpression` from Cronos
-- Auto-detect cron format: count space-separated fields — 5 = `CronFormat.Standard`, 6 = `CronFormat.IncludeSeconds`
-- `Next()` / `Next(DateTimeOffset)` → `CronExpression.GetNextOccurrence()`
-- `Previous()` / `Previous(DateTimeOffset)` → `CronExpression.GetOccurrences(now - lookback, now).LastOrDefault()`, returning `DateTimeOffset?`
-- `IJobSchedule` interface: change `Previous()` and `Previous(DateTimeOffset)` return types to `DateTimeOffset?`
-- Add `Description` property to `IJobSchedule` using CronExpressionDescriptor
-- Add `PreviousLookbackWindow` property (type `TimeSpan`, default 48h) to job scheduler configuration
-- `ScheduledJob.cs`: null-check `Previous()` result before using it for catch-up logic
+- Replace flat `DashboardApi:BaseUrl` / `ApiKey` with `DashboardApi:Sources[]` array
+- Each source has: `Name` (string), `BaseUrl` (string), `ApiKey` (string, optional)
+- Breaking change: old flat config format is no longer supported
+- Startup validation detects old config format and throws a clear error message with migration instructions and example JSON
+- In-process API (when `Dashboard:Connections` exists) registers as a source automatically (name configurable, defaults to "Local")
 
-### Heartbeat & Transports
+### Source-Aware Routing
 
-- Update `IHeartBeatConfiguration.UpdateTime` doc comment from Schyntax reference to cron format
-- LiteDB default: `"sec(*%10)"` → `"*/10 * * * * *"`
-- Redis default: `"sec(*%10)"` → `"*/10 * * * * *"`
-- RelationalDatabase default: `"min(*%2)"` → `"*/2 * * * *"`
+- All Blazor page URLs include source context: `/source/{sourceSlug}/connection/{id}/queue/{queueId}`
+- Source slug is derived from the configured `Name` (slugified) — never exposes BaseUrl or ApiKey
+- `DashboardApiClient` methods accept a source identifier and resolve it internally to BaseUrl + credentials
+- Write operations (delete, requeue, reset, cancel) route through the same source-aware path as reads
 
-### Tests
+### Health Monitoring
 
-- `JobSchedulerTestsShared.cs`: `"min(*)"` → `"* * * * *"`
-- `HeartBeatWorkerTests.cs`: `"sec(*%2)"` → `"*/2 * * * * *"`, `"sec(*%59)"` → `"*/59 * * * * *"`
-- All per-transport `JobSchedulerTests.cs` files: Schyntax → cron equivalents
-- `SharedSetup.cs`: any Schyntax strings → cron equivalents
-- No test logic changes — string replacements only
+- A background hosted service polls each source on a timer (e.g., every 30 seconds)
+- Polling calls `GET /api/v1/dashboard/connections` with a short timeout
+- Health state cached in memory: reachable, unreachable, last-checked timestamp
+- UI reads cached health state — page loads never block on health checks
 
-### Cleanup
+### Home Page — Grouped by Source
 
-- Delete `Lib/Schyntax/` (net8.0 + net10.0 DLLs)
-- Delete `Lib/` directory (empty after Schyntax + issue #102 removal)
-- Remove TFM-conditional `<Reference Include="Schyntax">` ItemGroups from `DotNetWorkQueue.csproj`
-- Remove `_PackageFiles` entries for Schyntax DLLs; remove `IncludeVendoredDllsInPack` target if empty
+- Multiple sources: connections grouped under collapsible source name headers with health indicator
+- Single source: group header hidden, flat list identical to current behavior
+- Offline sources: group header shown with "Source unreachable" warning and retry button
 
-### Documentation
+### Partial Failure Handling
 
-- README.md: replace Schyntax references with cron, update examples, update dependency list
-- CLAUDE.md: update Key Dependencies section
-- Add Cronos and CronExpressionDescriptor to dependency lists
+- Display data from healthy sources normally
+- Offline sources show their group/section with an inline warning — no blocking, no spinners
+- If a source was healthy at poll time but fails on a specific request, show an error in that source's section
+- Other sources remain fully functional and unaffected
+
+### Backwards Compatibility
+
+- This is a **breaking config change** — old flat `BaseUrl`/`ApiKey` format is removed
+- Startup detection of old config produces a clear, actionable error message with the new format example
+- All existing API endpoints, controllers, and transport logic remain unchanged
+- Single-source deployments work identically to today (just wrapped in `Sources[]` array)
 
 ## Non-Functional Requirements
 
-- All existing tests must pass on net10.0 and net8.0 after migration
-- Solution must build cleanly in both Debug and Release configurations
-- No orphaned files or dead references left behind
-- CronExpressionDescriptor used in logging, dashboard, and API responses
+- Page loads must not block on unhealthy sources — background polling handles health
+- Source credentials (BaseUrl, ApiKey) must never appear in URLs, HTML, or client-side state
+- All existing Dashboard API integration tests must continue to pass unchanged
+- Solution must build cleanly on net10.0 and net8.0 in Debug and Release configurations
 
 ## Success Criteria
 
 1. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` — 0 errors
 2. `dotnet build "Source/DotNetWorkQueue.sln" -c Release` — 0 errors, 0 warnings
-3. `dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj"` — all tests pass
-4. `grep -r "Schyntax\|schyntax" Source/ --include="*.cs" --include="*.csproj"` — 0 matches
-5. `grep -r "Schyntax" Lib/` — directory does not exist
-6. `ls Lib/` — directory does not exist
-7. `IJobSchedule.Previous()` returns `DateTimeOffset?`
-8. All heartbeat defaults use cron format
-9. Version in DotNetWorkQueue.csproj is `0.9.3`
+3. Dashboard UI connects to 2+ configured sources and displays connections grouped by source
+4. Write operations (delete, requeue, reset, cancel) route correctly to the owning source
+5. An offline source shows as unreachable without blocking other sources
+6. Old flat config format produces a clear startup error with migration instructions
+7. Single-source config renders identically to current behavior (no group header)
+8. In-process API works as a source alongside external sources
+9. No secrets (BaseUrl, ApiKey) leak into URLs or client-rendered HTML
+10. All existing Dashboard API integration tests pass without modification
+
+## Testing Strategy
+
+### Unit Tests (mocked HTTP handlers)
+- `DashboardApiClient` multi-source aggregation logic
+- Source routing: correct source receives each request
+- Partial failure: 2 of 3 sources respond, UI shows available data + error for failed source
+- Timeout handling: slow source doesn't block others
+- Health polling: state transitions (healthy → unhealthy → healthy)
+- Config validation: old format detection, missing required fields
+
+### Integration Tests (Memory transport)
+- Spin up 2-3 real API instances using Memory transport (no external services)
+- Verify end-to-end: grouped connection listing, correct source attribution
+- Write operations routed to correct source instance
+- Health monitoring with simulated source failure
+
+### Existing Transport Integration Tests
+- All 38 existing Dashboard API integration test classes (Memory, SQLite, LiteDb, Redis, SqlServer, PostgreSQL) must pass unchanged
+- These validate each API instance independently — no changes needed unless API contract changes
+- If API response shape changes, run full transport integration suite to catch divergence
 
 ## Constraints
 
-- Breaking change — version 0.9.3
-- Schyntax `dayOfYear` support is dropped (no cron equivalent) — accepted
-- `Previous()` implemented via `GetOccurrences()` lookback — configurable window (default 48h)
-- Cronos is MIT, zero dependencies, targets netstandard1.0+ — no compatibility concerns
+- Breaking configuration change — requires documentation and clear migration error
+- UI-side aggregation only — no API gateway/proxy layer
+- Each Dashboard API instance is standalone and unmodified
+- Transport-specific logic stays entirely within the API layer
+- Blazor Server (server-side rendering) — all HTTP calls are server-side C#
