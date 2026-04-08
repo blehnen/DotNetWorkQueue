@@ -13,13 +13,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodAsyncPoisonMessage
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(1, 60, 1, 1, 0, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         DataRow(10, 60, 5, 1, 0, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Memory),
-         DataRow(1, 60, 1, 1, 0, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Shared)]
-#else
         [DataRow(1, 60, 1, 1, 0, LinqMethodTypes.Compiled, false, IntegrationConnectionInfo.ConnectionTypes.Shared)]
-#endif
         public void Run(int messageCount, int timeOut, int workerCount,
             int readerCount, int queueSize, LinqMethodTypes linqMethodTypes, bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {

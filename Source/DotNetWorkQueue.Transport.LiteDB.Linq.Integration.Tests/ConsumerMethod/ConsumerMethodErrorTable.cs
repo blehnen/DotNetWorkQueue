@@ -10,12 +10,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodErrorTable
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(10, 60, 5, LinqMethodTypes.Dynamic, false, IntegrationConnectionInfo.ConnectionTypes.Direct),
-         DataRow(1, 60, 1, LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Memory)]
-#else
         [DataRow(1, 60, 1, LinqMethodTypes.Compiled, true, IntegrationConnectionInfo.ConnectionTypes.Memory)]
-#endif
         public void Run(int messageCount, int timeOut, int workerCount, LinqMethodTypes linqMethodTypes,
             bool enableChaos, IntegrationConnectionInfo.ConnectionTypes connectionType)
         {
