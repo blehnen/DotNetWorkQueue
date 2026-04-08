@@ -654,3 +654,12 @@
 - **Phase 4:** 1 plan — CronExpressionDescriptor logging in JobScheduler.cs (scoped down: Dashboard API can't show description because DashboardJob lacks schedule expression field)
 - **Skipped:** Research, discussion capture, critique (all mechanical changes)
 - **Status:** Ready for /shipyard:build 2 (parallel with 3 and 4)
+
+## 2026-04-08 — Phases 2, 3, 4 Build Complete
+
+- **Action:** `/shipyard:build 2` (built all 3 parallel phases simultaneously)
+- **Phase 2:** Transport heartbeat defaults — 3 string swaps, 1 commit (`ed9dc587`)
+- **Phase 3:** Test schedule strings — 5 replacements across 2 files, 878 tests pass, 2 commits (`34ae313e`, `e0d8b91b`)
+- **Phase 4:** CronExpressionDescriptor logging — 2 structured log lines in JobScheduler.cs, 1 commit (`bfcf666c`). Builder adapted plan: used `schedule.OriginalText` instead of raw string param.
+- **Verification:** 0 Schyntax schedule strings remain, Release build 0 errors
+- **Status:** Phases 2/3/4 complete, ready for Phase 5 (cleanup + docs + version bump)
