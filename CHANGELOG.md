@@ -1,3 +1,13 @@
+### 0.9.19 — 2026-04-07
+- **Breaking:** Drop .NET Framework 4.8 and .NET Standard 2.0 targets; now targets .NET 10.0 and .NET 8.0 only (GitHub #101)
+- Remove dynamic LINQ expression support (was net48-only via JpLabs.DynamicCode)
+- Remove vendored `Lib/JpLabs.DynamicCode` directory
+- Remove `#if NETFULL` / `#if NETSTANDARD2_0` conditional compilation from all source files
+- Remove vestigial `bool dynamic` parameter from `JobSchedulerTests` shared implementation and all 6 transport callers
+- Delete 7 empty shell files left after NETFULL block removal
+- GitHub Actions CI: switch from `windows-latest` (net48) to `ubuntu-latest` (net10.0)
+- Update README and CLAUDE.md to remove net48/dynamic LINQ references
+
 ### 0.9.18 — 2026-04-05
 - Deterministic builds, portable debug symbols, `.snupkg` symbol packages, Source Link via `Microsoft.SourceLink.GitHub` (GitHub #95)
 - Link sample Grafana dashboard (Prometheus data source) from README (GitHub #98)
