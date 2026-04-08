@@ -165,7 +165,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         {
             while (ex != null)
             {
-                if (ex is SQLiteException sqliteEx && Enum.IsDefined(typeof(RetryableSqlErrors), (RetryableSqlErrors)sqliteEx.ErrorCode))
+                if (ex is SQLiteException sqliteEx && Enum.IsDefined(typeof(RetryableSqlErrors), (RetryableSqlErrors)(sqliteEx.ErrorCode & 0xFF)))
                     return true;
                 ex = ex.InnerException;
             }
