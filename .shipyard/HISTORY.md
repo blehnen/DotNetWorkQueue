@@ -592,8 +592,39 @@
   - Phases 3a-3f: Linq integration tests by transport (parallel)
   - Phase 4: CI + README + version bump
 - **Status:** Roadmap approved, ready for Phase 1 planning
-- [2026-04-07T19:59:51Z] Session ended during build (may need /shipyard:resume)
-- [2026-04-07T20:01:43Z] Session ended during build (may need /shipyard:resume)
-- [2026-04-08T02:00:07Z] Session ended during build (may need /shipyard:resume)
-- [2026-04-08T02:05:09Z] Session ended during build (may need /shipyard:resume)
-- [2026-04-08T03:42:23Z] Session ended during build (may need /shipyard:resume)
+
+## 2026-04-08 — Issue #101 Shipped (Previous Sessions)
+
+- **Action:** Phases 1-4 built and shipped across multiple sessions
+- **Delivery:** PR #109 merged to master
+- **Post-ship:** Removed ILinqCompiler, LinqMethodTypes, ActionText dead code (PR #109 feedback)
+- **Status:** Shipped
+
+## 2026-04-08 — New Milestone: Replace Schyntax with Cronos (issue #100)
+
+- **Action:** `/shipyard:brainstorm`
+- **Scope:** Replace vendored Schyntax DLL with Cronos (NuGet, MIT, standard cron) + CronExpressionDescriptor
+- **Decisions:**
+  - Auto-detect 5-field vs 6-field cron by counting space-separated fields
+  - `IJobSchedule.Previous()` becomes nullable (`DateTimeOffset?`)
+  - Configurable `PreviousLookbackWindow` (default 48h) on job scheduler config
+  - CronExpressionDescriptor used in logging, dashboard, and API responses
+  - 6-field cron (with seconds) supported everywhere
+  - Delete entire `Lib/` directory (empty after Schyntax removal)
+  - Version 0.9.3 (breaking change)
+- **Roadmap:** 5 phases, 3 waves. Phase 1 core (HIGH risk), Phases 2/3/4 parallel (LOW), Phase 5 cleanup
+- **Status:** Roadmap approved, ready for Phase 1 planning
+
+## 2026-04-08 — Phase 1 Planned
+
+- **Action:** `/shipyard:plan 1`
+- **Discussion decisions (CONTEXT-1.md):**
+  - Reuse existing `ScheduledJob.Window` for Previous() lookback — no new PreviousLookbackWindow config
+  - Keep `Func<DateTimeOffset>` constructor param on JobSchedule
+  - Auto-detect 5-field vs 6-field cron by counting space-separated fields
+- **Plans:** 2 plans in Wave 1 (sequential, PLAN-1.2 depends on PLAN-1.1)
+  - PLAN-1.1: NuGet deps (Cronos 0.11.1 + CronExpressionDescriptor 2.45.0), IJobSchedule interface change (Previous() nullable, add Description), IHeartBeatConfiguration doc comment
+  - PLAN-1.2: JobSchedule.cs full rewrite (Cronos CronExpression), ScheduledJob.cs null-check, build verification
+- **Research findings:** Cronos v0.12.0 just released (0 downloads) — pinning to v0.11.1. JobSchedule not DI-registered (new'd at 3 call sites). CronExpressionDescriptor 6-field handling needs runtime verification.
+- **Critique verdict:** READY — all file paths verified, API surface confirmed, no blocking issues
+- **Status:** Ready for /shipyard:build 1
