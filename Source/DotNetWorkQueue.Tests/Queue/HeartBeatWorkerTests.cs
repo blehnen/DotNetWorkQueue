@@ -89,7 +89,7 @@ namespace DotNetWorkQueue.Tests.Queue
 
             sendHeartBeat.Send(context).Throws(new ArgumentOutOfRangeException());
 
-            using (var test = Create(TimeSpan.FromSeconds(5), "sec(*%2)", context, sendHeartBeat))
+            using (var test = Create(TimeSpan.FromSeconds(5), "*/2 * * * * *", context, sendHeartBeat))
             {
                 test.Start();
                 Thread.Sleep(7000);
@@ -107,7 +107,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var sendHeartBeat = Substitute.For<ISendHeartBeat>();
             var context = Substitute.For<IMessageContext>();
-            using (var test = Create(TimeSpan.FromSeconds(seconds), "sec(*%2)", context, sendHeartBeat))
+            using (var test = Create(TimeSpan.FromSeconds(seconds), "*/2 * * * * *", context, sendHeartBeat))
             {
                 test.Start();
                 Thread.Sleep(1100);
@@ -117,7 +117,7 @@ namespace DotNetWorkQueue.Tests.Queue
         private HeartBeatWorker Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            return Create(TimeSpan.Zero, "sec(*%59)", fixture.Create<IMessageContext>(), fixture.Create<ISendHeartBeat>());
+            return Create(TimeSpan.Zero, "*/59 * * * * *", fixture.Create<IMessageContext>(), fixture.Create<ISendHeartBeat>());
         }
 
 

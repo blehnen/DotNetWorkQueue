@@ -1,5 +1,27 @@
 # Shipyard Lessons Learned
 
+## [2026-04-08] Milestone: Replace Schyntax with Cronos (issue #100)
+
+### What Went Well
+- 5-phase approach with clear dependency graph (core → parallel transports/tests/logging → cleanup) kept risk contained
+- Phase 1 audit and reviews caught the one real issue (unused import) before it could cause Release build warnings
+- Scoping Phase 4 down (logging only, not dashboard) avoided a rabbit hole once we discovered DashboardJob lacks a schedule expression field
+
+### Surprises / Discoveries
+- NuGet version ordering means 0.9.3 < 0.9.19, so you can't "go back" to a lower version number. Used 0.9.30 instead.
+- Cronos 0.12.0 was released with 0 downloads during the work session. Pinning to 0.11.1 (3.8M downloads) was the right stability call.
+- CronExpressionDescriptor 6-field handling was flagged as uncertain in research but worked correctly without any special configuration.
+
+### Pitfalls to Avoid
+- Builder agents will "helpfully" change version numbers if they think the specified one conflicts with existing entries. Always verify version in the commit, not just the summary.
+- Don't assume dashboard APIs can display data that isn't in the stored model. Check the data layer before planning UI/API features.
+
+### Process Improvements
+- For milestones with a clear mechanical component (string replacements), doing Phases 2/3/4 directly instead of through builder agents saved significant time
+- Planning all parallel phases in one pass (instead of one at a time) reduced round-trips
+
+---
+
 ## [2026-04-07] Milestone: Drop net48/netstandard2.0 (issue #101)
 
 ### What Went Well

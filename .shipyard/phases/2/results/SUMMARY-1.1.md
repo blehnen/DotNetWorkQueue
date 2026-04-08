@@ -3,13 +3,19 @@
 ## Status: complete
 
 ## Tasks Completed
-- Task 1: Remove LinqMethodTypes.Dynamic from SharedSetup.cs - complete - 1 file
-- Task 2: Remove #if NETFULL from 18 .cs files - complete - 18 files
-- Task 3: Remove net48 from IntegrationTests.Shared csproj - complete - 1 file
+- Task 1: Transport heartbeat defaults - complete - 3 files changed
+- Task 2: Build verification - complete - 0 errors
 
 ## Files Modified
-- 19 .cs files: all `#if NETFULL` blocks removed (dynamic LINQ test paths, RunTestDynamic methods)
-- 1 csproj: TargetFrameworks changed to `net10.0` only, conditional blocks removed
+- `Source/DotNetWorkQueue.Transport.LiteDB/Basic/LiteDbMessageQueueInit.cs`: `"sec(*%10)"` → `"*/10 * * * * *"`
+- `Source/DotNetWorkQueue.Transport.Redis/Basic/RedisQueueInit.cs`: `"sec(*%10)"` → `"*/10 * * * * *"`
+- `Source/DotNetWorkQueue.Transport.RelationalDatabase/Basic/RelationalDatabaseMessageQueueInit.cs`: `"min(*%2)"` → `"*/2 * * * *"`
+
+## Decisions Made
+- None — purely mechanical replacements per plan
 
 ## Issues Encountered
-- Perl `-i` in-place edit fails on WSL filesystem (rename temp file across mount points). Used write-to-/tmp + cp approach instead.
+- None
+
+## Verification Results
+- All 3 strings replaced, no Schyntax schedule strings remain in transport init files

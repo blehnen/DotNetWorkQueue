@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation
                         true, messageCount, logProvider, generateData, verify, false,
                         GenerateRoutes(routeCount, 1), GenerateRoutes(routeCount, routeCount + 1), runtime,
                         timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), oCreation.Scope,
-                        "second(*%3)", enableChaos);
+                        "*/3 * * * * *", enableChaos);
 
                     verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, 0, false, false);
                 }

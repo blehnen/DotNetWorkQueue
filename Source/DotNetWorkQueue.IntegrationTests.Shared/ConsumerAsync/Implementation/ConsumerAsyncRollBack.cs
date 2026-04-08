@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                         false,
                         workerCount, logProvider,
                         timeOut, readerCount, queueSize, runtime, messageCount, TimeSpan.FromSeconds(30),
-                        TimeSpan.FromSeconds(35), "second(*%10)", null, enableChaos, scope);
+                        TimeSpan.FromSeconds(35), "*/10 * * * * *", null, enableChaos, scope);
                     LoggerShared.CheckForErrors(queueConnection.Queue);
                     verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, 0, false, false);
                 }

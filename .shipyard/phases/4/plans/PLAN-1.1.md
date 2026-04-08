@@ -1,114 +1,70 @@
 ---
-phase: 4-ci-docs-version
+phase: dashboard-cron-description
 plan: "1.1"
 wave: 1
 dependencies: []
 must_haves:
-  - Commit the 10 unstaged files from prior phases
-  - Delete 7 empty shell files (ISSUE-021)
-  - Fix no-op dynamic test parameter (ISSUE-022) and cosmetic artifacts (ISSUE-023)
+  - JobScheduler logs human-readable schedule description when jobs are added
+  - Solution builds cleanly
 files_touched:
-  # Unstaged from prior phases (commit only, no edits needed)
-  - .shipyard/STATE.json
-  # Note: CLAUDE.md excluded -- handled by PLAN-1.3 (edit + commit)
-  - Source/DotNetWorkQueue/ASendJobToQueue.cs
-  - Source/DotNetWorkQueue/Exceptions/CompileException.cs
-  - Source/DotNetWorkQueue/IJobScheduler.cs
-  - Source/DotNetWorkQueue/IProducerMethodJobQueue.cs
-  - Source/DotNetWorkQueue/IProducerMethodQueue.cs
-  - Source/DotNetWorkQueue/ISendJobToQueue.cs
-  - Source/DotNetWorkQueue/Queue/ProducerMethodJobQueue.cs
-  - Source/DotNetWorkQueue/Queue/ProducerMethodQueue.cs
-  # ISSUE-021: Delete empty shell files
-  - Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs
-  - Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs
-  - Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs
-  - Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs
-  - Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs
-  - Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs
-  - Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/ProducerMethod/SimpleMethodProducerDynamicListSend.cs
-  # ISSUE-022: Fix no-op dynamic test rows
-  - Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs
-  - Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs
-  # ISSUE-022 (full cleanup): Remove vestigial dynamic parameter from shared impl + all 6 callers
-  - Source/DotNetWorkQueue.IntegrationTests.Shared/JobScheduler/Implementation/JobSchedulerTests.cs
-  - Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs
-  - Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs
-  - Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs
-  - Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs
-  # ISSUE-023: Cosmetic blank line fixes
-  - Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj
+  - Source/DotNetWorkQueue/JobScheduler/JobScheduler.cs
 tdd: false
 ---
 
-# Plan 1.1 -- Code Cleanup: Unstaged Sweep + ISSUE-021 + ISSUE-022 + ISSUE-023
+# Plan 1.1: CronExpressionDescriptor Logging Integration
+
+Add human-readable schedule descriptions to JobScheduler logging using the `IJobSchedule.Description` property added in Phase 1.
 
 ## Context
 
-Phase 4 is the final phase. Before touching docs/CI/version, we must first land all outstanding code changes:
+Phase 1 added `IJobSchedule.Description` which returns a human-readable cron description via CronExpressionDescriptor (e.g., `"*/5 * * * *"` → `"Every 5 minutes"`).
 
-1. **Unstaged changes:** 9 files modified in prior phases (8 core .cs files with `#if NETFULL` removal, plus STATE.json) were never committed. They need to be staged and committed as-is -- no edits, just a commit. (CLAUDE.md is excluded -- PLAN-1.3 handles its edits and commit.)
-2. **ISSUE-021:** 7 files are empty shells (only unused `using` directives and empty namespaces) left behind after NETFULL block removal in Phase 3. Delete them.
-3. **ISSUE-022:** The `bool dynamic` parameter in the shared `JobSchedulerTests.Run()` is now vestigial -- the `if (!dynamic)` guard means `dynamic=true` always produces a no-op test. PostgreSQL has `DataRow(true, true)` and LiteDb has `DataRow(true)` that exercise this dead path. Since dynamic LINQ is permanently removed, the cleanest fix is to remove the `dynamic` parameter entirely from the shared implementation and all 6 callers.
-4. **ISSUE-023:** Cosmetic stray/double blank lines in PostgreSQL JobSchedulerTests (line 14) and Memory csproj (lines 22-23).
+The Dashboard API cannot show schedule descriptions because `DashboardJob` (the stored data model) doesn't include the schedule expression — it only has `JobName`, `JobEventTime`, `JobScheduledTime`. Adding the expression to storage would require schema changes across all transports, which is out of scope for this milestone. A future enhancement could add schedule expression to `DashboardJob` and populate it during job registration.
+
+For now, the integration point is **logging in JobScheduler.cs** — the one place with live access to `IJobSchedule` instances.
+
+## Dependencies
+
+None (Phase 1 already complete — `IJobSchedule.Description` exists).
 
 ## Tasks
 
-<task id="1" files=".shipyard/STATE.json, Source/DotNetWorkQueue/ASendJobToQueue.cs, Source/DotNetWorkQueue/Exceptions/CompileException.cs, Source/DotNetWorkQueue/IJobScheduler.cs, Source/DotNetWorkQueue/IProducerMethodJobQueue.cs, Source/DotNetWorkQueue/IProducerMethodQueue.cs, Source/DotNetWorkQueue/ISendJobToQueue.cs, Source/DotNetWorkQueue/Queue/ProducerMethodJobQueue.cs, Source/DotNetWorkQueue/Queue/ProducerMethodQueue.cs" tdd="false">
-  <action>Stage and commit 9 unstaged files from prior phases. These are phase 1/2/3 changes (NETFULL removal from 8 core .cs files, STATE.json) that were completed but never committed. CLAUDE.md is excluded -- PLAN-1.3 handles it. No edits needed -- just `git add` the specific files and commit with message "shipyard(phase-4): commit unstaged phase 1-3 core library changes (issue #101)".</action>
-  <verify>git log -1 --stat | head -15</verify>
-  <done>Commit exists showing 9 files. `git status` no longer shows them as modified. CLAUDE.md still shows as modified (expected -- PLAN-1.3 handles it).</done>
+<task id="1" files="Source/DotNetWorkQueue/JobScheduler/JobScheduler.cs" tdd="false">
+  <action>
+  In `Source/DotNetWorkQueue/JobScheduler/JobScheduler.cs`, add log statements that include the human-readable schedule description when jobs are added or updated.
+
+  Find the `AddUpdateJob` methods (there are two overloads). After a job's schedule is created (where `new JobSchedule(...)` is called), add a log line:
+
+  ```csharp
+  _log.LogInformation("Job {jobName} scheduled: {scheduleText} ({scheduleDescription})", name, schedule, job.Schedule.Description);
+  ```
+
+  This gives operators both the raw cron expression and the human-readable description in their logs. Use structured logging with named parameters (not string interpolation) per best practice.
+
+  Also check the `Start()` method — if it logs scheduler startup, include any relevant schedule info.
+  </action>
+  <verify>grep -n "Description" "Source/DotNetWorkQueue/JobScheduler/JobScheduler.cs" | grep -q "log\|Log" && echo "PASS" || echo "FAIL"</verify>
+  <done>JobScheduler logs human-readable schedule descriptions when jobs are added/updated.</done>
 </task>
 
-<task id="2" files="Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs, Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs, Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs, Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs, Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs, Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs, Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/ProducerMethod/SimpleMethodProducerDynamicListSend.cs" tdd="false">
-  <action>Delete all 7 empty shell files listed in ISSUE-021. Use `git rm` to delete and stage in one step:
+<task id="2" files="" tdd="false">
+  <action>
+  Build verification:
+  1. `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release` — 0 errors, 0 warnings
+  2. Verify the log statement is correctly structured (uses named parameters, not interpolation)
+  </action>
+  <verify>dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release --verbosity quiet 2>&1 | tail -3</verify>
+  <done>Solution builds cleanly with CronExpressionDescriptor logging.</done>
+</task>
+
+## Verification
 
 ```bash
-git rm \
-  Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs \
-  Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs \
-  Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs \
-  Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs \
-  Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs \
-  Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs \
-  Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/ProducerMethod/SimpleMethodProducerDynamicListSend.cs
+# Log statement exists
+grep -n "Description" "Source/DotNetWorkQueue/JobScheduler/JobScheduler.cs"
+# Should show log lines referencing schedule description
+
+# Builds
+dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release
+# 0 errors, 0 warnings
 ```
-
-Then commit with message "shipyard(phase-4): delete 7 empty shell files after NETFULL removal (ISSUE-021)".</action>
-  <verify>ls Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/ConsumerMethod/ConsumerMethodMultipleDynamic.cs 2>&1 | grep -c "No such file"</verify>
-  <done>All 7 files no longer exist on disk. `git log -1 --stat` shows 7 deletions.</done>
-</task>
-
-<task id="3" files="Source/DotNetWorkQueue.IntegrationTests.Shared/JobScheduler/Implementation/JobSchedulerTests.cs, Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs, Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs, Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs, Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs, Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs, Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/JobScheduler/JobSchedulerTests.cs, Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj" tdd="false">
-  <action>Fix ISSUE-022 (remove vestigial `dynamic` parameter) and ISSUE-023 (cosmetic blank lines):
-
-**ISSUE-022 -- Shared implementation** (`Source/DotNetWorkQueue.IntegrationTests.Shared/JobScheduler/Implementation/JobSchedulerTests.cs`):
-- Remove `bool dynamic,` parameter from `Run()` method signature (line 11)
-- Remove the `if (!dynamic)` guard (line 32) and closing brace (line 39), keeping the body at the same indent level (dedent one level)
-
-**ISSUE-022 -- 6 transport callers** (each file's JobScheduler/JobSchedulerTests.cs):
-- **PostgreSQL**: Remove `DataRow(true, true)` (the no-op row). Change `DataRow(true, false)` to just `[DataRow(true)]`. Remove `bool dynamic` parameter. Remove `, dynamic` from the `consumer.Run(...)` call. Also fix ISSUE-023 stray blank line between `[TestMethod]` and `[DataRow]` (line 14).
-- **LiteDb**: Remove `DataRow(true)` (the no-op row). Change `DataRow(false)` to remove it (single parameterless test). Remove `bool dynamic` parameter. Remove `, dynamic` from the `consumer.Run(...)` call. Convert method to parameterless `[TestMethod]` (no DataRow needed).
-- **SqlServer**: Change `DataRow(true, false)` to `[DataRow(true)]`. Remove `bool dynamic` parameter. Remove `, dynamic` from the `consumer.Run(...)` call.
-- **SQLite**: `DataRow(false, false)` becomes `[DataRow(false)]`, `DataRow(false, true)` becomes `[DataRow(true)]`. Remove `bool dynamic` parameter, keep `bool inMemoryDb`. Remove `, dynamic` from the `consumer.Run(...)` call.
-- **Redis**: Remove `DataRow(false)` entirely. Remove `bool dynamic` parameter. Remove `, dynamic` from the `consumer.Run(...)` call. Convert to parameterless `[TestMethod]`.
-- **Memory**: Remove `DataRow(false)` entirely. Remove `bool dynamic` parameter. Remove `, dynamic` from the `consumer.Run(...)` call. Convert to parameterless `[TestMethod]`.
-
-**ISSUE-023 -- Memory csproj** (`DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj`):
-- Remove one of the two blank lines at lines 22-23 (between `</ItemGroup>` and `</Project>`).
-
-Commit with message "shipyard(phase-4): remove vestigial dynamic parameter from JobSchedulerTests (ISSUE-022, ISSUE-023)".</action>
-  <verify>cd /mnt/f/git/dotnetworkqueue && dotnet build Source/DotNetWorkQueue.sln -c Debug --verbosity quiet 2>&1 | tail -5</verify>
-  <done>Solution builds with 0 errors. `grep -rn 'bool dynamic' Source/DotNetWorkQueue.Transport.*.Linq.Integration.Tests/JobScheduler/` returns 0 matches. `grep -rn 'bool dynamic' Source/DotNetWorkQueue.IntegrationTests.Shared/JobScheduler/Implementation/JobSchedulerTests.cs` returns 0 matches. No double blank lines in Memory csproj. No stray blank line in PostgreSQL JobSchedulerTests.</done>
-</task>
-
-## Builder Notes
-
-- Task 1 is a pure git operation -- no file edits. Just stage and commit.
-- Task 2 is `git rm` + commit. No edits.
-- Task 3 requires careful edits across 8 files. The shared implementation change (removing the `if (!dynamic)` guard) requires dedenting the body. Each caller has a slightly different signature:
-  - SqlServer/PostgreSQL: `(bool interceptors, bool dynamic)` -- remove `dynamic`, keep `interceptors`
-  - SQLite: `(bool dynamic, bool inMemoryDb)` -- remove `dynamic`, keep `inMemoryDb`
-  - Redis/Memory/LiteDb: `(bool dynamic)` -- remove parameter entirely, convert to parameterless method
-- For the shared impl, the `if (!dynamic) { ... }` block on lines 32-39 should be replaced by just the body (lines 33-38) at the outer indent level.
-- Tasks 1 and 2 are independent and can be done in either order. Task 3 should be last since it requires a build verification.

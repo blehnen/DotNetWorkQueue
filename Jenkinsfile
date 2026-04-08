@@ -17,43 +17,43 @@ pipeline {
                 sh '''
                     dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj" \
                         -f net10.0 --no-build -c Debug \
-                        --collect:"XPlat Code Coverage" --results-directory coverage/unit-core
+                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-core
 
                     dotnet test "Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj" \
                         -f net10.0 --no-build -c Debug \
-                        --collect:"XPlat Code Coverage" --results-directory coverage/unit-relational
+                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-relational
 
                     dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.Tests/DotNetWorkQueue.Transport.SqlServer.Tests.csproj" \
                         -f net10.0 --no-build -c Debug \
-                        --collect:"XPlat Code Coverage" --results-directory coverage/unit-sqlserver
+                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-sqlserver
 
                     dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Tests/DotNetWorkQueue.Transport.PostgreSQL.Tests.csproj" \
                         -f net10.0 --no-build -c Debug \
-                        --collect:"XPlat Code Coverage" --results-directory coverage/unit-postgresql
+                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-postgresql
 
                     dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" \
                         -f net10.0 --no-build -c Debug \
-                        --collect:"XPlat Code Coverage" --results-directory coverage/unit-redis
+                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-redis
 
                     dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Tests/DotNetWorkQueue.Transport.SQLite.Tests.csproj" \
                         -f net10.0 --no-build -c Debug \
-                        --collect:"XPlat Code Coverage" --results-directory coverage/unit-sqlite
+                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-sqlite
 
                     dotnet test "Source/DotNetWorkQueue.Transport.LiteDb.Tests/DotNetWorkQueue.Transport.LiteDb.Tests.csproj" \
                         -f net10.0 --no-build -c Debug \
-                        --collect:"XPlat Code Coverage" --results-directory coverage/unit-litedb
+                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-litedb
 
                     dotnet test "Source/DotNetWorkQueue.Transport.Memory.Tests/DotNetWorkQueue.Transport.Memory.Tests.csproj" \
                         -f net10.0 --no-build -c Debug \
-                        --collect:"XPlat Code Coverage" --results-directory coverage/unit-memory
+                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-memory
 
                     dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Tests/DotNetWorkQueue.Dashboard.Api.Tests.csproj" \
                         -f net10.0 --no-build -c Debug \
-                        --collect:"XPlat Code Coverage" --results-directory coverage/unit-dashboard-api
+                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-dashboard-api
 
                     dotnet test "Source/DotNetWorkQueue.Dashboard.Client.Tests/DotNetWorkQueue.Dashboard.Client.Tests.csproj" \
                         -f net10.0 --no-build -c Debug \
-                        --collect:"XPlat Code Coverage" --results-directory coverage/unit-dashboard-client
+                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-dashboard-client
                 '''
 
                 stash includes: 'coverage/**/*.xml', name: 'unit-coverage'
@@ -74,7 +74,7 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/DotNetWorkQueue.Transport.SqlServer.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlserver \
+                                --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlserver \
                                 -- --retry-failed-tests 1
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-sqlserver'
@@ -93,7 +93,7 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlserver-linq \
+                                --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlserver-linq \
                                 -- --retry-failed-tests 1
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-sqlserver-linq'
@@ -112,7 +112,7 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-postgresql \
+                                --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-postgresql \
                                 -- --retry-failed-tests 1
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-postgresql'
@@ -131,7 +131,7 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-postgresql-linq \
+                                --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-postgresql-linq \
                                 -- --retry-failed-tests 1
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-postgresql-linq'
@@ -150,7 +150,7 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-redis \
+                                --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-redis \
                                 -- --retry-failed-tests 1
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-redis'
@@ -169,7 +169,7 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-redis-linq \
+                                --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-redis-linq \
                                 -- --retry-failed-tests 1
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-redis-linq'
@@ -185,7 +185,7 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlite
+                                --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlite
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-sqlite'
                     }
@@ -200,7 +200,7 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlite-linq
+                                --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlite-linq
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-sqlite-linq'
                     }
@@ -215,7 +215,7 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.LiteDB.IntegrationTests/DotNetWorkQueue.Transport.LiteDb.IntegrationTests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-litedb
+                                --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-litedb
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-litedb'
                     }
@@ -230,7 +230,7 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-litedb-linq
+                                --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-litedb-linq
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-litedb-linq'
                     }
@@ -245,7 +245,7 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-memory
+                                --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-memory
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-memory'
                     }
@@ -260,7 +260,7 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-memory-linq
+                                --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-memory-linq
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-memory-linq'
                     }
@@ -286,7 +286,7 @@ pipeline {
                             dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" \
                                 -f net10.0 -c Debug \
                                 --filter "FullyQualifiedName!~JobScheduler" \
-                                --collect:"XPlat Code Coverage" --results-directory coverage/int-dashboard
+                                --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-dashboard
                         '''
                         stash includes: 'coverage/**/*.xml', name: 'cov-dashboard'
                     }
@@ -312,17 +312,20 @@ pipeline {
                 unstash 'cov-memory-linq'
                 unstash 'cov-dashboard'
 
-                sh '''
-                    dotnet tool install -g dotnet-reportgenerator-globaltool || true
-                    export PATH="$PATH:$HOME/.dotnet/tools"
+                withCredentials([string(credentialsId: 'reportgenerator-license', variable: 'REPORTGENERATOR_LICENSE')]) {
+                    sh '''
+                        dotnet tool install -g dotnet-reportgenerator-globaltool || true
+                        export PATH="$PATH:$HOME/.dotnet/tools"
 
-                    reportgenerator \
-                        -reports:"coverage/**/coverage.cobertura.xml" \
-                        -targetdir:coverage/report \
-                        -reporttypes:"HtmlInline_AzurePipelines;Cobertura"
+                        reportgenerator \
+                            -reports:"coverage/**/coverage.cobertura.xml" \
+                            -targetdir:coverage/report \
+                            -reporttypes:"Html;Cobertura;Badges;TeamCitySummary" \
+                            -license:"$REPORTGENERATOR_LICENSE"
 
-                    echo "Merged coverage report generated at coverage/report/"
-                '''
+                        echo "Merged coverage report generated at coverage/report/"
+                    '''
+                }
 
                 withCredentials([string(credentialsId: 'codecov-token', variable: 'CODECOV_TOKEN')]) {
                     sh '''

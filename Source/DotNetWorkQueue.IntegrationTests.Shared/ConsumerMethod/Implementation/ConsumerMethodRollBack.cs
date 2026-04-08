@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
                     consumer.RunConsumer<TTransportInit>(queueConnection,
                         false,
                         workerCount, logProvider, timeOut, runtime, messageCount,
-                        TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", id, enableChaos, scope);
+                        TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "*/10 * * * * *", id, enableChaos, scope);
 
                     verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, 0, false, false);
                     GenerateMethod.ClearRollback(id);

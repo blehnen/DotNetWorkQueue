@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation
                     routeTest.RunTest<TTransportInit, FakeMessageA>(queueConnection,
                         true, messageCount, logProvider, generateData, verify, false,
                         GenerateRoutes(routeCount), runtime, timeOut, readerCount, TimeSpan.FromSeconds(10),
-                        TimeSpan.FromSeconds(12), oCreation.Scope, "second(*%3)", enableChaos);
+                        TimeSpan.FromSeconds(12), oCreation.Scope, "*/3 * * * * *", enableChaos);
 
                     verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, 0, false, false);
 

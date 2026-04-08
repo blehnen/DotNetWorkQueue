@@ -1,84 +1,76 @@
 ---
-phase: 3-linq-integration-tests
-plan: 1
+phase: test-schedule-strings
+plan: "1.1"
 wave: 1
 dependencies: []
 must_haves:
-  - Remove all #if NETFULL blocks from SqlServer, PostgreSQL, and SQLite Linq integration test .cs files
-  - Remove net48 target and conditional blocks from SqlServer, PostgreSQL, and SQLite Linq integration test csproj files
-  - All three projects build successfully targeting net10.0 only
+  - HeartBeatWorkerTests schedule strings converted to cron format
+  - JobSchedulerTestsShared schedule strings converted to cron format
+  - Unit tests pass
 files_touched:
-  - Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/**/*.cs (18 files)
-  - Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj
-  - Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/**/*.cs (18 files)
-  - Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj
-  - Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/**/*.cs (17 files)
-  - Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj
+  - Source/DotNetWorkQueue.Tests/Queue/HeartBeatWorkerTests.cs
+  - Source/DotNetWorkQueue.IntegrationTests.Shared/JobScheduler/JobSchedulerTestsShared.cs
 tdd: false
-risk: low
 ---
 
-# Phase 3 - PLAN 1.1: SqlServer, PostgreSQL, SQLite Linq Integration Tests
+# Plan 1.1: Unit and Integration Test Schedule Strings
 
-Remove net48/NETFULL from the three SQL-family Linq integration test projects. All three follow the same pattern: delete `#if NETFULL` ... `#endif` blocks from .cs files (these contain `LinqMethodTypes.Dynamic` test method overloads), and strip net48 targets plus conditional PropertyGroup/ItemGroup blocks from the csproj.
+Mechanical string replacements in 2 test files. No logic changes.
 
-**Builder note:** Use Perl regex for bulk .cs edits. Write output to /tmp then cp back (Perl `-i` fails on WSL cross-mount). Pattern: `perl -0777 -pe 's/\n*#if NETFULL\b.*?#endif[^\n]*//gs'`
+## Context
 
----
+Test files contain Schyntax schedule strings for heartbeat and job scheduler tests. These must be converted to cron equivalents now that the core library uses Cronos.
 
-<task id="1" files="Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/**/*.cs, Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" tdd="false">
+## Dependencies
+
+None (Phase 1 already complete).
+
+## Tasks
+
+<task id="1" files="Source/DotNetWorkQueue.Tests/Queue/HeartBeatWorkerTests.cs" tdd="false">
   <action>
-  Remove net48/NETFULL from the SqlServer Linq integration test project:
+  In `Source/DotNetWorkQueue.Tests/Queue/HeartBeatWorkerTests.cs`, replace all Schyntax schedule strings:
 
-  1. **18 .cs files** -- delete all `#if NETFULL` ... `#endif` blocks (including any leading blank lines before `#if`). Files are in ConsumerMethod/ (8), ConsumerMethodAsync/ (4), ProducerMethod/ (5), JobScheduler/ (1 -- JobSchedulerTests.cs).
+  - `"sec(*%2)"` → `"*/2 * * * * *"` (every 2 seconds, 6-field cron)
+  - `"sec(*%59)"` → `"*/59 * * * * *"` (every 59 seconds, 6-field cron)
 
-  2. **csproj** -- make these changes:
-     - Change `<TargetFrameworks>net10.0;net48</TargetFrameworks>` to `<TargetFramework>net10.0</TargetFramework>`
-     - Remove the two `<PropertyGroup Condition="...net48...">` blocks (Debug and Release, lines 6-14)
-     - Remove the `<ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">` block (lines 36-39, contains Microsoft.CSharp and System.Net.Http references)
+  Search for all occurrences — there may be multiple calls using these strings.
   </action>
-  <verify>
-  cd /mnt/f/git/dotnetworkqueue && \
-  grep -r "NETFULL\|net48" "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/" --include="*.cs" --include="*.csproj" | grep -v "/obj/" && echo "FAIL: residual references found" || echo "PASS: no residual references" && \
-  dotnet build "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" -c Debug
-  </verify>
-  <done>Zero matches for NETFULL or net48 in non-obj files. Project builds successfully on net10.0 with no errors.</done>
+  <verify>grep -n 'sec(\*%' "Source/DotNetWorkQueue.Tests/Queue/HeartBeatWorkerTests.cs"; echo "Should be empty"</verify>
+  <done>All Schyntax strings in HeartBeatWorkerTests.cs converted to cron format.</done>
 </task>
 
-<task id="2" files="Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/**/*.cs, Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" tdd="false">
+<task id="2" files="Source/DotNetWorkQueue.IntegrationTests.Shared/JobScheduler/JobSchedulerTestsShared.cs" tdd="false">
   <action>
-  Remove net48/NETFULL from the PostgreSQL Linq integration test project:
+  In `Source/DotNetWorkQueue.IntegrationTests.Shared/JobScheduler/JobSchedulerTestsShared.cs`, replace all Schyntax schedule strings:
 
-  1. **18 .cs files** -- delete all `#if NETFULL` ... `#endif` blocks. Files are in ConsumerMethod/ (8), ConsumerMethodAsync/ (4), ProducerMethod/ (5), JobScheduler/ (1 -- JobSchedulerTests.cs).
+  - `"min(*)"` → `"* * * * *"` (every minute, 5-field cron)
 
-  2. **csproj** -- make these changes:
-     - Change `<TargetFrameworks>net10.0;net48</TargetFrameworks>` to `<TargetFramework>net10.0</TargetFramework>`
-     - Remove the two `<PropertyGroup Condition="...net48...">` blocks (Debug and Release, lines 6-14)
-     - Remove the `<ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">` block (lines 35-38, contains Microsoft.CSharp reference)
+  There are 4 occurrences per the research.
   </action>
-  <verify>
-  cd /mnt/f/git/dotnetworkqueue && \
-  grep -r "NETFULL\|net48" "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/" --include="*.cs" --include="*.csproj" | grep -v "/obj/" && echo "FAIL: residual references found" || echo "PASS: no residual references" && \
-  dotnet build "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" -c Debug
-  </verify>
-  <done>Zero matches for NETFULL or net48 in non-obj files. Project builds successfully on net10.0 with no errors.</done>
+  <verify>grep -n 'min(\*' "Source/DotNetWorkQueue.IntegrationTests.Shared/JobScheduler/JobSchedulerTestsShared.cs"; echo "Should be empty"</verify>
+  <done>All Schyntax strings in JobSchedulerTestsShared.cs converted to cron format.</done>
 </task>
 
-<task id="3" files="Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/**/*.cs, Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj" tdd="false">
+<task id="3" files="" tdd="false">
   <action>
-  Remove net48/NETFULL from the SQLite Linq integration test project:
+  Run the unit test suite to verify nothing broke:
 
-  1. **17 .cs files** -- delete all `#if NETFULL` ... `#endif` blocks. Files are in ConsumerMethod/ (8), ConsumerMethodAsync/ (4), ProducerMethod/ (5). No JobScheduler files contain NETFULL in this project.
+  `dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj" --verbosity normal`
 
-  2. **csproj** -- make these changes:
-     - Change `<TargetFrameworks>net10.0;net48</TargetFrameworks>` to `<TargetFramework>net10.0</TargetFramework>`
-     - Remove the two `<PropertyGroup Condition="...net48...">` blocks (Debug and Release, lines 6-12)
-     - Remove the `<ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">` block (lines 14-16, contains Microsoft.CSharp reference)
+  All 878 tests should pass.
   </action>
-  <verify>
-  cd /mnt/f/git/dotnetworkqueue && \
-  grep -r "NETFULL\|net48" "Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/" --include="*.cs" --include="*.csproj" | grep -v "/obj/" && echo "FAIL: residual references found" || echo "PASS: no residual references" && \
-  dotnet build "Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj" -c Debug
-  </verify>
-  <done>Zero matches for NETFULL or net48 in non-obj files. Project builds successfully on net10.0 with no errors.</done>
+  <verify>dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj" --verbosity quiet 2>&1 | tail -5</verify>
+  <done>All unit tests pass with cron schedule strings.</done>
 </task>
+
+## Verification
+
+```bash
+# No Schyntax strings in test files
+grep -rn 'sec(\*%\|min(\*' Source/DotNetWorkQueue.Tests/ Source/DotNetWorkQueue.IntegrationTests.Shared/ --include="*.cs"
+# Should return 0 matches
+
+# Unit tests pass
+dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj"
+```

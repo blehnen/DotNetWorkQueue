@@ -1,38 +1,54 @@
-# Milestone Report: Drop net48/netstandard2.0 (Issue #101)
+# Milestone Report: Replace Schyntax with Cronos (issue #100)
 
-**Completed:** 2026-04-07
-**Version:** 0.9.19
-**Phases:** 4/4 complete
-**Branch:** issue-101-drop-net48
+**Completed:** 2026-04-08
+**Version:** 0.9.30
+**Phases:** 5/5 complete
+**GitHub Issue:** #100
 
-## Overview
+## Summary
 
-Removed .NET Framework 4.8 and .NET Standard 2.0 targets from the entire DotNetWorkQueue solution. Deleted all `#if NETFULL` / `#if NETSTANDARD2_0` conditional compilation, removed vendored JpLabs.DynamicCode, cleaned up Schyntax net48/netstandard2.0 DLLs, updated CI, updated documentation. Breaking change: dynamic LINQ expressions are no longer supported.
+Replaced the vendored Schyntax DLL (custom DSL, no NuGet package) with Cronos (MIT, standard cron expressions) and CronExpressionDescriptor (human-readable descriptions). Breaking change.
 
 ## Phase Summaries
 
-### Phase 1: Core Library, Transport Libraries, and Vendored DLL Cleanup
-Removed net48/netstandard2.0 from DotNetWorkQueue.csproj and 8 transport library csproj files. Removed `#if NETFULL` blocks from 10 core .cs files. Deleted Lib/JpLabs.DynamicCode/, Lib/Schyntax/net48/, Lib/Schyntax/netstandard2.0/.
+### Phase 1: Core library
+- Rewrote JobSchedule.cs from Schyntax.Schedule to Cronos.CronExpression
+- IJobSchedule.Previous() now returns DateTimeOffset? (nullable)
+- Added IJobSchedule.Description property
+- Auto-detects 5-field vs 6-field cron by field count
 
-### Phase 2: Shared Test Infrastructure and Unit Tests
-Removed net48/NETFULL from IntegrationTests.Shared (19 .cs + 1 csproj) and 13 test/integration csproj files. All 878 unit tests pass.
+### Phase 2: Transport heartbeat defaults
+- 3 Schyntax strings converted to cron equivalents
 
-### Phase 3: Linq Integration Tests
-Removed net48/NETFULL from all 6 Linq integration test projects: SqlServer, PostgreSQL, SQLite, Redis, LiteDB, Memory. 103 files changed, ~1500 lines deleted.
+### Phase 3: Test schedule strings
+- 7 Schyntax strings converted across 2 test files, 878 tests pass
 
-### Phase 4: CI, Documentation, and Version Bump
-Updated GitHub Actions CI (ubuntu-latest, forward-slash paths), README.md, CLAUDE.md. Bumped version 0.9.18 -> 0.9.19. Added CHANGELOG entry. Resolved ISSUE-021 (7 empty shell files), ISSUE-022 (vestigial dynamic parameter), ISSUE-023 (cosmetic).
+### Phase 4: CronExpressionDescriptor logging
+- Structured log statements in JobScheduler.cs when jobs are added
+
+### Phase 5: Cleanup, docs, version bump
+- Deleted Lib/ directory, updated README/CLAUDE.md/CHANGELOG, version 0.9.30
 
 ## Key Decisions
-- Version bumped to 0.9.19 (not 0.9.3 as originally planned -- version was already 0.9.18)
-- ISSUE-022 full cleanup: removed `bool dynamic` parameter entirely from shared JobSchedulerTests and all callers
-- CI moved to ubuntu-latest since net48 no longer requires Windows
-- Direct execution preferred over builder agents for bulk file edits (agents exhaust context)
+
+1. Reuse ScheduledJob.Window for Previous() lookback (no new config)
+2. Keep Func<DateTimeOffset> constructor param on JobSchedule
+3. Auto-detect cron format by field count
+4. Pin Cronos to 0.11.1 (0.12.0 had 0 downloads at time of work)
+5. Dashboard API scoped to logging only (DashboardJob lacks schedule expression field)
+6. Version 0.9.30 (0.9.3 < 0.9.19 in NuGet versioning)
+
+## Quality Gates
+
+| Gate | Result |
+|------|--------|
+| Build (Debug + Release) | PASS |
+| Unit tests | 878/878 |
+| Security Audit | PASS |
+| Schyntax references | 0 in Source/ |
 
 ## Metrics
-- Files changed: 223
-- Lines added: 2,813 (mostly .shipyard artifacts)
-- Lines removed: 3,231
-- Total commits: 28
-- Unit tests: 878 passed
-- Integration tests (Memory): 20 passed
+
+- Commits: 15
+- Files modified: ~20
+- Files deleted: 7 (Lib/ directory)

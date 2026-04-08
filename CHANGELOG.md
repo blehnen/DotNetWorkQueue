@@ -1,3 +1,11 @@
+### 0.9.30 — 2026-04-08
+- **Breaking:** Replace Schyntax schedule format with standard cron expressions via [Cronos](https://github.com/HangfireIO/Cronos); 5-field and 6-field (with seconds) both supported (GitHub #100)
+- **Breaking:** `IJobSchedule.Previous()` returns `DateTimeOffset?` instead of `DateTimeOffset`
+- **Breaking:** All heartbeat and job schedule strings now use cron format
+- Remove vendored `/Lib` directory (last Schyntax DLLs)
+- Add `IJobSchedule.Description` property, returns cron description text via [CronExpressionDescriptor](https://github.com/bradymholt/cron-expression-descriptor)
+- Log schedule descriptions when jobs are added to the scheduler
+
 ### 0.9.19 — 2026-04-07
 - **Breaking:** Drop .NET Framework 4.8 and .NET Standard 2.0 targets; now targets .NET 10.0 and .NET 8.0 only (GitHub #101)
 - Remove dynamic LINQ expression support (was net48-only via JpLabs.DynamicCode)

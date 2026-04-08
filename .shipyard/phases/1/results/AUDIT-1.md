@@ -1,94 +1,81 @@
-# Security Audit Report -- Phase 1 (Issue #101: Drop net48/netstandard2.0)
+# Security Audit Report -- Phase 1
 
 ## Executive Summary
 
 **Verdict:** PASS
 **Risk Level:** Low
 
-This phase removes net48/netstandard2.0 target frameworks, deletes the JpLabs.DynamicCode dynamic LINQ compiler (a significant attack surface reduction), and cleans up `#if NETFULL` conditional blocks. The changes are deletion-heavy and introduce no new code paths, no new dependencies, and no new configuration. The removal of dynamic LINQ string compilation eliminates a class of code injection risk. No critical or important findings.
+Phase 1 replaces the vendored Schyntax DLL with two well-maintained NuGet packages (Cronos and CronExpressionDescriptor) and rewrites the schedule parsing logic accordingly. No exploitable vulnerabilities were found. The cron expression input is parsed by Cronos, which uses a deterministic finite-state parser immune to ReDoS. The `Previous()` nullable return is correctly guarded at its single call site. Two minor design-level observations are noted below as advisory items -- neither blocks shipping.
 
 ### What to Do
 
 | Priority | Finding | Location | Effort | Action |
 |----------|---------|----------|--------|--------|
-| 1 | Stale SECURITY.md references | Source/DotNetWorkQueue/SECURITY.md:89-90 | Trivial | Update docs to reflect DynamicCodeCompiler removal |
-| 2 | Residual `#if NETFULL` in integration tests | Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/ (30+ occurrences) | Medium | Clean up in a later phase (out of scope for phase 1 core changes) |
+| 1 | Hardcoded 48h lookback in `PreviousInternal` | JobSchedule.cs:86 | Small | Consider using the caller's `Window` value instead of hardcoded `TimeSpan.FromHours(48)` |
+| 2 | `GetOccurrences` iterates full 48h window | JobSchedule.cs:87-98 | Trivial | Use `.LastOrDefault()` via LINQ instead of manual foreach (clarity, no security impact) |
 
 ### Themes
-- **Attack surface reduction:** Removing DynamicCodeCompiler and JpLabs.DynamicCode eliminates runtime code compilation from untrusted LINQ strings -- a positive security change.
-- **Clean fail-closed design:** `LinqCompiler.CompileAction()` now throws `NotSupportedException` rather than silently degrading, ensuring old `LinqExpressionToRun` messages cannot execute.
-
-## STRIDE Threat Model Assessment
-
-| Threat | Impact of Phase 1 Changes | Risk |
-|--------|---------------------------|------|
-| **Spoofing** | No auth changes | None |
-| **Tampering** | Removed dynamic code compilation path -- reduces tampering surface | Positive |
-| **Repudiation** | No logging changes | None |
-| **Information Disclosure** | NotSupportedException message is descriptive but contains no sensitive data | None |
-| **Denial of Service** | Old LinqExpressionToRun messages will throw on consumer -- expected behavior, not a DoS vector | None |
-| **Elevation of Privilege** | Removed ability to compile arbitrary code strings at runtime -- significant privilege escalation vector eliminated | Positive |
+- Clean dependency swap -- vendored DLL removed, replaced with pinned NuGet packages
+- Null safety handled correctly at the single call site
+- No secrets, no unsafe deserialization, no injection vectors in changed code
 
 ## Detailed Findings
 
 ### Critical
 
-No critical findings.
+None.
 
 ### Important
 
-No important findings.
+None.
 
 ### Advisory
 
-- **[A1] Stale SECURITY.md documentation** -- `Source/DotNetWorkQueue/SECURITY.md:89-90` still references `DynamicCodeCompiler` and `JpLabs.DynamicCode.Compiler` as active components. Update to reflect that dynamic LINQ compilation now throws `NotSupportedException`.
+- **[A1] Hardcoded 48-hour lookback window in `PreviousInternal`** (`Source/DotNetWorkQueue/JobScheduler/JobSchedule.cs:86`) -- The design context (CONTEXT-1.md) states that `ScheduledJob.Window` should be passed as the lookback bound, but the implementation hardcodes `TimeSpan.FromHours(48)`. This is not a security issue, but for schedules running less frequently than every 48 hours (e.g., weekly), the lookback will enumerate many unnecessary occurrences. For schedules more frequent than every 48 hours, it works correctly. Consider accepting a `TimeSpan` parameter or using the design's intended approach in a later phase.
 
-- **[A2] Residual `#if NETFULL` blocks in integration tests** -- Approximately 30+ occurrences of `#if NETFULL` remain in integration test projects (e.g., `Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/`, `Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/`). These are outside the scope of phase 1 (core + 8 transport csproj files) but should be tracked for cleanup.
+- **[A2] `ExpressionDescriptor.GetDescription` exception handling** (`Source/DotNetWorkQueue/JobScheduler/JobSchedule.cs:49`) -- The `Lazy<string>` wrapping `ExpressionDescriptor.GetDescription(schedule)` will cache any exception thrown on first access (via `LazyThreadSafetyMode.ExecutionAndPublication` default). If CronExpressionDescriptor fails to describe a valid Cronos expression, the `Description` property will throw on every subsequent access. This is unlikely in practice since both libraries understand standard cron, but wrapping in a try-catch with a fallback to `_originalText` would be more defensive.
 
-- **[A3] `LinqExpressionToRun` class retained** -- `Source/DotNetWorkQueue/Messages/LinqExpressionToRun.cs` is still present and used by `MessageMethodHandling.cs:70-73` for the `ActionText` payload type. The consumer path correctly calls `_linqCompiler.CompileAction()` which now throws `NotSupportedException`. This is the correct fail-closed behavior. No action needed unless the class should be deprecated with an `[Obsolete]` attribute.
+- **[A3] `InvalidOperationException` includes cron expression text** (`Source/DotNetWorkQueue/JobScheduler/JobSchedule.cs:61,69`) -- The exception message includes the original cron expression string. This is acceptable since cron expressions are not sensitive data (they are schedule patterns configured by the application developer, not user-supplied secrets). No remediation needed.
 
-- **[A4] Test file references removed API** -- `Source/DotNetWorkQueue.Tests/Exceptions/CompileExceptionTests.cs:38-42` tests `GetObjectData` on `CompileException`. This is a pre-existing test, not changed in this phase, and `CompileException` still exists in the codebase. No action needed.
+- **[A4] No NuGet lock file** -- The project does not use `RestorePackagesWithLockFile`. This means dependency resolution is not deterministic across builds. While not a vulnerability, enabling lock files would improve supply chain reproducibility. This is a pre-existing condition, not introduced by this phase.
 
 ## Cross-Component Analysis
 
-### LinqCompiler -> MessageMethodHandling Flow (Verified Safe)
+**`Previous()` null safety is complete.** The `IJobSchedule.Previous()` return type changed from `DateTimeOffset` to `DateTimeOffset?`. There is exactly one call site (`ScheduledJob.cs:98`), and it correctly uses `prev.HasValue` before accessing `prev.Value`. The `HeartBeatScheduler` does not call `Previous()` -- it only uses `AddUpdateJob` which routes through `Next()`. No other consumers of `IJobSchedule.Previous()` exist in the codebase.
 
-The critical data flow for this audit is: consumer receives a message with `PayLoad == ActionText` -> `MessageMethodHandling.HandleExecution()` (line 69-73) -> deserializes `LinqExpressionToRun` -> calls `_linqCompiler.CompileAction()` -> which now throws `NotSupportedException`.
+**UTC consistency is maintained.** All Cronos API calls pass `TimeZoneInfo.Utc` explicitly (`JobSchedule.cs:58,67,90`). The `_getCurrentOffset` function is sourced from `_getTime.GetCurrentUtcDate()` at all call sites (`ScheduledJob.cs:142`, `JobScheduler.cs:105,124`). No DST confusion is possible.
 
-This is **fail-closed** behavior. An attacker who previously could have crafted a `LinqExpressionToRun` payload containing malicious LINQ strings (CWE-94: Improper Control of Generation of Code) will now get a hard exception rather than code execution. This is a security improvement.
-
-### JobScheduler -> ScheduledJob Flow (Verified Safe)
-
-The `LinqExpressionToRun` overloads of `AddUpdateJob` were removed from `JobScheduler.cs`. The `ScheduledJob` constructor that accepted `LinqExpressionToRun` was removed. The remaining code path only accepts `Expression<Action<...>>` (compiled expressions), which cannot be tampered with via string injection.
-
-### IProducerMethodJobQueue Interface (Verified Clean)
-
-The interface at `Source/DotNetWorkQueue/IProducerMethodJobQueue.cs` only has `SendAsync` with `Expression<Action<...>>` parameter. No `LinqExpressionToRun` overload exists. The `ProducerMethodJobQueueDecorator` tracing decorator had its `#if NETFULL` block with the `LinqExpressionToRun` overload cleanly removed.
-
-### DI Registration (Verified Clean)
-
-`ComponentRegistration.cs` removed the `IObjectPool<DynamicCodeCompiler>` registration. `LinqCompiler` now has a parameterless constructor. No dangling DI registrations that could cause runtime failures.
-
-## Dependency Analysis
-
-| Change | Security Impact |
-|--------|----------------|
-| **Removed: JpLabs.DynamicCode** (vendored DLL) | Positive -- removes opaque binary with lost source code from supply chain |
-| **Removed: Schyntax net48/netstandard2.0** (vendored DLLs) | Neutral -- net8.0/net10.0 versions retained |
-| **Removed: Microsoft.CSharp PackageReference** | Positive -- reduces dependency surface; was only needed for dynamic compilation |
-
-No new dependencies were added. No CVE exposure changes.
-
-## Secrets Scanning
-
-No secrets were introduced or modified in this phase's changes. Pre-existing `connectionstring.txt` files with credentials were not part of the diff (these are a known pre-existing concern tracked separately).
+**Error propagation is safe.** `CronExpression.Parse` throws `CronFormatException` for invalid input, which propagates up from the `JobSchedule` constructor. This is fail-fast behavior during job registration, not at runtime during scheduling. The `Next()` method's `InvalidOperationException` for "no next occurrence" is a defensive guard that would only trigger for pathologically constrained cron expressions.
 
 ## Analysis Coverage
 
 | Area | Checked | Notes |
 |------|---------|-------|
-| Code Security (OWASP) | Yes | All 23 changed files reviewed; LinqCompiler fail-closed verified; cross-component data flow traced |
-| Secrets & Credentials | Yes | No secrets in diff; connectionstring.txt files pre-existing and unchanged |
-| Dependencies | Yes | 3 dependencies removed (positive); no additions; no new CVE exposure |
-| IaC / Container | N/A | No IaC or container files changed |
-| Configuration | Yes | TFM changes only; no debug flags, CORS, or security header changes |
+| Code Security (OWASP) | Yes | No injection, no auth changes, no user-facing output changes |
+| Secrets & Credentials | Yes | No secrets in any changed file |
+| Dependencies | Yes | Cronos 0.11.1 and CronExpressionDescriptor 2.45.0 audited (see below) |
+| Infrastructure as Code | N/A | No IaC files changed |
+| Docker/Container | N/A | No Docker files changed |
+| Configuration | Yes | Only doc comment change in IHeartBeatConfiguration; no runtime config changes |
+
+## Dependency Status
+
+| Package | Version | License | Known CVEs | Maintenance | Status |
+|---------|---------|---------|-----------|-------------|--------|
+| Cronos | 0.11.1 | MIT | None known | Active (HangfireIO org, 1.2k+ GitHub stars, last release 2024) | OK |
+| CronExpressionDescriptor | 2.45.0 | MIT | None known | Active (Brady Holt, 1k+ GitHub stars, regular releases) | OK |
+
+**Cronos security notes:**
+- Zero transitive dependencies (targets netstandard1.0+)
+- Deterministic cron parser -- no regex, no backtracking, immune to ReDoS (CWE-1333)
+- `CronExpression.Parse` validates input and throws `CronFormatException` for malformed expressions
+- Used by Hangfire (widely deployed job scheduler), indicating production maturity
+
+**CronExpressionDescriptor security notes:**
+- Pure string-formatting library with no I/O or network calls
+- Generates human-readable descriptions from cron expressions
+- Used only in `Lazy<string>` for logging/display, not in any security-sensitive path
+
+## IaC Findings
+
+N/A -- no infrastructure-as-code files were modified in this phase.

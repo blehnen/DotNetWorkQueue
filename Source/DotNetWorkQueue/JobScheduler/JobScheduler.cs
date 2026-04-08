@@ -102,7 +102,7 @@ namespace DotNetWorkQueue.JobScheduler
             Guard.NotNullOrEmpty(() => schedule, schedule);
             Guard.IsValid(() => jobName, jobName, i => i.Length < 256,
               "The job name length must be 255 characters or less");
-            return AddTaskImpl<TTransportInit, TQueue>(jobName, queueConnection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, actionToRun, route, rawExpression, producerConfiguration);
+            return AddTaskImpl<TTransportInit, TQueue>(jobName, queueConnection, new JobSchedule(schedule, GetCurrentOffset, window), autoRun, window, actionToRun, route, rawExpression, producerConfiguration);
         }
         /// <inheritdoc />
         public IScheduledJob AddUpdateJob<TTransportInit>(
@@ -121,7 +121,7 @@ namespace DotNetWorkQueue.JobScheduler
             Guard.NotNullOrEmpty(() => schedule, schedule);
             Guard.IsValid(() => jobname, jobname, i => i.Length < 256,
               "The job name length must be 255 characters or less");
-            return AddTaskImpl<TTransportInit>(jobQueueCreation, jobname, queueConnection, new JobSchedule(schedule, GetCurrentOffset), autoRun, window, actionToRun, route, rawExpression, producerConfiguration);
+            return AddTaskImpl<TTransportInit>(jobQueueCreation, jobname, queueConnection, new JobSchedule(schedule, GetCurrentOffset, window), autoRun, window, actionToRun, route, rawExpression, producerConfiguration);
         }
         /// <summary>
         /// Adds the task
@@ -172,6 +172,8 @@ namespace DotNetWorkQueue.JobScheduler
                 };
                 _tasks.Add(name, job);
             }
+
+            _log.LogInformation("Job {JobName} scheduled: {ScheduleExpression} ({ScheduleDescription})", name, schedule.OriginalText, schedule.Description);
 
             job.OnException += TaskOnOnException;
             job.OnEnQueue += JobOnOnEnQueue;
@@ -231,6 +233,8 @@ namespace DotNetWorkQueue.JobScheduler
                 };
                 _tasks.Add(name, job);
             }
+
+            _log.LogInformation("Job {JobName} scheduled: {ScheduleExpression} ({ScheduleDescription})", name, schedule.OriginalText, schedule.Description);
 
             job.OnException += TaskOnOnException;
             job.OnEnQueue += JobOnOnEnQueue;

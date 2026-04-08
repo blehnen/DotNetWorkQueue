@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                             false, logProvider,
                             runtime, messageCount,
                             timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id,
-                            "second(*%10)", enableChaos, scope);
+                            "*/10 * * * * *", enableChaos, scope);
                     }
                     else if (messageType == 2)
                     {
@@ -69,7 +69,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                             false, logProvider,
                             runtime, messageCount,
                             timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id,
-                            "second(*%10)", enableChaos, scope);
+                            "*/10 * * * * *", enableChaos, scope);
                     }
                     else if (messageType == 3)
                     {
@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                             false, logProvider,
                             runtime, messageCount,
                             timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), id,
-                            "second(*%10)", enableChaos, scope);
+                            "*/10 * * * * *", enableChaos, scope);
                     }
 
                     verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, 0, false, false);

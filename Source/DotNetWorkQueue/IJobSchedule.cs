@@ -34,6 +34,14 @@ namespace DotNetWorkQueue
         string OriginalText { get; }
 
         /// <summary>
+        /// Gets a human-readable description of the schedule.
+        /// </summary>
+        /// <value>
+        /// The human-readable description.
+        /// </value>
+        string Description { get; }
+
+        /// <summary>
         /// Gets the next run time.
         /// </summary>
         /// <returns></returns>
@@ -48,12 +56,12 @@ namespace DotNetWorkQueue
         /// Gets the previous run time.
         /// </summary>
         /// <returns></returns>
-        DateTimeOffset Previous();
+        DateTimeOffset? Previous();
         /// <summary>
         /// Gets the previous run time from before the offset.
         /// </summary>
         /// <param name="atOrBefore">At or before.</param>
         /// <returns></returns>
-        DateTimeOffset Previous(DateTimeOffset atOrBefore);
+        DateTimeOffset? Previous(DateTimeOffset atOrBefore);
     }
 }

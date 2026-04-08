@@ -592,8 +592,87 @@
   - Phases 3a-3f: Linq integration tests by transport (parallel)
   - Phase 4: CI + README + version bump
 - **Status:** Roadmap approved, ready for Phase 1 planning
-- [2026-04-07T19:59:51Z] Session ended during build (may need /shipyard:resume)
-- [2026-04-07T20:01:43Z] Session ended during build (may need /shipyard:resume)
-- [2026-04-08T02:00:07Z] Session ended during build (may need /shipyard:resume)
-- [2026-04-08T02:05:09Z] Session ended during build (may need /shipyard:resume)
-- [2026-04-08T03:42:23Z] Session ended during build (may need /shipyard:resume)
+
+## 2026-04-08 — Issue #101 Shipped (Previous Sessions)
+
+- **Action:** Phases 1-4 built and shipped across multiple sessions
+- **Delivery:** PR #109 merged to master
+- **Post-ship:** Removed ILinqCompiler, LinqMethodTypes, ActionText dead code (PR #109 feedback)
+- **Status:** Shipped
+
+## 2026-04-08 — New Milestone: Replace Schyntax with Cronos (issue #100)
+
+- **Action:** `/shipyard:brainstorm`
+- **Scope:** Replace vendored Schyntax DLL with Cronos (NuGet, MIT, standard cron) + CronExpressionDescriptor
+- **Decisions:**
+  - Auto-detect 5-field vs 6-field cron by counting space-separated fields
+  - `IJobSchedule.Previous()` becomes nullable (`DateTimeOffset?`)
+  - Configurable `PreviousLookbackWindow` (default 48h) on job scheduler config
+  - CronExpressionDescriptor used in logging, dashboard, and API responses
+  - 6-field cron (with seconds) supported everywhere
+  - Delete entire `Lib/` directory (empty after Schyntax removal)
+  - Version 0.9.3 (breaking change)
+- **Roadmap:** 5 phases, 3 waves. Phase 1 core (HIGH risk), Phases 2/3/4 parallel (LOW), Phase 5 cleanup
+- **Status:** Roadmap approved, ready for Phase 1 planning
+
+## 2026-04-08 — Phase 1 Planned
+
+- **Action:** `/shipyard:plan 1`
+- **Discussion decisions (CONTEXT-1.md):**
+  - Reuse existing `ScheduledJob.Window` for Previous() lookback — no new PreviousLookbackWindow config
+  - Keep `Func<DateTimeOffset>` constructor param on JobSchedule
+  - Auto-detect 5-field vs 6-field cron by counting space-separated fields
+- **Plans:** 2 plans in Wave 1 (sequential, PLAN-1.2 depends on PLAN-1.1)
+  - PLAN-1.1: NuGet deps (Cronos 0.11.1 + CronExpressionDescriptor 2.45.0), IJobSchedule interface change (Previous() nullable, add Description), IHeartBeatConfiguration doc comment
+  - PLAN-1.2: JobSchedule.cs full rewrite (Cronos CronExpression), ScheduledJob.cs null-check, build verification
+- **Research findings:** Cronos v0.12.0 just released (0 downloads) — pinning to v0.11.1. JobSchedule not DI-registered (new'd at 3 call sites). CronExpressionDescriptor 6-field handling needs runtime verification.
+- **Critique verdict:** READY — all file paths verified, API surface confirmed, no blocking issues
+- **Status:** Ready for /shipyard:build 1
+
+## 2026-04-08 — Phase 1 Build Complete
+
+- **Action:** `/shipyard:build 1`
+- **Plans executed:** 2/2 (PLAN-1.1, PLAN-1.2)
+- **Commits:**
+  - `8bbcf440` — NuGet deps (Cronos 0.11.1, CronExpressionDescriptor 2.45.0) + remove Schyntax refs
+  - `f5c07493` — IJobSchedule interface: Previous() nullable, add Description
+  - `9613da6e` — IHeartBeatConfiguration doc comment: Schyntax → cron
+  - `2b177e23` — JobSchedule.cs full rewrite to Cronos CronExpression
+  - `dc83c889` — ScheduledJob.cs null-check Previous() in catch-up logic
+  - `3fd7f899` — Remove unused System.Linq import (simplification fix)
+- **Reviews:** PLAN-1.1 PASS, PLAN-1.2 PASS
+- **Verification:** PASS — 878 unit tests, 0 errors Debug+Release, 0 Schyntax references
+- **Security audit:** PASS — no critical findings (3 advisory)
+- **Simplification:** 1 fix applied (unused import), rest clean
+- **Status:** Phase 1 complete, ready for Phases 2/3/4 (parallel)
+
+## 2026-04-08 — Phases 2, 3, 4 Planned
+
+- **Action:** `/shipyard:plan 2` (also planned 3 and 4 — all parallel, all simple)
+- **Phase 2:** 1 plan — transport heartbeat defaults (3 string replacements in 3 files)
+- **Phase 3:** 1 plan — unit + integration test strings (2 files, 3 tasks)
+- **Phase 4:** 1 plan — CronExpressionDescriptor logging in JobScheduler.cs (scoped down: Dashboard API can't show description because DashboardJob lacks schedule expression field)
+- **Skipped:** Research, discussion capture, critique (all mechanical changes)
+- **Status:** Ready for /shipyard:build 2 (parallel with 3 and 4)
+
+## 2026-04-08 — Phases 2, 3, 4 Build Complete
+
+- **Action:** `/shipyard:build 2` (built all 3 parallel phases simultaneously)
+- **Phase 2:** Transport heartbeat defaults — 3 string swaps, 1 commit (`ed9dc587`)
+- **Phase 3:** Test schedule strings — 5 replacements across 2 files, 878 tests pass, 2 commits (`34ae313e`, `e0d8b91b`)
+- **Phase 4:** CronExpressionDescriptor logging — 2 structured log lines in JobScheduler.cs, 1 commit (`bfcf666c`). Builder adapted plan: used `schedule.OriginalText` instead of raw string param.
+- **Verification:** 0 Schyntax schedule strings remain, Release build 0 errors
+- **Status:** Phases 2/3/4 complete, ready for Phase 5 (cleanup + docs + version bump)
+
+## 2026-04-08 — Phase 5 Build Complete
+
+- **Action:** `/shipyard:build 5`
+- **Plans executed:** 1/1 (PLAN-1.1)
+- **Commits:**
+  - `b06b1713` — Delete vendored Lib/Schyntax DLLs
+  - `1f8477cc` — Update README.md + CLAUDE.md (Schyntax → Cronos/cron)
+  - `327f5965` — CHANGELOG entry + version bump
+  - `bde1c3c3` — Fix version to 0.9.3 (builder deviation)
+  - `076fa078` — Correct to 0.9.30 (0.9.3 < 0.9.19 in NuGet versioning)
+- **Builder deviation:** Used 0.9.20 instead of 0.9.3; corrected to 0.9.30 per user direction
+- **Status:** All 5 phases complete — ready for /shipyard:ship

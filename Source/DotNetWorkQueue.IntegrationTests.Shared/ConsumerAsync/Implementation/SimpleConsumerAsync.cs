@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                             false, logProvider,
                             runtime, messageCount,
                             timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35),
-                            "second(*%10)", enableChaos, scope, null);
+                            "*/10 * * * * *", enableChaos, scope, null);
                     }
                     else if (messageType == 2)
                     {
@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                             false, logProvider,
                             runtime, messageCount,
                             timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35),
-                            "second(*%10)", enableChaos, scope, null);
+                            "*/10 * * * * *", enableChaos, scope, null);
                     }
                     else if (messageType == 3)
                     {
@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                             false, logProvider,
                             runtime, messageCount,
                             timeOut, readerCount,
-                            TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", enableChaos, scope,
+                            TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "*/10 * * * * *", enableChaos, scope,
                             null);
                     }
 

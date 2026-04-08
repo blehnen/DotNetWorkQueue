@@ -1,141 +1,142 @@
 ---
-phase: drop-net48-netstandard20
+phase: core-library-cronos
 plan: "1.2"
 wave: 1
-dependencies: []
+dependencies: ["1.1"]
 must_haves:
-  - Remove net48 and netstandard2.0 from TargetFrameworks in all 8 transport csproj files
-  - Remove all net48/netstandard2.0 PropertyGroup conditions from all 8 transport csproj files
-  - Remove net48-only ItemGroup conditions (Microsoft.CSharp reference) where present
-  - Retain all net8.0 and net10.0 PropertyGroup blocks unchanged
+  - JobSchedule.cs fully rewritten to use Cronos CronExpression instead of Schyntax.Schedule
+  - Auto-detection of 5-field (Standard) vs 6-field (IncludeSeconds) cron format
+  - Previous() implemented via GetOccurrences() with 48h lookback, returning DateTimeOffset?
+  - Next() throws InvalidOperationException if no next occurrence found
+  - Description property returns cached human-readable cron description via CronExpressionDescriptor
+  - ScheduledJob.cs null-checks Previous() result before catch-up logic
+  - Solution builds cleanly with 0 errors
 files_touched:
-  - Source/DotNetWorkQueue.Transport.SqlServer/DotNetWorkQueue.Transport.SqlServer.csproj
-  - Source/DotNetWorkQueue.Transport.PostgreSQL/DotNetWorkQueue.Transport.PostgreSQL.csproj
-  - Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.csproj
-  - Source/DotNetWorkQueue.Transport.Redis/DotNetWorkQueue.Transport.Redis.csproj
-  - Source/DotNetWorkQueue.Transport.LiteDB/DotNetWorkQueue.Transport.LiteDb.csproj
-  - Source/DotNetWorkQueue.Transport.Memory/DotNetWorkQueue.Transport.Memory.csproj
-  - Source/DotNetWorkQueue.Transport.RelationalDatabase/DotNetWorkQueue.Transport.RelationalDatabase.csproj
-  - Source/DotNetWorkQueue.Transport.Shared/DotNetWorkQueue.Transport.Shared.csproj
+  - Source/DotNetWorkQueue/JobScheduler/JobSchedule.cs
+  - Source/DotNetWorkQueue/JobScheduler/ScheduledJob.cs
 tdd: false
-risk: medium
 ---
 
-# PLAN-1.2: Transport Library csproj Cleanup
+# Plan 1.2: JobSchedule Rewrite and ScheduledJob Null-Safety
+
+This plan rewrites the `JobSchedule` implementation from Schyntax to Cronos and fixes the `ScheduledJob` caller to handle the now-nullable `Previous()` return. After this plan completes, `DotNetWorkQueueNoTests.sln` should build.
 
 ## Context
 
-All 8 transport library csproj files follow an identical pattern: they target `net10.0;net8.0;net48;netstandard2.0;` and have PropertyGroup conditions for Debug and Release builds of each TFM, with `NETFULL` defined for net48 and `NETSTANDARD2_0` defined for netstandard2.0. Some also have a net48-conditional ItemGroup for `Microsoft.CSharp` reference.
+- `JobSchedule` is `internal`, not DI-registered, and `new`'d at 3 call sites:
+  - `JobScheduler.AddUpdateJob()` line 105 and 124
+  - `ScheduledJob.UpdateSchedule(string)` line 139
+- All 3 call sites pass `(string schedule, Func<DateTimeOffset> getCurrentOffset)` -- constructor signature is unchanged
+- `ScheduledJob.Previous()` is called only at line 98 inside `StartSchedule()`, guarded by `window > TimeSpan.Zero`
+- Per CONTEXT-1.md: the existing `Window` property on `ScheduledJob` serves as the lookback bound; however, `Previous()` uses a hardcoded 48h internal lookback because `ScheduledJob` already validates `prev > now - window` at line 100. A generous lookback is safe.
+- Cronos `GetNextOccurrence()` returns `DateTimeOffset?` -- must handle null
+- Cronos `GetOccurrences()` returns `IEnumerable<DateTimeOffset>` -- iterate to find last
 
-These files have NO .cs file changes -- none of the transport libraries have `#if NETFULL` in their source files (those are all in the core library handled by PLAN-1.1). This plan is purely csproj-level changes.
+## Uncertainty Flags (from RESEARCH.md)
 
-This plan has NO file overlap with PLAN-1.1 and can execute in parallel.
-
-## Risk: MEDIUM
-
-These are straightforward csproj edits following a consistent pattern, but they affect 8 projects that must all build against the already-modified core library.
+- **GetOccurrences DateTimeOffset overload**: The exact parameter names for `fromInclusive`/`toInclusive` on the `DateTimeOffset` overload should be verified at compile time. The implementation may need minor signature adjustments.
+- **CronExpressionDescriptor 6-field handling**: CronExpressionDescriptor claims to support 6-field expressions but it's unclear whether it treats field 6 as seconds (Cronos convention) or year (Quartz convention). Test with `"*/10 * * * * *"` after build.
 
 ## Tasks
 
-<task id="1" files="Source/DotNetWorkQueue.Transport.SqlServer/DotNetWorkQueue.Transport.SqlServer.csproj, Source/DotNetWorkQueue.Transport.PostgreSQL/DotNetWorkQueue.Transport.PostgreSQL.csproj, Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.csproj, Source/DotNetWorkQueue.Transport.Redis/DotNetWorkQueue.Transport.Redis.csproj" tdd="false">
+<task id="1" files="Source/DotNetWorkQueue/JobScheduler/JobSchedule.cs" tdd="false">
   <action>
-  Edit 4 transport csproj files (SqlServer, PostgreSQL, SQLite, Redis). For each file, apply these changes:
+  Rewrite `Source/DotNetWorkQueue/JobScheduler/JobSchedule.cs` entirely. Replace the full class body.
 
-  **SqlServer (`DotNetWorkQueue.Transport.SqlServer.csproj`):**
-  1. Line 4: Change `TargetFrameworks` from `net10.0;net8.0;net48;netstandard2.0;` to `net10.0;net8.0;`
-  2. DELETE lines 21-23: Debug|netstandard2.0 PropertyGroup
-  3. DELETE lines 25-27: Debug|net48 PropertyGroup
-  4. DELETE lines 29-34: Release|netstandard2.0 PropertyGroup
-  5. DELETE lines 50-52: Release|net48 PropertyGroup
-  6. DELETE lines 54-56: net48-conditional ItemGroup (Microsoft.CSharp reference)
+  **Remove:** `using Schyntax;` (line 20), `Schedule _schedule` field, all method bodies that delegate to `_schedule`.
 
-  **PostgreSQL (`DotNetWorkQueue.Transport.PostgreSQL.csproj`):**
-  1. Line 4: Change `TargetFrameworks` from `net10.0;net8.0;net48;netstandard2.0;` to `net10.0;net8.0;`
-  2. DELETE lines 23-25: Debug|netstandard2.0 PropertyGroup
-  3. DELETE lines 35-37: Debug|net48 PropertyGroup
-  4. DELETE lines 39-44: Release|netstandard2.0 PropertyGroup
-  5. DELETE lines 60-65: Release|net48 PropertyGroup
-  6. DELETE lines 67-69: net48-conditional ItemGroup (Microsoft.CSharp reference)
+  **Add:** `using Cronos;` and `using CronExpressionDescriptor;`
 
-  **SQLite (`DotNetWorkQueue.Transport.SQLite.csproj`):**
-  1. Line 3: Change `TargetFrameworks` from `net10.0;net8.0;net48;netstandard2.0;` to `net10.0;net8.0;`
-  2. DELETE lines 20-22: Debug|net48 PropertyGroup
-  3. DELETE lines 24-26: Debug|netstandard2.0 PropertyGroup
-  4. DELETE lines 36-41: Release|net48 PropertyGroup
-  5. DELETE lines 43-48: Release|netstandard2.0 PropertyGroup
+  **New fields:**
+  - `private readonly CronExpression _expression;`
+  - `private readonly string _originalText;`
+  - `private readonly Func<DateTimeOffset> _getCurrentOffset;`
+  - `private readonly Lazy<string> _description;`
 
-  **Redis (`DotNetWorkQueue.Transport.Redis.csproj`):**
-  1. Line 4: Change `TargetFrameworks` from `net10.0;net8.0;net48;netstandard2.0;` to `net10.0;net8.0;`
-  2. DELETE lines 21-23: Debug|netstandard2.0 PropertyGroup
-  3. DELETE lines 33-35: Debug|net48 PropertyGroup
-  4. DELETE lines 37-42: Release|netstandard2.0 PropertyGroup
-  5. DELETE lines 58-63: Release|net48 PropertyGroup
-  6. DELETE lines 65-67: net48-conditional ItemGroup (Microsoft.CSharp reference)
+  **Constructor** `JobSchedule(string schedule, Func<DateTimeOffset> getCurrentOffset)`:
+  - Store `schedule` as `_originalText`
+  - Store `getCurrentOffset` as `_getCurrentOffset`
+  - Auto-detect format: `schedule.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).Length` -- 5 = `CronFormat.Standard`, 6 = `CronFormat.IncludeSeconds`, else throw `ArgumentException`
+  - Parse: `CronExpression.Parse(schedule, format)`
+  - Init lazy description: `new Lazy<string>(() => ExpressionDescriptor.GetDescription(schedule))`
+
+  **Properties:**
+  - `string OriginalText => _originalText;`
+  - `string Description => _description.Value;`
+
+  **Methods:**
+  - `DateTimeOffset Next()` -- call `_expression.GetNextOccurrence(_getCurrentOffset(), TimeZoneInfo.Utc)`, throw `InvalidOperationException("No next occurrence found for cron expression: {_originalText}")` if null
+  - `DateTimeOffset Next(DateTimeOffset after)` -- same pattern with explicit offset
+  - `DateTimeOffset? Previous()` -- call `PreviousInternal(_getCurrentOffset())`
+  - `DateTimeOffset? Previous(DateTimeOffset atOrBefore)` -- call `PreviousInternal(atOrBefore)`
+  - `private DateTimeOffset? PreviousInternal(DateTimeOffset before)` -- compute `from = before - TimeSpan.FromHours(48)`, iterate `_expression.GetOccurrences(from.UtcDateTime, before.UtcDateTime, TimeZoneInfo.Utc, fromInclusive: true, toInclusive: true)` keeping last element, return as `DateTimeOffset?` (null if none found)
+
+  **Important:** The `GetOccurrences` overload that takes `DateTime` + `TimeZoneInfo` may have different parameter ordering than the `DateTimeOffset` overload. Use the `DateTime` overload (`from.UtcDateTime`, `before.UtcDateTime`) with `TimeZoneInfo.Utc` for reliability, then convert the result. If the overload signature does not match at compile time, adjust accordingly -- the key contract is: enumerate occurrences in [from, before] inclusive and return the last one.
+
+  Preserve the LGPL license header (lines 1-18).
   </action>
-  <verify>
-  for proj in "Source/DotNetWorkQueue.Transport.SqlServer/DotNetWorkQueue.Transport.SqlServer.csproj" "Source/DotNetWorkQueue.Transport.PostgreSQL/DotNetWorkQueue.Transport.PostgreSQL.csproj" "Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.csproj" "Source/DotNetWorkQueue.Transport.Redis/DotNetWorkQueue.Transport.Redis.csproj"; do echo "=== $proj ==="; grep -c "net48\|netstandard2.0\|NETFULL\|NETSTANDARD2_0" "$proj" && echo "FAIL" || echo "PASS"; done
-  </verify>
-  <done>
-  All 4 csproj files have `TargetFrameworks` of `net10.0;net8.0;` only. Zero mentions of net48, netstandard2.0, NETFULL, or NETSTANDARD2_0. No net48-conditional ItemGroups. All net8.0 and net10.0 PropertyGroups preserved.
-  </done>
+  <verify>grep -c "using Cronos;" "Source/DotNetWorkQueue/JobScheduler/JobSchedule.cs" && grep -c "CronExpression" "Source/DotNetWorkQueue/JobScheduler/JobSchedule.cs" && ! grep -q "Schyntax" "Source/DotNetWorkQueue/JobScheduler/JobSchedule.cs" && echo "PASS" || echo "FAIL"</verify>
+  <done>JobSchedule.cs uses `Cronos.CronExpression` for parsing and scheduling. No Schyntax imports or references. Auto-detects 5 vs 6 field cron. `Previous()` returns `DateTimeOffset?`. `Description` returns a cached human-readable string.</done>
 </task>
 
-<task id="2" files="Source/DotNetWorkQueue.Transport.LiteDB/DotNetWorkQueue.Transport.LiteDb.csproj, Source/DotNetWorkQueue.Transport.Memory/DotNetWorkQueue.Transport.Memory.csproj, Source/DotNetWorkQueue.Transport.RelationalDatabase/DotNetWorkQueue.Transport.RelationalDatabase.csproj, Source/DotNetWorkQueue.Transport.Shared/DotNetWorkQueue.Transport.Shared.csproj" tdd="false">
+<task id="2" files="Source/DotNetWorkQueue/JobScheduler/ScheduledJob.cs" tdd="false">
   <action>
-  Edit 4 transport csproj files (LiteDB, Memory, RelationalDatabase, Shared). For each file, apply these changes:
+  In `Source/DotNetWorkQueue/JobScheduler/ScheduledJob.cs`, update the `StartSchedule()` method to null-check the `Previous()` result.
 
-  **LiteDB (`DotNetWorkQueue.Transport.LiteDb.csproj`):**
-  1. Line 4: Change `TargetFrameworks` from `net10.0;net8.0;net48;netstandard2.0;` to `net10.0;net8.0;`
-  2. DELETE lines 24-26: Debug|netstandard2.0 PropertyGroup
-  3. DELETE lines 36-38: Debug|net48 PropertyGroup
-  4. DELETE lines 40-45: Release|netstandard2.0 PropertyGroup
-  5. DELETE lines 63-68: Release|net48 PropertyGroup
+  Replace lines 98-104:
+  ```csharp
+                    var prev = Schedule.Previous();
+                    lastKnownEvent = lastKnownEvent.AddSeconds(1); // add a second for good measure
+                    if (prev > lastKnownEvent && prev > new DateTimeOffset(_getTime.GetCurrentUtcDate()) - window)
+                    {
+                        firstEvent = prev;
+                        firstEventSet = true;
+                    }
+  ```
 
-  **Memory (`DotNetWorkQueue.Transport.Memory.csproj`):**
-  1. Line 4: Change `TargetFrameworks` from `net10.0;net8.0;net48;netstandard2.0;` to `net10.0;net8.0;`
-  2. DELETE lines 23-25: Debug|netstandard2.0 PropertyGroup
-  3. DELETE lines 35-37: Debug|net48 PropertyGroup
-  4. DELETE lines 39-44: Release|netstandard2.0 PropertyGroup
-  5. DELETE lines 60-65: Release|net48 PropertyGroup
+  With:
+  ```csharp
+                    var prev = Schedule.Previous();
+                    if (prev.HasValue)
+                    {
+                        lastKnownEvent = lastKnownEvent.AddSeconds(1); // add a second for good measure
+                        if (prev.Value > lastKnownEvent && prev.Value > new DateTimeOffset(_getTime.GetCurrentUtcDate()) - window)
+                        {
+                            firstEvent = prev.Value;
+                            firstEventSet = true;
+                        }
+                    }
+  ```
 
-  **RelationalDatabase (`DotNetWorkQueue.Transport.RelationalDatabase.csproj`):**
-  1. Line 4: Change `TargetFrameworks` from `net10.0;net8.0;net48;netstandard2.0;` to `net10.0;net8.0;`
-  2. DELETE lines 19-21: Debug|netstandard2.0 PropertyGroup
-  3. DELETE lines 27-29: Debug|net48 PropertyGroup
-  4. DELETE lines 31-36: Release|netstandard2.0 PropertyGroup
-  5. DELETE lines 46-51: Release|net48 PropertyGroup
-  Note: This file is missing a Debug|net8.0 PropertyGroup (only has net10.0 and netstandard2.0 for Debug). This is fine -- just remove the net48 and netstandard2.0 ones.
-
-  **Shared (`DotNetWorkQueue.Transport.Shared.csproj`):**
-  1. Line 4: Change `TargetFrameworks` from `net10.0;net8.0;net48;netstandard2.0;` to `net10.0;net8.0;`
-  2. DELETE lines 21-23: Debug|netstandard2.0 PropertyGroup
-  3. DELETE lines 33-35: Debug|net48 PropertyGroup
-  4. DELETE lines 37-42: Release|netstandard2.0 PropertyGroup
-  5. DELETE lines 58-63: Release|net48 PropertyGroup
+  The key changes:
+  1. Wrap the entire catch-up block in `if (prev.HasValue)`
+  2. Use `prev.Value` instead of `prev` for all comparisons and assignments
+  3. When `Previous()` returns null (no occurrence in lookback window), the catch-up block is skipped entirely and execution falls through to `Schedule.Next()` at line 108 -- which is the correct behavior (no missed event to catch up on)
   </action>
-  <verify>
-  for proj in "Source/DotNetWorkQueue.Transport.LiteDB/DotNetWorkQueue.Transport.LiteDb.csproj" "Source/DotNetWorkQueue.Transport.Memory/DotNetWorkQueue.Transport.Memory.csproj" "Source/DotNetWorkQueue.Transport.RelationalDatabase/DotNetWorkQueue.Transport.RelationalDatabase.csproj" "Source/DotNetWorkQueue.Transport.Shared/DotNetWorkQueue.Transport.Shared.csproj"; do echo "=== $proj ==="; grep -c "net48\|netstandard2.0\|NETFULL\|NETSTANDARD2_0" "$proj" && echo "FAIL" || echo "PASS"; done
-  </verify>
-  <done>
-  All 4 csproj files have `TargetFrameworks` of `net10.0;net8.0;` only. Zero mentions of net48, netstandard2.0, NETFULL, or NETSTANDARD2_0. All net8.0 and net10.0 PropertyGroups preserved.
-  </done>
+  <verify>grep -A8 "var prev = Schedule.Previous" "Source/DotNetWorkQueue/JobScheduler/ScheduledJob.cs" | grep -q "prev.HasValue" && grep -q "prev.Value" "Source/DotNetWorkQueue/JobScheduler/ScheduledJob.cs" && echo "PASS" || echo "FAIL"</verify>
+  <done>`ScheduledJob.StartSchedule()` null-checks `Schedule.Previous()` with `prev.HasValue`. All usages of `prev` within the catch-up block use `prev.Value`. When `Previous()` returns null, execution falls through to `Schedule.Next()`.</done>
 </task>
 
 <task id="3" files="" tdd="false">
   <action>
-  Final verification: After both PLAN-1.1 and PLAN-1.2 are complete, run the full build and grep checks to confirm phase 1 success criteria.
+  Build verification. After Tasks 1 and 2 of this plan AND all tasks of Plan 1.1 are complete, verify the solution compiles.
+
+  Run: `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Debug`
+
+  If there are compile errors:
+  - **Missing Cronos overload**: Check `GetOccurrences` parameter order. The `DateTime` overload is `GetOccurrences(DateTime from, DateTime to, TimeZoneInfo zone, bool fromInclusive, bool toInclusive)`. The `DateTimeOffset` overload may differ. Adjust as needed.
+  - **CronExpressionDescriptor namespace**: The `using` should be `using CronExpressionDescriptor;` and the call is `ExpressionDescriptor.GetDescription(string)`.
+  - **IJobSchedule.Description not implemented**: Ensure `JobSchedule` implements `string Description => _description.Value;`.
+  - **NuGet restore failure**: Run `dotnet restore "Source/DotNetWorkQueueNoTests.sln"` first.
+
+  Then run: `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release`
+
+  Fix any warnings (Release enables TreatWarningsAsErrors).
+
+  Finally verify no Schyntax references remain:
+  `grep -r "Schyntax\|schyntax" Source/DotNetWorkQueue/ --include="*.cs" --include="*.csproj"`
+  Should return 0 matches.
   </action>
-  <verify>
-  dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Debug 2>&1 | tail -5
-  dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release 2>&1 | tail -5
-  grep -r "NETFULL\|NETSTANDARD2_0" Source/DotNetWorkQueue/ --include="*.cs" --include="*.csproj" && echo "FAIL: stale references in core" || echo "PASS: core clean"
-  grep -r "net48\|netstandard2.0" Source/DotNetWorkQueue/ --include="*.csproj" && echo "FAIL: stale TFMs in core csproj" || echo "PASS: core csproj clean"
-  grep -r "net48\|netstandard2.0" Source/DotNetWorkQueue.Transport.SqlServer/ Source/DotNetWorkQueue.Transport.PostgreSQL/ Source/DotNetWorkQueue.Transport.SQLite/ Source/DotNetWorkQueue.Transport.Redis/ Source/DotNetWorkQueue.Transport.LiteDB/ Source/DotNetWorkQueue.Transport.Memory/ Source/DotNetWorkQueue.Transport.RelationalDatabase/ Source/DotNetWorkQueue.Transport.Shared/ --include="*.csproj" && echo "FAIL: stale TFMs in transport csproj" || echo "PASS: transport csproj clean"
-  test -d "Lib/JpLabs.DynamicCode" && echo "FAIL" || echo "PASS: JpLabs deleted"
-  test -d "Lib/Schyntax/net48" && echo "FAIL" || echo "PASS: Schyntax/net48 deleted"
-  test -d "Lib/Schyntax/netstandard2.0" && echo "FAIL" || echo "PASS: Schyntax/netstandard2.0 deleted"
-  </verify>
-  <done>
-  Both Debug and Release builds of `DotNetWorkQueueNoTests.sln` succeed with 0 errors and 0 warnings. All 7 success criteria from the phase definition are met.
-  </done>
+  <verify>cd /mnt/f/git/dotnetworkqueue && dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Debug && dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release && ! grep -rq "Schyntax" Source/DotNetWorkQueue/ --include="*.cs" --include="*.csproj" && echo "PASS" || echo "FAIL"</verify>
+  <done>`DotNetWorkQueueNoTests.sln` builds with 0 errors in both Debug and Release. No Schyntax references exist in `Source/DotNetWorkQueue/` (*.cs or *.csproj). `IJobSchedule.Previous()` returns `DateTimeOffset?`. `IJobSchedule.Description` exists and is implemented. `ScheduledJob.cs` null-checks `Previous()`.</done>
 </task>

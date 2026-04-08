@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod.Implementation
                         serviceRegister =>
                             serviceRegister.Register<IMessageMethodHandling>(
                                 () => new MethodMessageProcessingCancel(id), LifeStyles.Singleton),
-                        TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "second(*%10)", id, enableChaos, scope);
+                        TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "*/10 * * * * *", id, enableChaos, scope);
 
                     verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, 0, false, false);
                     GenerateMethod.ClearCancel(id);
