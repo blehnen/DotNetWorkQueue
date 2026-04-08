@@ -74,7 +74,7 @@ See [Docker Hub](https://hub.docker.com/r/blehnen74/dotnetworkqueue-dashboard) f
 
 You can queue LINQ expressions to be executed instead of POCOs. This makes producers and consumers generic — they no longer need to be message-specific. The examples below are not transport-specific and assume any queue creation steps have already been performed.
 
-> **Note:** It is possible for a producer to queue work that a consumer cannot process. In order for a consumer to execute a LINQ expression, all referenced types must be resolvable.
+> **Note:** It is possible for a producer to queue work that a consumer cannot process. For a consumer to execute a LINQ expression, all referenced types must be resolvable.
 
 [SQLiteProducerLinq/Program.cs](https://github.com/blehnen/DotNetWorkQueue.Samples/blob/master/Source/Samples/SQLite/SQLiteProducerLinq/Program.cs)
 
@@ -88,7 +88,7 @@ The consumer is generic and can process any LINQ expression, but it must be able
 
 ## Usage — Job Scheduler
 
-Jobs may be scheduled using standard cron expressions (5-field or 6-field with seconds), parsed by [Cronos](https://github.com/HangfireIO/Cronos). The scheduler and consumers are separate — schedulers only queue work, while standard LINQ consumers handle processing.
+Jobs are scheduled using standard cron expressions (5-field or 6-field with seconds), parsed by [Cronos](https://github.com/HangfireIO/Cronos). The scheduler and consumers are separate; schedulers only queue work, while standard LINQ consumers handle processing.
 
 Any LINQ statement supported by a LINQ producer can be scheduled via the scheduler.
 
