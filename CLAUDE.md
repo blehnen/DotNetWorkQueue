@@ -19,7 +19,15 @@ dotnet build "Source\DotNetWorkQueueNoTests.sln" -c Debug
 dotnet build "Source\DotNetWorkQueue\DotNetWorkQueue.csproj"
 ```
 
-Release builds enable `TreatWarningsAsErrors` and XML documentation generation.
+Release builds enable `TreatWarningsAsErrors` and XML documentation generation. For NuGet release builds, always pass `-p:CI=true` to enable deterministic Source Link paths:
+
+```bash
+# Release build for NuGet publishing
+dotnet build "Source\DotNetWorkQueueNoTests.sln" -c Release -p:CI=true
+
+# Pack Dashboard.Ui (not auto-packed by build)
+dotnet pack "Source\DotNetWorkQueue.Dashboard.Ui\DotNetWorkQueue.Dashboard.Ui.csproj" -c Release -p:CI=true
+```
 
 ## Running Tests
 
@@ -123,6 +131,7 @@ Projects target net10.0 and net8.0. Legacy conditional compilation symbols (NETF
 - `RedisValue.Null` cast to `(int)` yields `0`, not an exception. When comparing against enums where `0` is a valid member (e.g., `MessageHistoryStatus.Enqueued`), always check `.HasValue` before casting to avoid null-value collisions.
 - NuGet version ordering: `0.9.3` < `0.9.19`, so you can't go back to a lower version number after incrementing past it.
 - NuGet.org does not allow pushing `.snupkg` separately after the `.nupkg` is already published, and re-pushing the same version is blocked. Always push from the deploy directory using `dotnet nuget push "deploy/*.nupkg" --api-key KEY --source https://api.nuget.org/v3/index.json` — the CLI automatically picks up matching `.snupkg` files from the same directory.
+- Release builds for NuGet must use `-p:CI=true` (e.g., `dotnet build -c Release -p:CI=true`) to enable `ContinuousIntegrationBuild` in Directory.Build.props. Without it, Source Link paths aren't deterministic and NuGet.org shows red validation indicators.
 
 ## Code Quality
 - Prefer correct, complete implementations over minimal ones.
