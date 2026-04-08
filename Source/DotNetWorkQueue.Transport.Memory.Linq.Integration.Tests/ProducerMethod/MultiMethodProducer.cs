@@ -15,12 +15,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
     public class MultiMethodProducer
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(LinqMethodTypes.Dynamic),
-        DataRow(LinqMethodTypes.Compiled)]
-#else
         [DataRow(LinqMethodTypes.Compiled)]
-#endif
         public void Run(LinqMethodTypes linqMethodTypes)
         {
             using (var connectionInfo = new IntegrationConnectionInfo())

@@ -13,12 +13,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
     public class SimpleMethodConsumer
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(100, 0, 30, 5, LinqMethodTypes.Dynamic),
-        DataRow(10, 15, 60, 7, LinqMethodTypes.Compiled)]
-#else
         [DataRow(10, 15, 60, 7, LinqMethodTypes.Compiled)]
-#endif
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)
         {

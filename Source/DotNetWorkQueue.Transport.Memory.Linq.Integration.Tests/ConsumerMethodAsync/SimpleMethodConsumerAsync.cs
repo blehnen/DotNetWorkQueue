@@ -13,12 +13,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ConsumerMethod
     public class SimpleMethodConsumerAsync
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(10, 15, 60, 7, 1, 1, 1, LinqMethodTypes.Dynamic),
-         DataRow(10, 5, 60, 10, 1, 2, 1, LinqMethodTypes.Compiled)]
-#else
         [DataRow(10, 5, 60, 10, 1, 2, 1, LinqMethodTypes.Compiled)]
-#endif
         public void Run(int messageCount, int runtime, int timeOut,
             int workerCount, int readerCount, int queueSize,
            int messageType, LinqMethodTypes linqMethodTypes)

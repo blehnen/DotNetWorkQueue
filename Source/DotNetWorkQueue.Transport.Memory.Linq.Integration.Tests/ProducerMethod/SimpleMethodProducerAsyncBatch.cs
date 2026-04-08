@@ -10,12 +10,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducerAsyncBatch
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(1000, LinqMethodTypes.Dynamic),
-        DataRow(1000, LinqMethodTypes.Compiled)]
-#else
         [DataRow(1000, LinqMethodTypes.Compiled)]
-#endif
         public async Task Run(
             int messageCount,
             LinqMethodTypes linqMethodTypes)

@@ -14,12 +14,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducerInterceptor
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(100, LinqMethodTypes.Dynamic),
-         DataRow(100, LinqMethodTypes.Compiled)]
-#else
         [DataRow(100, LinqMethodTypes.Compiled)]
-#endif
         public void Run(
             int messageCount,
             LinqMethodTypes linqMethodTypes)

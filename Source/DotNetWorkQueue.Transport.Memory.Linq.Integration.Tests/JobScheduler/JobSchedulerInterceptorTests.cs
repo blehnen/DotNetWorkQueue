@@ -10,11 +10,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
     public class JobSchedulerInterceptorTests
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(true)]
-#else
         [DataRow(false)]
-#endif
         public void Run(
             bool dynamic)
         {
