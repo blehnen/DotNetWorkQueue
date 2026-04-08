@@ -1,5 +1,29 @@
 # Shipyard Lessons Learned
 
+## [2026-04-07] Milestone: Drop net48/netstandard2.0 (issue #101)
+
+### What Went Well
+- 4-phase approach with clear dependency ordering prevented cascading failures
+- Phase verification caught all issues before moving to next phase
+- Memory Linq integration tests (no external dependencies) served as reliable regression gate throughout
+
+### Surprises / Discoveries
+- Perl regex `perl -0777 -pe 's/\n*#if NETFULL\b.*?#endif[^\n]*//gs'` fails on nested `#if NETFULL` blocks -- non-greedy match stops at inner `#endif`, leaving orphaned `#else`/`#endif` directives. Python nesting-depth-tracking script required.
+- Builder agents exhaust context on bulk file edits -- confirmed across all 4 phases. Direct execution (Perl/Python + csproj edits) is faster and more reliable for mechanical changes.
+- Plan file/caller counts can be wrong -- Phase 4 plan missed a 7th JobSchedulerTests caller (JobSchedulerInterceptorTests.cs). Build verification caught it before it could ship.
+- Version numbers drift between planning and execution -- ROADMAP said 0.9.3 but actual version was 0.9.18. Always verify current state during research/planning, not just at roadmap creation time.
+
+### Pitfalls to Avoid
+- Don't use simple regex for nested preprocessor directives -- track nesting depth with a proper parser
+- Don't trust ROADMAP version numbers if the roadmap was written in a different session -- re-check during planning
+- When removing a parameter from a shared test method, grep for ALL callers across the entire solution, not just the ones listed in the roadmap
+
+### Process Improvements
+- For bulk mechanical edits (preprocessor removal, csproj target changes), skip builder agents and execute directly -- saves 10+ minutes per phase and avoids context exhaustion
+- Research phase should always verify current file state, not rely on roadmap descriptions written weeks earlier
+
+---
+
 ## [2026-04-07] Milestone: Publish Aq.ExpressionJsonSerializer as NuGet Package (issue #102)
 
 ### What Went Well
