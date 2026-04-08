@@ -1,4 +1,4 @@
-### 0.9.20 — 2026-04-08
+### 0.9.30 — 2026-04-08
 
 #### Breaking Changes
 - Replaced Schyntax schedule format with standard cron expressions (5-field and 6-field with seconds) using [Cronos](https://github.com/HangfireIO/Cronos)
