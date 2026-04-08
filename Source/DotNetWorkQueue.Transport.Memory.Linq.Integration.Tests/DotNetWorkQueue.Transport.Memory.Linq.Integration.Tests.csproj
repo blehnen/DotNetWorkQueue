@@ -20,5 +20,4 @@
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
   </ItemGroup>
 
-
 </Project>

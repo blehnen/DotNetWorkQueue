@@ -11,12 +11,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
     public class JobSchedulerTests
     {
         [TestMethod]
-
-        [DataRow(true, false),
-         DataRow(true, true)]
+        [DataRow(true)]
         public void Run(
-            bool interceptors,
-            bool dynamic)
+            bool interceptors)
         {
             if (OsDetectionHelper.IsRunningOnServer(null))
             {
@@ -30,7 +27,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
 
             consumer.Run<PostgreSqlMessageQueueInit, PostgreSqlJobQueueCreation, PostgreSqlMessageQueueCreation>(
                 new QueueConnection(queueName,
-                    ConnectionInfo.ConnectionString), interceptors, dynamic, Helpers.Verify, Helpers.SetError);
+                    ConnectionInfo.ConnectionString), interceptors, Helpers.Verify, Helpers.SetError);
         }
     }
 }

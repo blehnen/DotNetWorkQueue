@@ -8,7 +8,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation
         public void Run<TTransportInit, TJobQueueCreator, TTransportCreate>(
             QueueConnection queueConnection,
             bool interceptors,
-            bool dynamic,
             Action<QueueConnection, long, ICreationScope> verify,
             Action<QueueConnection, ICreationScope> setErrorFlag)
             where TTransportInit : ITransportInit, new()
@@ -29,14 +28,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation
                         try
                         {
                             var tests = new JobSchedulerTestsShared();
-                            if (!dynamic)
-                            {
-                                tests.RunEnqueueTestCompiled<TTransportInit, TJobQueueCreator>(
-                                    queueConnection, interceptors,
-                                    verify, setErrorFlag,
-                                    queueContainer.CreateTimeSync(queueConnection.Connection),
-                                    oCreation.Scope, LoggerShared.Create(queueConnection.Queue, GetType().Name));
-                            }
+                            tests.RunEnqueueTestCompiled<TTransportInit, TJobQueueCreator>(
+                                queueConnection, interceptors,
+                                verify, setErrorFlag,
+                                queueContainer.CreateTimeSync(queueConnection.Connection),
+                                oCreation.Scope, LoggerShared.Create(queueConnection.Queue, GetType().Name));
                         }
                         finally
                         {

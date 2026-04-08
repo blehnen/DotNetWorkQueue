@@ -10,9 +10,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
     public class JobSchedulerInterceptorTests
     {
         [TestMethod]
-        [DataRow(false)]
-        public void Run(
-            bool dynamic)
+        public void Run()
         {
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
@@ -21,7 +19,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.JobScheduler
                     new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();
 
                 consumer.Run<MemoryMessageQueueInit, JobQueueCreation, MessageQueueCreation>(new QueueConnection(queueName,
-                    connectionInfo.ConnectionString), true, dynamic, Helpers.Verify, Helpers.SetError);
+                    connectionInfo.ConnectionString), true, Helpers.Verify, Helpers.SetError);
             }
         }
     }

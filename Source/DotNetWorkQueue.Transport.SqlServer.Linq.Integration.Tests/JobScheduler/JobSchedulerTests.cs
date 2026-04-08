@@ -11,10 +11,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
     public class JobSchedulerTests
     {
         [TestMethod]
-        [DataRow(true, false)]
+        [DataRow(true)]
         public void Run(
-            bool interceptors,
-            bool dynamic)
+            bool interceptors)
         {
             if (OsDetectionHelper.IsRunningOnServer(null))
             {
@@ -25,7 +24,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobSchedule
             var consumer =
                 new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();
             consumer.Run<SqlServerMessageQueueInit, SqlServerJobQueueCreation, SqlServerMessageQueueCreation>(
-                new QueueConnection(queueName, ConnectionInfo.ConnectionString), interceptors, dynamic, Helpers.Verify, Helpers.SetError);
+                new QueueConnection(queueName, ConnectionInfo.ConnectionString), interceptors, Helpers.Verify, Helpers.SetError);
         }
     }
 }

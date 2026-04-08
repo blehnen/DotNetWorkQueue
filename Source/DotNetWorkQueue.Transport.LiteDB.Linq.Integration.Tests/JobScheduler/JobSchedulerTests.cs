@@ -10,10 +10,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.JobScheduler
     public class JobSchedulerTests
     {
         [TestMethod]
-        [DataRow(false),
-        DataRow(true)]
-        public void Run(
-            bool dynamic)
+        public void Run()
         {
             if (OsDetectionHelper.IsRunningOnServer(null))
             {
@@ -27,7 +24,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.JobScheduler
                     new DotNetWorkQueue.IntegrationTests.Shared.JobScheduler.Implementation.JobSchedulerTests();
 
                 consumer.Run<LiteDbMessageQueueInit, LiteDbJobQueueCreation, LiteDbMessageQueueCreation>(new QueueConnection(queueName,
-                    connectionInfo.ConnectionString), false, dynamic, Helpers.Verify, Helpers.SetError);
+                    connectionInfo.ConnectionString), false, Helpers.Verify, Helpers.SetError);
             }
         }
     }
