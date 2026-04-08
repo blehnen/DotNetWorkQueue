@@ -56,30 +56,13 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <PackageReference Include="Polly.Core" />
     <PackageReference Include="SimpleInjector" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" />
+    <PackageReference Include="Cronos" />
+    <PackageReference Include="CronExpressionDescriptor" />
   </ItemGroup>
 
-	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
-		<Reference Include="Schyntax">
-			<HintPath>..\..\Lib\Schyntax\net8.0\Schyntax.dll</HintPath>
-		</Reference>
-	</ItemGroup>
 
-	<ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
-		<Reference Include="Schyntax">
-			<HintPath>..\..\Lib\Schyntax\net10.0\Schyntax.dll</HintPath>
-		</Reference>
-	</ItemGroup>
-
-  
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
-  <!-- Pack vendored DLLs into the correct lib/ TFM folders in the nupkg -->
-  <Target Name="IncludeVendoredDllsInPack" BeforeTargets="GenerateNuspec">
-    <ItemGroup>
-      <_PackageFiles Include="..\..\Lib\Schyntax\net8.0\Schyntax.dll" PackagePath="lib\net8.0" />
-      <_PackageFiles Include="..\..\Lib\Schyntax\net10.0\Schyntax.dll" PackagePath="lib\net10.0" />
-    </ItemGroup>
-  </Target>
 </Project>
