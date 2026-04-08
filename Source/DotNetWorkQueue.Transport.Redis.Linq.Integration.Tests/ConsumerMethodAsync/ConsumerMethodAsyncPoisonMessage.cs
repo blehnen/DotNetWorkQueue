@@ -10,14 +10,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
     public class ConsumerMethodAsyncPoisonMessage
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(1, 20, 1, 1, 0, LinqMethodTypes.Dynamic)]
-#else
-#endif
-#else
         [DataRow(1, 20, 1, 1, 0, LinqMethodTypes.Compiled)]
-#endif
         public void Run(int messageCount, int timeOut, int workerCount,
             int readerCount, int queueSize, LinqMethodTypes linqMethodTypes)
         {

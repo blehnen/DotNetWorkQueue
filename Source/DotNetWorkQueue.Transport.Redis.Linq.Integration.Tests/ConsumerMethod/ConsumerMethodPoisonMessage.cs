@@ -14,14 +14,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodPoisonMessage
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(1, 20, 1, LinqMethodTypes.Dynamic)]
-#else
-#endif
-#else
         [DataRow(1, 20, 1, LinqMethodTypes.Compiled)]
-#endif
         public void Run(int messageCount, int timeOut,
             int workerCount, LinqMethodTypes linqMethodTypes)
         {

@@ -14,14 +14,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethodA
     public class SimpleConsumerMethodAsync
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(100, 0, 180, 10, 5, 0, 1, LinqMethodTypes.Dynamic)]
-#else
-#endif
-#else
          [DataRow(10, 5, 180, 7, 1, 1, 1, LinqMethodTypes.Compiled)]
-#endif
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             int messageType, LinqMethodTypes linqMethodTypes)
         {

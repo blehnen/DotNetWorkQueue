@@ -12,11 +12,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
     public class JobSchedulerTests
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(true)]
-#else
         [DataRow(false)]
-#endif
         public void Run(
             bool dynamic)
         {

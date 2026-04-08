@@ -15,14 +15,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodExpiredMessage
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(100, 0, 20, 5, LinqMethodTypes.Dynamic)]
-#else
-#endif
-#else
         [DataRow(100, 0, 20, 5, LinqMethodTypes.Compiled)]
-#endif
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)
         {

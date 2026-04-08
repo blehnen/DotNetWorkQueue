@@ -14,32 +14,6 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducer
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(100, true, false, false, false, LinqMethodTypes.Compiled),
-#if NETFULL
-         DataRow(100, true, false, false, false, LinqMethodTypes.Dynamic),
-         DataRow(100, false, false, false, false, LinqMethodTypes.Dynamic),
-         DataRow(500, true, false, false, false, LinqMethodTypes.Dynamic),
-         DataRow(500, false, false, false, false, LinqMethodTypes.Dynamic),
-         DataRow(100, true, true, false, false, LinqMethodTypes.Dynamic),
-         DataRow(100, false, true, false, false, LinqMethodTypes.Dynamic),
-         DataRow(100, true, false, true, false, LinqMethodTypes.Dynamic),
-         DataRow(100, false, false, false, true, LinqMethodTypes.Dynamic),
-         DataRow(100, true, false, true, true, LinqMethodTypes.Dynamic),
-         DataRow(100, true, true, true, false, LinqMethodTypes.Dynamic),
-         DataRow(100, false, true, true, true, LinqMethodTypes.Dynamic),
-#endif
-         DataRow(100, false, false, false, false, LinqMethodTypes.Compiled),
-         DataRow(500, true, false, false, false, LinqMethodTypes.Compiled),
-         DataRow(500, false, false, false, false, LinqMethodTypes.Compiled),
-         DataRow(100, true, true, false, false, LinqMethodTypes.Compiled),
-         DataRow(100, false, true, false, false, LinqMethodTypes.Compiled),
-         DataRow(100, true, false, true, false, LinqMethodTypes.Compiled),
-         DataRow(100, false, false, false, true, LinqMethodTypes.Compiled),
-         DataRow(100, true, false, true, true, LinqMethodTypes.Compiled),
-         DataRow(100, true, true, true, false, LinqMethodTypes.Compiled),
-         DataRow(100, false, true, true, true, LinqMethodTypes.Compiled)]
-#else
         [DataRow(100, true, false, false, false, LinqMethodTypes.Compiled),
          DataRow(100, false, false, false, false, LinqMethodTypes.Compiled),
          DataRow(500, true, false, false, false, LinqMethodTypes.Compiled),
@@ -51,7 +25,6 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
          DataRow(100, true, false, true, true, LinqMethodTypes.Compiled),
          DataRow(100, true, true, true, false, LinqMethodTypes.Compiled),
          DataRow(100, false, true, true, true, LinqMethodTypes.Compiled)]
-#endif
         public void Run(
             int messageCount,
             bool interceptors,

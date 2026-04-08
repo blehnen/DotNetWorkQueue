@@ -10,15 +10,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class SimpleMethodConsumer
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(100, 0, 240, 5, LinqMethodTypes.Dynamic),
-        DataRow(50, 5, 200, 10, LinqMethodTypes.Dynamic)]
-#else
-#endif
-#else
         [DataRow(10, 5, 180, 7, LinqMethodTypes.Compiled)]
-#endif
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)
         {
             var queueName = GenerateQueueName.Create();

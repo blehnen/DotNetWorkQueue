@@ -14,14 +14,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodErrorTable
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(10, 60, 5, LinqMethodTypes.Dynamic)]
-#else
-#endif
-#else
         [DataRow(1, 40, 1, LinqMethodTypes.Compiled)]
-#endif
         public void Run(int messageCount, int timeOut,
             int workerCount, LinqMethodTypes linqMethodTypes)
         {

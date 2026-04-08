@@ -14,16 +14,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodHeartbeat
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(7, 15, 90, 3, LinqMethodTypes.Compiled),
-         DataRow(7, 15, 90, 3, LinqMethodTypes.Dynamic)]
-#else
         [DataRow(7, 15, 90, 3, LinqMethodTypes.Compiled)]
-#endif
-#else
-        [DataRow(7, 15, 90, 3, LinqMethodTypes.Compiled)]
-#endif
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)
         {

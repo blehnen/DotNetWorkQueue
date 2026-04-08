@@ -14,14 +14,7 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
     public class ConsumerMethodCancelWork
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(7, 5, 90, 3, LinqMethodTypes.Dynamic)]
-#else
-#endif
-#else
         [DataRow(7, 5, 90, 3, LinqMethodTypes.Compiled)]
-#endif
         public void Run(int messageCount, int runtime,
             int timeOut, int workerCount, LinqMethodTypes linqMethodTypes)
         {

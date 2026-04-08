@@ -11,22 +11,10 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ProducerMethod
     public class SimpleMethodProducerAsync
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(100, true, false, LinqMethodTypes.Compiled),
-#if NETFULL
-        DataRow(100, true, false, LinqMethodTypes.Dynamic),
-        DataRow(100, false, false, LinqMethodTypes.Dynamic),
-        DataRow(100, false, true, LinqMethodTypes.Dynamic),
-#endif
-        DataRow(100, false, false, LinqMethodTypes.Compiled),
-        DataRow(100, true, true, LinqMethodTypes.Compiled),
-        DataRow(100, false, true, LinqMethodTypes.Compiled)]
-#else
         [DataRow(100, true, false, LinqMethodTypes.Compiled),
          DataRow(100, false, false, LinqMethodTypes.Compiled),
          DataRow(100, true, true, LinqMethodTypes.Compiled),
          DataRow(100, false, true, LinqMethodTypes.Compiled)]
-#endif
         public async Task Run(
            int messageCount,
            bool interceptors,
