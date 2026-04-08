@@ -14,16 +14,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     {
 
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(5, 60, 180, 7, false, LinqMethodTypes.Compiled, true),
-        DataRow(5, 60, 180, 7, true, LinqMethodTypes.Dynamic, true)]
-#else
-        [DataRow(5, 60, 180, 7, false, LinqMethodTypes.Compiled, true)]
-#endif
-#else
         [DataRow(10, 60, 180, 7, false, LinqMethodTypes.Compiled, false)]
-#endif
         public void Run(int messageCount, int runtime, int timeOut, int workerCount,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

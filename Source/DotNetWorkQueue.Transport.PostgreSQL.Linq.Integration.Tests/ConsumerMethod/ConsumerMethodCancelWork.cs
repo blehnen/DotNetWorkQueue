@@ -13,16 +13,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class ConsumerMethodCancelWork
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(7, 60, 180, 3, LinqMethodTypes.Compiled, false),
-            DataRow(7, 60, 180, 3, LinqMethodTypes.Dynamic, false)]
-#else
-        [DataRow(7, 60, 180, 3, LinqMethodTypes.Compiled, false)]
-#endif
-#else
         [DataRow(7, 60, 90, 3, LinqMethodTypes.Compiled, false)]
-#endif
         public void Run(int messageCount, int runtime, int timeOut,
             int workerCount, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

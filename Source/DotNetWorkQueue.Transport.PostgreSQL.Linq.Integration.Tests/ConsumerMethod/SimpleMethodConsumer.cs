@@ -13,17 +13,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class SimpleMethodConsumer
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(10, 0, 240, 5, false, LinqMethodTypes.Compiled, true),
-#if NETFULL
-         DataRow(100, 0, 240, 5, false, LinqMethodTypes.Dynamic, false),
-         DataRow(10, 15, 180, 7, true, LinqMethodTypes.Dynamic, false),
-#endif
-         DataRow(10, 15, 180, 7, true, LinqMethodTypes.Compiled, false)]
-#else
         [DataRow(10, 0, 240, 5, false, LinqMethodTypes.Compiled, true),
          DataRow(10, 15, 180, 7, true, LinqMethodTypes.Compiled, false)]
-#endif
         public void Run(int messageCount, int runtime, int timeOut,
             int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

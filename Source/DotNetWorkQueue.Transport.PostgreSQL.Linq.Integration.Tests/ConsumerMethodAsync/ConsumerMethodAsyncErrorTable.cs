@@ -13,16 +13,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class ConsumerMethodAsyncErrorTable
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(1, 120, 1, 1, 0, false, LinqMethodTypes.Dynamic, true),
-        DataRow(1, 120, 1, 1, 0, false, LinqMethodTypes.Compiled, false)]
-#else
-        [DataRow(1, 120, 1, 1, 0, false, LinqMethodTypes.Compiled, false)]
-#endif
-#else
         [DataRow(1, 120, 1, 1, 0, false, LinqMethodTypes.Compiled, true)]
-#endif
         public void Run(int messageCount, int timeOut, int workerCount,
             int readerCount, int queueSize, bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

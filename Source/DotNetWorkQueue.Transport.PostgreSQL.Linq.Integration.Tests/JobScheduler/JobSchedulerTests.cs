@@ -11,11 +11,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.JobSchedul
     public class JobSchedulerTests
     {
         [TestMethod]
-#if NETFULL
 
-#else
-
-#endif
         [DataRow(true, false),
          DataRow(true, true)]
         public void Run(

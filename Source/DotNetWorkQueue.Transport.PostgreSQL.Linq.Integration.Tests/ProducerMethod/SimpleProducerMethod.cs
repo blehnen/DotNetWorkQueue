@@ -13,34 +13,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
     public class SimpleProducerMethod
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(100, true, true, false, false, false, false, false, LinqMethodTypes.Compiled, false),
-#if NETFULL
-        DataRow(100, true, true, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
-         DataRow(100, false, true, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
-         DataRow(100, false, false, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
-         DataRow(100, true, false, false, false, false, false, false, LinqMethodTypes.Dynamic, false),
-         DataRow(100, false, false, false, false, false, true, false, LinqMethodTypes.Dynamic, false),
-        DataRow(100, false, true, true, true, true, false, false, LinqMethodTypes.Dynamic, false),
-         DataRow(100, false, true, false, true, true, true, false, LinqMethodTypes.Dynamic, false),
-         DataRow(100, true, true, false, false, false, true, true, LinqMethodTypes.Dynamic, false),
-#endif
-         DataRow(100, false, true, false, false, false, true, false, LinqMethodTypes.Compiled, false),
-         DataRow(100, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, false),
-         DataRow(100, true, false, false, false, false, false, false, LinqMethodTypes.Compiled, false),
-        DataRow(100, false, false, false, false, false, true, false, LinqMethodTypes.Compiled, false),
-         DataRow(100, false, true, true, true, true, false, false, LinqMethodTypes.Compiled, false),
-         DataRow(100, false, true, false, true, true, true, false, LinqMethodTypes.Compiled, false),
-         DataRow(100, true, true, false, false, false, true, true, LinqMethodTypes.Compiled, false),
-
-         DataRow(10, false, true, false, false, false, true, false, LinqMethodTypes.Compiled, true),
-         DataRow(10, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, true),
-         DataRow(10, true, false, false, false, false, false, false, LinqMethodTypes.Compiled, true),
-        DataRow(10, false, false, false, false, false, true, false, LinqMethodTypes.Compiled, true),
-         DataRow(10, false, true, true, true, true, false, false, LinqMethodTypes.Compiled, true),
-         DataRow(10, false, true, false, true, true, true, false, LinqMethodTypes.Compiled, true),
-         DataRow(10, true, true, false, false, false, true, true, LinqMethodTypes.Compiled, true)]
-#else
         [DataRow(100, true, true, false, false, false, false, false, LinqMethodTypes.Compiled, false),
          DataRow(100, false, true, false, false, false, true, false, LinqMethodTypes.Compiled, false),
          DataRow(100, false, false, false, false, false, false, false, LinqMethodTypes.Compiled, false),
@@ -56,7 +28,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ProducerMe
          DataRow(10, false, true, true, true, true, false, false, LinqMethodTypes.Compiled, true),
          DataRow(10, false, true, false, true, true, true, false, LinqMethodTypes.Compiled, true),
          DataRow(10, true, true, false, false, false, true, true, LinqMethodTypes.Compiled, true)]
-#endif
         public void Run(
             int messageCount,
             bool interceptors,

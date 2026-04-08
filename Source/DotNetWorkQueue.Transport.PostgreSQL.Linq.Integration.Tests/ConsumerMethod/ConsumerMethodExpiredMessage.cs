@@ -13,16 +13,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class ConsumerMethodExpiredMessage
     {
         [TestMethod]
-#if NETFULL
-#if NETFULL
-        [DataRow(10, 0, 60, 5, false, LinqMethodTypes.Compiled, true),
-        DataRow(100, 5, 60, 5, true, LinqMethodTypes.Dynamic, false)]
-#else
-        [DataRow(10, 0, 60, 5, false, LinqMethodTypes.Compiled, true)]
-#endif
-#else
         [DataRow(100, 0, 60, 5, false, LinqMethodTypes.Compiled, false)]
-#endif
         public void Run(int messageCount, int runtime, int timeOut,
             int workerCount, bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {

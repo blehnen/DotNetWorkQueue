@@ -13,17 +13,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMe
     public class ConsumerMethodAsyncRollBack
     {
         [TestMethod]
-#if NETFULL
-        [DataRow(5, 5, 200, 5, 1, 3, false, LinqMethodTypes.Compiled, true),
-#if NETFULL
-        DataRow(50, 5, 200, 5, 1, 3, false, LinqMethodTypes.Dynamic, false),
-         DataRow(10, 5, 180, 7, 1, 1, true, LinqMethodTypes.Dynamic, true),
-#endif
-         DataRow(10, 5, 180, 7, 1, 1, true, LinqMethodTypes.Compiled, false)]
-#else
         [DataRow(5, 5, 200, 5, 1, 3, false, LinqMethodTypes.Compiled, true),
          DataRow(10, 5, 180, 7, 1, 1, true, LinqMethodTypes.Compiled, false)]
-#endif
         public void Run(int messageCount, int runtime, int timeOut, int workerCount, int readerCount, int queueSize,
             bool useTransactions, LinqMethodTypes linqMethodTypes, bool enableChaos)
         {
