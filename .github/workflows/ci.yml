@@ -58,5 +58,8 @@ jobs:
       - name: Unit Tests - Dashboard.Client
         run: dotnet test "Source/DotNetWorkQueue.Dashboard.Client.Tests/DotNetWorkQueue.Dashboard.Client.Tests.csproj" --no-build -c Debug
 
+      - name: Unit Tests - Dashboard.Ui
+        run: dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj" --no-build -c Debug
+
       - name: Unit Tests - Memory
         run: dotnet test "Source/DotNetWorkQueue.Transport.Memory.Tests/DotNetWorkQueue.Transport.Memory.Tests.csproj" --no-build -c Debug
