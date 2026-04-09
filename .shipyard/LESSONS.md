@@ -1,5 +1,31 @@
 # Shipyard Lessons Learned
 
+## [2026-04-09] Milestone: Dashboard UI — Support Multiple API Sources (issue #96)
+
+### What Went Well
+- TDD across all phases caught issues early — 48 UI tests + 11 integration tests provided strong safety net
+- Parallel plan execution (Phase 3) saved time — zero shared files between UI and test plans
+- 7 shared tab components required zero changes due to clean `IDashboardApiClient` abstraction via `[Parameter]`
+- Clean wave/phase separation — each phase produced testable interfaces before downstream phases consumed them
+
+### Surprises / Discoveries
+- `DotNetWorkQueue.IConfiguration` shadows `Microsoft.Extensions.Configuration.IConfiguration` — C# resolves via namespace hierarchy BEFORE considering `using` directives. Requires `global::` fully-qualified types in all Dashboard.Ui code.
+- NSubstitute indexer mocking fails on `IFeatureCollection` — use real `FeatureCollection` with `Set<T>()` instead
+- MudBlazor 9.x uses `Expanded` not `IsInitiallyExpanded` on `MudExpansionPanel` — builder agents don't know current MudBlazor API
+- `GetSettingsAsync()` is the lightest health probe endpoint — avoids data store queries
+
+### Pitfalls to Avoid
+- Builder agents struggle with C# namespace conflicts and MudBlazor API changes — do complex fixes directly instead of retrying the agent
+- Agents often don't write result files (SUMMARY, REVIEW, RESEARCH) to disk — the orchestrator must create them from agent output
+- `OnParametersSetAsync` must guard both route slug AND entity IDs (ConnectionId, QueueId) — slug-only guard causes stale data when navigating between entities in the same source
+
+### Process Improvements
+- Pass `global::` namespace conflict knowledge to all builder agents upfront (in CONTEXT files)
+- Check for result files immediately after agent completion and write them if missing
+- Run existing tests before AND after each plan to catch regressions early
+
+---
+
 ## [2026-04-08] Milestone: Replace Schyntax with Cronos (issue #100)
 
 ### What Went Well

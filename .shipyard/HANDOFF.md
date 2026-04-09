@@ -1,36 +1,34 @@
-# Session Handoff — 2026-04-07
-
 ## Current Task
 
-Issue #101 milestone: Drop net48/netstandard2.0. Phases 1 and 2 complete, Phase 3 planned and ready for build.
+Issue #96: Dashboard UI — Support Multiple API Sources. Brainstorming complete, PROJECT.md and ROADMAP.md committed and approved at `3aad6034`. No implementation work has started. Ready to plan Phase 1.
 
 ## Approach
 
-10-phase roadmap across 4 waves. Working on branch `issue-101-drop-net48` off master.
+**UI-side aggregation** — the Dashboard UI manages multiple `HttpClient` instances (one per API source) and merges results for display. Each Dashboard API instance is standalone and unmodified; transport logic stays in the API layer.
 
-Key decisions:
-- Direct execution for mechanical edits (builder agents exhaust context on bulk file changes — confirmed in Phases 1 and 2)
-- Skip research for Phase 3 (ROADMAP already exhaustive, pattern identical to Phase 2)
-- Perl regex via write-to-/tmp + cp for bulk `#if NETFULL` removal (Perl `-i` fails on WSL due to temp file rename across mount points)
-- Audit/simplifier/documenter skipped for mechanical phases — full pipeline runs at ship time
-- `LinqExpressionToRun` type preserved for serialization compatibility; `LinqCompiler` throws `NotSupportedException`
-- `CompileException` class kept (public type, separate breaking change)
+Key design decisions already made:
+- **Source-aware URL routing**: `/source/{sourceSlug}/connection/{id}/queue/{queueId}` — slug derived from configured Name, never exposes BaseUrl or ApiKey
+- **`IMultiSourceDashboardApiClient.GetClientForSource(slug)`** returns a per-source `IDashboardApiClient` — all 7 shared tab components stay unchanged, only 3 page components resolve source from URL
+- **In-process API is just another source** — one code path, no special cases, registers as "Local" (or configurable name)
+- **Background health polling** (30s interval, 5s timeout) — cached health state, page loads never block on unhealthy sources
+- **Breaking config change** — old flat `DashboardApi:BaseUrl`/`ApiKey` removed, replaced by `DashboardApi:Sources[]` array. Startup validation detects old format and throws clear error with migration instructions
+- **Home page grouping** — connections grouped under collapsible source headers when multiple sources; single source hides the group header entirely
+- **Full read + write** across all sources from day one
+- **Partial failure** — show data from healthy sources, inline warning for offline sources, retry button
 
 ## Tried
 
-- **Phase 1 (complete):** Core csproj + 8 transport csproj + 11 .cs conditional cleanup + vendored DLL deletion. 6 commits.
-- **Phase 2 (complete):** IntegrationTests.Shared 19 .cs + 1 csproj, CompileExceptionTests.cs, 14 test/integration csproj. 2 commits.
-- **Phase 3 (planned):** 2 plans, 1 wave, 6 tasks. PLAN-1.1 covers SqlServer/PostgreSQL/SQLite (53 .cs + 3 csproj). PLAN-1.2 covers Redis/LiteDB/Memory (44 .cs + 3 csproj). Verifier confirmed READY. Architect corrected ROADMAP file counts (e.g., SqlServer has 18 .cs files with NETFULL, not 13).
-- Builder agents ran out of context twice (Phase 1 PLAN-1.1, reviewer). Direct execution proved faster and more reliable.
-- AppMetrics.Tests doesn't exist (ROADMAP said 8 unit test csproj, only 7 found).
+- Explored current Dashboard architecture: `DashboardApiClient` (26 methods, single `HttpClient`), `IDashboardApiClient` interface, 3 Blazor pages, 7 shared tab components, `DashboardTestServer` for integration tests
+- Verified all 6 transports have Dashboard API integration test coverage (38 test classes total) — no gaps
+- Created PROJECT.md and ROADMAP.md — both committed on master at `3aad6034`
 
 ## Remaining
 
-- **Uncommitted work:** 9 files have uncommitted changes (CLAUDE.md staged, 8 core .cs files unstaged with 220 lines of `#if NETFULL` deletions). Review and commit these before or during Phase 3 build.
-- **Phase 3 build** (Wave 3): Run `/shipyard:build 3`. Remove `#if NETFULL` from 6 Linq integration test projects. 97 .cs files + 6 csproj. Direct execution, not builder agents.
-- **Phase 4** (Wave 4): CI (.github/workflows/ci.yml), README.md, CLAUDE.md, version bump to 0.9.3. Run `/shipyard:plan 4` after Phase 3.
-- **Full solution build** (`DotNetWorkQueue.sln`) currently has 23 NU1201 errors from Phase 3 Linq projects — these resolve once Phase 3 completes.
+1. **Run `/shipyard:plan 1`** — Plan Phase 1: Multi-Source Configuration and Client Infrastructure (config model, source registry, multi-source client wrapper, DI refactor, startup validation, unit tests)
+2. Execute Phase 1 implementation
+3. Plan and execute Phase 2: Health Monitoring and Source-Aware Page Routing
+4. Plan and execute Phase 3: Home Page Grouping, Partial Failure UX, and Integration Tests
 
 ## Open Questions
 
-- None — design fully captured in PROJECT.md and ROADMAP.md.
+- None — all design decisions are captured and approved in PROJECT.md and ROADMAP.md

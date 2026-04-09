@@ -1,23 +1,31 @@
 # Phase 1 Context: Design Decisions
 
-## PreviousLookbackWindow — Reuse existing Window property
+## Test project — New UI test project
 
-No new `PreviousLookbackWindow` config needed. The existing `ScheduledJob.Window` property (TimeSpan) already defines how far back to look for missed events. Pass it to `GetOccurrences(now - window, now)` when computing `Previous()`. When `Window` is `TimeSpan.Zero`, `Previous()` isn't called at all (line 95 guard).
+Create `DotNetWorkQueue.Dashboard.Ui.Tests` as a separate project. Clean separation between API and UI service tests. Follow the same MSTest 3.x + NSubstitute + AutoFixture + FluentAssertions stack as other test projects.
 
-This removes a planned config addition from the roadmap.
+## Backward compat shim — Skip, break cleanly
 
-## JobSchedule constructor — Keep Func<DateTimeOffset> parameter
+Do NOT register `IDashboardApiClient` as a backward-compat shim resolving to the first source. Remove the old single-source DI registration entirely. Phase 1 may break page compilation — Phase 2 will fix all pages immediately. This avoids dead-code shims and keeps the DI container clean.
 
-Keep the `Func<DateTimeOffset> getCurrentOffset` constructor parameter on `JobSchedule`. Cronos doesn't need it (methods accept explicit DateTimeOffset), but the parameter-less `Next()` and `Previous()` overloads need a clock source. Store the func and call it internally.
+## In-process API local URL — IServer at startup
 
-## Previous() nullable — Confirmed
+Use `IServer.Features.Get<IServerAddressesFeature>()` after the app starts to resolve the actual listen address for the in-process API source. This is the most accurate approach and avoids config/runtime divergence. Fallback to config-based address if IServer is unavailable.
 
-`IJobSchedule.Previous()` and `Previous(DateTimeOffset)` return `DateTimeOffset?`. `ScheduledJob.cs` null-checks the result before using it for catch-up.
+## In-process URL resolution — IServer with hosted service
 
-## Cron format auto-detection — Confirmed
+Use a `IHostedService` (or `ApplicationStarted` callback) to resolve the actual listen address via `IServer.Features.Get<IServerAddressesFeature>()` after the app starts. The `SourceRegistry` is populated with a placeholder local source at DI time; the hosted service updates it to the real address once `IServer` is available. This matches the original CONTEXT-1.md decision and handles dynamic port scenarios.
 
-Count space-separated fields: 5 = `CronFormat.Standard`, 6 = `CronFormat.IncludeSeconds`. No configuration flag needed.
+## Client caching — ConcurrentDictionary
 
-## Previous() window source in ScheduledJob
+`MultiSourceDashboardApiClient.GetClientForSource(slug)` caches `DashboardApiClient` instances in a `ConcurrentDictionary<string, IDashboardApiClient>`. `DashboardApiClient` is stateless, so caching is safe and avoids repeated object creation. Each cached instance wraps an `HttpClient` from `IHttpClientFactory.CreateClient(slug)`.
 
-The `Previous()` call in `ScheduledJob.StartSchedule()` needs a lookback window. Since `Previous()` is only called when `Window > TimeSpan.Zero`, pass `Window` as the lookback bound. The call becomes: `Schedule.Previous(window)` or `Schedule.Previous(now, window)` — exact signature TBD during implementation, but the window value comes from the existing property.
+## Scope from ROADMAP.md (unchanged)
+
+1. `DashboardApiSourceConfig` — Name, BaseUrl, ApiKey properties
+2. `ISourceRegistry` / `SourceRegistry` — GetAll(), GetBySlug(), GetByName()
+3. `IMultiSourceDashboardApiClient` / `MultiSourceDashboardApiClient` — GetClientForSource(slug)
+4. Startup config validation — old flat format detection with migration instructions
+5. In-process API auto-registration as "Local" source
+6. DI registration refactor — named HttpClients per source
+7. Unit tests in new DotNetWorkQueue.Dashboard.Ui.Tests project

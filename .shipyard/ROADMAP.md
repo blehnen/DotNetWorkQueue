@@ -1,217 +1,233 @@
-# Roadmap: Replace Schyntax with Cronos (issue #100)
+# Roadmap: Dashboard UI -- Support Multiple API Sources (issue #96)
 
 ## Overview
 
-Replace the vendored Schyntax DLL (custom DSL, no NuGet package, no XML docs) with Cronos (MIT, zero dependencies, standard cron expressions) as the schedule parser. Add CronExpressionDescriptor for human-readable schedule descriptions in logging, dashboard, and API responses. This is a breaking change -- schedule strings change from Schyntax DSL to standard cron format, `IJobSchedule.Previous()` becomes nullable, and version bumps to 0.9.3.
+Transform the Dashboard UI from a single-API-source deployment to a multi-source aggregation layer. A single UI instance will connect to N Dashboard API instances, group connections by source, route all operations (read and write) to the correct source, and handle partial failures gracefully.
 
-**Total scope:** 2 interfaces, 3 implementations, 1 csproj + central package props, 3 transport init files, 2 test files, 3 doc files, 1 Lib directory deletion, optional dashboard enhancement.
+This is a **breaking configuration change**. The flat `DashboardApi:BaseUrl`/`ApiKey` config is replaced by a `DashboardApi:Sources[]` array.
+
+**Total scope:** 1 config model, 1 source registry, 1 multi-source client wrapper, 1 health monitor hosted service, 3 Blazor page rewrites, 1 Home page grouping overhaul, unit tests, integration tests.
 
 ## Dependency Graph
 
 ```
-Phase 1  (Core: interface + implementation + csproj + NuGet)
+Phase 1  (Config model + multi-source client infrastructure)
    |
-   +-----------+-----------+
-   |           |           |
-   v           v           v
-Phase 2     Phase 3     Phase 4
-(Transport  (Unit +     (Dashboard
- defaults)   integ       description
-             tests)      enhancement)
-   |           |           |
-   +-----------+-----------+
-               |
-               v
-          Phase 5
-          (Cleanup + Docs + Version bump)
+   v
+Phase 2  (Health monitoring + source-aware page routing)
+   |
+   v
+Phase 3  (Home page grouping + partial failure UX + integration tests)
 ```
 
-Phase 1 is the foundation -- the core library must compile with Cronos before anything else proceeds.
-Phases 2, 3, and 4 depend on Phase 1 and can execute in parallel with each other.
-Phase 5 depends on all prior phases (deletes Lib/, updates docs, bumps version to reflect final state).
+Strictly sequential: each phase produces the interfaces/services the next phase consumes. No parallelism between phases because they share files (all 3 pages touch the same routing/client plumbing).
 
 ---
 
-## Phase 1: Core Library -- IJobSchedule, JobSchedule, csproj, and Configuration
+## Phase 1: Multi-Source Configuration and Client Infrastructure
 
-**Risk:** HIGH -- every project in the solution depends on `IJobSchedule`. Changing the return type of `Previous()` to nullable is a breaking API change that affects `ScheduledJob.cs` catch-up logic. Getting the Cronos auto-detect wrong (5-field vs 6-field) breaks all scheduling.
-**Scope:** ~30% of total work. Highest complexity -- new NuGet dependencies, interface change, implementation rewrite, null-safety fix in caller.
-**Depends on:** Nothing.
-**Strategy:** Fail fast. If `DotNetWorkQueueNoTests.sln` does not build after this phase, nothing else matters.
+**Risk: HIGH** -- This phase redefines the DI registration for the API client, which is the backbone of all UI data access. If the interface contract or source resolution model is wrong, every subsequent phase requires rework. Doing this first surfaces design mistakes before any UI work begins.
+
+**Scope:** ~40% of total work. Highest complexity -- new config model, new service interfaces, refactored DI registration, startup validation, in-process source auto-registration.
+
+**Depends on:** Nothing (foundation phase).
 
 ### What Changes
 
-1. **`Source/Directory.Packages.props`** -- Add `<PackageVersion Include="Cronos" Version="..." />` and `<PackageVersion Include="CronExpressionDescriptor" Version="..." />` entries to the core dependencies section.
-2. **`Source/DotNetWorkQueue/DotNetWorkQueue.csproj`** -- Remove both TFM-conditional `<Reference Include="Schyntax">` ItemGroups (net8.0 and net10.0). Remove the entire `<Target Name="IncludeVendoredDllsInPack">` block (which packs Schyntax DLLs into the nupkg). Add `<PackageReference Include="Cronos" />` and `<PackageReference Include="CronExpressionDescriptor" />` to the main `<ItemGroup>`.
-3. **`Source/DotNetWorkQueue/IJobSchedule.cs`** -- Change return types of `Previous()` and `Previous(DateTimeOffset)` from `DateTimeOffset` to `DateTimeOffset?`. Add `string Description { get; }` property for human-readable cron description.
-4. **`Source/DotNetWorkQueue/JobScheduler/JobSchedule.cs`** -- Replace `using Schyntax;` with `using Cronos;` and `using CronExpressionDescriptor;`. Replace `Schedule _schedule` field with `CronExpression _expression` + `CronFormat _format` + stored `_originalText`. Constructor: count space-separated fields to auto-detect `CronFormat.Standard` (5) vs `CronFormat.IncludeSeconds` (6). `Next()` / `Next(DateTimeOffset)`: call `_expression.GetNextOccurrence(DateTimeOffset, TimeZoneInfo)`. `Previous()` / `Previous(DateTimeOffset)`: implement via `_expression.GetOccurrences(now - lookbackWindow, now).LastOrDefault()` returning `DateTimeOffset?`. `Description`: return `ExpressionDescriptor.GetDescription(originalText)`. Accept lookback window via constructor or configuration injection.
-5. **`Source/DotNetWorkQueue/JobScheduler/ScheduledJob.cs`** (line 98) -- Null-check the result of `Schedule.Previous()`. If null, skip the catch-up logic and fall through to `Schedule.Next()`.
-6. **`Source/DotNetWorkQueue/IHeartBeatConfiguration.cs`** (line 62) -- Update `<remarks>` doc comment from "schyntax format" to "standard cron format (5-field or 6-field with seconds)".
-7. **Add `PreviousLookbackWindow` configuration** -- Add a `TimeSpan PreviousLookbackWindow` property (default 48h) to the job scheduler configuration. This could be on an existing config class or a new one injected into `JobSchedule`. Wire it through the DI registration in `JobSchedulerInit.cs` if needed.
+1. **Source configuration model** -- `DashboardApiSourceConfig` class with `Name` (string, required), `BaseUrl` (string, required), `ApiKey` (string, optional). Slug derived from Name via deterministic slugify (lowercase, replace spaces/special chars with hyphens, collapse consecutive hyphens).
+
+2. **Source registry** -- `ISourceRegistry` / `SourceRegistry` singleton providing `GetAll()`, `GetBySlug(string)`, `GetByName(string)`. Populated at startup from `DashboardApi:Sources[]` config array. Validates: no duplicate names, no duplicate slugs, at least one source configured.
+
+3. **Multi-source client wrapper** -- `IMultiSourceDashboardApiClient` / `MultiSourceDashboardApiClient` that holds a `Dictionary<string, IDashboardApiClient>` keyed by slug. Provides `GetClientForSource(string slug)` returning the per-source `IDashboardApiClient`. Each per-source client is the existing `DashboardApiClient` wrapping an `HttpClient` with source-specific `BaseAddress` and `X-Api-Key` header. The existing `IDashboardApiClient` interface remains unchanged -- shared tab components continue receiving it as a `[Parameter]`.
+
+4. **Startup config validation** -- In `Program.cs`, detect old flat config format (`DashboardApi:BaseUrl` without `DashboardApi:Sources`) and throw `InvalidOperationException` with clear migration instructions and example JSON showing the new `Sources[]` format.
+
+5. **In-process API auto-registration** -- When `Dashboard:Connections` section exists (self-contained mode), automatically add a source entry with `Name = config["DashboardApi:LocalSourceName"] ?? "Local"`, `BaseUrl = "http://localhost:{port}"` (resolved from Kestrel config or default 5000). This source is added to the registry alongside any external sources.
+
+6. **DI registration refactor** -- Replace `AddHttpClient<IDashboardApiClient, DashboardApiClient>()` with: parse `Sources[]` config, create `ISourceRegistry`, register named `HttpClient` instances per source, register `IMultiSourceDashboardApiClient` as singleton. Keep `IDashboardApiClient` registered (resolving to the first/only source's client) for backward compatibility during this phase.
+
+7. **Unit tests** -- Config validation (valid multi-source, old-format detection, missing required fields, duplicate name rejection), slug generation (spaces, special chars, unicode, empty string), source lookup by slug (found, not found), multi-source client (correct client returned per slug, unknown slug throws).
 
 ### Files Touched
 
-- `Source/Directory.Packages.props`
-- `Source/DotNetWorkQueue/DotNetWorkQueue.csproj`
-- `Source/DotNetWorkQueue/IJobSchedule.cs`
-- `Source/DotNetWorkQueue/JobScheduler/JobSchedule.cs`
-- `Source/DotNetWorkQueue/JobScheduler/ScheduledJob.cs`
-- `Source/DotNetWorkQueue/IHeartBeatConfiguration.cs`
-- `Source/DotNetWorkQueue/JobScheduler/JobSchedulerInit.cs` (if DI wiring changes needed for lookback config)
-- `Source/DotNetWorkQueue/Configuration/` (if new config property added to existing class)
+- `Source/DotNetWorkQueue.Dashboard.Ui/Services/DashboardApiSourceConfig.cs` (new)
+- `Source/DotNetWorkQueue.Dashboard.Ui/Services/ISourceRegistry.cs` (new)
+- `Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceRegistry.cs` (new)
+- `Source/DotNetWorkQueue.Dashboard.Ui/Services/IMultiSourceDashboardApiClient.cs` (new)
+- `Source/DotNetWorkQueue.Dashboard.Ui/Services/MultiSourceDashboardApiClient.cs` (new)
+- `Source/DotNetWorkQueue.Dashboard.Ui/Program.cs` (config parsing, DI registration, old-format detection)
+- `Source/DotNetWorkQueue.Dashboard.Ui/appsettings.json` (new Sources[] format example)
 
 ### Success Criteria
 
-1. `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Debug` succeeds with 0 errors
-2. `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release` succeeds with 0 errors, 0 warnings
-3. `grep -r "Schyntax\|schyntax" Source/DotNetWorkQueue/ --include="*.cs" --include="*.csproj"` returns 0 matches
-4. `IJobSchedule.Previous()` returns `DateTimeOffset?` (verified by interface inspection)
-5. `IJobSchedule.Description` property exists
-6. `ScheduledJob.cs` null-checks the `Previous()` result before using it
+1. `DashboardApiSourceConfig` model exists with Name, BaseUrl, ApiKey properties
+2. `ISourceRegistry` provides `GetAll()`, `GetBySlug()`, `GetByName()` methods
+3. `IMultiSourceDashboardApiClient.GetClientForSource(slug)` returns correct per-source `IDashboardApiClient`
+4. Old flat config (`DashboardApi:BaseUrl` without `Sources`) produces `InvalidOperationException` at startup with migration instructions
+5. In-process API registers as a source named "Local" (or configured name)
+6. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` succeeds with 0 errors
+7. All existing Dashboard API integration tests pass unchanged (API layer untouched)
+8. Unit tests pass for: valid config, old-format detection, slug generation, duplicate rejection, source lookup
 
 ---
 
-## Phase 2: Transport Heartbeat Default Strings
+## Phase 2: Health Monitoring and Source-Aware Page Routing
 
-**Risk:** LOW -- mechanical string replacements in 3 transport init files. The values are equivalent (same intervals, different syntax). No logic changes.
-**Scope:** ~10% of total work.
-**Depends on:** Phase 1 (transport projects reference DotNetWorkQueue, which must compile with Cronos first).
-**Parallel with:** Phases 3 and 4.
+**Risk: MEDIUM** -- Route changes touch all 3 pages and all internal navigation links. The main risk is getting source resolution right in the Blazor page lifecycle. Health monitoring is a standalone hosted service with low coupling.
+
+**Scope:** ~35% of total work. Two workstreams that converge in the pages: health state display and source-aware data loading.
+
+**Depends on:** Phase 1 (requires `ISourceRegistry` and `IMultiSourceDashboardApiClient`).
 
 ### What Changes
 
-1. **`Source/DotNetWorkQueue.Transport.LiteDB/Basic/LiteDbMessageQueueInit.cs`** (line 330) -- Change `"sec(*%10)"` to `"*/10 * * * * *"` (6-field cron: every 10 seconds).
-2. **`Source/DotNetWorkQueue.Transport.Redis/Basic/RedisQueueInit.cs`** (line 321) -- Change `"sec(*%10)"` to `"*/10 * * * * *"` (6-field cron: every 10 seconds).
-3. **`Source/DotNetWorkQueue.Transport.RelationalDatabase/Basic/RelationalDatabaseMessageQueueInit.cs`** (line 144) -- Change `"min(*%2)"` to `"*/2 * * * *"` (5-field cron: every 2 minutes).
+1. **Health monitoring service** -- `ISourceHealthMonitor` / `SourceHealthMonitor` as a background `IHostedService`. Polls each source's `GET /api/v1/dashboard/connections` every 30 seconds with a 5-second `HttpClient` timeout. Caches health state per source: `SourceHealthState` record with `Status` enum (Unknown, Healthy, Unhealthy), `LastChecked` timestamp, `ErrorMessage` string. Thread-safe via `ConcurrentDictionary`. Logs state transitions (healthy-to-unhealthy, unhealthy-to-healthy).
+
+2. **Source-aware page routes** -- Update all 3 page routes to include source slug:
+   - `Home.razor`: `@page "/"` and `@page "/source/{SourceSlug}"` (dual route -- `/` redirects based on source count)
+   - `ConnectionDetail.razor`: `@page "/source/{SourceSlug}/connections/{ConnectionId:guid}"`
+   - `QueueDetail.razor`: `@page "/source/{SourceSlug}/queues/{QueueId:guid}"`
+
+3. **Source resolution in pages** -- Each page resolves the source slug from the route parameter, calls `IMultiSourceDashboardApiClient.GetClientForSource(slug)` to get the per-source `IDashboardApiClient`, and passes it to child components. If slug is invalid, show 404-style error. The `Api` parameter passed to all 7 shared tab components is now the resolved per-source client -- no changes needed in tab components.
+
+4. **Navigation updates** -- All `NavigateTo()` calls and `href` attributes in pages include the source slug prefix. Breadcrumbs show source name as first crumb (when multiple sources configured).
+
+5. **Single-source redirect** -- When only one source is configured, `"/"` redirects to `"/source/{onlySlug}"`. The Home page at `"/source/{slug}"` renders a flat connection list (no grouping) -- identical to current single-source behavior.
+
+6. **Write operation routing** -- All write operations (delete, requeue, reset, cancel, edit body, purge history) already flow through the `IDashboardApiClient` passed as `[Parameter]` to tab components. Since that client is now source-specific, writes automatically route to the correct source with no tab component changes.
+
+7. **Unit tests** -- Health state transitions (Unknown->Healthy, Healthy->Unhealthy, Unhealthy->Healthy), polling timer behavior, source resolution from URL slug, navigation URL generation with source prefix.
 
 ### Files Touched
 
-- `Source/DotNetWorkQueue.Transport.LiteDB/Basic/LiteDbMessageQueueInit.cs`
-- `Source/DotNetWorkQueue.Transport.Redis/Basic/RedisQueueInit.cs`
-- `Source/DotNetWorkQueue.Transport.RelationalDatabase/Basic/RelationalDatabaseMessageQueueInit.cs`
+- `Source/DotNetWorkQueue.Dashboard.Ui/Services/ISourceHealthMonitor.cs` (new)
+- `Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceHealthMonitor.cs` (new)
+- `Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceHealthState.cs` (new)
+- `Source/DotNetWorkQueue.Dashboard.Ui/Components/Pages/Home.razor` (route, source resolution, single-source redirect)
+- `Source/DotNetWorkQueue.Dashboard.Ui/Components/Pages/ConnectionDetail.razor` (route, source resolution, navigation)
+- `Source/DotNetWorkQueue.Dashboard.Ui/Components/Pages/QueueDetail.razor` (route, source resolution, breadcrumbs, navigation)
+- `Source/DotNetWorkQueue.Dashboard.Ui/Program.cs` (register health monitor hosted service)
 
 ### Success Criteria
 
-1. `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Debug` succeeds with 0 errors
-2. `grep -rn "sec(\*%\|min(\*%" Source/ --include="*.cs"` returns 0 matches (excluding bin/obj)
-3. LiteDB default is `"*/10 * * * * *"`, Redis default is `"*/10 * * * * *"`, RelationalDatabase default is `"*/2 * * * *"`
+1. `ISourceHealthMonitor.GetHealth(slug)` returns `SourceHealthState` with status, timestamp, error
+2. Background service polls all sources every 30s with 5s timeout
+3. Health state transitions logged at Information level
+4. All page routes include `{SourceSlug}` parameter
+5. Single-source: `"/"` redirects to `"/source/{slug}"`, flat connection list shown
+6. All write operations route to the correct source (verified by source slug in URL)
+7. Source slug never exposes BaseUrl or ApiKey in any URL or rendered HTML
+8. Breadcrumbs include source name as first crumb (multi-source) or omit it (single-source)
+9. All 7 shared tab components work unchanged (receive per-source `IDashboardApiClient` via `[Parameter]`)
+10. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` succeeds with 0 errors
+11. Unit tests pass for health transitions, source resolution, navigation URLs
 
 ---
 
-## Phase 3: Unit Tests and Integration Test Strings
+## Phase 3: Home Page Grouping, Partial Failure UX, and Integration Tests
 
-**Risk:** LOW -- string replacements only. No test logic changes. The cron equivalents produce identical scheduling behavior.
-**Scope:** ~15% of total work.
-**Depends on:** Phase 1 (test projects reference DotNetWorkQueue).
-**Parallel with:** Phases 2 and 4.
+**Risk: LOW** -- By this phase, the infrastructure is proven. This is UI polish (MudBlazor grouping components) and test coverage. The main risk is MudBlazor's `MudExpansionPanels` behavior, which is well-documented.
+
+**Scope:** ~25% of total work. UI refinement and comprehensive testing.
+
+**Depends on:** Phase 2 (requires source-aware routing + health monitoring).
 
 ### What Changes
 
-1. **`Source/DotNetWorkQueue.Tests/Queue/HeartBeatWorkerTests.cs`** -- Replace `"sec(*%2)"` with `"*/2 * * * * *"` (lines 92, 110). Replace `"sec(*%59)"` with `"*/59 * * * * *"` (line 120).
-2. **`Source/DotNetWorkQueue.IntegrationTests.Shared/JobScheduler/JobSchedulerTestsShared.cs`** -- Replace all 4 occurrences of `"min(*)"` with `"* * * * *"` (lines 40, 44, 100, 104).
+1. **Home page grouped display** -- When multiple sources are configured, the Home page fetches connections from all sources in parallel (via `IMultiSourceDashboardApiClient`). Displays connections grouped under collapsible `MudExpansionPanel` headers per source. Each header shows: source name, health indicator (green/red `MudIcon`), connection count. Panels are expanded by default.
+
+2. **Single-source display** -- When only one source is configured, render the flat connection table (no expansion panel, no source header). Visually identical to current behavior.
+
+3. **Offline source display** -- Sources with `SourceHealthState.Status == Unhealthy` show their panel header with a `MudAlert Severity.Warning` reading "Source unreachable" and a "Retry" button. Retry triggers a fresh `GetConnectionsAsync()` for that source only. Connections from healthy sources are unaffected.
+
+4. **Partial request failure** -- If a source was healthy at poll time but fails when the Home page calls `GetConnectionsAsync()`, catch the exception per-source and show an inline `MudAlert Severity.Error` in that source's section with the error message. Other sources' data renders normally.
+
+5. **Integration tests** -- New test class(es) in the existing `DotNetWorkQueue.Dashboard.Api.Integration.Tests` project (or a new UI integration test project if needed). Use `DashboardTestServer` to spin up 2-3 real Memory-transport API instances. Test:
+   - Multi-source connection listing returns connections from all sources
+   - Source attribution: connections from Source A are grouped under Source A
+   - Write operation routing: delete/requeue on Source A's queue calls Source A's API
+   - Health monitoring: dispose one `DashboardTestServer`, verify health state transitions to Unhealthy
+   - Partial failure: one source offline, other source's connections still load
+
+6. **Verify existing tests** -- Run all 38+ existing Dashboard API integration tests to confirm no regressions. These test each API instance independently and should pass unchanged since the API layer has no modifications.
 
 ### Files Touched
 
-- `Source/DotNetWorkQueue.Tests/Queue/HeartBeatWorkerTests.cs`
-- `Source/DotNetWorkQueue.IntegrationTests.Shared/JobScheduler/JobSchedulerTestsShared.cs`
+- `Source/DotNetWorkQueue.Dashboard.Ui/Components/Pages/Home.razor` (grouped display, partial failure UX)
+- `Source/DotNetWorkQueue.Dashboard.Ui/Models/SourceConnectionGroup.cs` (new -- view model for grouped display)
+- Integration test files (new test classes for multi-source scenarios)
 
 ### Success Criteria
 
-1. `dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj"` -- all tests pass
-2. `grep -rn 'sec(\*%\|min(\*' Source/DotNetWorkQueue.Tests/ Source/DotNetWorkQueue.IntegrationTests.Shared/ --include="*.cs"` returns 0 matches
-3. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` succeeds with 0 errors
+1. Multiple sources: Home page groups connections under collapsible panels with health indicators
+2. Single source: flat list identical to current behavior (no panel/header visible)
+3. Offline source: panel shown with "Source unreachable" warning and Retry button
+4. Request failure on healthy source: inline error in that source's section, other sources unaffected
+5. Integration test: 2+ Memory API instances, grouped listing verified
+6. Integration test: write operations route to correct source instance
+7. Integration test: source taken offline, health state transitions to Unhealthy
+8. All 38+ existing Dashboard API integration tests pass unchanged
+9. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` -- 0 errors
+10. `dotnet build "Source/DotNetWorkQueue.sln" -c Release` -- 0 errors, 0 warnings
+11. No secrets (BaseUrl, ApiKey) leak into URLs or client-rendered HTML
 
 ---
 
-## Phase 4: Dashboard CronExpressionDescriptor Integration (Optional Enhancement)
+## Phase Summary
 
-**Risk:** LOW -- additive change. No existing behavior is modified. Adds a human-readable description field to job API responses.
-**Scope:** ~10% of total work.
-**Depends on:** Phase 1 (CronExpressionDescriptor NuGet package added in Phase 1).
-**Parallel with:** Phases 2 and 3.
+| Phase | Name | Risk | Depends On | Key Deliverable |
+|-------|------|------|------------|-----------------|
+| 1 | Multi-Source Config & Client Infrastructure | High | -- | Source registry, multi-source client, config validation |
+| 2 | Health Monitoring & Source-Aware Routing | Medium | Phase 1 | Background health polling, all pages route by source |
+| 3 | Home Page Grouping, Partial Failure & Integration Tests | Low | Phase 2 | Grouped UI, graceful degradation, end-to-end tests |
 
-### What Changes
+## Design Decisions
 
-1. **Determine integration surface** -- Identify where schedule descriptions should appear: API responses (`JobResponse`), logging output in `JobScheduler.cs`, dashboard UI if applicable.
-2. **`Source/DotNetWorkQueue.Dashboard.Api/Models/JobResponse.cs`** -- Add `string ScheduleDescription` property for the human-readable cron description.
-3. **`Source/DotNetWorkQueue.Dashboard.Api/Services/DashboardService.cs`** -- Populate `ScheduleDescription` when mapping job data to `JobResponse`.
-4. **Logging in `JobScheduler.cs`** -- Where schedule strings are logged, append or replace with `IJobSchedule.Description` for human-readable output.
+### Why `GetClientForSource(slug)` instead of adding source parameter to every IDashboardApiClient method
 
-### Files Touched
+The existing `IDashboardApiClient` interface has 26 methods. Adding a source parameter to every method would be a massive breaking change across all 7 shared tab components and 3 pages. Instead:
+- `IMultiSourceDashboardApiClient.GetClientForSource(slug)` returns an `IDashboardApiClient` scoped to one source
+- All 7 shared tab components (`MessagesTab`, `ErrorsTab`, `StaleTab`, `HistoryTab`, `ConfigTab`, `ConsumersTab`, `MessageDetailDrawer`) continue receiving `IDashboardApiClient` as a `[Parameter]` -- zero changes needed
+- Only the 3 page-level components resolve the source from the URL slug and pass the correct per-source client down
+- The existing `DashboardApiClient` class remains unchanged -- each instance wraps a different `HttpClient` with a different `BaseAddress`
 
-- `Source/DotNetWorkQueue.Dashboard.Api/Models/JobResponse.cs`
-- `Source/DotNetWorkQueue.Dashboard.Api/Services/DashboardService.cs`
-- `Source/DotNetWorkQueue/JobScheduler/JobScheduler.cs` (logging statements)
-- Dashboard API test files if description assertions are needed
+### Why slugs instead of IDs
 
-### Success Criteria
+Source names are user-friendly ("Production SQL Server") while slugs are URL-friendly ("production-sql-server"). Slugs are derived deterministically from names, so they are stable across restarts. Using GUIDs would require users to know opaque IDs. Slugs never expose BaseUrl or ApiKey in URLs.
 
-1. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` succeeds with 0 errors
-2. `JobResponse` has a `ScheduleDescription` property
-3. `dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Tests/DotNetWorkQueue.Dashboard.Api.Tests.csproj"` -- all tests pass
+### Why background health polling instead of per-request checks
 
----
+Per-request health checks would add latency to every page load and create cascading timeouts when sources are down. Background polling (30-second interval, 5-second timeout) means page loads are instant -- they read cached health state. The trade-off is up to 30 seconds of stale health data, which is acceptable for a monitoring dashboard.
 
-## Phase 5: Cleanup, Documentation, and Version Bump
+### Why breaking config change without backward compatibility
 
-**Risk:** LOW -- file deletions, doc updates, and version bump. No functional code changes.
-**Scope:** ~15% of total work.
-**Depends on:** Phases 1, 2, 3, and 4 (all prior phases complete).
+Supporting both old flat format and new `Sources[]` format permanently would add complexity for a temporary migration convenience. A clear startup error with migration instructions and example JSON is the cleanest path. The dashboard feature is still in active development -- shipping a clean config model now avoids technical debt.
 
-### What Changes
+### Why strictly sequential phases (no parallelism)
 
-1. **Delete `Lib/` directory** -- Remove `Lib/Schyntax/net8.0/`, `Lib/Schyntax/net10.0/`, `Lib/Schyntax/README.md`, and the now-empty `Lib/` directory itself. (The Aq.ExpressionJsonSerializer was already moved to NuGet in a prior change, so `Lib/` should be empty after Schyntax removal.)
-2. **`README.md`** -- Line 91: replace Schyntax format reference with cron format. Line 99: replace Schyntax link with Cronos link and cron format description. Line 144: remove Schyntax from custom libraries list in `/Lib`, add Cronos and CronExpressionDescriptor to NuGet dependencies list.
-3. **`CLAUDE.md`** -- Update "Key Dependencies" section: remove Schyntax, add Cronos and CronExpressionDescriptor with versions. Update "Heartbeat defaults" entries to show cron format. Update any other Schyntax references.
-4. **Version bump** -- Update `<Version>` in `Source/DotNetWorkQueue/DotNetWorkQueue.csproj` from `0.9.19` to `0.9.3`.
-5. **CHANGELOG.md** -- Add entry for 0.9.3 describing the Schyntax-to-Cronos migration as a breaking change.
-
-### Files Touched
-
-- `Lib/` (entire directory deleted)
-- `README.md`
-- `CLAUDE.md`
-- `Source/DotNetWorkQueue/DotNetWorkQueue.csproj` (version only)
-- `CHANGELOG.md`
-
-### Success Criteria
-
-1. `ls Lib/` -- directory does not exist
-2. `grep -r "Schyntax\|schyntax" Source/ --include="*.cs" --include="*.csproj"` returns 0 matches
-3. `grep -i "Schyntax" README.md` returns 0 matches
-4. `grep -i "Schyntax" CLAUDE.md` returns 0 matches (except in Lessons Learned if still relevant)
-5. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` -- 0 errors
-6. `dotnet build "Source/DotNetWorkQueue.sln" -c Release` -- 0 errors, 0 warnings
-7. `dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj"` -- all tests pass
-8. Version in `DotNetWorkQueue.csproj` is `0.9.3`
-9. `README.md` references Cronos and cron format, not Schyntax
-10. `CLAUDE.md` lists Cronos and CronExpressionDescriptor in Key Dependencies
-
----
+All 3 Blazor pages (`Home.razor`, `ConnectionDetail.razor`, `QueueDetail.razor`) are modified in both Phase 2 and Phase 3. Parallelizing would create merge conflicts in these files. Additionally, Phase 2's routing changes must be complete before Phase 3's grouped display can work -- the Home page grouping depends on source-aware data fetching.
 
 ## Risk Summary
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
-| `Previous()` nullable return breaks callers | High | Critical | Only one caller: `ScheduledJob.cs` line 98. Fix is a null-check before comparison. Addressed in Phase 1. |
-| Cronos auto-detect (5 vs 6 field) wrong | Medium | High | Count space-separated fields: `expression.Split(' ').Length`. 5 = Standard, 6 = IncludeSeconds. Unit test both paths. |
-| `GetOccurrences()` lookback window too small | Low | Medium | Default 48h is generous for typical schedules (minutes/hours). Make configurable via `PreviousLookbackWindow`. |
-| Heartbeat cron equivalents produce different timing | Low | High | `sec(*%10)` = every 10 seconds = `*/10 * * * * *`. `min(*%2)` = every 2 minutes = `*/2 * * * *`. Exact equivalents verified. |
-| CronExpressionDescriptor produces unclear descriptions | Low | Low | Used for display only (logging, dashboard). Does not affect scheduling logic. |
-| Removing `Lib/` directory breaks other references | Low | Medium | Verified: `Lib/` only contains Schyntax after issue #101 removed JpLabs. No other references exist. |
+| Multi-source client interface wrong | Medium | Critical | Phase 1 is highest risk, done first. Build + test before any UI work. |
+| Slug collisions (two names produce same slug) | Low | High | Startup validation rejects duplicate slugs with clear error. |
+| Blazor page lifecycle issues with source resolution | Medium | Medium | Use `OnParametersSetAsync` (not `OnInitializedAsync`) for route parameter changes. |
+| In-process source BaseUrl wrong (port mismatch) | Medium | Medium | Use `IServer` to resolve actual listen address at startup. Fallback to config. |
+| Health polling storm with many sources | Low | Low | Sequential polling per source within each timer tick. 5s timeout per source. |
+| MudBlazor expansion panel styling issues | Low | Low | Well-documented component. Fallback to manual `if/else` sections if needed. |
 
 ## Execution Order
 
-| Wave | Phases | Can Parallelize? | Notes |
-|------|--------|-----------------|-------|
-| 1 | Phase 1 | No -- foundation | Core interface + implementation must compile first |
-| 2 | Phases 2, 3, 4 | Yes -- all 3 are independent | Transport defaults, test strings, dashboard enhancement |
-| 3 | Phase 5 | No -- final cleanup | Depends on all prior phases; deletes Lib/, updates docs |
+| Wave | Phase | Notes |
+|------|-------|-------|
+| 1 | Phase 1 | Foundation: config model, source registry, multi-source client, DI |
+| 2 | Phase 2 | Health monitoring + all page routing changes |
+| 3 | Phase 3 | UI grouping polish + integration test coverage |
 
 **Estimated plans per phase:**
-- Phase 1: 2 plans (interface/config in plan 1, implementation/csproj in plan 2) -- highest complexity
-- Phase 2: 1 plan (3 tasks, one per transport)
-- Phase 3: 1 plan (2 tasks, one per test file)
-- Phase 4: 1 plan (2-3 tasks for dashboard integration)
-- Phase 5: 1 plan (3 tasks: delete Lib, update docs, version bump)
-- **Total: 6 plans**
+- Phase 1: 2-3 plans (config model + registry in plan 1, multi-source client + DI in plan 2, unit tests in plan 3 or merged)
+- Phase 2: 2-3 plans (health monitor in plan 1, page routing in plan 2, unit tests in plan 3 or merged)
+- Phase 3: 2 plans (Home page grouping + partial failure in plan 1, integration tests in plan 2)
+- **Total: 6-8 plans**

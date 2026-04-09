@@ -1,39 +1,53 @@
 # Verification Report
-**Phase:** 1 -- Core Library (IJobSchedule, JobSchedule, csproj, Configuration)
-**Date:** 2026-04-08
-**Type:** build-verify
+**Phase:** Phase 1 -- Multi-Source Configuration and Client Infrastructure
+**Date:** 2026-04-09
+**Type:** plan-review
 
 ## Results
 
 | # | Criterion | Status | Evidence |
 |---|-----------|--------|----------|
-| 1 | `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Debug` succeeds with 0 errors | PASS | Build succeeded. Output: `Build succeeded. 0 Warning(s) 0 Error(s) Time Elapsed 00:00:27.13`. All TFMs (net8.0 and net10.0) built for every project including DotNetWorkQueue, all transports, and Dashboard. |
-| 2 | `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release` succeeds with 0 errors, 0 warnings | PASS | Build succeeded. Output: `Build succeeded. 0 Warning(s) 0 Error(s) Time Elapsed 00:00:26.45`. Release config enables `TreatWarningsAsErrors`, so 0 warnings confirms clean compilation. |
-| 3 | `grep -r "Schyntax\|schyntax" Source/DotNetWorkQueue/ --include="*.cs" --include="*.csproj"` returns 0 matches | PASS | Command returned empty output (0 matches). No Schyntax references remain in any `.cs` or `.csproj` file under `Source/DotNetWorkQueue/`. Additionally confirmed via `DotNetWorkQueue.csproj`: no `<Reference Include="Schyntax">` ItemGroups, no `IncludeVendoredDllsInPack` target. |
-| 4 | `IJobSchedule.Previous()` returns `DateTimeOffset?` | PASS | Inspected `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue/IJobSchedule.cs` line 59: `DateTimeOffset? Previous();` and line 65: `DateTimeOffset? Previous(DateTimeOffset atOrBefore);`. Both overloads return nullable `DateTimeOffset?`. Non-nullable `Next()` overloads at lines 48 and 54 are unchanged (`DateTimeOffset`). |
-| 5 | `IJobSchedule.Description` property exists | PASS | Inspected `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue/IJobSchedule.cs` line 42: `string Description { get; }`. Full XML doc comment at lines 36-41 describes it as "Gets a human-readable description of the schedule." Implementation in `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue/JobScheduler/JobSchedule.cs` line 54 uses `Lazy<string>` backed by `CronExpressionDescriptor.ExpressionDescriptor.GetDescription()` (line 49). |
-| 6 | `ScheduledJob.cs` null-checks the `Previous()` result before using it | PASS | Inspected `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue/JobScheduler/ScheduledJob.cs` lines 98-108: `var prev = Schedule.Previous();` at line 98, followed by `if (prev.HasValue)` guard at line 99. Inside the guard, `prev.Value` is used for comparisons (line 102) and assignment (line 104). When `Previous()` returns null, execution falls through to `Schedule.Next()` at line 111. |
+| 1 | `DashboardApiSourceConfig` model exists with Name, BaseUrl, ApiKey properties | PASS | PLAN-1.1 Task 2 creates `DashboardApiSourceConfig` class with `Name`, `BaseUrl`, `ApiKey` properties and computed `Slug`. 10 unit tests specified covering property round-trips and slug derivation. |
+| 2 | `ISourceRegistry` provides `GetAll()`, `GetBySlug()`, `GetByName()` methods | PASS | PLAN-1.1 Task 3 creates `ISourceRegistry` interface with all 3 methods. 11 unit tests specified covering lookup, duplicates, null/empty. |
+| 3 | `IMultiSourceDashboardApiClient.GetClientForSource(slug)` returns correct per-source `IDashboardApiClient` | PASS | PLAN-2.1 Task 1 creates interface and implementation. `DashboardApiClient` constructor verified at `Services/DashboardApiClient.cs:33` -- `public DashboardApiClient(HttpClient http)`. 6 unit tests specified covering caching, different slugs, unknown slug exception. |
+| 4 | Old flat config detection throws `InvalidOperationException` | PASS | PLAN-2.1 Task 2 creates `DashboardConfigParser.ValidateNoLegacyConfig()`. 3 unit tests specified: old format throws, Sources-present OK, neither-present OK. |
+| 5 | In-process API registers as a source named "Local" | PASS | PLAN-2.1 Task 2 adds "Local" source in Program.cs when `selfContained` is true (variable confirmed at `Program.cs:38`). `LocalSourceHostedService` resolves actual address via `IServer`. 5 unit tests specified in Task 3. |
+| 6 | `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` succeeds with 0 errors | PASS | Plans do not modify any existing source files in ways that would break compilation. Removal of `AddHttpClient<IDashboardApiClient, DashboardApiClient>` is a DI registration change, not a compile-time interface change. `@inject IDashboardApiClient` in Blazor pages is runtime-resolved, not compile-checked. Build will succeed. |
+| 7 | All existing Dashboard API integration tests pass unchanged | PASS | PLAN-2.1 verification section includes `dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Tests/DotNetWorkQueue.Dashboard.Api.Tests.csproj" -c Debug`. API layer is untouched by both plans. Test project confirmed to exist at `Source/DotNetWorkQueue.Dashboard.Api.Tests/`. |
+| 8 | Unit tests pass for: valid config, old-format detection, slug generation, duplicate rejection, source lookup | PASS | Combined test coverage across 4 test files: `DashboardApiSourceConfigTests` (slug generation, property tests), `SourceRegistryTests` (duplicate rejection, lookup, case-insensitive), `ConfigValidationTests` (old-format detection, valid config), `MultiSourceDashboardApiClientTests` (source lookup via client). All verify commands use valid `--filter` syntax and correct project paths. |
 
-## Additional Verification
+## Plan Structure Checks
 
 | # | Check | Status | Evidence |
 |---|-------|--------|----------|
-| 7 | Unit tests pass | PASS | `dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj"` output: `Passed! - Failed: 0, Passed: 878, Skipped: 0, Total: 878, Duration: 1 m 5 s`. All 878 tests pass with 0 failures. |
-| 8 | Cronos NuGet package added to Directory.Packages.props | PASS | `/mnt/f/git/dotnetworkqueue/Source/Directory.Packages.props` line 12: `<PackageVersion Include="Cronos" Version="0.11.1" />`. Correct version (0.11.1 stable, not 0.12.0). |
-| 9 | CronExpressionDescriptor NuGet package added | PASS | `/mnt/f/git/dotnetworkqueue/Source/Directory.Packages.props` line 13: `<PackageVersion Include="CronExpressionDescriptor" Version="2.45.0" />`. |
-| 10 | PackageReferences in DotNetWorkQueue.csproj | PASS | `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue/DotNetWorkQueue.csproj` lines 59-60: `<PackageReference Include="Cronos" />` and `<PackageReference Include="CronExpressionDescriptor" />`. |
-| 11 | JobSchedule.cs uses Cronos API correctly | PASS | Inspected `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue/JobScheduler/JobSchedule.cs`: `using Cronos;` at line 21, `CronExpression _expression` field at line 28, auto-detect via field count (lines 38-46: 5 fields = Standard, 6 = IncludeSeconds, else ArgumentException), `CronExpression.Parse()` at line 48, `GetNextOccurrence(DateTimeOffset, TimeZoneInfo.Utc)` at lines 58/67, `GetOccurrences(DateTime, DateTime, TimeZoneInfo, bool, bool)` at lines 87-92 with 48h lookback. |
-| 12 | No regressions in downstream projects | PASS | Both Debug and Release builds compiled all transport projects (SqlServer, PostgreSQL, SQLite, Redis, LiteDb, Memory, RelationalDatabase), Dashboard.Api, and Dashboard.Ui without errors. These projects depend on `DotNetWorkQueue` and the `IJobSchedule` interface change did not break them. |
+| S1 | No plan exceeds 3 tasks | PASS | PLAN-1.1: 3 tasks. PLAN-2.1: 3 tasks. |
+| S2 | Wave ordering respects dependencies | PASS | PLAN-1.1 (Wave 1, no deps) -> PLAN-2.1 (Wave 2, depends on 1.1). PLAN-2.1 frontmatter: `dependencies: ["1.1"]`. |
+| S3 | No file conflicts between parallel plans | N/A | One plan per wave. |
+| S4 | Acceptance criteria are testable | PASS | All `done` criteria reference specific test class names and measurable outcomes. |
+| S5 | Verification commands are runnable | PASS | All `dotnet test` and `dotnet build` commands reference valid project paths (existing or created by prior tasks). Filter syntax is valid MSTest `FullyQualifiedName~ClassName` format. |
+
+## Feasibility Checks
+
+| # | Check | Status | Evidence |
+|---|-------|--------|----------|
+| F1 | File paths referenced as "modify" exist | PASS | `Program.cs` exists (142 lines read). `DotNetWorkQueue.sln` exists. `.github/workflows/ci.yml` exists. |
+| F2 | API surface matches real code | PASS | `DashboardApiClient(HttpClient http)` constructor at line 33. `IDashboardApiClient` interface at `Services/IDashboardApiClient.cs` (26 methods). `DashboardAuthConfig.cs` exists as pattern reference. `selfContained` variable at `Program.cs:38`. Lines 44-52 exactly match the `AddHttpClient` block described in PLAN-2.1. |
+| F3 | New files have valid parent directories | PASS | `Source/DotNetWorkQueue.Dashboard.Ui/Services/` exists (3 files). Test project directory created by PLAN-1.1 Task 1. |
+| F4 | Central package management compatible | PASS | `Directory.Packages.props` has `ManagePackageVersionsCentrally=true`. All test packages (`AutoFixture`, `NSubstitute`, `FluentAssertions`, `MSTest.*`, `coverlet.collector`, `Microsoft.NET.Test.Sdk`) are listed with versions. |
+| F5 | No forward references within waves | PASS | Only 1 plan per wave. No intra-wave dependencies. |
+| F6 | Complexity within bounds | PASS | PLAN-1.1: 9 files, 4 directories. PLAN-2.1: 8 files (including 2 unlisted), 3 directories. Both under 10-file threshold. |
 
 ## Gaps
 
-- **PreviousLookbackWindow not configurable**: The ROADMAP specifies "Add a `TimeSpan PreviousLookbackWindow` property (default 48h) to the job scheduler configuration" and "Wire it through the DI registration in `JobSchedulerInit.cs` if needed." The current implementation hardcodes the 48h lookback at `JobSchedule.cs` line 86 (`TimeSpan.FromHours(48)`) rather than exposing it as a configurable property. The REVIEW-1.2 notes this is acceptable because "ScheduledJob already validates prev > now - window," but it does not fully satisfy the ROADMAP's Phase 1 specification. This is a minor gap since the hardcoded value is the same as the specified default, and the configuration can be added later.
-- **Unused `using System.Linq`**: `/mnt/f/git/dotnetworkqueue/Source/DotNetWorkQueue/JobScheduler/JobSchedule.cs` line 20 imports `System.Linq` but no LINQ methods are called (the `PreviousInternal` method uses a manual `foreach` loop). This is cosmetic but noted in REVIEW-1.2 as well.
+- **G1 (MEDIUM): `appsettings.json` not updated.** Current `appsettings.json` contains old flat `DashboardApi:BaseUrl` format. After Phase 1, the validation logic will throw `InvalidOperationException` on startup with default config in non-self-contained mode. Neither plan updates this file despite the ROADMAP listing it as a Phase 1 file. The builder must update it to the new `Sources[]` format or adjust validation logic.
+
+- **G2 (LOW): PLAN-2.1 frontmatter missing 2 files.** `DashboardConfigParser.cs` (created in Task 2) and `LocalSourceHostedServiceTests.cs` (created in Task 3) are absent from the YAML `files_touched` section. They are properly described in task bodies. Metadata-only gap with no functional impact since one plan per wave.
 
 ## Recommendations
 
-- Consider whether the configurable `PreviousLookbackWindow` should be addressed in a later phase or deferred entirely. The hardcoded 48h default works correctly.
-- Remove `using System.Linq;` from `JobSchedule.cs` line 20 to eliminate the dead import.
+1. **(MUST)** Add `appsettings.json` update to PLAN-2.1 Task 2 scope, migrating from flat `DashboardApi:BaseUrl/ApiKey` to new `Sources[]` format.
+2. **(SHOULD)** Add `DashboardConfigParser.cs` and `LocalSourceHostedServiceTests.cs` to PLAN-2.1 `files_touched` frontmatter.
+3. **(SHOULD)** Clarify CI step insertion point in PLAN-1.1 Task 1 (between Dashboard.Client and Memory steps).
 
 ## Verdict
-**PASS** -- All 6 Phase 1 success criteria from the ROADMAP are met. Debug and Release builds succeed with 0 errors and 0 warnings. All Schyntax references are removed from the core library. `IJobSchedule.Previous()` returns nullable `DateTimeOffset?`, `Description` property exists, and `ScheduledJob.cs` properly null-checks the `Previous()` result. All 878 unit tests pass. Two minor gaps noted (hardcoded lookback window, unused using directive) -- neither blocks Phase 2+ execution.
+**CAUTION** -- Plans cover all 8 success criteria with correct file paths, API references, and verification commands verified against the real codebase. One actionable gap (appsettings.json migration) must be addressed during build execution. No plan restructuring required. Proceed to build with noted mitigations.

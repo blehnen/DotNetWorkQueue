@@ -676,3 +676,6 @@
   - `076fa078` — Correct to 0.9.30 (0.9.3 < 0.9.19 in NuGet versioning)
 - **Builder deviation:** Used 0.9.20 instead of 0.9.3; corrected to 0.9.30 per user direction
 - **Status:** All 5 phases complete — ready for /shipyard:ship
+- [2026-04-09T15:31:54Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-09T18:03:51Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-09T18:03:57Z] Session ended during build (may need /shipyard:resume)

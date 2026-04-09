@@ -1,112 +1,184 @@
 ---
-phase: core-library-cronos
+phase: multi-source-config
 plan: "1.1"
 wave: 1
 dependencies: []
 must_haves:
-  - Cronos and CronExpressionDescriptor NuGet packages added to central package management
-  - Schyntax assembly references and vendored DLL pack target removed from DotNetWorkQueue.csproj
-  - Cronos and CronExpressionDescriptor PackageReferences added to DotNetWorkQueue.csproj
-  - IJobSchedule.Previous() return types changed to DateTimeOffset?
-  - IJobSchedule.Description property added
-  - IHeartBeatConfiguration.UpdateTime doc comment updated from Schyntax to cron format
+  - DashboardApiSourceConfig POCO with Name, BaseUrl, ApiKey, and deterministic Slug property
+  - ISourceRegistry interface with GetAll(), GetBySlug(), GetByName()
+  - SourceRegistry implementation validating no duplicate names/slugs and at least one source
+  - Test project scaffold added to solution and CI
+  - Unit tests for slug generation and source registry
 files_touched:
-  - Source/Directory.Packages.props
-  - Source/DotNetWorkQueue/DotNetWorkQueue.csproj
-  - Source/DotNetWorkQueue/IJobSchedule.cs
-  - Source/DotNetWorkQueue/IHeartBeatConfiguration.cs
-tdd: false
+  - Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj (new)
+  - Source/DotNetWorkQueue.sln (modify - add test project)
+  - Source/DotNetWorkQueueNoTests.sln (no change - tests excluded)
+  - .github/workflows/ci.yml (modify - add test step)
+  - Source/DotNetWorkQueue.Dashboard.Ui/Services/DashboardApiSourceConfig.cs (new)
+  - Source/DotNetWorkQueue.Dashboard.Ui/Services/ISourceRegistry.cs (new)
+  - Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceRegistry.cs (new)
+  - Source/DotNetWorkQueue.Dashboard.Ui.Tests/Services/DashboardApiSourceConfigTests.cs (new)
+  - Source/DotNetWorkQueue.Dashboard.Ui.Tests/Services/SourceRegistryTests.cs (new)
+tdd: true
+risk: medium
 ---
 
-# Plan 1.1: NuGet Dependencies, Interface Contract, and Doc Comment
-
-This plan sets up the dependency foundation and changes the public API contract. It touches 4 files with no overlap with Plan 1.2. The solution will NOT compile after this plan alone -- Plan 1.2 (implementation rewrite) is required to reach a compilable state.
+# Plan 1.1: Test Project Scaffold, Config Model, and Source Registry
 
 ## Context
 
-- `JobSchedule.cs` is the only file that imports `Schyntax` (line 20)
-- `IJobSchedule` is a public interface; changing `Previous()` to nullable is a breaking API change
-- `ScheduledJob.cs` is the only caller of `Previous()` (line 98)
-- Cronos v0.12.0 was just published today (2026-04-08) with 0 downloads; RESEARCH.md flags this as a risk. Consider pinning to v0.11.1 (3.8M downloads) for stability unless v0.12.0 features are needed.
-- CronExpressionDescriptor v2.45.0 is stable (4M total downloads)
+This plan creates the foundational types for multi-source configuration: the config POCO with slug derivation, and the source registry that holds and validates all configured sources. These are pure types with no dependency on DI, HttpClient, or Program.cs. The test project is scaffolded first so tests can be written alongside implementation (TDD).
+
+This is Wave 1 -- no dependencies on other plans. All subsequent plans depend on these types.
+
+## Dependencies
+
+None -- this is the foundation plan.
 
 ## Tasks
 
-<task id="1" files="Source/Directory.Packages.props, Source/DotNetWorkQueue/DotNetWorkQueue.csproj" tdd="false">
+<task id="1" files="Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj, Source/DotNetWorkQueue.sln, .github/workflows/ci.yml" tdd="false">
   <action>
-  1. In `Source/Directory.Packages.props`, add two entries to the `<!-- Core -->` section (after line 11, the `System.Diagnostics.DiagnosticSource` entry):
-     ```xml
-     <PackageVersion Include="Cronos" Version="0.11.1" />
-     <PackageVersion Include="CronExpressionDescriptor" Version="2.45.0" />
+  Create the test project scaffold and integrate it into the build.
+
+  1. Create `Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj` mirroring `Dashboard.Api.Tests.csproj`:
+     - `Microsoft.NET.Sdk` (NOT `Microsoft.NET.Sdk.Web`)
+     - TargetFrameworks: `net10.0;net8.0`
+     - PropertyGroups for Debug/Release per TFM matching Dashboard.Api.Tests pattern (DefineConstants, NoWarn)
+     - PackageReferences (all using central package management -- no Version attributes):
+       - `AutoFixture`
+       - `AutoFixture.AutoNSubstitute`
+       - `FluentAssertions`
+       - `Microsoft.NET.Test.Sdk`
+       - `coverlet.collector`
+       - `MSTest.TestFramework`
+       - `MSTest.TestAdapter`
+       - `NSubstitute`
+     - ProjectReference to `../DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboard.Ui.csproj`
+
+  2. Add the project to `Source/DotNetWorkQueue.sln` using `dotnet sln Source/DotNetWorkQueue.sln add Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj`.
+
+  3. Create directory `Source/DotNetWorkQueue.Dashboard.Ui.Tests/Services/` (empty, for test files in subsequent tasks).
+
+  4. Add a CI step in `.github/workflows/ci.yml` after the "Unit Tests - Dashboard.Client" step:
+     ```yaml
+     - name: Unit Tests - Dashboard.Ui
+       run: dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj" --no-build -c Debug
      ```
-     Note: Using Cronos 0.11.1 (stable, 3.8M downloads) instead of 0.12.0 (just released, 0 downloads). If 0.12.0 features are needed later, bump in a follow-up.
-
-  2. In `Source/DotNetWorkQueue/DotNetWorkQueue.csproj`:
-     - Add two PackageReference entries to the main ItemGroup (lines 49-59), after the existing entries:
-       ```xml
-       <PackageReference Include="Cronos" />
-       <PackageReference Include="CronExpressionDescriptor" />
-       ```
-     - DELETE the two TFM-conditional Schyntax reference ItemGroups (lines 61-71):
-       ```xml
-       <ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
-         <Reference Include="Schyntax">...</Reference>
-       </ItemGroup>
-       <ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
-         <Reference Include="Schyntax">...</Reference>
-       </ItemGroup>
-       ```
-     - DELETE the entire `IncludeVendoredDllsInPack` target block (lines 78-84):
-       ```xml
-       <!-- Pack vendored DLLs into the correct lib/ TFM folders in the nupkg -->
-       <Target Name="IncludeVendoredDllsInPack" BeforeTargets="GenerateNuspec">...</Target>
-       ```
   </action>
-  <verify>grep -c "Cronos\|CronExpressionDescriptor" "Source/Directory.Packages.props" && grep -c "Cronos\|CronExpressionDescriptor" "Source/DotNetWorkQueue/DotNetWorkQueue.csproj" && ! grep -q "Schyntax" "Source/DotNetWorkQueue/DotNetWorkQueue.csproj" && echo "PASS" || echo "FAIL"</verify>
-  <done>Directory.Packages.props has Cronos 0.11.1 and CronExpressionDescriptor 2.45.0 entries. DotNetWorkQueue.csproj has Cronos and CronExpressionDescriptor PackageReferences. No Schyntax references remain in the csproj. The IncludeVendoredDllsInPack target is gone.</done>
+  <verify>dotnet build "Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj" -c Debug</verify>
+  <done>Test project builds successfully. `dotnet sln Source/DotNetWorkQueue.sln list` shows `DotNetWorkQueue.Dashboard.Ui.Tests`. CI yml contains the new test step.</done>
 </task>
 
-<task id="2" files="Source/DotNetWorkQueue/IJobSchedule.cs" tdd="false">
+<task id="2" files="Source/DotNetWorkQueue.Dashboard.Ui/Services/DashboardApiSourceConfig.cs, Source/DotNetWorkQueue.Dashboard.Ui.Tests/Services/DashboardApiSourceConfigTests.cs" tdd="true">
   <action>
-  In `Source/DotNetWorkQueue/IJobSchedule.cs`:
+  Create the config model with slug derivation. Write tests first.
 
-  1. Change the return type of `Previous()` (line 51) from `DateTimeOffset` to `DateTimeOffset?`
-  2. Change the return type of `Previous(DateTimeOffset atOrBefore)` (line 57) from `DateTimeOffset` to `DateTimeOffset?`
-  3. Add a new `Description` property after the `OriginalText` property (after line 34). Include XML doc:
-     ```csharp
-     /// <summary>
-     /// Gets a human-readable description of the schedule.
-     /// </summary>
-     /// <value>
-     /// The human-readable description.
-     /// </value>
-     string Description { get; }
-     ```
+  **Tests first** -- create `Source/DotNetWorkQueue.Dashboard.Ui.Tests/Services/DashboardApiSourceConfigTests.cs`:
+  - `Slug_From_Simple_Name` -- Name="Local" produces Slug="local"
+  - `Slug_From_Name_With_Spaces` -- Name="Production SQL Server" produces Slug="production-sql-server"
+  - `Slug_From_Name_With_Special_Chars` -- Name="My Server (US-East)" produces Slug="my-server-us-east"
+  - `Slug_Collapses_Consecutive_Hyphens` -- Name="test--name" produces Slug="test-name"
+  - `Slug_Trims_Leading_Trailing_Hyphens` -- Name=" -Test- " produces Slug="test"
+  - `Slug_From_Name_With_Numbers` -- Name="Server 42" produces Slug="server-42"
+  - `Name_Set_Get` -- verifies Name property round-trips
+  - `BaseUrl_Set_Get` -- verifies BaseUrl property round-trips
+  - `ApiKey_Set_Get` -- verifies ApiKey property round-trips (nullable)
+  - `ApiKey_Defaults_To_Null` -- verifies ApiKey is null by default
 
-  The resulting interface should have: `OriginalText`, `Description`, `Next()`, `Next(DateTimeOffset)`, `Previous()` returning `DateTimeOffset?`, `Previous(DateTimeOffset)` returning `DateTimeOffset?`.
+  Use MSTest `[TestClass]`/`[TestMethod]` attributes. Use FluentAssertions for assertions.
+
+  **Implementation** -- create `Source/DotNetWorkQueue.Dashboard.Ui/Services/DashboardApiSourceConfig.cs`:
+  - Namespace: `DotNetWorkQueue.Dashboard.Ui.Services`
+  - LGPL-2.1 license header (copy from DashboardAuthConfig.cs)
+  - Public class `DashboardApiSourceConfig`
+  - Properties:
+    - `public string Name { get; set; } = string.Empty;`
+    - `public string BaseUrl { get; set; } = string.Empty;`
+    - `public string? ApiKey { get; set; }`
+  - Read-only computed property `Slug`:
+    - `public string Slug => Slugify(Name);`
+  - Private static method `Slugify(string name)`:
+    - Trim whitespace
+    - Convert to lowercase (invariant)
+    - Replace any character that is NOT a-z, 0-9, or hyphen with a hyphen
+    - Collapse consecutive hyphens into a single hyphen
+    - Trim leading/trailing hyphens
+    - Use `System.Text.RegularExpressions.Regex` for the replacements
+  - XML doc comments on class and all public members (required for Release build)
   </action>
-  <verify>grep -n "DateTimeOffset?" "Source/DotNetWorkQueue/IJobSchedule.cs" | grep -c "Previous" && grep -c "Description" "Source/DotNetWorkQueue/IJobSchedule.cs" && echo "PASS" || echo "FAIL"</verify>
-  <done>`Previous()` and `Previous(DateTimeOffset)` both return `DateTimeOffset?`. A `Description` property with XML doc exists on the interface. `Next()` and `Next(DateTimeOffset)` remain non-nullable `DateTimeOffset`.</done>
+  <verify>dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj" --filter "FullyQualifiedName~DashboardApiSourceConfigTests" -c Debug</verify>
+  <done>All DashboardApiSourceConfigTests pass. Slug generation handles spaces, special characters, consecutive hyphens, leading/trailing hyphens, and simple names correctly.</done>
 </task>
 
-<task id="3" files="Source/DotNetWorkQueue/IHeartBeatConfiguration.cs" tdd="false">
+<task id="3" files="Source/DotNetWorkQueue.Dashboard.Ui/Services/ISourceRegistry.cs, Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceRegistry.cs, Source/DotNetWorkQueue.Dashboard.Ui.Tests/Services/SourceRegistryTests.cs" tdd="true">
   <action>
-  In `Source/DotNetWorkQueue/IHeartBeatConfiguration.cs`, update the `<remarks>` doc comment on the `UpdateTime` property (lines 61-63).
+  Create the source registry interface and implementation. Write tests first.
 
-  Change from:
-  ```xml
-  /// <remarks>
-  /// This is expected to be in schyntax format - https://github.com/schyntax/cs-schyntax
-  /// </remarks>
-  ```
+  **Tests first** -- create `Source/DotNetWorkQueue.Dashboard.Ui.Tests/Services/SourceRegistryTests.cs`:
+  - `GetAll_Returns_All_Sources` -- construct with 2 sources, GetAll() returns both
+  - `GetBySlug_Returns_Correct_Source` -- construct with 2 sources, GetBySlug("local") returns the Local source
+  - `GetBySlug_Returns_Null_For_Unknown` -- GetBySlug("nonexistent") returns null
+  - `GetByName_Returns_Correct_Source` -- GetByName("Local") returns the Local source
+  - `GetByName_Returns_Null_For_Unknown` -- GetByName("nonexistent") returns null
+  - `Constructor_Throws_On_Empty_Sources` -- empty list throws ArgumentException
+  - `Constructor_Throws_On_Null_Sources` -- null throws ArgumentNullException
+  - `Constructor_Throws_On_Duplicate_Names` -- two sources with same Name throws ArgumentException with message containing "duplicate" and the name
+  - `Constructor_Throws_On_Duplicate_Slugs` -- two sources whose Names produce the same slug (e.g., "My Server" and "my--server") throws ArgumentException with message containing "slug"
+  - `GetAll_Returns_ReadOnly_Collection` -- returned collection cannot be modified (IReadOnlyList)
+  - `GetByName_Is_Case_Insensitive` -- GetByName("LOCAL") returns source named "Local"
 
-  Change to:
-  ```xml
-  /// <remarks>
-  /// This is expected to be in standard cron format (5-field) or cron format with seconds (6-field).
-  /// </remarks>
-  ```
+  Use MSTest attributes. Use FluentAssertions. Construct `SourceRegistry` directly with `IReadOnlyList<DashboardApiSourceConfig>`.
+
+  **Interface** -- create `Source/DotNetWorkQueue.Dashboard.Ui/Services/ISourceRegistry.cs`:
+  - Namespace: `DotNetWorkQueue.Dashboard.Ui.Services`
+  - LGPL-2.1 license header
+  - ```csharp
+    public interface ISourceRegistry
+    {
+        IReadOnlyList<DashboardApiSourceConfig> GetAll();
+        DashboardApiSourceConfig? GetBySlug(string slug);
+        DashboardApiSourceConfig? GetByName(string name);
+    }
+    ```
+  - XML doc comments on interface and all methods
+
+  **Implementation** -- create `Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceRegistry.cs`:
+  - Namespace: `DotNetWorkQueue.Dashboard.Ui.Services`
+  - LGPL-2.1 license header
+  - Public class `SourceRegistry : ISourceRegistry`
+  - Constructor takes `IReadOnlyList<DashboardApiSourceConfig> sources`
+  - Constructor validation:
+    - Throw `ArgumentNullException` if sources is null
+    - Throw `ArgumentException("At least one API source must be configured.")` if empty
+    - Throw `ArgumentException` with descriptive message if duplicate Names found (case-insensitive comparison using `StringComparer.OrdinalIgnoreCase`)
+    - Throw `ArgumentException` with descriptive message if duplicate Slugs found
+  - Store sources in a private `IReadOnlyList<DashboardApiSourceConfig>` field
+  - Build a `Dictionary<string, DashboardApiSourceConfig>` keyed by slug for O(1) lookup
+  - Build a `Dictionary<string, DashboardApiSourceConfig>` keyed by name (case-insensitive, `StringComparer.OrdinalIgnoreCase`) for O(1) lookup
+  - `GetAll()` returns the stored `IReadOnlyList`
+  - `GetBySlug(string slug)` returns from slug dictionary or null
+  - `GetByName(string name)` returns from name dictionary or null
+  - XML doc comments on class and all public members
   </action>
-  <verify>grep -A1 "remarks" "Source/DotNetWorkQueue/IHeartBeatConfiguration.cs" | grep -q "cron format" && ! grep -q "schyntax" "Source/DotNetWorkQueue/IHeartBeatConfiguration.cs" && echo "PASS" || echo "FAIL"</verify>
-  <done>The `UpdateTime` doc comment references "standard cron format (5-field) or cron format with seconds (6-field)". No Schyntax references remain in the file.</done>
+  <verify>dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj" --filter "FullyQualifiedName~SourceRegistryTests" -c Debug</verify>
+  <done>All SourceRegistryTests pass. Registry validates duplicates, handles empty/null input, supports case-insensitive name lookup, and slug-based lookup returns correct sources.</done>
 </task>
+
+## Verification
+
+After all three tasks complete:
+
+```bash
+# Full test project builds and all tests pass
+dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj" -c Debug
+
+# Full solution still builds
+dotnet build "Source/DotNetWorkQueue.sln" -c Debug
+
+# Verify test project is in solution
+dotnet sln "Source/DotNetWorkQueue.sln" list | grep Dashboard.Ui.Tests
+
+# Verify CI yml has the new step
+grep -A1 "Dashboard.Ui" .github/workflows/ci.yml
+```

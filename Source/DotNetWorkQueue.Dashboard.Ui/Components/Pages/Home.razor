@@ -1,16 +1,109 @@
 @page "/"
-@inject IDashboardApiClient Api
+@page "/source/{SourceSlug}"
+@inject IMultiSourceDashboardApiClient MultiSourceClient
+@inject ISourceRegistry SourceRegistry
+@inject ISourceHealthMonitor HealthMonitor
+@inject NavigationManager Navigation
 
-<PageTitle>Dashboard - Connections</PageTitle>
-
-<MudBreadcrumbs Items="@(new List<BreadcrumbItem> { new BreadcrumbItem("Connections", href: null, disabled: true) })" Class="mb-2" />
-
-@if (_loading)
+@if (_sourceError)
 {
+    <PageTitle>Dashboard - Source Not Found</PageTitle>
+    <MudAlert Severity="Severity.Error" Class="mb-4">
+        Source "@SourceSlug" not found.
+        <MudLink Href="/">Return to source list</MudLink>
+    </MudAlert>
+}
+else if (_multiSourceMode)
+{
+    <PageTitle>Dashboard - Sources</PageTitle>
+    <MudBreadcrumbs Items="@(new List<BreadcrumbItem> { new("Sources", href: null, disabled: true) })" Class="mb-2" />
+
+    @if (_groups != null)
+    {
+        <MudExpansionPanels MultiExpansion="true">
+            @foreach (var group in _groups)
+            {
+                <MudExpansionPanel Expanded="true">
+                    <TitleContent>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            <MudIcon Icon="@GetHealthIcon(group.Health)"
+                                     Color="@GetHealthColor(group.Health)"
+                                     Size="Size.Medium" />
+                            <MudText Typo="Typo.subtitle1">@group.Source.Name</MudText>
+                            @if (group.Connections != null)
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">(@group.Connections.Count connections)</MudText>
+                            }
+                        </MudStack>
+                    </TitleContent>
+                    <ChildContent>
+                        @if (group.IsLoading)
+                        {
+                            <MudProgressCircular Indeterminate="true" />
+                        }
+                        else if (group.Health.Status == SourceHealthStatus.Unhealthy && group.Connections == null && group.ErrorMessage == null)
+                        {
+                            <MudAlert Severity="Severity.Warning" Class="mb-2">
+                                Source unreachable
+                            </MudAlert>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => RetrySource(group))">
+                                Retry
+                            </MudButton>
+                        }
+                        else if (group.ErrorMessage != null)
+                        {
+                            <MudAlert Severity="Severity.Error" Class="mb-2">
+                                @group.ErrorMessage
+                            </MudAlert>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => RetrySource(group))">
+                                Retry
+                            </MudButton>
+                        }
+                        else if (group.Connections == null || group.Connections.Count == 0)
+                        {
+                            <MudAlert Severity="Severity.Info">
+                                No connections registered
+                            </MudAlert>
+                        }
+                        else
+                        {
+                            <MudSimpleTable Elevation="0" Dense="true" Hover="true" Class="cursor-pointer">
+                                <thead>
+                                    <tr>
+                                        <th>Connection</th>
+                                        <th>Queues</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var connection in group.Connections)
+                                    {
+                                        <tr @onclick="@(() => NavigateToGroupConnection(group.Source.Slug, connection.Id))">
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.Storage" Size="Size.Small" Color="Color.Primary" Class="mr-2" />
+                                                @connection.DisplayName
+                                            </td>
+                                            <td>@connection.QueueCount</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </MudSimpleTable>
+                        }
+                    </ChildContent>
+                </MudExpansionPanel>
+            }
+        </MudExpansionPanels>
+    }
+}
+else if (_loading)
+{
+    <PageTitle>Dashboard - Connections</PageTitle>
+    <MudBreadcrumbs Items="_breadcrumbs" Class="mb-2" />
     <MudProgressCircular Indeterminate="true" />
 }
 else if (_error != null)
 {
+    <PageTitle>Dashboard - Connections</PageTitle>
+    <MudBreadcrumbs Items="_breadcrumbs" Class="mb-2" />
     <MudAlert Severity="Severity.Error" Class="mb-4">
         Failed to load connections: @_error
     </MudAlert>
@@ -20,12 +113,16 @@ else if (_error != null)
 }
 else if (_connections == null || _connections.Count == 0)
 {
+    <PageTitle>Dashboard - Connections</PageTitle>
+    <MudBreadcrumbs Items="_breadcrumbs" Class="mb-2" />
     <MudAlert Severity="Severity.Info">
         No connections registered. Configure connections in the Dashboard API.
     </MudAlert>
 }
 else
 {
+    <PageTitle>Dashboard - Connections</PageTitle>
+    <MudBreadcrumbs Items="_breadcrumbs" Class="mb-2" />
     <MudSimpleTable Elevation="2" Dense="true" Hover="true" Class="cursor-pointer">
         <thead>
             <tr>
@@ -49,15 +146,127 @@ else
 }
 
 @code {
-    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    [Parameter] public string? SourceSlug { get; set; }
 
+    private IDashboardApiClient? Api;
+    private bool _sourceError;
+    private string? _lastSourceSlug;
     private List<ConnectionResponse>? _connections;
     private bool _loading = true;
     private string? _error;
+    private List<SourceConnectionGroup>? _groups;
+    private bool _multiSourceMode;
 
-    protected override async Task OnInitializedAsync()
+    private List<BreadcrumbItem> _breadcrumbs = new()
     {
+        new BreadcrumbItem("Connections", href: null, disabled: true)
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var sources = SourceRegistry.GetAll();
+
+        // Route "/" with no slug
+        if (string.IsNullOrEmpty(SourceSlug))
+        {
+            if (sources.Count == 1)
+            {
+                // Single source: redirect to /source/{onlySlug}
+                Navigation.NavigateTo($"/source/{sources[0].Slug}", replace: true);
+                return;
+            }
+
+            // Multi-source: build grouped view
+            _multiSourceMode = true;
+            _loading = false;
+
+            _groups = sources.Select(s => new SourceConnectionGroup
+            {
+                Source = s,
+                Health = HealthMonitor.GetHealth(s.Slug),
+                IsLoading = true
+            }).ToList();
+
+            StateHasChanged();
+
+            // Fetch connections from all sources in parallel
+            var tasks = _groups.Select(group => LoadGroupConnections(group)).ToArray();
+            await Task.WhenAll(tasks);
+
+            StateHasChanged();
+            return;
+        }
+
+        // Per-source slug route: not multi-source mode
+        _multiSourceMode = false;
+
+        // Guard: skip if same slug as last time
+        if (string.Equals(SourceSlug, _lastSourceSlug, StringComparison.Ordinal))
+            return;
+        _lastSourceSlug = SourceSlug;
+
+        // Build breadcrumbs
+        var crumbs = new List<BreadcrumbItem>();
+        if (sources.Count > 1)
+        {
+            var sourceName = SourceRegistry.GetBySlug(SourceSlug)?.Name ?? SourceSlug;
+            crumbs.Add(new BreadcrumbItem(sourceName, href: "/"));
+        }
+        crumbs.Add(new BreadcrumbItem("Connections", href: null, disabled: true));
+        _breadcrumbs = crumbs;
+
+        // Resolve source
+        _sourceError = false;
+        try
+        {
+            Api = MultiSourceClient.GetClientForSource(SourceSlug);
+        }
+        catch (KeyNotFoundException)
+        {
+            _sourceError = true;
+            _loading = false;
+            return;
+        }
+
         await LoadConnections();
+    }
+
+    private async Task LoadGroupConnections(SourceConnectionGroup group)
+    {
+        try
+        {
+            var client = MultiSourceClient.GetClientForSource(group.Source.Slug);
+            group.Connections = await client.GetConnectionsAsync();
+        }
+        catch (Exception ex)
+        {
+            group.ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            group.IsLoading = false;
+        }
+    }
+
+    private async Task RetrySource(SourceConnectionGroup group)
+    {
+        group.IsLoading = true;
+        group.ErrorMessage = null;
+        StateHasChanged();
+        try
+        {
+            var client = MultiSourceClient.GetClientForSource(group.Source.Slug);
+            group.Connections = await client.GetConnectionsAsync();
+        }
+        catch (Exception ex)
+        {
+            group.ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            group.IsLoading = false;
+            StateHasChanged();
+        }
     }
 
     private async Task LoadConnections()
@@ -66,7 +275,7 @@ else
         _error = null;
         try
         {
-            _connections = await Api.GetConnectionsAsync();
+            _connections = await Api!.GetConnectionsAsync();
         }
         catch (Exception ex)
         {
@@ -80,6 +289,31 @@ else
 
     private void NavigateToConnection(Guid connectionId)
     {
-        Navigation.NavigateTo($"/connections/{connectionId}");
+        Navigation.NavigateTo($"/source/{SourceSlug}/connections/{connectionId}");
+    }
+
+    private void NavigateToGroupConnection(string sourceSlug, Guid connectionId)
+    {
+        Navigation.NavigateTo($"/source/{sourceSlug}/connections/{connectionId}");
+    }
+
+    private static string GetHealthIcon(SourceHealthState health)
+    {
+        return health.Status switch
+        {
+            SourceHealthStatus.Healthy => Icons.Material.Filled.CheckCircle,
+            SourceHealthStatus.Unhealthy => Icons.Material.Filled.Error,
+            _ => Icons.Material.Filled.HelpOutline
+        };
+    }
+
+    private static Color GetHealthColor(SourceHealthState health)
+    {
+        return health.Status switch
+        {
+            SourceHealthStatus.Healthy => Color.Success,
+            SourceHealthStatus.Unhealthy => Color.Error,
+            _ => Color.Default
+        };
     }
 }

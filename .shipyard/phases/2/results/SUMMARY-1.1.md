@@ -3,19 +3,24 @@
 ## Status: complete
 
 ## Tasks Completed
-- Task 1: Transport heartbeat defaults - complete - 3 files changed
-- Task 2: Build verification - complete - 0 errors
+- Task 1: SourceHealthState model + ISourceHealthMonitor interface — complete (`775103db`)
+  - Files: `SourceStatus.cs`, `SourceHealthState.cs`, `ISourceHealthMonitor.cs`
+- Task 2: SourceHealthMonitor implementation + unit tests — complete (`4445d814`)
+  - Files: `SourceHealthMonitor.cs`, `SourceHealthMonitorTests.cs`
+- Task 3: Program.cs registration — complete (`2410be2e`)
+  - Files: `Program.cs`, `DotNetWorkQueue.Dashboard.Ui.csproj` (InternalsVisibleTo)
+
+## Files Created
+- `Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceStatus.cs` — enum: Unknown, Healthy, Unhealthy
+- `Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceHealthState.cs` — record with Status, LastChecked, ErrorMessage
+- `Source/DotNetWorkQueue.Dashboard.Ui/Services/ISourceHealthMonitor.cs` — GetHealth(slug), GetAllHealth()
+- `Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceHealthMonitor.cs` — BackgroundService with ConcurrentDictionary, 30s poll, 5s timeout
+- `Source/DotNetWorkQueue.Dashboard.Ui.Tests/Services/SourceHealthMonitorTests.cs` — 8 unit tests
 
 ## Files Modified
-- `Source/DotNetWorkQueue.Transport.LiteDB/Basic/LiteDbMessageQueueInit.cs`: `"sec(*%10)"` → `"*/10 * * * * *"`
-- `Source/DotNetWorkQueue.Transport.Redis/Basic/RedisQueueInit.cs`: `"sec(*%10)"` → `"*/10 * * * * *"`
-- `Source/DotNetWorkQueue.Transport.RelationalDatabase/Basic/RelationalDatabaseMessageQueueInit.cs`: `"min(*%2)"` → `"*/2 * * * *"`
-
-## Decisions Made
-- None — purely mechanical replacements per plan
-
-## Issues Encountered
-- None
+- `Source/DotNetWorkQueue.Dashboard.Ui/Program.cs` — registered SourceHealthMonitor as singleton + hosted service
+- `Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboard.Ui.csproj` — added InternalsVisibleTo for test project
 
 ## Verification Results
-- All 3 strings replaced, no Schyntax schedule strings remain in transport init files
+- 48 tests passing on both net10.0 and net8.0 (40 from Phase 1 + 8 new)
+- Full solution builds with 0 errors
