@@ -78,6 +78,10 @@ foreach (var source in sources)
 
 builder.Services.AddSingleton<IMultiSourceDashboardApiClient, MultiSourceDashboardApiClient>();
 
+// --- Health monitoring ---
+builder.Services.AddSingleton<ISourceHealthMonitor, SourceHealthMonitor>();
+builder.Services.AddHostedService(sp => (SourceHealthMonitor)sp.GetRequiredService<ISourceHealthMonitor>());
+
 // --- Authentication ---
 var authUsername = builder.Configuration["DashboardAuth:Username"] ?? "";
 var authPasswordHash = builder.Configuration["DashboardAuth:PasswordHash"] ?? "";
