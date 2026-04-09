@@ -1,12 +1,20 @@
-@page "/connections/{ConnectionId:guid}"
-@inject IDashboardApiClient Api
+@page "/source/{SourceSlug}/connections/{ConnectionId:guid}"
+@inject IMultiSourceDashboardApiClient MultiSourceClient
+@inject ISourceRegistry SourceRegistry
 @inject NavigationManager Navigation
 
 <PageTitle>Dashboard - Connection</PageTitle>
 
 <MudBreadcrumbs Items="_breadcrumbs" Class="mb-4" />
 
-@if (_loading)
+@if (_sourceError)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">
+        Source "@SourceSlug" not found.
+        <MudLink Href="/">Return to source list</MudLink>
+    </MudAlert>
+}
+else if (_loading)
 {
     <MudProgressCircular Indeterminate="true" />
 }
@@ -92,7 +100,13 @@ else
 }
 
 @code {
+    [Parameter] public string SourceSlug { get; set; } = default!;
     [Parameter] public Guid ConnectionId { get; set; }
+
+    private IDashboardApiClient? Api;
+    private bool _sourceError;
+    private string? _lastSourceSlug;
+    private Guid? _lastConnectionId;
 
     private List<QueueInfoResponse>? _queues;
     private List<JobResponse>? _jobs;
@@ -103,17 +117,38 @@ else
 
     private List<BreadcrumbItem> _breadcrumbs = new()
     {
-        new BreadcrumbItem("Connections", href: "/"),
+        new BreadcrumbItem("Connections", href: null, disabled: true),
         new BreadcrumbItem("Connection", href: null, disabled: true)
     };
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
+        // Guard: skip if same slug AND same connection ID
+        if (string.Equals(SourceSlug, _lastSourceSlug, StringComparison.Ordinal)
+            && ConnectionId == _lastConnectionId)
+            return;
+        _lastSourceSlug = SourceSlug;
+        _lastConnectionId = ConnectionId;
+
+        _sourceError = false;
+        try
+        {
+            Api = MultiSourceClient.GetClientForSource(SourceSlug);
+        }
+        catch (KeyNotFoundException)
+        {
+            _sourceError = true;
+            _loading = false;
+            return;
+        }
+
         await LoadData();
     }
 
     private async Task LoadData()
     {
+        if (Api == null) return;
+
         _loading = true;
         _error = null;
         try
@@ -124,11 +159,18 @@ else
             var consumersTask = Api.GetConsumerCountsAsync();
             var connections = await connectionsTask;
             _connectionName = connections.FirstOrDefault(c => c.Id == ConnectionId)?.DisplayName;
-            _breadcrumbs = new List<BreadcrumbItem>
+
+            var crumbs = new List<BreadcrumbItem>();
+            var sources = SourceRegistry.GetAll();
+            if (sources.Count > 1)
             {
-                new BreadcrumbItem("Connections", href: "/"),
-                new BreadcrumbItem(_connectionName ?? "Connection", href: null, disabled: true)
-            };
+                var sourceName = SourceRegistry.GetBySlug(SourceSlug)?.Name ?? SourceSlug;
+                crumbs.Add(new BreadcrumbItem(sourceName, href: "/"));
+            }
+            crumbs.Add(new BreadcrumbItem("Connections", href: $"/source/{SourceSlug}"));
+            crumbs.Add(new BreadcrumbItem(_connectionName ?? "Connection", href: null, disabled: true));
+            _breadcrumbs = crumbs;
+
             _queues = await queuesTask;
             _jobs = await jobsTask;
             _consumerCounts = await consumersTask;
@@ -152,6 +194,6 @@ else
     {
         var connName = Uri.EscapeDataString(_connectionName ?? "Connection");
         var queueName = Uri.EscapeDataString(queue.QueueName ?? "Queue");
-        Navigation.NavigateTo($"/queues/{queue.Id}?conn={connName}&connId={ConnectionId}&queue={queueName}");
+        Navigation.NavigateTo($"/source/{SourceSlug}/queues/{queue.Id}?conn={connName}&connId={ConnectionId}&queue={queueName}");
     }
 }
