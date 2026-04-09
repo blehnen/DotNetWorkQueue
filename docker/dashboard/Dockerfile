@@ -24,7 +24,6 @@ COPY Source/DotNetWorkQueue.Dashboard.Api/DotNetWorkQueue.Dashboard.Api.csproj S
 COPY Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboard.Ui.csproj Source/DotNetWorkQueue.Dashboard.Ui/
 
 # Copy build infrastructure (Central Package Management)
-COPY Lib/ Lib/
 COPY Source/Directory.Build.props Source/
 COPY Source/Directory.Packages.props Source/
 
