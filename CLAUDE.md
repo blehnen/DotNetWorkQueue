@@ -132,6 +132,9 @@ Projects target net10.0 and net8.0. Legacy conditional compilation symbols (NETF
 - NuGet version ordering: `0.9.3` < `0.9.19`, so you can't go back to a lower version number after incrementing past it.
 - NuGet.org does not allow pushing `.snupkg` separately after the `.nupkg` is already published, and re-pushing the same version is blocked. Always push from the deploy directory using `dotnet nuget push "deploy/*.nupkg" --api-key KEY --source https://api.nuget.org/v3/index.json` — the CLI automatically picks up matching `.snupkg` files from the same directory.
 - Release builds for NuGet must use `-p:CI=true` (e.g., `dotnet build -c Release -p:CI=true`) to enable `ContinuousIntegrationBuild` in Directory.Build.props. Without it, Source Link paths aren't deterministic and NuGet.org shows red validation indicators.
+- `DotNetWorkQueue.IConfiguration` shadows `Microsoft.Extensions.Configuration.IConfiguration` in any code under the `DotNetWorkQueue.*` namespace hierarchy. C# resolves via namespace walk-up BEFORE `using` directives — even `using` aliases don't help. Use `global::Microsoft.Extensions.Configuration.IConfiguration` for all MS config type references in Dashboard.Ui code and tests.
+- MudBlazor 9.x expansion panel property is `Expanded` (not `IsInitiallyExpanded`). Blazor silently ignores unknown attributes — no build error, just non-functional.
+- NSubstitute indexer mocking fails on `IFeatureCollection` — use real `FeatureCollection` with `Set<T>()` in tests instead of mocking.
 
 ## Code Quality
 - Prefer correct, complete implementations over minimal ones.
