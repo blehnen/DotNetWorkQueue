@@ -1,3 +1,12 @@
+### 0.9.31 — 2026-04-09
+- **Breaking:** Dashboard UI config changed: `DashboardApi:BaseUrl` / `ApiKey` replaced by `DashboardApi:Sources[]` array; old format throws `InvalidOperationException` with migration example at startup (GitHub #96)
+- Dashboard UI connects to multiple Dashboard API instances from one deployment; each source gets a `Name`, `BaseUrl`, and optional `ApiKey` in the config array
+- All page URLs now include `/source/{slug}` prefix; single-source deployments redirect automatically
+- Background health polling per source (30s interval, 5s timeout); cached state shown on Home page
+- Home page groups connections by source in collapsible panels with health status; single source shows a flat list
+- Offline or failed sources show a warning without blocking other sources; per-source Retry button
+- In-process API auto-registers as "Local" source, resolves its own listen address via `IServer`
+
 ### 0.9.30 — 2026-04-08
 - **Breaking:** Replace Schyntax schedule format with standard cron expressions via [Cronos](https://github.com/HangfireIO/Cronos); 5-field and 6-field (with seconds) both supported (GitHub #100)
 - **Breaking:** `IJobSchedule.Previous()` returns `DateTimeOffset?` instead of `DateTimeOffset`
