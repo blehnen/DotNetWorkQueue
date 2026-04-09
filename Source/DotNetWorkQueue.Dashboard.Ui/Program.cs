@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -24,6 +26,8 @@ using DotNetWorkQueue.Dashboard.Ui.Components;
 using DotNetWorkQueue.Dashboard.Ui.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,15 +45,38 @@ if (selfContained)
     builder.Services.AddDotNetWorkQueueDashboard(dashboardSection);
 }
 
-// --- API client (always registered; in self-contained mode, routes to the in-process API via localhost) ---
-var apiBaseUrl = builder.Configuration["DashboardApi:BaseUrl"] ?? "http://localhost:5000";
-var apiKey = builder.Configuration["DashboardApi:ApiKey"];
-builder.Services.AddHttpClient<IDashboardApiClient, DashboardApiClient>(client =>
+// --- Multi-source API client registration ---
+DashboardConfigParser.ValidateNoLegacyConfig(builder.Configuration);
+var sources = DashboardConfigParser.ParseSources(builder.Configuration);
+
+// In self-contained mode, auto-add a "Local" source if one is not already configured
+if (selfContained && sources.All(s => !string.Equals(s.Name, "Local", StringComparison.OrdinalIgnoreCase)))
 {
-    client.BaseAddress = new Uri(apiBaseUrl);
-    if (!string.IsNullOrEmpty(apiKey))
-        client.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
-});
+    var localName = builder.Configuration["DashboardApi:LocalSourceName"] ?? "Local";
+    sources.Add(new DashboardApiSourceConfig { Name = localName, BaseUrl = "http://localhost:5000" });
+    builder.Services.AddHostedService<LocalSourceHostedService>();
+}
+
+// Default fallback: if no sources configured at all, add a default Local source
+if (sources.Count == 0)
+{
+    sources.Add(new DashboardApiSourceConfig { Name = "Local", BaseUrl = "http://localhost:5000" });
+}
+
+var registry = new SourceRegistry(sources);
+builder.Services.AddSingleton<ISourceRegistry>(registry);
+
+foreach (var source in sources)
+{
+    builder.Services.AddHttpClient(source.Slug, client =>
+    {
+        client.BaseAddress = new Uri(source.BaseUrl);
+        if (!string.IsNullOrEmpty(source.ApiKey))
+            client.DefaultRequestHeaders.Add("X-Api-Key", source.ApiKey);
+    });
+}
+
+builder.Services.AddSingleton<IMultiSourceDashboardApiClient, MultiSourceDashboardApiClient>();
 
 // --- Authentication ---
 var authUsername = builder.Configuration["DashboardAuth:Username"] ?? "";
