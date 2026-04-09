@@ -1,5 +1,6 @@
-@page "/queues/{QueueId:guid}"
-@inject IDashboardApiClient Api
+@page "/source/{SourceSlug}/queues/{QueueId:guid}"
+@inject IMultiSourceDashboardApiClient MultiSourceClient
+@inject ISourceRegistry SourceRegistry
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 
@@ -7,107 +8,123 @@
 
 <MudBreadcrumbs Items="_breadcrumbs" Class="mb-2" />
 
-@if (!string.IsNullOrEmpty(_connectionDisplayName) || !string.IsNullOrEmpty(_queueName))
+@if (_sourceError)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">
+        Source "@SourceSlug" not found.
+        <MudLink Href="/">Return to source list</MudLink>
+    </MudAlert>
+}
+else if (!string.IsNullOrEmpty(_connectionDisplayName) || !string.IsNullOrEmpty(_queueName))
 {
     <MudText Typo="Typo.h5" Class="mb-4">
         @if (!string.IsNullOrEmpty(_connectionDisplayName))
         {
-            <MudLink Typo="Typo.h5" Href="@($"/connections/{_connectionId}")">@_connectionDisplayName</MudLink><MudText Typo="Typo.h5" Inline="true" Color="Color.Secondary"> / </MudText>
+            <MudLink Typo="Typo.h5" Href="@($"/source/{SourceSlug}/connections/{_connectionId}")">@_connectionDisplayName</MudLink><MudText Typo="Typo.h5" Inline="true" Color="Color.Secondary"> / </MudText>
         }
         @(_queueName ?? "Queue")
     </MudText>
 }
 
-@if (_initialLoading)
+@if (!_sourceError)
 {
-    <MudProgressCircular Indeterminate="true" />
-}
-else if (_error != null)
-{
-    <MudAlert Severity="Severity.Error" Class="mb-4">@_error</MudAlert>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadInitial">Retry</MudButton>
-}
-else
-{
-    @* Status cards — always visible *@
-    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="mb-3">
-        <MudText Typo="Typo.h5">Status</MudText>
-        <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.Refresh" OnClick="ManualRefresh" Size="Size.Small" aria-label="Refresh" />
-        <AutoRefresh OnRefresh="RefreshCurrentTab" DefaultIntervalSeconds="10" />
-    </MudStack>
-
-    <MudGrid Class="mb-4">
-        <MudItem xs="6" sm="3">
-            <MudPaper Elevation="2" Class="pa-4 d-flex flex-column align-center" Style="cursor: pointer;" @onclick="@(() => FilterMessages(0))">
-                <MudText Typo="Typo.h4" Color="Color.Info">@(_status?.Waiting ?? 0)</MudText>
-                <MudText Typo="Typo.body2">Waiting</MudText>
-            </MudPaper>
-        </MudItem>
-        <MudItem xs="6" sm="3">
-            <MudPaper Elevation="2" Class="pa-4 d-flex flex-column align-center" Style="cursor: pointer;" @onclick="@(() => FilterMessages(1))">
-                <MudText Typo="Typo.h4" Color="Color.Warning">@(_status?.Processing ?? 0)</MudText>
-                <MudText Typo="Typo.body2">Processing</MudText>
-            </MudPaper>
-        </MudItem>
-        <MudItem xs="6" sm="3">
-            <MudPaper Elevation="2" Class="pa-4 d-flex flex-column align-center" Style="cursor: pointer;" @onclick="GoToErrors">
-                <MudText Typo="Typo.h4" Color="Color.Error">@(_status?.Error ?? 0)</MudText>
-                <MudText Typo="Typo.body2">Error</MudText>
-            </MudPaper>
-        </MudItem>
-        <MudItem xs="6" sm="3">
-            <MudPaper Elevation="2" Class="pa-4 d-flex flex-column align-center" Style="cursor: pointer;" @onclick="@(() => FilterMessages(null))">
-                <MudText Typo="Typo.h4">@(_status?.Total ?? 0)</MudText>
-                <MudText Typo="Typo.body2">Total</MudText>
-            </MudPaper>
-        </MudItem>
-    </MudGrid>
-
-    @* Features chips *@
-    @if (_features != null)
+    @if (_initialLoading)
     {
-        <MudChipSet T="string" ReadOnly="true" Class="mb-4">
-            @if (_features.EnableStatus) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Status</MudChip> }
-            @if (_features.EnableStatusTable) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Status Table</MudChip> }
-            @if (_features.EnableHeartBeat) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">HeartBeat</MudChip> }
-            @if (_features.EnablePriority) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Priority</MudChip> }
-            @if (_features.EnableDelayedProcessing) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Delayed Processing</MudChip> }
-            @if (_features.EnableMessageExpiration) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Expiration</MudChip> }
-            @if (_features.EnableRoute) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Routing</MudChip> }
-        </MudChipSet>
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else if (_error != null)
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4">@_error</MudAlert>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadInitial">Retry</MudButton>
+    }
+    else
+    {
+        @* Status cards — always visible *@
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="mb-3">
+            <MudText Typo="Typo.h5">Status</MudText>
+            <MudSpacer />
+            <MudIconButton Icon="@Icons.Material.Filled.Refresh" OnClick="ManualRefresh" Size="Size.Small" aria-label="Refresh" />
+            <AutoRefresh OnRefresh="RefreshCurrentTab" DefaultIntervalSeconds="10" />
+        </MudStack>
+
+        <MudGrid Class="mb-4">
+            <MudItem xs="6" sm="3">
+                <MudPaper Elevation="2" Class="pa-4 d-flex flex-column align-center" Style="cursor: pointer;" @onclick="@(() => FilterMessages(0))">
+                    <MudText Typo="Typo.h4" Color="Color.Info">@(_status?.Waiting ?? 0)</MudText>
+                    <MudText Typo="Typo.body2">Waiting</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="6" sm="3">
+                <MudPaper Elevation="2" Class="pa-4 d-flex flex-column align-center" Style="cursor: pointer;" @onclick="@(() => FilterMessages(1))">
+                    <MudText Typo="Typo.h4" Color="Color.Warning">@(_status?.Processing ?? 0)</MudText>
+                    <MudText Typo="Typo.body2">Processing</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="6" sm="3">
+                <MudPaper Elevation="2" Class="pa-4 d-flex flex-column align-center" Style="cursor: pointer;" @onclick="GoToErrors">
+                    <MudText Typo="Typo.h4" Color="Color.Error">@(_status?.Error ?? 0)</MudText>
+                    <MudText Typo="Typo.body2">Error</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="6" sm="3">
+                <MudPaper Elevation="2" Class="pa-4 d-flex flex-column align-center" Style="cursor: pointer;" @onclick="@(() => FilterMessages(null))">
+                    <MudText Typo="Typo.h4">@(_status?.Total ?? 0)</MudText>
+                    <MudText Typo="Typo.body2">Total</MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        @* Features chips *@
+        @if (_features != null)
+        {
+            <MudChipSet T="string" ReadOnly="true" Class="mb-4">
+                @if (_features.EnableStatus) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Status</MudChip> }
+                @if (_features.EnableStatusTable) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Status Table</MudChip> }
+                @if (_features.EnableHeartBeat) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">HeartBeat</MudChip> }
+                @if (_features.EnablePriority) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Priority</MudChip> }
+                @if (_features.EnableDelayedProcessing) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Delayed Processing</MudChip> }
+                @if (_features.EnableMessageExpiration) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Expiration</MudChip> }
+                @if (_features.EnableRoute) { <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Routing</MudChip> }
+            </MudChipSet>
+        }
+
+        @* Tabs *@
+        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true"
+                 ActivePanelIndex="_activeTab" ActivePanelIndexChanged="OnTabChanged">
+            <MudTabPanel Text="Messages" Icon="@Icons.Material.Filled.List">
+                <MessagesTab QueueId="QueueId" Api="Api" Features="_features" OnMessageSelected="OpenMessageDrawer" StatusFilter="_messagesStatusFilter" StatusFilterVersion="_filterVersion" RefreshVersion="_refreshVersion" />
+            </MudTabPanel>
+            <MudTabPanel Text="Errors" Icon="@Icons.Material.Filled.Error" BadgeData="@ErrorBadge" BadgeColor="Color.Error">
+                <ErrorsTab QueueId="QueueId" Api="Api" Snackbar="Snackbar" OnMessageSelected="OpenMessageDrawer" OnDataChanged="RefreshCounts" RefreshVersion="_refreshVersion" ReadOnly="_readOnly" />
+            </MudTabPanel>
+            <MudTabPanel Text="Stale" Icon="@Icons.Material.Filled.Timer" BadgeData="@StaleBadge" BadgeColor="Color.Warning">
+                <StaleTab QueueId="QueueId" Api="Api" Snackbar="Snackbar" OnMessageSelected="OpenMessageDrawer" OnDataChanged="RefreshCounts" RefreshVersion="_refreshVersion" ReadOnly="_readOnly" />
+            </MudTabPanel>
+            <MudTabPanel Text="Consumers" Icon="@Icons.Material.Filled.People" BadgeData="@ConsumerBadge" BadgeColor="Color.Success">
+                <ConsumersTab QueueId="QueueId" Api="Api" RefreshVersion="_refreshVersion" />
+            </MudTabPanel>
+            <MudTabPanel Text="History" Icon="@Icons.Material.Filled.History">
+                <HistoryTab QueueId="QueueId" Api="Api" Snackbar="Snackbar" RefreshVersion="_refreshVersion" ReadOnly="_readOnly" />
+            </MudTabPanel>
+            <MudTabPanel Text="Configuration" Icon="@Icons.Material.Filled.Settings">
+                <ConfigTab QueueId="QueueId" Api="Api" />
+            </MudTabPanel>
+        </MudTabs>
     }
 
-    @* Tabs *@
-    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true"
-             ActivePanelIndex="_activeTab" ActivePanelIndexChanged="OnTabChanged">
-        <MudTabPanel Text="Messages" Icon="@Icons.Material.Filled.List">
-            <MessagesTab QueueId="QueueId" Api="Api" Features="_features" OnMessageSelected="OpenMessageDrawer" StatusFilter="_messagesStatusFilter" StatusFilterVersion="_filterVersion" RefreshVersion="_refreshVersion" />
-        </MudTabPanel>
-        <MudTabPanel Text="Errors" Icon="@Icons.Material.Filled.Error" BadgeData="@ErrorBadge" BadgeColor="Color.Error">
-            <ErrorsTab QueueId="QueueId" Api="Api" Snackbar="Snackbar" OnMessageSelected="OpenMessageDrawer" OnDataChanged="RefreshCounts" RefreshVersion="_refreshVersion" ReadOnly="_readOnly" />
-        </MudTabPanel>
-        <MudTabPanel Text="Stale" Icon="@Icons.Material.Filled.Timer" BadgeData="@StaleBadge" BadgeColor="Color.Warning">
-            <StaleTab QueueId="QueueId" Api="Api" Snackbar="Snackbar" OnMessageSelected="OpenMessageDrawer" OnDataChanged="RefreshCounts" RefreshVersion="_refreshVersion" ReadOnly="_readOnly" />
-        </MudTabPanel>
-        <MudTabPanel Text="Consumers" Icon="@Icons.Material.Filled.People" BadgeData="@ConsumerBadge" BadgeColor="Color.Success">
-            <ConsumersTab QueueId="QueueId" Api="Api" RefreshVersion="_refreshVersion" />
-        </MudTabPanel>
-        <MudTabPanel Text="History" Icon="@Icons.Material.Filled.History">
-            <HistoryTab QueueId="QueueId" Api="Api" Snackbar="Snackbar" RefreshVersion="_refreshVersion" ReadOnly="_readOnly" />
-        </MudTabPanel>
-        <MudTabPanel Text="Configuration" Icon="@Icons.Material.Filled.Settings">
-            <ConfigTab QueueId="QueueId" Api="Api" />
-        </MudTabPanel>
-    </MudTabs>
+    @* Message detail drawer *@
+    <MessageDetailDrawer QueueId="QueueId" MessageId="@_selectedMessageId" Open="@_drawerOpen"
+                         OpenChanged="OnDrawerClosed" Api="Api" Snackbar="Snackbar" OnDataChanged="RefreshCounts" ReadOnly="_readOnly" />
 }
 
-@* Message detail drawer *@
-<MessageDetailDrawer QueueId="QueueId" MessageId="@_selectedMessageId" Open="@_drawerOpen"
-                     OpenChanged="OnDrawerClosed" Api="Api" Snackbar="Snackbar" OnDataChanged="RefreshCounts" ReadOnly="_readOnly" />
-
 @code {
+    [Parameter] public string SourceSlug { get; set; } = default!;
     [Parameter] public Guid QueueId { get; set; }
+
+    private IDashboardApiClient? Api;
+    private bool _sourceError;
+    private string? _lastSourceSlug;
+    private Guid? _lastQueueId;
 
     private QueueStatusResponse? _status;
     private QueueFeaturesResponse? _features;
@@ -134,12 +151,32 @@ else
 
     private List<BreadcrumbItem> _breadcrumbs = new()
     {
-        new BreadcrumbItem("Connections", href: "/"),
+        new BreadcrumbItem("Connections", href: null, disabled: true),
         new BreadcrumbItem("Queue", href: null, disabled: true)
     };
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
+        // Guard: skip if same slug AND same queue ID
+        if (string.Equals(SourceSlug, _lastSourceSlug, StringComparison.Ordinal)
+            && QueueId == _lastQueueId)
+            return;
+        _lastSourceSlug = SourceSlug;
+        _lastQueueId = QueueId;
+
+        _sourceError = false;
+        try
+        {
+            Api = MultiSourceClient.GetClientForSource(SourceSlug);
+        }
+        catch (KeyNotFoundException)
+        {
+            _sourceError = true;
+            _initialLoading = false;
+            return;
+        }
+
+        // Parse query params
         var uri = new Uri(Navigation.Uri);
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
         var connName = query["conn"];
@@ -172,9 +209,17 @@ else
             catch { }
         }
 
-        var crumbs = new List<BreadcrumbItem> { new("Connections", href: "/") };
+        // Build breadcrumbs with source slug prefix
+        var crumbs = new List<BreadcrumbItem>();
+        var sources = SourceRegistry.GetAll();
+        if (sources.Count > 1)
+        {
+            var sourceName = SourceRegistry.GetBySlug(SourceSlug)?.Name ?? SourceSlug;
+            crumbs.Add(new BreadcrumbItem(sourceName, href: "/"));
+        }
+        crumbs.Add(new BreadcrumbItem("Connections", href: $"/source/{SourceSlug}"));
         if (!string.IsNullOrEmpty(connName) && !string.IsNullOrEmpty(connId))
-            crumbs.Add(new BreadcrumbItem(connName, href: $"/connections/{connId}"));
+            crumbs.Add(new BreadcrumbItem(connName, href: $"/source/{SourceSlug}/connections/{connId}"));
         crumbs.Add(new BreadcrumbItem(_queueName ?? "Queue", href: null, disabled: true));
         _breadcrumbs = crumbs;
 
@@ -183,6 +228,8 @@ else
 
     private async Task LoadInitial()
     {
+        if (Api == null) return;
+
         _initialLoading = true;
         _error = null;
         try
@@ -210,6 +257,8 @@ else
 
     private async Task RefreshCurrentTab()
     {
+        if (Api == null) return;
+
         _refreshVersion++;
         try
         {
@@ -229,6 +278,8 @@ else
 
     private async Task RefreshCounts()
     {
+        if (Api == null) return;
+
         try
         {
             var statusTask = Api.GetQueueStatusAsync(QueueId);
