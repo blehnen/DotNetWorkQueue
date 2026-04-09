@@ -54,6 +54,10 @@ pipeline {
                     dotnet test "Source/DotNetWorkQueue.Dashboard.Client.Tests/DotNetWorkQueue.Dashboard.Client.Tests.csproj" \
                         -f net10.0 --no-build -c Debug \
                         --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-dashboard-client
+
+                    dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj" \
+                        -f net10.0 --no-build -c Debug \
+                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-dashboard-ui
                 '''
 
                 stash includes: 'coverage/**/*.xml', name: 'unit-coverage'
