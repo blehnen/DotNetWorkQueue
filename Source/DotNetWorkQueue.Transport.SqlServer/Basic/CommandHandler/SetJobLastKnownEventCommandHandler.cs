@@ -27,25 +27,25 @@ using DotNetWorkQueue.Validation;
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public class SetJobLastKnownEventCommandHandler : ICommandHandler<SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>>
     {
         private readonly SqlServerCommandStringCache _commandCache;
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly IDbConnectionFactory _dbConnectionFactory;
         /// <summary>
         /// Initializes a new instance of the <see cref="SetJobLastKnownEventCommandHandler" /> class.
         /// </summary>
         /// <param name="commandCache">The command cache.</param>
-        /// <param name="connectionInformation">The connection information.</param>
+        /// <param name="dbConnectionFactory">The database connection factory.</param>
         public SetJobLastKnownEventCommandHandler(SqlServerCommandStringCache commandCache,
-            IConnectionInformation connectionInformation)
+            IDbConnectionFactory dbConnectionFactory)
         {
             Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => connectionInformation, connectionInformation);
+            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
 
             _commandCache = commandCache;
-            _connectionInformation = connectionInformation;
+            _dbConnectionFactory = dbConnectionFactory;
         }
         /// <summary>
         /// Handles the specified command.
@@ -53,18 +53,31 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <param name="command">The command.</param>
         public void Handle(SetJobLastKnownEventCommand<SqlConnection, SqlTransaction> command)
         {
-            using (var conn = new SqlConnection(_connectionInformation.ConnectionString))
+            using (var conn = _dbConnectionFactory.Create())
             {
                 conn.Open();
                 using (var commandSql = conn.CreateCommand())
                 {
                     commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.SetJobLastKnownEvent);
-                    commandSql.Parameters.Add("@JobName", SqlDbType.VarChar);
-                    commandSql.Parameters["@JobName"].Value = command.JobName;
-                    commandSql.Parameters.Add("@JobEventTime", SqlDbType.DateTimeOffset);
-                    commandSql.Parameters["@JobEventTime"].Value = command.JobEventTime;
-                    commandSql.Parameters.Add("@JobScheduledTime", SqlDbType.DateTimeOffset);
-                    commandSql.Parameters["@JobScheduledTime"].Value = command.JobScheduledTime;
+
+                    var jobNameParam = commandSql.CreateParameter();
+                    jobNameParam.ParameterName = "@JobName";
+                    jobNameParam.DbType = DbType.AnsiString;
+                    jobNameParam.Value = command.JobName;
+                    commandSql.Parameters.Add(jobNameParam);
+
+                    var jobEventTimeParam = commandSql.CreateParameter();
+                    jobEventTimeParam.ParameterName = "@JobEventTime";
+                    jobEventTimeParam.DbType = DbType.DateTimeOffset;
+                    jobEventTimeParam.Value = command.JobEventTime;
+                    commandSql.Parameters.Add(jobEventTimeParam);
+
+                    var jobScheduledTimeParam = commandSql.CreateParameter();
+                    jobScheduledTimeParam.ParameterName = "@JobScheduledTime";
+                    jobScheduledTimeParam.DbType = DbType.DateTimeOffset;
+                    jobScheduledTimeParam.Value = command.JobScheduledTime;
+                    commandSql.Parameters.Add(jobScheduledTimeParam);
+
                     commandSql.ExecuteNonQuery();
                 }
             }
