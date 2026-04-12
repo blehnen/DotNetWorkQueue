@@ -16,13 +16,13 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using Npgsql;
-using NpgsqlTypes;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 {
@@ -48,18 +48,31 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         /// <inheritdoc />
         public void Handle(SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction> command)
         {
-            using (var conn = (NpgsqlConnection)_dbConnectionFactory.Create())
+            using (var conn = _dbConnectionFactory.Create())
             {
                 conn.Open();
                 using (var commandSql = conn.CreateCommand())
                 {
                     commandSql.CommandText = _commandCache.GetCommand(CommandStringTypes.SetJobLastKnownEvent);
-                    commandSql.Parameters.Add("@JobName", NpgsqlDbType.Varchar);
-                    commandSql.Parameters["@JobName"].Value = command.JobName;
-                    commandSql.Parameters.Add("@JobEventTime", NpgsqlDbType.Bigint);
-                    commandSql.Parameters["@JobEventTime"].Value = command.JobEventTime.UtcDateTime.Ticks;
-                    commandSql.Parameters.Add("@JobScheduledTime", NpgsqlDbType.Bigint);
-                    commandSql.Parameters["@JobScheduledTime"].Value = command.JobScheduledTime.UtcDateTime.Ticks;
+
+                    var jobNameParam = commandSql.CreateParameter();
+                    jobNameParam.ParameterName = "@JobName";
+                    jobNameParam.DbType = DbType.AnsiString;
+                    jobNameParam.Value = command.JobName;
+                    commandSql.Parameters.Add(jobNameParam);
+
+                    var jobEventTimeParam = commandSql.CreateParameter();
+                    jobEventTimeParam.ParameterName = "@JobEventTime";
+                    jobEventTimeParam.DbType = DbType.Int64;
+                    jobEventTimeParam.Value = command.JobEventTime.UtcDateTime.Ticks;
+                    commandSql.Parameters.Add(jobEventTimeParam);
+
+                    var jobScheduledTimeParam = commandSql.CreateParameter();
+                    jobScheduledTimeParam.ParameterName = "@JobScheduledTime";
+                    jobScheduledTimeParam.DbType = DbType.Int64;
+                    jobScheduledTimeParam.Value = command.JobScheduledTime.UtcDateTime.Ticks;
+                    commandSql.Parameters.Add(jobScheduledTimeParam);
+
                     commandSql.ExecuteNonQuery();
                 }
             }
