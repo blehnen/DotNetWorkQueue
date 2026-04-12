@@ -20,6 +20,7 @@ using System;
 using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
+using DotNetWorkQueue.Transport.RelationalDatabase.Tests.TestHelpers;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -33,35 +34,35 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
         [TestMethod]
         public void Handle_ReaderHasRow_ReturnsReadColumnValue()
         {
-            var fixture = CreateFixture();
+            var (handler, fixture, prepareQuery) = CreateHandler();
             fixture.Reader.Read().Returns(true, false);
             fixture.ReadColumn.ReadAsType<long>(CommandStringTypes.GetJobId, 0, fixture.Reader)
                 .Returns(42L);
 
             var query = new GetJobIdQuery<long>("jobName");
 
-            var result = fixture.Handler.Handle(query);
+            var result = handler.Handle(query);
 
             Assert.AreEqual(42L, result);
-            fixture.DbConnectionFactory.Received(1).Create();
+            fixture.ConnectionFactory.Received(1).Create();
             fixture.Connection.Received(1).Open();
-            fixture.PrepareQuery.Received(1).Handle(query, fixture.Command, CommandStringTypes.GetJobId);
+            prepareQuery.Received(1).Handle(query, fixture.Command, CommandStringTypes.GetJobId);
             fixture.ReadColumn.Received(1).ReadAsType<long>(CommandStringTypes.GetJobId, 0, fixture.Reader);
         }
 
         [TestMethod]
         public void Handle_ReaderHasNoRows_ReturnsDefault()
         {
-            var fixture = CreateFixture();
+            var (handler, fixture, prepareQuery) = CreateHandler();
             fixture.Reader.Read().Returns(false);
 
             var query = new GetJobIdQuery<long>("jobName");
 
-            var result = fixture.Handler.Handle(query);
+            var result = handler.Handle(query);
 
             Assert.AreEqual(default(long), result);
             fixture.Connection.Received(1).Open();
-            fixture.PrepareQuery.Received(1).Handle(query, fixture.Command, CommandStringTypes.GetJobId);
+            prepareQuery.Received(1).Handle(query, fixture.Command, CommandStringTypes.GetJobId);
             fixture.ReadColumn.DidNotReceive()
                 .ReadAsType<long>(Arg.Any<CommandStringTypes>(), Arg.Any<int>(), Arg.Any<IDataReader>());
         }
@@ -96,43 +97,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
                 new GetJobIdQueryHandler<long>(prepareQuery, dbConnectionFactory, null));
         }
 
-        private TestFixture CreateFixture()
+        private static (GetJobIdQueryHandler<long> handler,
+                        AdoNetMockFixture fixture,
+                        IPrepareQueryHandler<GetJobIdQuery<long>, long> prepareQuery) CreateHandler()
         {
+            var fixture = AdoNetMockFixture.Create();
             var prepareQuery = Substitute.For<IPrepareQueryHandler<GetJobIdQuery<long>, long>>();
-            var dbConnectionFactory = Substitute.For<IDbConnectionFactory>();
-            var readColumn = Substitute.For<IReadColumn>();
-
-            var connection = Substitute.For<IDbConnection>();
-            var command = Substitute.For<IDbCommand>();
-            var reader = Substitute.For<IDataReader>();
-
-            dbConnectionFactory.Create().Returns(connection);
-            connection.CreateCommand().Returns(command);
-            command.ExecuteReader().Returns(reader);
-
-            var handler = new GetJobIdQueryHandler<long>(prepareQuery, dbConnectionFactory, readColumn);
-
-            return new TestFixture
-            {
-                Handler = handler,
-                PrepareQuery = prepareQuery,
-                DbConnectionFactory = dbConnectionFactory,
-                ReadColumn = readColumn,
-                Connection = connection,
-                Command = command,
-                Reader = reader
-            };
-        }
-
-        private class TestFixture
-        {
-            public GetJobIdQueryHandler<long> Handler { get; set; }
-            public IPrepareQueryHandler<GetJobIdQuery<long>, long> PrepareQuery { get; set; }
-            public IDbConnectionFactory DbConnectionFactory { get; set; }
-            public IReadColumn ReadColumn { get; set; }
-            public IDbConnection Connection { get; set; }
-            public IDbCommand Command { get; set; }
-            public IDataReader Reader { get; set; }
+            var handler = new GetJobIdQueryHandler<long>(prepareQuery, fixture.ConnectionFactory, fixture.ReadColumn);
+            return (handler, fixture, prepareQuery);
         }
     }
 }
