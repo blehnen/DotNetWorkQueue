@@ -30,25 +30,25 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
     public class SetJobLastKnownEventCommandHandler : ICommandHandler<SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction>>
     {
         private readonly PostgreSqlCommandStringCache _commandCache;
-        private readonly IConnectionInformation _connectionInformation;
+        private readonly IDbConnectionFactory _dbConnectionFactory;
         /// <summary>
         /// Initializes a new instance of the <see cref="SetJobLastKnownEventCommandHandler" /> class.
         /// </summary>
         /// <param name="commandCache">The command cache.</param>
-        /// <param name="connectionInformation">The connection information.</param>
+        /// <param name="dbConnectionFactory">The database connection factory.</param>
         public SetJobLastKnownEventCommandHandler(PostgreSqlCommandStringCache commandCache,
-            IConnectionInformation connectionInformation)
+            IDbConnectionFactory dbConnectionFactory)
         {
             Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => connectionInformation, connectionInformation);
+            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
 
             _commandCache = commandCache;
-            _connectionInformation = connectionInformation;
+            _dbConnectionFactory = dbConnectionFactory;
         }
         /// <inheritdoc />
         public void Handle(SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction> command)
         {
-            using (var conn = new NpgsqlConnection(_connectionInformation.ConnectionString))
+            using (var conn = (NpgsqlConnection)_dbConnectionFactory.Create())
             {
                 conn.Open();
                 using (var commandSql = conn.CreateCommand())
