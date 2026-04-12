@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using DotNetWorkQueue.Configuration;
@@ -183,9 +184,19 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
     public class ActivitySourceWrapper : IDisposable
     {
+        private readonly ActivityListener _listener;
+
         public ActivitySourceWrapper(ActivitySource source)
         {
             Source = source;
+
+            _listener = new ActivityListener
+            {
+                ShouldListenTo = s => s.Name == source.Name,
+                Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+                ActivityStarted = activity => CollectedActivities.Add(activity)
+            };
+            ActivitySource.AddActivityListener(_listener);
         }
 
         public ActivitySource Source
@@ -193,8 +204,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             get;
         }
 
+        public ConcurrentBag<Activity> CollectedActivities { get; } = new();
+
         public void Dispose()
         {
+            _listener?.Dispose();
             Source?.Dispose();
 
             //if jaeger is using udp, sometimes the messages get lost; there doesn't seem to be a flush() call ?
