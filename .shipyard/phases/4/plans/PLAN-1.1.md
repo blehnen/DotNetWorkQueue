@@ -1,70 +1,43 @@
 ---
-phase: dashboard-cron-description
+phase: phase-4-litedb-redis-job-handlers
 plan: "1.1"
 wave: 1
 dependencies: []
 must_haves:
-  - JobScheduler logs human-readable schedule description when jobs are added
-  - Solution builds cleanly
+  - BaseLua.TryExecute(object) is virtual so test subclasses can override the Redis interaction
+  - BaseLua.TryExecuteAsync(object) is virtual so test subclasses can override the Redis interaction
+  - Redis transport still builds cleanly with no behavior changes
 files_touched:
-  - Source/DotNetWorkQueue/JobScheduler/JobScheduler.cs
+  - Source/DotNetWorkQueue.Transport.Redis/Basic/Lua/BaseLua.cs
 tdd: false
+risk: low
 ---
 
-# Plan 1.1: CronExpressionDescriptor Logging Integration
-
-Add human-readable schedule descriptions to JobScheduler logging using the `IJobSchedule.Description` property added in Phase 1.
+# Plan 1.1 — BaseLua Test Seam: Virtualize TryExecute Overloads
 
 ## Context
 
-Phase 1 added `IJobSchedule.Description` which returns a human-readable cron description via CronExpressionDescriptor (e.g., `"*/5 * * * *"` → `"Every 5 minutes"`).
+Phase 4 adds unit tests for Redis Lua script classes (`DoesJobExistLua`, `DashboardUpdateMessageBodyLua`) that inherit from `BaseLua`. `BaseLua.TryExecute(object)` internally calls `Connection.Connection.GetDatabase().ScriptEvaluate(...)`. `StackExchange.Redis.IDatabase` / `IConnectionMultiplexer` are sealed and cannot be mocked with NSubstitute (see CLAUDE.md lessons learned).
 
-The Dashboard API cannot show schedule descriptions because `DashboardJob` (the stored data model) doesn't include the schedule expression — it only has `JobName`, `JobEventTime`, `JobScheduledTime`. Adding the expression to storage would require schema changes across all transports, which is out of scope for this milestone. A future enhancement could add schedule expression to `DashboardJob` and populate it during job registration.
-
-For now, the integration point is **logging in JobScheduler.cs** — the one place with live access to `IJobSchedule` instances.
+Minimal refactor: change the two `TryExecute` overloads from `public` to `public virtual` so tests can subclass a Lua handler and override the Redis interaction point. No body changes. All existing Lua subclasses continue to work — none currently override `TryExecute`.
 
 ## Dependencies
 
-None (Phase 1 already complete — `IJobSchedule.Description` exists).
+None.
 
 ## Tasks
 
-<task id="1" files="Source/DotNetWorkQueue/JobScheduler/JobScheduler.cs" tdd="false">
-  <action>
-  In `Source/DotNetWorkQueue/JobScheduler/JobScheduler.cs`, add log statements that include the human-readable schedule description when jobs are added or updated.
-
-  Find the `AddUpdateJob` methods (there are two overloads). After a job's schedule is created (where `new JobSchedule(...)` is called), add a log line:
-
-  ```csharp
-  _log.LogInformation("Job {jobName} scheduled: {scheduleText} ({scheduleDescription})", name, schedule, job.Schedule.Description);
-  ```
-
-  This gives operators both the raw cron expression and the human-readable description in their logs. Use structured logging with named parameters (not string interpolation) per best practice.
-
-  Also check the `Start()` method — if it logs scheduler startup, include any relevant schedule info.
-  </action>
-  <verify>grep -n "Description" "Source/DotNetWorkQueue/JobScheduler/JobScheduler.cs" | grep -q "log\|Log" && echo "PASS" || echo "FAIL"</verify>
-  <done>JobScheduler logs human-readable schedule descriptions when jobs are added/updated.</done>
-</task>
-
-<task id="2" files="" tdd="false">
-  <action>
-  Build verification:
-  1. `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release` — 0 errors, 0 warnings
-  2. Verify the log statement is correctly structured (uses named parameters, not interpolation)
-  </action>
-  <verify>dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release --verbosity quiet 2>&1 | tail -3</verify>
-  <done>Solution builds cleanly with CronExpressionDescriptor logging.</done>
+<task id="1" files="Source/DotNetWorkQueue.Transport.Redis/Basic/Lua/BaseLua.cs" tdd="false">
+  <action>Open `Source/DotNetWorkQueue.Transport.Redis/Basic/Lua/BaseLua.cs`. Locate the method declared as `public RedisResult TryExecute(object parameters)` and change its signature to `public virtual RedisResult TryExecute(object parameters)`. Locate the method declared as `public Task<RedisResult> TryExecuteAsync(object parameters)` and change its signature to `public virtual Task<RedisResult> TryExecuteAsync(object parameters)`. Do not modify method bodies, XML doc comments, license header, or any other code. Preserve file encoding and line endings.</action>
+  <verify>dotnet build "Source/DotNetWorkQueue.Transport.Redis/DotNetWorkQueue.Transport.Redis.csproj" -c Debug</verify>
+  <done>Build succeeds with zero errors and zero new warnings. The file contains exactly one line matching `public virtual RedisResult TryExecute(object` and one line matching `public virtual Task<RedisResult> TryExecuteAsync(object`. No other files are modified.</done>
 </task>
 
 ## Verification
 
 ```bash
-# Log statement exists
-grep -n "Description" "Source/DotNetWorkQueue/JobScheduler/JobScheduler.cs"
-# Should show log lines referencing schedule description
-
-# Builds
-dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release
-# 0 errors, 0 warnings
+dotnet build "Source/DotNetWorkQueue.Transport.Redis/DotNetWorkQueue.Transport.Redis.csproj" -c Debug
+dotnet build "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" -c Debug
 ```
+
+Both builds must succeed with zero errors. Existing Redis tests should continue to pass unchanged.
