@@ -18,20 +18,22 @@
 // ---------------------------------------------------------------------
 using System;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <inheritdoc />
     public class RedisJobQueueCreation : IJobQueueCreation
     {
-        private readonly RedisQueueCreation _creation;
+        private readonly IQueueCreation _creation;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RedisJobQueueCreation"/> class.
         /// </summary>
         /// <param name="creation">The creation.</param>
-        public RedisJobQueueCreation(RedisQueueCreation creation)
+        public RedisJobQueueCreation(IQueueCreation creation)
         {
+            Guard.NotNull(() => creation, creation);
             _creation = creation;
         }
         /// <inheritdoc />
