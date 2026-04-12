@@ -18,16 +18,15 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
-using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
+using DotNetWorkQueue.Transport.RelationalDatabase.Tests.TestHelpers;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
-using NSubstitute;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 {
@@ -37,12 +36,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
         [TestMethod]
         public async Task HandleAsync_Returns_Retries()
         {
-            var (handler, readColumn, reader) = CreateHandler(1);
+            var (handler, fixture, _) = CreateHandler(1);
 
-            readColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 0, reader).Returns(10L);
-            readColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 1, reader).Returns(42L);
-            readColumn.ReadAsString(CommandStringTypes.GetDashboardErrorRetries, 2, reader).Returns("TimeoutException");
-            readColumn.ReadAsInt32(CommandStringTypes.GetDashboardErrorRetries, 3, reader).Returns(3);
+            fixture.ReadColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 0, fixture.Reader).Returns(10L);
+            fixture.ReadColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 1, fixture.Reader).Returns(42L);
+            fixture.ReadColumn.ReadAsString(CommandStringTypes.GetDashboardErrorRetries, 2, fixture.Reader).Returns("TimeoutException");
+            fixture.ReadColumn.ReadAsInt32(CommandStringTypes.GetDashboardErrorRetries, 3, fixture.Reader).Returns(3);
 
             var result = await handler.HandleAsync(new GetDashboardErrorRetriesQuery("42"));
 
@@ -66,12 +65,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
         [TestMethod]
         public async Task HandleAsync_Returns_Multiple_Retries_From_Reader()
         {
-            var (handler, readColumn, reader) = CreateHandler(3);
+            var (handler, fixture, _) = CreateHandler(3);
 
-            readColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 0, reader).Returns(10L, 20L, 30L);
-            readColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 1, reader).Returns(100L, 200L, 300L);
-            readColumn.ReadAsString(CommandStringTypes.GetDashboardErrorRetries, 2, reader).Returns("ExA", "ExB", "ExC");
-            readColumn.ReadAsInt32(CommandStringTypes.GetDashboardErrorRetries, 3, reader).Returns(1, 2, 3);
+            fixture.ReadColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 0, fixture.Reader).Returns(10L, 20L, 30L);
+            fixture.ReadColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 1, fixture.Reader).Returns(100L, 200L, 300L);
+            fixture.ReadColumn.ReadAsString(CommandStringTypes.GetDashboardErrorRetries, 2, fixture.Reader).Returns("ExA", "ExB", "ExC");
+            fixture.ReadColumn.ReadAsInt32(CommandStringTypes.GetDashboardErrorRetries, 3, fixture.Reader).Returns(1, 2, 3);
 
             var result = await handler.HandleAsync(new GetDashboardErrorRetriesQuery("100"));
 
@@ -80,21 +79,21 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
             Assert.AreEqual("100", result[0].QueueId);
             Assert.AreEqual(30L, result[2].ErrorTrackingId);
             Assert.AreEqual("300", result[2].QueueId);
-            readColumn.Received(3).ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 0, reader);
-            readColumn.Received(3).ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 1, reader);
-            readColumn.Received(3).ReadAsString(CommandStringTypes.GetDashboardErrorRetries, 2, reader);
-            readColumn.Received(3).ReadAsInt32(CommandStringTypes.GetDashboardErrorRetries, 3, reader);
+            fixture.ReadColumn.Received(3).ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 0, fixture.Reader);
+            fixture.ReadColumn.Received(3).ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 1, fixture.Reader);
+            fixture.ReadColumn.Received(3).ReadAsString(CommandStringTypes.GetDashboardErrorRetries, 2, fixture.Reader);
+            fixture.ReadColumn.Received(3).ReadAsInt32(CommandStringTypes.GetDashboardErrorRetries, 3, fixture.Reader);
         }
 
         [TestMethod]
         public async Task HandleAsync_Awaited_Result_Matches_Mocked_Reader_Output()
         {
-            var (handler, readColumn, reader) = CreateHandler(1);
+            var (handler, fixture, _) = CreateHandler(1);
 
-            readColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 0, reader).Returns(99L);
-            readColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 1, reader).Returns(777L);
-            readColumn.ReadAsString(CommandStringTypes.GetDashboardErrorRetries, 2, reader).Returns("SpecificException");
-            readColumn.ReadAsInt32(CommandStringTypes.GetDashboardErrorRetries, 3, reader).Returns(5);
+            fixture.ReadColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 0, fixture.Reader).Returns(99L);
+            fixture.ReadColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorRetries, 1, fixture.Reader).Returns(777L);
+            fixture.ReadColumn.ReadAsString(CommandStringTypes.GetDashboardErrorRetries, 2, fixture.Reader).Returns("SpecificException");
+            fixture.ReadColumn.ReadAsInt32(CommandStringTypes.GetDashboardErrorRetries, 3, fixture.Reader).Returns(5);
 
             var task = handler.HandleAsync(new GetDashboardErrorRetriesQuery("777"));
             var awaited = await task;
@@ -110,25 +109,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
         [TestMethod]
         public async Task HandleAsync_Invokes_PrepareQuery_With_Correct_CommandString()
         {
-            var factory = Substitute.For<IDbConnectionFactory>();
-            var prepareQuery = Substitute.For<IPrepareQueryHandler<GetDashboardErrorRetriesQuery, IReadOnlyList<DashboardErrorRetry>>>();
-            var readColumn = Substitute.For<IReadColumn>();
-
-            var connection = Substitute.For<DbConnection>();
-            var command = Substitute.For<DbCommand>();
-            var reader = Substitute.For<DbDataReader>();
-            reader.ReadAsync(Arg.Any<CancellationToken>()).Returns(false);
-
-            factory.Create().Returns(connection);
-            connection.CreateCommand().Returns(command);
-            command.ExecuteReaderAsync(Arg.Any<CancellationToken>()).Returns(reader);
-
-            var handler = new GetDashboardErrorRetriesQueryHandlerAsync(factory, prepareQuery, readColumn);
+            var (handler, fixture, prepareQuery) = CreateHandler(0);
             var query = new GetDashboardErrorRetriesQuery("42");
 
             await handler.HandleAsync(query);
 
-            prepareQuery.Received(1).Handle(query, command, CommandStringTypes.GetDashboardErrorRetries);
+            prepareQuery.Received(1).Handle(query, fixture.Command, CommandStringTypes.GetDashboardErrorRetries);
         }
 
         [TestMethod]
@@ -161,34 +147,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
                 new GetDashboardErrorRetriesQueryHandlerAsync(factory, prepareQuery, null));
         }
 
-        private static (GetDashboardErrorRetriesQueryHandlerAsync handler, IReadColumn readColumn, DbDataReader reader) CreateHandler(int rowCount)
+        private static (GetDashboardErrorRetriesQueryHandlerAsync handler,
+                        AdoNetAsyncMockFixture fixture,
+                        IPrepareQueryHandler<GetDashboardErrorRetriesQuery, IReadOnlyList<DashboardErrorRetry>> prepareQuery) CreateHandler(int rowCount)
         {
-            var factory = Substitute.For<IDbConnectionFactory>();
+            var fixture = AdoNetAsyncMockFixture.Create();
+            fixture.SetupReaderRows(rowCount);
             var prepareQuery = Substitute.For<IPrepareQueryHandler<GetDashboardErrorRetriesQuery, IReadOnlyList<DashboardErrorRetry>>>();
-            var readColumn = Substitute.For<IReadColumn>();
-
-            var connection = Substitute.For<DbConnection>();
-            var command = Substitute.For<DbCommand>();
-            var reader = Substitute.For<DbDataReader>();
-
-            if (rowCount <= 0)
-            {
-                reader.ReadAsync(Arg.Any<CancellationToken>()).Returns(false);
-            }
-            else
-            {
-                var rest = new bool[rowCount];
-                for (var i = 0; i < rowCount - 1; i++) rest[i] = true;
-                rest[rowCount - 1] = false;
-                reader.ReadAsync(Arg.Any<CancellationToken>()).Returns(true, rest);
-            }
-
-            factory.Create().Returns(connection);
-            connection.CreateCommand().Returns(command);
-            command.ExecuteReaderAsync(Arg.Any<CancellationToken>()).Returns(reader);
-
-            var handler = new GetDashboardErrorRetriesQueryHandlerAsync(factory, prepareQuery, readColumn);
-            return (handler, readColumn, reader);
+            var handler = new GetDashboardErrorRetriesQueryHandlerAsync(fixture.ConnectionFactory, prepareQuery, fixture.ReadColumn);
+            return (handler, fixture, prepareQuery);
         }
     }
 }
