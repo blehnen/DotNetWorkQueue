@@ -66,6 +66,15 @@
 - **Description:** `Purge_Skips_Processing_Records` covers status=1 (Processing). There is no test for status=0 (Enqueued), the other non-terminal state the original bug would have deleted. Adding `Purge_Skips_Enqueued_Records` would document that both active states are protected.
 - **Remediation:** Add `Purge_Skips_Enqueued_Records` mirroring `Purge_Skips_Processing_Records` with `MessageHistoryStatus.Enqueued`.
 
+### ISSUE-024: SharedSetup.CreateTrace leaks OpenTelemetry TracerProvider when TraceSettings.Enabled is true
+- **Severity:** Suggestion
+- **Source:** Phase 1 Plan 1.2 Review
+- **Status:** Open
+- **Files:**
+  - `Source/DotNetWorkQueue.IntegrationTests.Shared/SharedSetup.cs` (lines 161-180, `CreateTrace` method)
+- **Description:** Pre-existing latent issue (NOT introduced by Plan 1.2). When `TraceSettings.Enabled` is `true`, `CreateTrace` builds a `TracerProvider` via `Sdk.CreateTracerProviderBuilder()...Build()` and assigns it to a local variable `openTelemetry` which is immediately discarded. The provider is never disposed and the OTLP batch exporter background worker leaks for the test run. The 2-second sleep in `ActivitySourceWrapper.Dispose` is a workaround for the missing flush. This was harmless before because `TraceSettings.Enabled` is currently never true in CI, but if a future change enables it, exports will be incomplete and the provider will leak.
+- **Remediation:** Store the provider on `ActivitySourceWrapper` (e.g., `private readonly TracerProvider _provider`) and dispose it in `Dispose()` before the source. Replace the `Thread.Sleep(2000)` with `_provider?.ForceFlush(2000)` for deterministic flushing.
+
 ## Closed
 
 ### ISSUE-023: Stray blank line and double blank line artifacts from NETFULL removal
