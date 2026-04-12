@@ -13,7 +13,7 @@ using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared
 {
-    internal static class SharedSetup
+    public static class SharedSetup
     {
         public static QueueContainer<TTransportInit> CreateCreator<TTransportInit>(Action<IContainer> additionalRegs)
           where TTransportInit : ITransportInit, new()
