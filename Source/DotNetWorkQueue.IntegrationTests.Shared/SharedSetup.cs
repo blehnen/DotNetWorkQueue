@@ -13,7 +13,7 @@ using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared
 {
-    public static class SharedSetup
+    internal static class SharedSetup
     {
         public static QueueContainer<TTransportInit> CreateCreator<TTransportInit>(Action<IContainer> additionalRegs)
           where TTransportInit : ITransportInit, new()
@@ -153,7 +153,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             configuration.MessageError.MonitorTime = TimeSpan.FromSeconds(5);
         }
 
-        public static ActivitySourceWrapper CreateTrace(string name)
+        public static ActivitySourceWrapper CreateTrace(string name, bool collectActivities = false)
         {
             var traceName = TraceSettings.TraceName(name);
             if (TraceSettings.Enabled)
@@ -178,7 +178,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                     })
                     .Build();
             }
-            return new ActivitySourceWrapper(new ActivitySource(traceName));
+            return new ActivitySourceWrapper(new ActivitySource(traceName), collectActivities);
         }
     }
 
@@ -186,16 +186,24 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
     {
         private readonly ActivityListener _listener;
 
-        public ActivitySourceWrapper(ActivitySource source)
+        public ActivitySourceWrapper(ActivitySource source, bool collectActivities = false)
         {
             Source = source;
 
+            // Listener is ALWAYS registered so trace decorator code paths execute
+            // during integration tests (preserves the TraceExtensions coverage cascade).
+            // Only the ActivityStarted callback (which populates CollectedActivities) is
+            // gated by collectActivities to avoid ConcurrentBag overhead when tests
+            // don't actually inspect the collected spans.
             _listener = new ActivityListener
             {
                 ShouldListenTo = s => s.Name == source.Name,
-                Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
-                ActivityStarted = activity => CollectedActivities.Add(activity)
+                Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded
             };
+            if (collectActivities)
+            {
+                _listener.ActivityStarted = activity => CollectedActivities.Add(activity);
+            }
             ActivitySource.AddActivityListener(_listener);
         }
 
