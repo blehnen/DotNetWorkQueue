@@ -18,7 +18,7 @@ Phase 2  (Shared RelationalDatabase job handler unit tests)           [COMPLETE]
 Phase 3  (Relational transport job handler tests + refactors)        [COMPLETE]
    |
    v
-Phase 4  (LiteDb + Redis transport job handler tests)                [PENDING]
+Phase 4  (LiteDb + Redis transport job handler tests)                [COMPLETE]
    |
    v
 Phase 5  (Dashboard.Api DashboardExtensions coverage)                [PENDING]
@@ -95,39 +95,49 @@ After research, this phase was rescoped to relational transports (SqlServer/Post
 
 ---
 
-## Phase 4: LiteDb + Redis Transport Job Handler Tests [PENDING]
+## Phase 4: LiteDb + Redis Transport Job Handler Tests [COMPLETE]
 
-**Risk: HIGH** -- This phase tackles the testability issues that Phase 3 deferred. Both transports need production code changes before unit tests are practical. Each transport has different challenges.
+**Risk: HIGH (as planned)** -- Cleared without retries. All 10 plans passed review on first dispatch despite the phase containing the project's trickiest mocking scenarios.
 
 **Depends on:** Phase 3 (test patterns established for relational transports).
 
-### Scope
+### What Was Done
 
-#### LiteDb (concrete LiteDatabase types)
-1. **`SetJobLastKnownEventCommandHandler`** (15.4% / 52 lines) -- Uses `command.Database` which is `LiteDB.LiteDatabase` (sealed). Test with an in-memory `LiteDatabase` instance.
-2. **`LiteDbSendJobToQueue`** (32.0% / 50 lines) -- Internal class, uses `LiteDbConnectionManager.GetDatabase()`. Same in-memory approach.
-3. **`GetJobIdQueryHandler`** (38.1% / 42 lines) -- LiteDb-specific job ID lookup
-4. **`DashboardUpdateMessageBodyCommandHandler`** (40.9% / 44 lines) -- Test message body update
-5. **`RollbackMessage`** (40.7% / 54 lines) -- Test rollback logic
+**Wave 1 -- Production seam refactors (2 plans, orchestrator-direct):**
+- Plan 1.1: `BaseLua.TryExecute(object)` and `TryExecuteAsync(object)` made `virtual` to enable testable-subclass override. Commit `c7a9dd80`.
+- Plan 1.2: `RedisJobQueueCreation` constructor loosened from concrete `RedisQueueCreation` to `IQueueCreation` interface (existing public type, already implemented by `RedisQueueCreation`). Added `Guard.NotNull`. Commit `336b0c91`.
 
-#### Redis (sealed multiplexer + Lua scripts)
-1. **`RedisJobQueueCreation`** (0% / 50 lines) -- Thin wrapper around `RedisQueueCreation`. Mock `RedisQueueCreation` -- doesn't need a seam.
-2. **Add `BaseLua` GetDb() seam refactor** -- Add `protected virtual TryExecute()` (or similar) to `BaseLua` so subclasses can override the `Connection.Connection.GetDatabase()` chain in tests. This is a production code change touching `Source/DotNetWorkQueue.Transport.Redis/Basic/Lua/BaseLua.cs`.
-3. **`DoesJobExistLua`** (47.2% / 72 lines) -- Test Lua script job existence check (depends on BaseLua seam)
-4. **`DashboardUpdateMessageBodyLua`** (37.5% / 48 lines) -- Test Lua script message body update (depends on BaseLua seam)
+**Wave 2 -- LiteDb tests (5 plans):**
+- Plan 2.1 `SetJobLastKnownEventCommandHandler`: 4 tests, commit `05d31843`
+- Plan 2.2 `LiteDbSendJobToQueue`: 5 tests, commit `222de596` *(partial scope: `DoesJobExist` deferred to integration — covered by `LiteDB.Linq.Integration.Tests/JobScheduler/`)*
+- Plan 2.3 `GetJobIdQueryHandler`: 7 tests, commit `f36b6095`
+- Plan 2.4 `RollbackMessageCommandHandler`: 6 tests (constructor null-guards; Handle() deferred to integration — covered by `LiteDB.IntegrationTests/Consumer*`), commit `fd4b40b6`
+- Plan 2.5 `DashboardUpdateMessageBodyCommandHandler` expansion: 6 new tests (9 total), commit `9cbbc714`
 
-### Approach
-- **Wave 1: Refactors** -- Add `BaseLua.GetDb()` seam (Redis only). LiteDb may need no production changes if in-memory LiteDatabase works directly.
-- **Wave 2: LiteDb tests** -- Use real in-memory `LiteDatabase` instances. May benefit from a shared `LiteDbInMemoryFixture` test helper.
-- **Wave 3: Redis tests** -- Subclass each Lua handler in tests, override the seam to return a mocked `RedisResult`. Test `RedisJobQueueCreation` with a mocked `RedisQueueCreation`.
+**Wave 3 -- Redis tests (3 plans):**
+- Plan 3.1 `RedisJobQueueCreation`: 5 tests, commit `d28f62f7`
+- Plan 3.2 `DoesJobExistLua`: 7 tests, commit `9de5d9c2`
+- Plan 3.3 `DashboardUpdateMessageBodyLua`: 6 tests, commit `6f932db7`
 
-### Success Criteria
-1. All listed LiteDb handlers have line coverage above 70%
-2. All listed Redis handlers have line coverage above 70%
-3. `BaseLua` seam is minimal (single virtual method, doesn't break existing Lua handlers)
-4. Tests added to existing `DotNetWorkQueue.Transport.LiteDb.Tests` and `DotNetWorkQueue.Transport.Redis.Tests` projects
-5. No new external service dependencies (no running Redis instance needed; in-memory LiteDB is fine)
-6. All existing tests continue to pass
+**Totals:** 46 new/expanded unit tests across 8 test files. LiteDb.Tests: 166/166 passing. Redis.Tests: 190/190 passing. Full-solution Debug build: 0 errors, 2 pre-existing obsolete-API warnings unrelated to Phase 4.
+
+### Outcomes vs Success Criteria
+
+| Criterion | Result |
+|---|---|
+| LiteDb handlers ≥70% line coverage | Met for SetJobLastKnownEvent, GetJobIdQueryHandler, DashboardUpdateMessageBody. Partial for LiteDbSendJobToQueue + RollbackMessageCommandHandler (deferred paths have real integration coverage). |
+| Redis handlers ≥70% line coverage | Met for all three (`RedisJobQueueCreation`, `DoesJobExistLua`, `DashboardUpdateMessageBodyLua`). |
+| `BaseLua` seam minimal | Met -- added `virtual` keyword only, no behavioral change. |
+| Tests added to existing test projects | Met -- no new test projects created. |
+| No new external service dependencies | Met -- all tests run without Redis or real LiteDb files. |
+| Existing tests continue to pass | Met -- 0 regressions. |
+
+### Artifacts
+- `.shipyard/phases/4/VERIFICATION.md` — phase verification report
+- `.shipyard/phases/4/results/AUDIT-4.md` — security audit (CLEAN)
+- `.shipyard/phases/4/results/SIMPLIFICATION-4.md` — simplification review (1 minor finding acknowledged via comment, others deferred)
+- `.shipyard/phases/4/results/DOCUMENTATION-4.md` — documentation review (3 lessons added to CLAUDE.md)
+- `.shipyard/phases/4/results/SUMMARY-{1.1…3.3}.md` — per-plan build summaries
 
 ---
 

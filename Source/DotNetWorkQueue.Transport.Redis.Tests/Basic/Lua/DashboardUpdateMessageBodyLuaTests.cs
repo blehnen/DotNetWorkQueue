@@ -85,7 +85,11 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Lua
         [TestMethod]
         public void Execute_WhenConnectionDisposed_ReturnsZero()
         {
-            // Simulates BaseLua.TryExecute returning RedisValue.Null when Connection.IsDisposed.
+            // Mechanically identical to Execute_WhenScriptReturnsNull_ReturnsZero:
+            // BaseLua.TryExecute returns RedisValue.Null for BOTH a null script result
+            // and a disposed connection, so the handler's null-handling branch covers
+            // both paths with the same observable behavior. Kept as a named-for-intent
+            // duplicate to document that the disposed-connection path was considered.
             var sut = CreateSut();
             sut.NextResult = RedisResult.Create(RedisValue.Null);
 
