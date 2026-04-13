@@ -61,6 +61,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
 
             var app = builder.Build();
             app.UseDotNetWorkQueueDashboard();
+            // configureApp runs after Dashboard middleware (CORS, Swagger, HealthChecks) and before MapControllers.
+            // Middleware-level authorization (UseAuthorization) registered here applies at routing time, not before Dashboard endpoints.
             configureApp?.Invoke(app);
             app.MapControllers();
 

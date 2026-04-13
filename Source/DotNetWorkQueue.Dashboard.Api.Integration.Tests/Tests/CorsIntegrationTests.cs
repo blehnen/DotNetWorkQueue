@@ -16,7 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using FluentAssertions;
@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
     [TestClass]
-    public class SwaggerEndpointTests
+    public class CorsIntegrationTests
     {
         private DashboardTestServer _server;
 
@@ -34,8 +34,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             _server = await DashboardTestServer.CreateAsync(options =>
             {
-                options.EnableSwagger = true;
-                // No connections needed — this test exercises only the Swagger middleware.
+                options.EnableSwagger = false;
+                options.EnableCors = true;
+                options.CorsOrigins = new[] { "https://example.com" };
             });
         }
 
@@ -46,15 +47,18 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         }
 
         [TestMethod]
-        public async Task SwaggerJson_ReturnsOk_WithValidOpenApiShape()
+        public async Task CorsRequest_ReturnsAllowOriginHeader_WhenOriginMatches()
         {
-            var response = await _server.Client.GetAsync("swagger/v1/swagger.json");
+            // Send a GET with an Origin header (not a preflight OPTIONS — simpler and
+            // sufficient to exercise the UseCors("DashboardCors") branch in the pipeline).
+            var request = new HttpRequestMessage(HttpMethod.Get, "api/v1/dashboard/health");
+            request.Headers.Add("Origin", "https://example.com");
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-            var content = await response.Content.ReadAsStringAsync();
-            content.Should().NotBeNullOrEmpty();
-            content.Should().Contain("\"openapi\"");
-            content.Should().Contain("DotNetWorkQueue Dashboard");
+            var response = await _server.Client.SendAsync(request);
+
+            response.Headers.TryGetValues("Access-Control-Allow-Origin", out var origins).Should().BeTrue(
+                "because the CORS middleware should have added the allow-origin header for the matching origin");
+            origins.Should().Contain("https://example.com");
         }
     }
 }
