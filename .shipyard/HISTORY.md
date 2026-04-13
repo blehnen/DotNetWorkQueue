@@ -729,3 +729,31 @@
 - **Self-critique caught before commit:** wave-1 file conflict (PLAN-1.2 and PLAN-1.3 both appended to `DashboardExtensionsTests.cs`) → resolved by giving each plan its own feature-scoped test file. Also caught a wrong property name (`Connections` → `ConnectionRegistrations`) in PLAN-1.1 and dropped a redundant InternalsVisibleTo fallback in PLAN-1.3.
 - **Stale plan handling:** the old Schyntax/Lib cleanup `PLAN-1.1.md` (from the April 2026 pre-code-coverage roadmap) was archived to `.shipyard/phases/5/plans/archived-schyntax-cleanup/PLAN-1.1.md` via git mv so history is preserved.
 - **Status:** Phase 5 PLANNED. Ready for `/shipyard:build 5` on branch `phase-5-dashboard-coverage`.
+- [2026-04-13T14:58:25Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:01:15Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:05:36Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:15:49Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:20:03Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:22:24Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:23:04Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:23:24Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:59:17Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:59:56Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T18:20:27Z] Session ended during build (may need /shipyard:resume)
+
+- [2026-04-13T18:22:26Z] /shipyard:resume -> /shipyard:build 5: resuming post-build pipeline; all 4 plans already committed, dispatching retroactive reviewers
+
+- [2026-04-13T18:28:13Z] Phase 5 retroactive reviews complete: PLAN-1.1 PASS, PLAN-1.2 PASS, PLAN-1.3 PASS (pivot sound), PLAN-2.1 PASS (2 minor non-blocking)
+
+## 2026-04-13 — Phase 5 Build Complete (Code Coverage roadmap, final phase)
+
+- **Action:** `/shipyard:resume` -> `/shipyard:build 5` (retroactively ran reviewer gate + full post-build pipeline)
+- **Scope:** Dashboard.Api DashboardExtensions coverage (33.3% -> projected ~70%)
+- **Plans executed (pre-resume):** 4/4 (PLAN-1.1, 1.2, 1.3, 2.1) — committed in earlier sessions: `485811d4`, `efea5ad9`, `7a7174de`
+- **Retroactive reviews:** 4/4 PASS (0 critical, 2 minor non-blocking on PLAN-2.1)
+- **Verification:** PASS — build 0 errors, Dashboard.Api.Tests 216/216, integration tests 226/226 on Memory|Sqlite|LiteDb filter, no regressions
+- **Audit:** CLEAN — no secrets, no new deps, no IaC, no OWASP findings
+- **Simplification:** MINOR — 1 medium applied (split SwaggerEndpointTests.cs into 3 per-class files), 2 low-priority pre-existing issues deferred
+- **Documentation:** MINOR — 1 CLAUDE.md lesson added (MvcOptions.Conventions in bare ServiceCollection), 1 inline WHY comment on DashboardTestServer.cs
+- **Post-review fixups verified:** build PASS, 3/3 new integration tests pass on both net8.0 and net10.0
+- **Status:** Phase 5 COMPLETE. All 5 phases of the code-coverage milestone complete. Ready for `/shipyard:ship`.

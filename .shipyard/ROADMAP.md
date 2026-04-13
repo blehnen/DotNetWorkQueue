@@ -141,7 +141,7 @@ After research, this phase was rescoped to relational transports (SqlServer/Post
 
 ---
 
-## Phase 5: Dashboard.Api DashboardExtensions Coverage (Lower Priority) [PENDING]
+## Phase 5: Dashboard.Api DashboardExtensions Coverage (Lower Priority) [COMPLETE]
 
 **Risk: LOW** -- DI/startup wiring. Untested branches are configuration overloads and conditional registrations. Coverage improvement is opportunistic.
 
@@ -168,8 +168,8 @@ After research, this phase was rescoped to relational transports (SqlServer/Post
 | 1 | Quick Wins: Dead Code + Trace | COMPLETE | Low | 1 POC + cascade for all transports |
 | 2 | Shared Job Handler Unit Tests | COMPLETE | Medium | 39 |
 | 3 | Relational Transport Job Handlers + Refactors | COMPLETE | Medium | 41 |
-| 4 | LiteDb + Redis Job Handler Tests | PENDING | High | TBD (~30-40 expected) |
-| 5 | Dashboard.Api DashboardExtensions | PENDING | Low | TBD (~10-15 expected) |
+| 4 | LiteDb + Redis Job Handler Tests | COMPLETE | High | ~30 |
+| 5 | Dashboard.Api DashboardExtensions | COMPLETE | Low | 19 (4 files: 3 unit + 1 integration) |
 
 ## Cumulative Outcomes (Phases 1-3)
 
