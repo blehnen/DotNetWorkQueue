@@ -709,3 +709,23 @@
   - `DoesJobExistLuaTests` `[TestInitialize]` refactor
   - Project-wide `CreateTableNameHelper` copy-paste cleanup (belongs in dedicated phase)
 - **Status:** Phase 4 COMPLETE. Phase 5 (Dashboard.Api DashboardExtensions) is the only remaining phase in the code-coverage milestone.
+
+## 2026-04-13 — Phase 5 Planned (Code Coverage roadmap)
+
+- **Action:** `/shipyard:plan 5`
+- **Scope:** Dashboard.Api `DashboardExtensions` coverage (33.3% → ~64% target)
+- **Feature branch:** `phase-5-dashboard-coverage` (branched from master post-phase-4; will merge via PR per user Decision 5)
+- **Discussion capture (CONTEXT-5.md):** ambition=balanced, test layer=researcher decides, dead-overload policy=delete (turned out void), branch workflow=feature branch + PR
+- **Agent stalls handled directly:**
+  - Researcher agent dispatched, stalled mid-work (same pattern as Phase 4 verifier) → orchestrator performed the research directly and wrote RESEARCH.md
+  - Architect and verifier agents skipped on purpose (to avoid the same stall pattern) → orchestrator wrote plan files directly per user Decision B
+- **Key research finding: Decision 4 is void.** `DashboardExtensions` has only 3 public methods, all with real callers. The `IConfiguration` overload (0% coverage) is the production Dashboard.Ui entrypoint. No deletion work needed.
+- **Plans produced (4 plans / 2 waves):**
+  - Wave 1 (parallel unit tests):
+    - PLAN-1.1 — `IConfiguration` overload + transport switch tests (~50 lines)
+    - PLAN-1.2 — `EnableSwagger` + `ApiKey` security definition tests (~38 lines)
+    - PLAN-1.3 — CORS + `AuthorizationPolicy` tests (~17 lines)
+  - Wave 2 (integration test): PLAN-2.1 — Swagger + CORS integration via `DashboardTestServer` (~12 lines)
+- **Self-critique caught before commit:** wave-1 file conflict (PLAN-1.2 and PLAN-1.3 both appended to `DashboardExtensionsTests.cs`) → resolved by giving each plan its own feature-scoped test file. Also caught a wrong property name (`Connections` → `ConnectionRegistrations`) in PLAN-1.1 and dropped a redundant InternalsVisibleTo fallback in PLAN-1.3.
+- **Stale plan handling:** the old Schyntax/Lib cleanup `PLAN-1.1.md` (from the April 2026 pre-code-coverage roadmap) was archived to `.shipyard/phases/5/plans/archived-schyntax-cleanup/PLAN-1.1.md` via git mv so history is preserved.
+- **Status:** Phase 5 PLANNED. Ready for `/shipyard:build 5` on branch `phase-5-dashboard-coverage`.
