@@ -757,3 +757,5 @@
 - **Documentation:** MINOR — 1 CLAUDE.md lesson added (MvcOptions.Conventions in bare ServiceCollection), 1 inline WHY comment on DashboardTestServer.cs
 - **Post-review fixups verified:** build PASS, 3/3 new integration tests pass on both net8.0 and net10.0
 - **Status:** Phase 5 COMPLETE. All 5 phases of the code-coverage milestone complete. Ready for `/shipyard:ship`.
+
+- [2026-04-13T19:15:16Z] /shipyard:ship: PR #114 opened (https://github.com/blehnen/DotNetWorkQueue/pull/114). 7 commits pushed. Code-coverage milestone shipped. Awaiting review + merge.
