@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// </summary>
         /// <param name="parameters">The parameters. Pass null if there are none.</param>
         /// <returns></returns>
-        public RedisResult TryExecute(object parameters)
+        public virtual RedisResult TryExecute(object parameters)
         {
             if (Connection.IsDisposed)
                 return RedisResult.Create(RedisValue.Null);
@@ -111,7 +111,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// </summary>
         /// <param name="parameters">The parameters. Pass null if there are none.</param>
         /// <returns></returns>
-        public async Task<RedisResult> TryExecuteAsync(object parameters)
+        public virtual async Task<RedisResult> TryExecuteAsync(object parameters)
         {
             if (Connection.IsDisposed)
                 return RedisResult.Create(RedisValue.Null);

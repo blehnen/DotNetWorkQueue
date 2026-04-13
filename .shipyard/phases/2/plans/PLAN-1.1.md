@@ -1,118 +1,93 @@
-# Plan 1.1: Health Monitoring Service with Unit Tests
-
 ---
-phase: phase-2
-plan: "1.1"
+phase: 2-coverage-job-scheduler-handlers
+plan: 1.1
 wave: 1
-dependencies: [phase-1]
+dependencies: []
 must_haves:
-  - ISourceHealthMonitor interface with GetHealth(slug) returning SourceHealthState
-  - SourceHealthMonitor BackgroundService polling GetSettingsAsync every 30s with 5s timeout
-  - SourceHealthState record with Status enum (Unknown/Healthy/Unhealthy), LastChecked, ErrorMessage
-  - Thread-safe ConcurrentDictionary for health state caching
-  - State transition logging (healthy-to-unhealthy, unhealthy-to-healthy)
-  - Unit tests covering all health state transitions and polling behavior
-  - Registration in Program.cs as hosted service
+  - New test class CreateJobTablesCommandHandlerTests with happy-path coverage
+  - Constructor null-guard tests for all 3 dependencies
+  - Tests follow the NSubstitute inline-mock pattern used in DoesJobExistQueryHandlerTests
+  - Tests pass on net10.0 and net8.0
 files_touched:
-  - Source/DotNetWorkQueue.Dashboard.Ui/Services/ISourceHealthMonitor.cs (new)
-  - Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceHealthMonitor.cs (new)
-  - Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceHealthState.cs (new)
-  - Source/DotNetWorkQueue.Dashboard.Ui/Program.cs (add hosted service registration)
-  - Source/DotNetWorkQueue.Dashboard.Ui.Tests/Services/SourceHealthMonitorTests.cs (new)
+  - Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/Basic/CommandHandler/CreateJobTablesCommandHandlerTests.cs
 tdd: true
 risk: low
 ---
 
+# Plan 1.1 - CreateJobTablesCommandHandler Tests
+
 ## Context
 
-This plan creates the background health monitoring service that polls each configured API source to determine its availability. The health state is consumed by the Home page (in Wave 2) to display source health indicators. This is a standalone service with no UI coupling -- it reads from `ISourceRegistry` and `IMultiSourceDashboardApiClient` (both delivered in Phase 1) and exposes cached health state via `ISourceHealthMonitor.GetHealth(slug)`.
+`CreateJobTablesCommandHandler` currently has zero unit tests. It lives at
+`Source/DotNetWorkQueue.Transport.RelationalDatabase/Basic/CommandHandler/CreateJobTablesCommandHandler.cs`
+and is a shared handler used by all relational transports (SqlServer, PostgreSQL, SQLite, LiteDb via the RelationalDatabase layer).
 
-The health check uses `GetSettingsAsync()` (GET api/v1/dashboard/settings) as a lightweight probe. A 5-second `HttpClient` timeout prevents slow sources from blocking the polling loop. All sources are polled sequentially within each 30-second timer tick to avoid health poll storms.
+Constructor signature:
 
-## Dependencies
+```csharp
+public CreateJobTablesCommandHandler(
+    IDbConnectionFactory dbConnectionFactory,
+    IPrepareCommandHandler<CreateJobTablesCommand<ITable>> prepareCommandHandler,
+    ITransactionFactory transactionFactory)
+```
 
-- Phase 1 complete: `ISourceRegistry`, `IMultiSourceDashboardApiClient`, `DashboardApiSourceConfig` all exist
-- Phase 1 test project: `DotNetWorkQueue.Dashboard.Ui.Tests` exists with MSTest + NSubstitute + FluentAssertions
+`Handle()` opens a connection, begins a transaction via `ITransactionFactory.Create(conn).BeginTransaction()`,
+creates an `IDbCommand`, assigns the transaction, calls the prepare handler with `CommandStringTypes.CreateJobTables`,
+calls `ExecuteNonQuery()`, commits, and returns `new QueueCreationResult(QueueCreationStatus.Success)`.
+
+Reference pattern: `Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/Basic/DoesJobExistQueryHandlerTests.cs`.
+That file uses `[TestClass]`/`[TestMethod]` MSTest attributes, `Substitute.For<T>()` for inline mocks, and a
+private `CreateFixture()` method returning a `TestFixture` POCO. Follow that style exactly.
+
+The folder `Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/Basic/CommandHandler/` does not exist yet and must be created.
 
 ## Tasks
 
-<task id="1" files="Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceHealthState.cs, Source/DotNetWorkQueue.Dashboard.Ui/Services/ISourceHealthMonitor.cs" tdd="false">
+<task id="1" files="Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/Basic/CommandHandler/CreateJobTablesCommandHandlerTests.cs" tdd="true">
   <action>
-Create two new files:
+Create the test file `CreateJobTablesCommandHandlerTests.cs` (creating the `Basic/CommandHandler/` folder if needed).
+Use namespace `DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.CommandHandler`.
+Include the LGPL-2.1 license header matching other test files in this project.
 
-**SourceHealthState.cs:** A record (or class) in `DotNetWorkQueue.Dashboard.Ui.Services` namespace with:
-- `SourceHealthStatus` enum: `Unknown = 0`, `Healthy = 1`, `Unhealthy = 2`
-- `SourceHealthState` class/record with properties: `SourceHealthStatus Status`, `DateTimeOffset LastChecked`, `string? ErrorMessage`
-- Include LGPL-2.1 license header
+Add a `[TestClass]` with a private `CreateFixture()` helper that mocks:
+- `IDbConnectionFactory` -> returns an `IDbConnection` mock
+- `IPrepareCommandHandler<CreateJobTablesCommand<ITable>>`
+- `ITransactionFactory` -> returns an `ITransactionWrapper` mock whose `BeginTransaction()` returns an `IDbTransaction` mock
+- `IDbCommand` returned from `connection.CreateCommand()`
 
-**ISourceHealthMonitor.cs:** Interface in same namespace with:
-- `SourceHealthState GetHealth(string slug)` — returns cached health state for a source slug. Returns a default `Unknown` state if slug has not been polled yet.
-- `IReadOnlyDictionary<string, SourceHealthState> GetAllHealth()` — returns health state for all sources.
-- Include LGPL-2.1 license header
+Write the following four happy-path `[TestMethod]` tests (use NSubstitute `Received(1)` / `DidNotReceive()` to assert call ordering and arguments):
+
+1. `Handle_OpensConnection_AndReturnsSuccess` - verifies `connection.Open()` is called exactly once and result is `QueueCreationStatus.Success`.
+2. `Handle_CallsPrepareCommandHandler_WithCreateJobTablesCommandType` - verifies `prepareCommandHandler.Handle(command, Arg.Any<IDbCommand>(), CommandStringTypes.CreateJobTables)` was received exactly once with the same command instance that was passed to `Handle()`.
+3. `Handle_ExecutesNonQuery_OnCommand` - verifies `command.ExecuteNonQuery()` is called exactly once.
+4. `Handle_CommitsTransaction` - verifies `transaction.Commit()` is called exactly once (on the `IDbTransaction` returned by `transactionWrapper.BeginTransaction()`) and the command's `Transaction` property is set to that transaction.
+
+Use a real `CreateJobTablesCommand<ITable>` instance constructed with a `Substitute.For<ITable>()` (inspect the command constructor to determine required args) for the query argument to `Handle()`.
   </action>
-  <verify>dotnet build "Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboard.Ui.csproj"</verify>
-  <done>Build succeeds with 0 errors. `ISourceHealthMonitor.cs` and `SourceHealthState.cs` exist in `Source/DotNetWorkQueue.Dashboard.Ui/Services/` with correct namespace, LGPL header, and the specified members.</done>
+  <verify>cd /mnt/f/git/dotnetworkqueue && dotnet test "Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj" --filter "FullyQualifiedName~CreateJobTablesCommandHandlerTests"</verify>
+  <done>All 4 happy-path tests pass on net10.0 and net8.0. `dotnet build` emits no new warnings. Tests use only NSubstitute mocks (no integration DB access).</done>
 </task>
 
-<task id="2" files="Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceHealthMonitor.cs, Source/DotNetWorkQueue.Dashboard.Ui.Tests/Services/SourceHealthMonitorTests.cs" tdd="true">
+<task id="2" files="Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/Basic/CommandHandler/CreateJobTablesCommandHandlerTests.cs" tdd="true">
   <action>
-**Write tests first** in `SourceHealthMonitorTests.cs` (`#nullable enable`, LGPL header, namespace `DotNetWorkQueue.Dashboard.Ui.Tests.Services`):
+Add 3 constructor null-guard `[TestMethod]` tests to the same file:
 
-1. `GetHealth_Returns_Unknown_For_Unpolled_Source` — before any polling, `GetHealth("some-slug")` returns state with `Status == Unknown`
-2. `GetAllHealth_Returns_Empty_Before_Polling` — `GetAllHealth()` returns empty dictionary before first poll
-3. `PollAsync_Sets_Healthy_When_GetSettingsAsync_Succeeds` — mock `IMultiSourceDashboardApiClient` to return a source with `GetSettingsAsync()` succeeding. After one poll cycle, `GetHealth(slug)` returns `Healthy` with a `LastChecked` timestamp
-4. `PollAsync_Sets_Unhealthy_When_GetSettingsAsync_Throws` — mock `GetSettingsAsync()` to throw `HttpRequestException`. After one poll cycle, `GetHealth(slug)` returns `Unhealthy` with the exception message in `ErrorMessage`
-5. `PollAsync_Transitions_Healthy_To_Unhealthy` — first call succeeds (Healthy), second call throws (Unhealthy). Verify state transitions correctly.
-6. `PollAsync_Transitions_Unhealthy_To_Healthy` — first call throws (Unhealthy), second call succeeds (Healthy). Verify recovery.
-7. `PollAsync_Logs_State_Transitions` — verify `ILogger` receives log calls on Healthy-to-Unhealthy and Unhealthy-to-Healthy transitions (not on same-state polls)
+1. `Constructor_NullDbConnectionFactory_Throws` - passes `null` for `dbConnectionFactory`, expects `ArgumentNullException` via `Assert.ThrowsException<ArgumentNullException>(...)` (or the NullReferenceException/ArgumentNullException that `Guard.NotNull` actually throws - check `DotNetWorkQueue.Validation.Guard` behavior first and match the real exception type).
+2. `Constructor_NullPrepareCommandHandler_Throws` - passes `null` for `prepareCommandHandler`.
+3. `Constructor_NullTransactionFactory_Throws` - passes `null` for `transactionFactory`.
 
-**Then implement** `SourceHealthMonitor.cs` in `DotNetWorkQueue.Dashboard.Ui.Services`:
-- Extends `BackgroundService` (inherits from `Microsoft.Extensions.Hosting.BackgroundService`)
-- Constructor takes: `IMultiSourceDashboardApiClient multiSourceClient`, `ISourceRegistry sourceRegistry`, `ILogger<SourceHealthMonitor> logger`
-- `ConcurrentDictionary<string, SourceHealthState>` for cached state
-- `ExecuteAsync` loop: every 30 seconds, iterate all sources from `sourceRegistry.GetAll()`, call `multiSourceClient.GetClientForSource(slug)` then `client.GetSettingsAsync()` with a 5-second `CancellationTokenSource` timeout
-- On success: set state to Healthy, clear ErrorMessage
-- On exception (any): set state to Unhealthy, capture `ex.Message`
-- Log state transitions at `LogLevel.Information` (e.g., "Source '{SourceName}' is now Healthy" / "Source '{SourceName}' is now Unhealthy: {ErrorMessage}")
-- `GetHealth(slug)`: return from dictionary, or `new SourceHealthState { Status = SourceHealthStatus.Unknown }` if not present
-- `GetAllHealth()`: return a snapshot of the dictionary as `IReadOnlyDictionary`
-- Expose a `internal` method `PollAllSourcesAsync(CancellationToken)` that tests can call directly instead of waiting for the timer loop. The `ExecuteAsync` loop calls this same method.
-- Include LGPL-2.1 license header
-
-To make testing possible without real timers: the `ExecuteAsync` method should call `PollAllSourcesAsync` in a loop with `Task.Delay(TimeSpan.FromSeconds(30), stoppingToken)`. Tests call `PollAllSourcesAsync` directly.
+Each test must construct the other two dependencies via `Substitute.For<T>()`. Do NOT use AutoFixture.
   </action>
-  <verify>dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj" --filter "FullyQualifiedName~SourceHealthMonitorTests"</verify>
-  <done>All 7 SourceHealthMonitorTests pass on both net10.0 and net8.0. `SourceHealthMonitor` compiles as a `BackgroundService` with `ConcurrentDictionary` caching, 30s polling, 5s timeout, and state transition logging.</done>
-</task>
-
-<task id="3" files="Source/DotNetWorkQueue.Dashboard.Ui/Program.cs" tdd="false">
-  <action>
-In `Program.cs`, add the hosted service registration for `SourceHealthMonitor`. Insert the line after the existing `IMultiSourceDashboardApiClient` singleton registration (around line 79):
-
-```csharp
-builder.Services.AddSingleton<ISourceHealthMonitor, SourceHealthMonitor>();
-builder.Services.AddHostedService(sp => (SourceHealthMonitor)sp.GetRequiredService<ISourceHealthMonitor>());
-```
-
-This pattern registers `SourceHealthMonitor` once as both `ISourceHealthMonitor` (for page injection) and as a hosted service (for background polling). The cast-based `AddHostedService` overload avoids creating a second instance.
-
-No other changes to Program.cs in this plan.
-  </action>
-  <verify>dotnet build "Source/DotNetWorkQueue.sln" -c Debug</verify>
-  <done>Full solution builds with 0 errors. `ISourceHealthMonitor` is registered as a singleton and `SourceHealthMonitor` is registered as a hosted service in Program.cs. All 40+ existing tests plus the 7 new health monitor tests pass.</done>
+  <verify>cd /mnt/f/git/dotnetworkqueue && dotnet test "Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj" --filter "FullyQualifiedName~CreateJobTablesCommandHandlerTests"</verify>
+  <done>All 7 tests (4 happy-path + 3 null-guard) pass on net10.0 and net8.0. Each null-guard test asserts the specific parameter name when `Guard.NotNull` supplies it.</done>
 </task>
 
 ## Verification
 
 ```bash
-# Build entire solution
-dotnet build "Source/DotNetWorkQueue.sln" -c Debug
-
-# Run all Dashboard UI tests (Phase 1 + Phase 2 health monitor)
-dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj"
-
-# Verify health monitor tests specifically
-dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj" --filter "FullyQualifiedName~SourceHealthMonitorTests"
+cd /mnt/f/git/dotnetworkqueue
+dotnet build "Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj" -c Debug
+dotnet test  "Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj" --filter "FullyQualifiedName~CreateJobTablesCommandHandlerTests"
 ```
 
-Expected: 47+ tests pass (40 from Phase 1 + 7 new). Solution builds with 0 errors.
+Expected: 7 tests passing, 0 failing, 0 skipped. No new build warnings.

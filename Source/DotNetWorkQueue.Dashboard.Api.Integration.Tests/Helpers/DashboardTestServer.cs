@@ -41,12 +41,29 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
 
         public static async Task<DashboardTestServer> CreateAsync(Action<DashboardOptions> configure)
         {
+            return await CreateAsync(configure, configureServices: null, configureApp: null);
+        }
+
+        /// <summary>
+        /// Creates a dashboard test server with an optional hook for additional service
+        /// registration (e.g., authentication/authorization) and an optional hook for the
+        /// pipeline (e.g., app.UseAuthentication() / app.UseAuthorization()).
+        /// </summary>
+        public static async Task<DashboardTestServer> CreateAsync(
+            Action<DashboardOptions> configure,
+            Action<IServiceCollection> configureServices,
+            Action<WebApplication> configureApp)
+        {
             var builder = WebApplication.CreateBuilder();
             builder.WebHost.UseTestServer();
             builder.Services.AddDotNetWorkQueueDashboard(configure);
+            configureServices?.Invoke(builder.Services);
 
             var app = builder.Build();
             app.UseDotNetWorkQueueDashboard();
+            // configureApp runs after Dashboard middleware (CORS, Swagger, HealthChecks) and before MapControllers.
+            // Middleware-level authorization (UseAuthorization) registered here applies at routing time, not before Dashboard endpoints.
+            configureApp?.Invoke(app);
             app.MapControllers();
 
             await app.StartAsync();

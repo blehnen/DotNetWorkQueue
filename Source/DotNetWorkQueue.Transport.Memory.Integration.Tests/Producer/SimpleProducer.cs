@@ -26,5 +26,17 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Producer
                     Helpers.GenerateData, Helpers.Verify);
             }
         }
+
+        [TestMethod]
+        public void RunWithTraceVerification()
+        {
+            using (var connectionInfo = new IntegrationConnectionInfo())
+            {
+                var queueName = GenerateQueueName.Create();
+                var producer = new DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation.SimpleProducerWithTraceVerification();
+                producer.Run<MemoryMessageQueueInit, FakeMessage, MessageQueueCreation>(
+                    new QueueConnection(queueName, connectionInfo.ConnectionString));
+            }
+        }
     }
 }

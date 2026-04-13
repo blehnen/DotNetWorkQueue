@@ -1,35 +1,39 @@
-# Phase 2 Context: Design Decisions
+# Phase 2 Context: Shared Job Scheduler Handler Unit Tests
 
-## Client injection — Inject IMultiSourceDashboardApiClient
+## Decisions
 
-Pages `@inject IMultiSourceDashboardApiClient MultiSourceClient` and call `GetClientForSource(SourceSlug)` in `OnParametersSetAsync`. The resolved `IDashboardApiClient` is stored in a page-level field and passed to child tab components via `[Parameter]`. This keeps the existing `[Parameter] public IDashboardApiClient Api` pattern on all 7 shared components unchanged.
+### Scope (after research rescoping)
 
-## Invalid source slug — MudAlert error on page
+**Group A -- NEW test files** (handlers in `Transport.RelationalDatabase` with no existing tests):
+- `CreateJobTablesCommandHandler`
+- `GetJobIdQueryHandler<T>`
+- `GetJobLastKnownEventQueryHandler`
 
-When a source slug doesn't match any configured source, the page renders its shell/layout with a `MudAlert Severity.Error` saying "Source not found" and a link back to home (`/`). No redirect, no custom 404 page.
+**Group B -- EXPAND existing test files** (low coverage):
+- `GetDashboardJobsQueryHandlerTests` + Async variant
+- `GetDashboardErrorRetriesQueryHandlerTests` + Async variant
 
-## Single-source URL — Always show slug
+**Out of scope (moved to Phase 3):** `SetJobLastKnownEventCommandHandler`, `SendJobToQueue` variants -- these are transport-specific (LiteDb, Redis, SqlServer, PostgreSQL, SQLite) with no shared `Transport.RelationalDatabase` implementation.
 
-All URLs include `/source/{slug}` even with a single source. The Home page at `/` redirects to `/source/{onlySlug}`. This avoids conditional route generation and keeps URL patterns consistent regardless of source count.
+### Mock Depth
+- **Mock the prepare-statement classes** (`IPrepareCommandHandler<T>`, `IPrepareQueryHandler<T,TR>`)
+- Mock `IDbConnection`, `IDbCommand`, `IDataReader` directly via NSubstitute (per existing `DoesJobExistQueryHandlerTests` pattern)
+- Tests focus on handler logic, not SQL generation
+- Lower-level mocks (`IDbConnectionFactory`, `IReadColumn`, `ITransactionFactory`) follow the existing convention
 
-## Multi-source `/` route — Show source list
+### Test Project Location
+- **Add to existing `DotNetWorkQueue.Transport.RelationalDatabase.Tests`**
+- **Follow existing folder convention:** `Basic/CommandHandler/` for command handlers, `Basic/QueryHandler/` for query handlers (NOT a separate `JobScheduler/` folder -- keeps tests grouped by handler type)
+- Reference pattern: `Basic/DoesJobExistQueryHandlerTests.cs`
+- Use MSTest 3.x, NSubstitute, FluentAssertions (where existing tests use it)
 
-When multiple sources are configured and a user visits `/` (no slug), Home.razor shows a basic source list with health indicators. Each source is a clickable card/link navigating to `/source/{slug}`. Single source: redirect to `/source/{onlySlug}`. This gives Phase 2 a simple source overview; Phase 3 enhances it with grouped connections and partial failure UX.
+### Plan Split
+- **Plan 2.1: CreateJobTablesCommandHandler tests** -- single new test file in `Basic/CommandHandler/`
+- **Plan 2.2: GetJobId + GetJobLastKnownEvent query handler tests** -- two new test files in `Basic/QueryHandler/`
+- **Plan 2.3: Expand existing dashboard tests** -- add test cases to 4 existing files for GetDashboardJobs and GetDashboardErrorRetries (sync + async)
 
-## Scope from ROADMAP.md (unchanged)
+All three plans operate on different files -> Wave 1 parallel execution is safe.
 
-1. `ISourceHealthMonitor` / `SourceHealthMonitor` as background `IHostedService` — polls each source every 30s with 5s timeout, caches `SourceHealthState` per source
-2. Source-aware page routes — `/source/{SourceSlug}`, `/source/{SourceSlug}/connections/{ConnectionId:guid}`, `/source/{SourceSlug}/queues/{QueueId:guid}`
-3. Home.razor gets dual route: `@page "/"` and `@page "/source/{SourceSlug}"`
-4. Source resolution in pages via `IMultiSourceDashboardApiClient.GetClientForSource(slug)`
-5. Navigation updates — all `NavigateTo()` calls and `href` attributes include source slug prefix
-6. Single-source redirect — `"/"` redirects to `"/source/{onlySlug}"`
-7. Breadcrumbs show source name as first crumb (when multiple sources)
-8. Unit tests for health transitions, source resolution, navigation URLs
-
-## Key technical notes from Phase 1
-
-- `IMultiSourceDashboardApiClient.GetClientForSource(slug)` returns `IDashboardApiClient` — the same interface all 7 shared components already accept as `[Parameter]`
-- `ISourceRegistry.GetAll()` returns all configured sources, `GetBySlug(slug)` returns a specific source or null
-- `DotNetWorkQueue.IConfiguration` shadows `Microsoft.Extensions.Configuration.IConfiguration` — use `global::` prefix in any new code that references MS config types
-- Use real `FeatureCollection` instead of NSubstitute mocks for `IFeatureCollection` testing
+### Coverage Target
+- New test files: at least 80% line coverage on the target handler
+- Expanded existing tests: lift coverage from current 30-35% toward 70%+

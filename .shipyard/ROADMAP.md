@@ -1,233 +1,188 @@
-# Roadmap: Dashboard UI -- Support Multiple API Sources (issue #96)
+# Roadmap: Code Coverage Improvement
 
 ## Overview
 
-Transform the Dashboard UI from a single-API-source deployment to a multi-source aggregation layer. A single UI instance will connect to N Dashboard API instances, group connections by source, route all operations (read and write) to the correct source, and handle partial failures gracefully.
+Close the most significant code coverage gaps in DotNetWorkQueue through targeted unit tests for job scheduler handlers, in-memory trace instrumentation in CI integration tests, dead code cleanup, and selective Dashboard.Api coverage improvements.
 
-This is a **breaking configuration change**. The flat `DashboardApi:BaseUrl`/`ApiKey` config is replaced by a `DashboardApi:Sources[]` array.
-
-**Total scope:** 1 config model, 1 source registry, 1 multi-source client wrapper, 1 health monitor hosted service, 3 Blazor page rewrites, 1 Home page grouping overhaul, unit tests, integration tests.
+Starting overall coverage: 88.9% line / 73.4% branch.
 
 ## Dependency Graph
 
 ```
-Phase 1  (Config model + multi-source client infrastructure)
+Phase 1  (ObjectPool investigation + in-memory trace exporter)        [COMPLETE]
    |
    v
-Phase 2  (Health monitoring + source-aware page routing)
+Phase 2  (Shared RelationalDatabase job handler unit tests)           [COMPLETE]
    |
    v
-Phase 3  (Home page grouping + partial failure UX + integration tests)
+Phase 3  (Relational transport job handler tests + refactors)        [COMPLETE]
+   |
+   v
+Phase 4  (LiteDb + Redis transport job handler tests)                [COMPLETE]
+   |
+   v
+Phase 5  (Dashboard.Api DashboardExtensions coverage)                [PENDING]
 ```
 
-Strictly sequential: each phase produces the interfaces/services the next phase consumes. No parallelism between phases because they share files (all 3 pages touch the same routing/client plumbing).
+Phase 1 was independent quick wins. Phase 2 preceded Phase 3 because the shared handler test patterns informed the transport-specific work. Phase 4 inherits patterns from Phase 3 but tackles trickier mocking scenarios (concrete LiteDB types, sealed Redis multiplexer). Phase 5 is independent and lowest priority.
 
 ---
 
-## Phase 1: Multi-Source Configuration and Client Infrastructure
+## Phase 1: Quick Wins -- Dead Code Cleanup and Trace Instrumentation [COMPLETE]
 
-**Risk: HIGH** -- This phase redefines the DI registration for the API client, which is the backbone of all UI data access. If the interface contract or source resolution model is wrong, every subsequent phase requires rework. Doing this first surfaces design mistakes before any UI work begins.
+**Risk: LOW** -- ObjectPool investigation was a grep + delete decision. The trace exporter was a single `ActivityListener` registration in the shared test harness.
 
-**Scope:** ~40% of total work. Highest complexity -- new config model, new service interfaces, refactored DI registration, startup validation, in-process source auto-registration.
+### What Was Done
 
-**Depends on:** Nothing (foundation phase).
+1. **ObjectPool dead code deletion** -- Confirmed dead via grep (zero references outside its own 3 files). Deleted `ObjectPool.cs`, `IObjectPool.cs`, `IPooledObject.cs`.
 
-### What Changes
+2. **In-memory trace exporter for CI integration tests** -- Added `ActivityListener` to `ActivitySourceWrapper` in `IntegrationTests.Shared/SharedSetup.cs`. The listener is always-on so trace decorator code paths execute during all integration tests across all 5 transports. Activity collection (the `ConcurrentBag<Activity>`) is opt-in via a `collectActivities` flag. Added a shared `SimpleProducerWithTraceVerification` helper and a Memory transport POC test that asserts a `SendMessage` activity is collected.
 
-1. **Source configuration model** -- `DashboardApiSourceConfig` class with `Name` (string, required), `BaseUrl` (string, required), `ApiKey` (string, optional). Slug derived from Name via deterministic slugify (lowercase, replace spaces/special chars with hyphens, collapse consecutive hyphens).
-
-2. **Source registry** -- `ISourceRegistry` / `SourceRegistry` singleton providing `GetAll()`, `GetBySlug(string)`, `GetByName(string)`. Populated at startup from `DashboardApi:Sources[]` config array. Validates: no duplicate names, no duplicate slugs, at least one source configured.
-
-3. **Multi-source client wrapper** -- `IMultiSourceDashboardApiClient` / `MultiSourceDashboardApiClient` that holds a `Dictionary<string, IDashboardApiClient>` keyed by slug. Provides `GetClientForSource(string slug)` returning the per-source `IDashboardApiClient`. Each per-source client is the existing `DashboardApiClient` wrapping an `HttpClient` with source-specific `BaseAddress` and `X-Api-Key` header. The existing `IDashboardApiClient` interface remains unchanged -- shared tab components continue receiving it as a `[Parameter]`.
-
-4. **Startup config validation** -- In `Program.cs`, detect old flat config format (`DashboardApi:BaseUrl` without `DashboardApi:Sources`) and throw `InvalidOperationException` with clear migration instructions and example JSON showing the new `Sources[]` format.
-
-5. **In-process API auto-registration** -- When `Dashboard:Connections` section exists (self-contained mode), automatically add a source entry with `Name = config["DashboardApi:LocalSourceName"] ?? "Local"`, `BaseUrl = "http://localhost:{port}"` (resolved from Kestrel config or default 5000). This source is added to the registry alongside any external sources.
-
-6. **DI registration refactor** -- Replace `AddHttpClient<IDashboardApiClient, DashboardApiClient>()` with: parse `Sources[]` config, create `ISourceRegistry`, register named `HttpClient` instances per source, register `IMultiSourceDashboardApiClient` as singleton. Keep `IDashboardApiClient` registered (resolving to the first/only source's client) for backward compatibility during this phase.
-
-7. **Unit tests** -- Config validation (valid multi-source, old-format detection, missing required fields, duplicate name rejection), slug generation (spaces, special chars, unicode, empty string), source lookup by slug (found, not found), multi-source client (correct client returned per slug, unknown slug throws).
-
-### Files Touched
-
-- `Source/DotNetWorkQueue.Dashboard.Ui/Services/DashboardApiSourceConfig.cs` (new)
-- `Source/DotNetWorkQueue.Dashboard.Ui/Services/ISourceRegistry.cs` (new)
-- `Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceRegistry.cs` (new)
-- `Source/DotNetWorkQueue.Dashboard.Ui/Services/IMultiSourceDashboardApiClient.cs` (new)
-- `Source/DotNetWorkQueue.Dashboard.Ui/Services/MultiSourceDashboardApiClient.cs` (new)
-- `Source/DotNetWorkQueue.Dashboard.Ui/Program.cs` (config parsing, DI registration, old-format detection)
-- `Source/DotNetWorkQueue.Dashboard.Ui/appsettings.json` (new Sources[] format example)
-
-### Success Criteria
-
-1. `DashboardApiSourceConfig` model exists with Name, BaseUrl, ApiKey properties
-2. `ISourceRegistry` provides `GetAll()`, `GetBySlug()`, `GetByName()` methods
-3. `IMultiSourceDashboardApiClient.GetClientForSource(slug)` returns correct per-source `IDashboardApiClient`
-4. Old flat config (`DashboardApi:BaseUrl` without `Sources`) produces `InvalidOperationException` at startup with migration instructions
-5. In-process API registers as a source named "Local" (or configured name)
-6. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` succeeds with 0 errors
-7. All existing Dashboard API integration tests pass unchanged (API layer untouched)
-8. Unit tests pass for: valid config, old-format detection, slug generation, duplicate rejection, source lookup
+### Outcome
+- ObjectPool deleted (3 files removed)
+- ActivityListener wired (always-on listener, opt-in collection)
+- Memory integration tests: 57/57 pass (including new POC test)
+- 2 CLAUDE.md lessons added (trace coverage requires listener; Metrics.Metrics namespace shadowing)
 
 ---
 
-## Phase 2: Health Monitoring and Source-Aware Page Routing
+## Phase 2: Shared Job Scheduler Handler Unit Tests (Transport.RelationalDatabase) [COMPLETE]
 
-**Risk: MEDIUM** -- Route changes touch all 3 pages and all internal navigation links. The main risk is getting source resolution right in the Blazor page lifecycle. Health monitoring is a standalone hosted service with low coupling.
+**Risk: MEDIUM** -- Handlers follow the Command/Query pattern with injected dependencies. Highest leverage phase since shared handlers serve SqlServer, PostgreSQL, and SQLite.
 
-**Scope:** ~35% of total work. Two workstreams that converge in the pages: health state display and source-aware data loading.
+### What Was Done
 
-**Depends on:** Phase 1 (requires `ISourceRegistry` and `IMultiSourceDashboardApiClient`).
+After research, scope was rescoped:
+- Some originally-targeted handlers (`SetJobLastKnownEvent`, `SendJobToQueue` variants) turned out to NOT exist in `Transport.RelationalDatabase` -- only transport-specific. Those moved to Phase 3.
+- Some originally-targeted handlers already had test files but with low coverage -- those needed expansion, not creation.
 
-### What Changes
+**Plan 2.1: NEW test file** -- `CreateJobTablesCommandHandlerTests.cs` (7 tests)
+**Plan 2.2: NEW test files** -- `GetJobIdQueryHandlerTests.cs` + `GetJobLastKnownEventQueryHandlerTests.cs` (10 tests)
+**Plan 2.3: EXPANDED existing tests** -- `GetDashboardJobs` + `GetDashboardErrorRetries` sync+async (22 new tests across 4 files)
+**Plan 2.4 (post-build simplification):** Extracted shared `AdoNetMockFixture` + `AdoNetAsyncMockFixture` helpers in `RelationalDatabase.Tests/TestHelpers/`. Refactored 7 test files to use them (-81 net lines).
 
-1. **Health monitoring service** -- `ISourceHealthMonitor` / `SourceHealthMonitor` as a background `IHostedService`. Polls each source's `GET /api/v1/dashboard/connections` every 30 seconds with a 5-second `HttpClient` timeout. Caches health state per source: `SourceHealthState` record with `Status` enum (Unknown, Healthy, Unhealthy), `LastChecked` timestamp, `ErrorMessage` string. Thread-safe via `ConcurrentDictionary`. Logs state transitions (healthy-to-unhealthy, unhealthy-to-healthy).
-
-2. **Source-aware page routes** -- Update all 3 page routes to include source slug:
-   - `Home.razor`: `@page "/"` and `@page "/source/{SourceSlug}"` (dual route -- `/` redirects based on source count)
-   - `ConnectionDetail.razor`: `@page "/source/{SourceSlug}/connections/{ConnectionId:guid}"`
-   - `QueueDetail.razor`: `@page "/source/{SourceSlug}/queues/{QueueId:guid}"`
-
-3. **Source resolution in pages** -- Each page resolves the source slug from the route parameter, calls `IMultiSourceDashboardApiClient.GetClientForSource(slug)` to get the per-source `IDashboardApiClient`, and passes it to child components. If slug is invalid, show 404-style error. The `Api` parameter passed to all 7 shared tab components is now the resolved per-source client -- no changes needed in tab components.
-
-4. **Navigation updates** -- All `NavigateTo()` calls and `href` attributes in pages include the source slug prefix. Breadcrumbs show source name as first crumb (when multiple sources configured).
-
-5. **Single-source redirect** -- When only one source is configured, `"/"` redirects to `"/source/{onlySlug}"`. The Home page at `"/source/{slug}"` renders a flat connection list (no grouping) -- identical to current single-source behavior.
-
-6. **Write operation routing** -- All write operations (delete, requeue, reset, cancel, edit body, purge history) already flow through the `IDashboardApiClient` passed as `[Parameter]` to tab components. Since that client is now source-specific, writes automatically route to the correct source with no tab component changes.
-
-7. **Unit tests** -- Health state transitions (Unknown->Healthy, Healthy->Unhealthy, Unhealthy->Healthy), polling timer behavior, source resolution from URL slug, navigation URL generation with source prefix.
-
-### Files Touched
-
-- `Source/DotNetWorkQueue.Dashboard.Ui/Services/ISourceHealthMonitor.cs` (new)
-- `Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceHealthMonitor.cs` (new)
-- `Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceHealthState.cs` (new)
-- `Source/DotNetWorkQueue.Dashboard.Ui/Components/Pages/Home.razor` (route, source resolution, single-source redirect)
-- `Source/DotNetWorkQueue.Dashboard.Ui/Components/Pages/ConnectionDetail.razor` (route, source resolution, navigation)
-- `Source/DotNetWorkQueue.Dashboard.Ui/Components/Pages/QueueDetail.razor` (route, source resolution, breadcrumbs, navigation)
-- `Source/DotNetWorkQueue.Dashboard.Ui/Program.cs` (register health monitor hosted service)
-
-### Success Criteria
-
-1. `ISourceHealthMonitor.GetHealth(slug)` returns `SourceHealthState` with status, timestamp, error
-2. Background service polls all sources every 30s with 5s timeout
-3. Health state transitions logged at Information level
-4. All page routes include `{SourceSlug}` parameter
-5. Single-source: `"/"` redirects to `"/source/{slug}"`, flat connection list shown
-6. All write operations route to the correct source (verified by source slug in URL)
-7. Source slug never exposes BaseUrl or ApiKey in any URL or rendered HTML
-8. Breadcrumbs include source name as first crumb (multi-source) or omit it (single-source)
-9. All 7 shared tab components work unchanged (receive per-source `IDashboardApiClient` via `[Parameter]`)
-10. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` succeeds with 0 errors
-11. Unit tests pass for health transitions, source resolution, navigation URLs
+### Outcome
+- 39 new tests across 7 files
+- Test project total: 216/216 passing
+- 3 CLAUDE.md lessons added (sync vs async handler mocking, MSTest 3.x ThrowsExactly + obj/bin cache, no CancellationToken on dashboard async handlers)
 
 ---
 
-## Phase 3: Home Page Grouping, Partial Failure UX, and Integration Tests
+## Phase 3: Relational Transport Job Handler Tests + Refactors [COMPLETE]
 
-**Risk: LOW** -- By this phase, the infrastructure is proven. This is UI polish (MudBlazor grouping components) and test coverage. The main risk is MudBlazor's `MudExpansionPanels` behavior, which is well-documented.
+**Risk: MEDIUM** -- Required production code refactors to enable unit testing. Scope was reduced from the original "LiteDb + Redis" plan after research found those transports need bigger refactors (deferred to Phase 4).
 
-**Scope:** ~25% of total work. UI refinement and comprehensive testing.
+### What Was Done
 
-**Depends on:** Phase 2 (requires source-aware routing + health monitoring).
+After research, this phase was rescoped to relational transports (SqlServer/PostgreSQL/SQLite) because:
+- LiteDb handlers use concrete `LiteDatabase` (sealed) -- need in-memory LiteDB tests, more complex
+- Redis Lua handlers use sealed `IConnectionMultiplexer` -- need a `BaseLua.GetDb()` seam refactor
+- Some relational handlers (`SetJobLastKnownEvent`) hardcoded `new SqlConnection()` / `new NpgsqlConnection()` and needed `IDbConnectionFactory` injection before they could be unit tested
 
-### What Changes
+**Wave 1 -- Production refactors:**
+- Plan 1.1: Refactored `SqlServer SetJobLastKnownEventCommandHandler` to inject `IDbConnectionFactory`
+- Plan 1.2: Refactored `PostgreSQL SetJobLastKnownEventCommandHandler` to inject `IDbConnectionFactory` (re-refactored mid-phase to drop a sealed `NpgsqlConnection` cast)
 
-1. **Home page grouped display** -- When multiple sources are configured, the Home page fetches connections from all sources in parallel (via `IMultiSourceDashboardApiClient`). Displays connections grouped under collapsible `MudExpansionPanel` headers per source. Each header shows: source name, health indicator (green/red `MudIcon`), connection count. Panels are expanded by default.
+**Wave 2 -- New tests (8 plans):**
+- Plans 2.1-2.3: JobSchema tests for SqlServer, PostgreSQL, SQLite (13 tests)
+- Plans 2.4-2.6: SendJobToQueue tests for SqlServer, PostgreSQL, SQLite (15 tests)
+- Plans 2.7-2.8: SetJobLastKnownEvent tests for SqlServer, PostgreSQL (13 tests)
 
-2. **Single-source display** -- When only one source is configured, render the flat connection table (no expansion panel, no source header). Visually identical to current behavior.
+### Outcome
+- 41 new tests across 8 new test files
+- 2 production handler refactors
+- 2 CLAUDE.md lessons added (sealed transport types break NSubstitute; IDbConnectionFactory injection is the test seam)
 
-3. **Offline source display** -- Sources with `SourceHealthState.Status == Unhealthy` show their panel header with a `MudAlert Severity.Warning` reading "Source unreachable" and a "Retry" button. Retry triggers a fresh `GetConnectionsAsync()` for that source only. Connections from healthy sources are unaffected.
+---
 
-4. **Partial request failure** -- If a source was healthy at poll time but fails when the Home page calls `GetConnectionsAsync()`, catch the exception per-source and show an inline `MudAlert Severity.Error` in that source's section with the error message. Other sources' data renders normally.
+## Phase 4: LiteDb + Redis Transport Job Handler Tests [COMPLETE]
 
-5. **Integration tests** -- New test class(es) in the existing `DotNetWorkQueue.Dashboard.Api.Integration.Tests` project (or a new UI integration test project if needed). Use `DashboardTestServer` to spin up 2-3 real Memory-transport API instances. Test:
-   - Multi-source connection listing returns connections from all sources
-   - Source attribution: connections from Source A are grouped under Source A
-   - Write operation routing: delete/requeue on Source A's queue calls Source A's API
-   - Health monitoring: dispose one `DashboardTestServer`, verify health state transitions to Unhealthy
-   - Partial failure: one source offline, other source's connections still load
+**Risk: HIGH (as planned)** -- Cleared without retries. All 10 plans passed review on first dispatch despite the phase containing the project's trickiest mocking scenarios.
 
-6. **Verify existing tests** -- Run all 38+ existing Dashboard API integration tests to confirm no regressions. These test each API instance independently and should pass unchanged since the API layer has no modifications.
+**Depends on:** Phase 3 (test patterns established for relational transports).
 
-### Files Touched
+### What Was Done
 
-- `Source/DotNetWorkQueue.Dashboard.Ui/Components/Pages/Home.razor` (grouped display, partial failure UX)
-- `Source/DotNetWorkQueue.Dashboard.Ui/Models/SourceConnectionGroup.cs` (new -- view model for grouped display)
-- Integration test files (new test classes for multi-source scenarios)
+**Wave 1 -- Production seam refactors (2 plans, orchestrator-direct):**
+- Plan 1.1: `BaseLua.TryExecute(object)` and `TryExecuteAsync(object)` made `virtual` to enable testable-subclass override. Commit `c7a9dd80`.
+- Plan 1.2: `RedisJobQueueCreation` constructor loosened from concrete `RedisQueueCreation` to `IQueueCreation` interface (existing public type, already implemented by `RedisQueueCreation`). Added `Guard.NotNull`. Commit `336b0c91`.
+
+**Wave 2 -- LiteDb tests (5 plans):**
+- Plan 2.1 `SetJobLastKnownEventCommandHandler`: 4 tests, commit `05d31843`
+- Plan 2.2 `LiteDbSendJobToQueue`: 5 tests, commit `222de596` *(partial scope: `DoesJobExist` deferred to integration — covered by `LiteDB.Linq.Integration.Tests/JobScheduler/`)*
+- Plan 2.3 `GetJobIdQueryHandler`: 7 tests, commit `f36b6095`
+- Plan 2.4 `RollbackMessageCommandHandler`: 6 tests (constructor null-guards; Handle() deferred to integration — covered by `LiteDB.IntegrationTests/Consumer*`), commit `fd4b40b6`
+- Plan 2.5 `DashboardUpdateMessageBodyCommandHandler` expansion: 6 new tests (9 total), commit `9cbbc714`
+
+**Wave 3 -- Redis tests (3 plans):**
+- Plan 3.1 `RedisJobQueueCreation`: 5 tests, commit `d28f62f7`
+- Plan 3.2 `DoesJobExistLua`: 7 tests, commit `9de5d9c2`
+- Plan 3.3 `DashboardUpdateMessageBodyLua`: 6 tests, commit `6f932db7`
+
+**Totals:** 46 new/expanded unit tests across 8 test files. LiteDb.Tests: 166/166 passing. Redis.Tests: 190/190 passing. Full-solution Debug build: 0 errors, 2 pre-existing obsolete-API warnings unrelated to Phase 4.
+
+### Outcomes vs Success Criteria
+
+| Criterion | Result |
+|---|---|
+| LiteDb handlers ≥70% line coverage | Met for SetJobLastKnownEvent, GetJobIdQueryHandler, DashboardUpdateMessageBody. Partial for LiteDbSendJobToQueue + RollbackMessageCommandHandler (deferred paths have real integration coverage). |
+| Redis handlers ≥70% line coverage | Met for all three (`RedisJobQueueCreation`, `DoesJobExistLua`, `DashboardUpdateMessageBodyLua`). |
+| `BaseLua` seam minimal | Met -- added `virtual` keyword only, no behavioral change. |
+| Tests added to existing test projects | Met -- no new test projects created. |
+| No new external service dependencies | Met -- all tests run without Redis or real LiteDb files. |
+| Existing tests continue to pass | Met -- 0 regressions. |
+
+### Artifacts
+- `.shipyard/phases/4/VERIFICATION.md` — phase verification report
+- `.shipyard/phases/4/results/AUDIT-4.md` — security audit (CLEAN)
+- `.shipyard/phases/4/results/SIMPLIFICATION-4.md` — simplification review (1 minor finding acknowledged via comment, others deferred)
+- `.shipyard/phases/4/results/DOCUMENTATION-4.md` — documentation review (3 lessons added to CLAUDE.md)
+- `.shipyard/phases/4/results/SUMMARY-{1.1…3.3}.md` — per-plan build summaries
+
+---
+
+## Phase 5: Dashboard.Api DashboardExtensions Coverage (Lower Priority) [COMPLETE]
+
+**Risk: LOW** -- DI/startup wiring. Untested branches are configuration overloads and conditional registrations. Coverage improvement is opportunistic.
+
+**Depends on:** Nothing (independent).
+
+### Scope
+
+1. **Audit `DashboardExtensions`** (33.3% / 366 lines, 244 uncovered) -- Identify which untested branches represent real configuration scenarios vs. dead overloads
+2. **Add integration tests** in `DotNetWorkQueue.Dashboard.Api.Integration.Tests` with different configuration combinations
+3. **Accept residual gaps** -- Some DI registration overloads exist for API surface completeness but are never called in practice
 
 ### Success Criteria
-
-1. Multiple sources: Home page groups connections under collapsible panels with health indicators
-2. Single source: flat list identical to current behavior (no panel/header visible)
-3. Offline source: panel shown with "Source unreachable" warning and Retry button
-4. Request failure on healthy source: inline error in that source's section, other sources unaffected
-5. Integration test: 2+ Memory API instances, grouped listing verified
-6. Integration test: write operations route to correct source instance
-7. Integration test: source taken offline, health state transitions to Unhealthy
-8. All 38+ existing Dashboard API integration tests pass unchanged
-9. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` -- 0 errors
-10. `dotnet build "Source/DotNetWorkQueue.sln" -c Release` -- 0 errors, 0 warnings
-11. No secrets (BaseUrl, ApiKey) leak into URLs or client-rendered HTML
+1. `DashboardExtensions` line coverage improved to at least 50% (up from 33.3%)
+2. Any dead/unreachable overloads identified and documented (or deleted if clearly unused)
+3. All existing Dashboard API integration tests pass unchanged
+4. New tests use Memory transport (no external services needed)
 
 ---
 
 ## Phase Summary
 
-| Phase | Name | Risk | Depends On | Key Deliverable |
-|-------|------|------|------------|-----------------|
-| 1 | Multi-Source Config & Client Infrastructure | High | -- | Source registry, multi-source client, config validation |
-| 2 | Health Monitoring & Source-Aware Routing | Medium | Phase 1 | Background health polling, all pages route by source |
-| 3 | Home Page Grouping, Partial Failure & Integration Tests | Low | Phase 2 | Grouped UI, graceful degradation, end-to-end tests |
+| Phase | Name | Status | Risk | Tests Added |
+|-------|------|--------|------|-------------|
+| 1 | Quick Wins: Dead Code + Trace | COMPLETE | Low | 1 POC + cascade for all transports |
+| 2 | Shared Job Handler Unit Tests | COMPLETE | Medium | 39 |
+| 3 | Relational Transport Job Handlers + Refactors | COMPLETE | Medium | 41 |
+| 4 | LiteDb + Redis Job Handler Tests | COMPLETE | High | ~30 |
+| 5 | Dashboard.Api DashboardExtensions | COMPLETE | Low | 19 (4 files: 3 unit + 1 integration) |
 
-## Design Decisions
+## Cumulative Outcomes (Phases 1-3)
 
-### Why `GetClientForSource(slug)` instead of adding source parameter to every IDashboardApiClient method
+- **80+ new unit tests** added across the test suite
+- **2 production handler refactors** (SqlServer + PostgreSQL SetJobLastKnownEvent now use IDbConnectionFactory)
+- **3 dead code files deleted** (ObjectPool family)
+- **Trace coverage cascade** -- ActivityListener in shared test harness automatically covers TraceExtensions across all 5 transports during integration tests
+- **`AdoNetMockFixture` + `AdoNetAsyncMockFixture` helpers** in RelationalDatabase.Tests for shared mock scaffolding
+- **7 CLAUDE.md lessons learned** added
 
-The existing `IDashboardApiClient` interface has 26 methods. Adding a source parameter to every method would be a massive breaking change across all 7 shared tab components and 3 pages. Instead:
-- `IMultiSourceDashboardApiClient.GetClientForSource(slug)` returns an `IDashboardApiClient` scoped to one source
-- All 7 shared tab components (`MessagesTab`, `ErrorsTab`, `StaleTab`, `HistoryTab`, `ConfigTab`, `ConsumersTab`, `MessageDetailDrawer`) continue receiving `IDashboardApiClient` as a `[Parameter]` -- zero changes needed
-- Only the 3 page-level components resolve the source from the URL slug and pass the correct per-source client down
-- The existing `DashboardApiClient` class remains unchanged -- each instance wraps a different `HttpClient` with a different `BaseAddress`
+## Execution Order (remaining)
 
-### Why slugs instead of IDs
-
-Source names are user-friendly ("Production SQL Server") while slugs are URL-friendly ("production-sql-server"). Slugs are derived deterministically from names, so they are stable across restarts. Using GUIDs would require users to know opaque IDs. Slugs never expose BaseUrl or ApiKey in URLs.
-
-### Why background health polling instead of per-request checks
-
-Per-request health checks would add latency to every page load and create cascading timeouts when sources are down. Background polling (30-second interval, 5-second timeout) means page loads are instant -- they read cached health state. The trade-off is up to 30 seconds of stale health data, which is acceptable for a monitoring dashboard.
-
-### Why breaking config change without backward compatibility
-
-Supporting both old flat format and new `Sources[]` format permanently would add complexity for a temporary migration convenience. A clear startup error with migration instructions and example JSON is the cleanest path. The dashboard feature is still in active development -- shipping a clean config model now avoids technical debt.
-
-### Why strictly sequential phases (no parallelism)
-
-All 3 Blazor pages (`Home.razor`, `ConnectionDetail.razor`, `QueueDetail.razor`) are modified in both Phase 2 and Phase 3. Parallelizing would create merge conflicts in these files. Additionally, Phase 2's routing changes must be complete before Phase 3's grouped display can work -- the Home page grouping depends on source-aware data fetching.
-
-## Risk Summary
-
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| Multi-source client interface wrong | Medium | Critical | Phase 1 is highest risk, done first. Build + test before any UI work. |
-| Slug collisions (two names produce same slug) | Low | High | Startup validation rejects duplicate slugs with clear error. |
-| Blazor page lifecycle issues with source resolution | Medium | Medium | Use `OnParametersSetAsync` (not `OnInitializedAsync`) for route parameter changes. |
-| In-process source BaseUrl wrong (port mismatch) | Medium | Medium | Use `IServer` to resolve actual listen address at startup. Fallback to config. |
-| Health polling storm with many sources | Low | Low | Sequential polling per source within each timer tick. 5s timeout per source. |
-| MudBlazor expansion panel styling issues | Low | Low | Well-documented component. Fallback to manual `if/else` sections if needed. |
-
-## Execution Order
-
-| Wave | Phase | Notes |
-|------|-------|-------|
-| 1 | Phase 1 | Foundation: config model, source registry, multi-source client, DI |
-| 2 | Phase 2 | Health monitoring + all page routing changes |
-| 3 | Phase 3 | UI grouping polish + integration test coverage |
-
-**Estimated plans per phase:**
-- Phase 1: 2-3 plans (config model + registry in plan 1, multi-source client + DI in plan 2, unit tests in plan 3 or merged)
-- Phase 2: 2-3 plans (health monitor in plan 1, page routing in plan 2, unit tests in plan 3 or merged)
-- Phase 3: 2 plans (Home page grouping + partial failure in plan 1, integration tests in plan 2)
-- **Total: 6-8 plans**
+| Phase | Notes |
+|------|-------|
+| 4 | LiteDb + Redis: in-memory LiteDB instances, BaseLua seam refactor, 3-wave structure recommended |
+| 5 | Opportunistic: DashboardExtensions if time permits |

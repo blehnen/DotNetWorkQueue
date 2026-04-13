@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using DotNetWorkQueue.Configuration;
@@ -152,7 +153,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             configuration.MessageError.MonitorTime = TimeSpan.FromSeconds(5);
         }
 
-        public static ActivitySourceWrapper CreateTrace(string name)
+        public static ActivitySourceWrapper CreateTrace(string name, bool collectActivities = false)
         {
             var traceName = TraceSettings.TraceName(name);
             if (TraceSettings.Enabled)
@@ -177,15 +178,33 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                     })
                     .Build();
             }
-            return new ActivitySourceWrapper(new ActivitySource(traceName));
+            return new ActivitySourceWrapper(new ActivitySource(traceName), collectActivities);
         }
     }
 
     public class ActivitySourceWrapper : IDisposable
     {
-        public ActivitySourceWrapper(ActivitySource source)
+        private readonly ActivityListener _listener;
+
+        public ActivitySourceWrapper(ActivitySource source, bool collectActivities = false)
         {
             Source = source;
+
+            // Listener is ALWAYS registered so trace decorator code paths execute
+            // during integration tests (preserves the TraceExtensions coverage cascade).
+            // Only the ActivityStarted callback (which populates CollectedActivities) is
+            // gated by collectActivities to avoid ConcurrentBag overhead when tests
+            // don't actually inspect the collected spans.
+            _listener = new ActivityListener
+            {
+                ShouldListenTo = s => s.Name == source.Name,
+                Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded
+            };
+            if (collectActivities)
+            {
+                _listener.ActivityStarted = activity => CollectedActivities.Add(activity);
+            }
+            ActivitySource.AddActivityListener(_listener);
         }
 
         public ActivitySource Source
@@ -193,8 +212,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             get;
         }
 
+        public ConcurrentBag<Activity> CollectedActivities { get; } = new();
+
         public void Dispose()
         {
+            _listener?.Dispose();
             Source?.Dispose();
 
             //if jaeger is using udp, sometimes the messages get lost; there doesn't seem to be a flush() call ?

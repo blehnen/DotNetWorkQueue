@@ -1,36 +1,51 @@
-# Plan Critique: Phase 3
+# Phase 3 Plan Critique
 
-## Verdict: CAUTION
+## Verifier Output Status
+The verifier agent inspected files but did not produce a written critique file. Verbal findings recovered from agent output are summarized below.
 
-## Coverage Matrix
+## Per-Plan Findings (orchestrator + partial verifier)
 
-| Criterion | Plan/Task | Status |
-|-----------|-----------|--------|
-| 1. Grouped connections under panels | PLAN-1.1 Task 2 | Covered |
-| 2. Single source flat list | PLAN-1.1 Task 2 | Covered (preserved from Phase 2) |
-| 3. Offline source warning + Retry | PLAN-1.1 Task 2 | Covered |
-| 4. Per-source error, others unaffected | PLAN-1.1 Task 2 | Covered |
-| 5. Integration: 2+ Memory instances | PLAN-1.2 Task 1 | Covered |
-| 6. Integration: write routing | PLAN-1.2 Task 1 | Covered |
-| 7. Integration: offline health transitions | PLAN-1.2 Task 2 | Covered |
-| 8. Existing 38+ tests pass | PLAN-1.2 Task 3 | Covered |
-| 9. Debug build 0 errors | Both plans verification | Covered |
-| 10. Release build 0 errors 0 warnings | PLAN-1.1 verification | Covered |
-| 11. No secrets in URLs/HTML | PLAN-1.1 (inherited from Phase 2) | Covered |
+### Wave 1 - Refactors
 
-## Per-Plan Findings
+#### PLAN-1.1 (SqlServer SetJobLastKnownEvent refactor)
+- **File exists:** `Source/DotNetWorkQueue.Transport.SqlServer/Basic/CommandHandler/SetJobLastKnownEventCommandHandler.cs` -- CONFIRMED (orchestrator read it earlier)
+- **Hardcoded connection confirmed** at line 56: `new SqlConnection(_connectionInformation.ConnectionString)`
+- **Risk: MEDIUM** -- DI registration update needed; builder must find and update the registration
+- **Caution:** Builder should grep for `SetJobLastKnownEventCommandHandler` registrations to find all callsites
 
-### PLAN-1.1: SourceConnectionGroup + Home.razor
-- **File paths:** Home.razor exists, Services/ directory exists for new model. PASS.
-- **API surface:** `IMultiSourceDashboardApiClient.GetAllSources()`, `GetClientForSource()`, `ISourceHealthMonitor.GetHealth()` all confirmed. PASS.
-- **No conflicts with PLAN-1.2:** PLAN-1.1 touches Home.razor + new model file. PLAN-1.2 touches new test files only. PASS.
-- **Complexity:** PLAN-1.1 Task 2 (Home.razor rewrite) is large — the multi-source grouped display with parallel loading, error handling, retry, and expansion panels is significant. HIGH RISK but manageable.
+#### PLAN-1.2 (PostgreSQL SetJobLastKnownEvent refactor)
+- **File exists:** `Source/DotNetWorkQueue.Transport.PostgreSQL/Basic/CommandHandler/SetJobLastKnownEventCommandHandler.cs` -- CONFIRMED
+- **Hardcoded connection confirmed** at line 51: `new NpgsqlConnection(_connectionInformation.ConnectionString)`
+- **Risk: MEDIUM** -- same as Plan 1.1
 
-### PLAN-1.2: Integration Tests
-- **CAUTION: DashboardTestServer API** — Integration tests use `DashboardTestServer.CreateAsync(configure)` with Memory transport. The builder must verify the exact `DashboardOptions.AddConnection` API and Memory transport namespace/class names before writing test code. Existing tests (e.g., `MemoryEndpointTests.cs`) should be used as reference.
-- **CAUTION: MessageQueueCreation** — The plan may reference queue creation APIs that need verification. Builder should read existing Memory tests first.
-- **File paths:** `Dashboard.Api.Integration.Tests/Tests/` directory exists. PASS.
+### Wave 2 - Tests
 
-## Proceed with Awareness
-- PLAN-1.1 Task 2 is the riskiest — large Home.razor rewrite with parallel async operations
-- PLAN-1.2 needs careful reference to existing integration test patterns
+#### PLAN-2.1 / 2.2 / 2.3 (JobSchema tests for SqlServer / PostgreSQL / SQLite)
+- **SqlServerJobSchema confirmed:** Pure schema definition, takes `(TableNameHelper tableNameHelper, ISqlSchema schema)`. `GetSchema()` returns `List<ITable>`. Fully testable with NSubstitute.
+- **PostgreSQLJobSchema and SqliteJobSchema:** Architect's plans say "READ THE SOURCE FIRST" -- builders will inspect before testing. Reasonable.
+- **Risk: LOW** -- additive tests, no production code changes
+
+#### PLAN-2.4 / 2.5 / 2.6 (SendJobToQueue tests)
+- **SqlServerSendJobToQueue confirmed:** Inherits `ASendJobToQueue`, takes 6 injected deps, no hardcoded connections. Testable with NSubstitute.
+- **PostgreSQLSendJobToQueue and SqliteSendToJobQueue:** Architect's plans say "READ THE SOURCE FIRST" -- builders will verify pattern.
+- **Risk: LOW-MEDIUM** -- depends on whether these other transports follow the same pattern. If they hardcode connections like SetJobLastKnownEvent does, the plan will need to refactor first. Builders should fail-fast if they hit this.
+
+#### PLAN-2.7 / 2.8 (SetJobLastKnownEvent tests, depend on Wave 1)
+- **Wave dependency confirmed:** These tests target the refactored handlers (after IDbConnectionFactory injection)
+- **AdoNetMockFixture in RelationalDatabase.Tests:** Architect's recommendation to NOT add cross-project reference is sound -- inline mocks are simpler. SQLite already has a similar test (`Source/DotNetWorkQueue.Transport.SQLite.Tests/Basic/CommandHandler/SetJobLastKnownEventCommandHandlerTests.cs`) that can be used as a template.
+- **Risk: MEDIUM** -- success depends on Wave 1 refactor being correct
+
+## Cross-Plan Concerns
+
+1. **No file conflicts within Wave 2** -- each plan touches a different test file in a different transport project. Parallel-safe.
+
+2. **Wave dependency 1.1 -> 2.7 and 1.2 -> 2.8** -- correctly captured in plan dependencies. Wave 2 plans 2.7/2.8 must wait for Wave 1.
+
+3. **Plans 2.1-2.6 are independent of Wave 1** -- these don't touch the SetJobLastKnownEvent handlers. Could technically run in Wave 1 alongside refactors, but architect kept them in Wave 2 for simplicity.
+
+## Verdict: **CAUTION**
+
+Proceed with awareness:
+- Builders for plans 2.4/2.5/2.6 must verify the SendJobToQueue handlers follow the testable pattern. If they don't (e.g., PostgreSQL hardcodes its own connection), the plan should fail-fast and report so we can refactor first or defer.
+- Builders for plans 2.7/2.8 must use the SQLite SetJobLastKnownEventCommandHandlerTests as a structural reference.
+- Phase 2 lockup pattern: builders may fail to commit/write summaries. Orchestrator should be prepared to commit and write summary files post-hoc.

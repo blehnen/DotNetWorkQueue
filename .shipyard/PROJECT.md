@@ -1,118 +1,76 @@
-# Project: Dashboard UI — Support Multiple API Sources (issue #96)
+# Project: Code Coverage Improvement
 
 ## Description
 
-The Dashboard UI currently connects to a single API instance (either in-process or one external `DashboardApi:BaseUrl`). This forces users with queues on multiple machines to run separate dashboard UIs for each. For example, a SQLite queue on one machine can't share its `.db3` file over a network — it needs a local API instance — while Redis and SQL Server queues are accessed from a central API.
+Close the most significant code coverage gaps in DotNetWorkQueue by adding targeted unit tests for job scheduler handlers, enabling trace instrumentation in CI integration tests, and cleaning up dead code. The approach favors integration-test-friendly patterns but uses unit tests where integration tests are impractical (CI timing issues, DI wiring).
 
-This project adds multi-source support to the Dashboard UI, allowing a single UI deployment to aggregate queues from multiple Dashboard API instances. The UI handles connection routing and display aggregation, while each API instance retains full ownership of its transport logic. This is a breaking configuration change.
+Current overall coverage: 88.9% line / 73.4% branch. The goal is not a specific number but to close obvious gaps in under-tested areas.
 
 ## Goals
 
-1. Allow the Dashboard UI to connect to multiple Dashboard API sources from a single deployment
-2. Add per-source configuration (name, baseUrl, apiKey) via a `Sources[]` array in config
-3. Route all API calls (reads and writes) to the correct source based on URL context
-4. Show source health/reachability status via background polling
-5. Group connections by source on the Home page (hidden when only one source)
-6. Treat in-process API as just another source (no special code path)
-7. Maintain full read + write operations across all sources
+1. Unit test the shared job scheduler command/query handlers in `Transport.RelationalDatabase` and transport-specific variants in LiteDb and Redis
+2. Enable in-memory trace exporting in CI integration tests so existing test runs cover `TraceExtensions` code paths across all transports
+3. Investigate `ObjectPool` in core -- if it's dead code from dynamic LINQ removal, delete it
+4. Improve `Dashboard.Api` `DashboardExtensions` branch coverage where practical
 
 ## Non-Goals
 
-- Changing the Dashboard API contract or transport logic — each API instance stays as-is
-- Adding a proxy/gateway layer in the API — aggregation lives in the UI
-- Cross-source operations (e.g., moving a message from one source to another)
-- Source discovery or auto-detection — sources are explicitly configured
-- New transport support — this is purely a UI aggregation feature
+- Dashboard.Ui Blazor component testing (needs bUnit/Playwright infrastructure -- separate effort)
+- Fixing job scheduler integration test CI timing issues (separate effort)
+- Achieving a specific coverage percentage target
+- Writing tests for DI/startup wiring overloads that aren't worth chasing
 
 ## Requirements
 
-### Configuration
+### Workstream 1: Job Scheduler Handler Unit Tests
 
-- Replace flat `DashboardApi:BaseUrl` / `ApiKey` with `DashboardApi:Sources[]` array
-- Each source has: `Name` (string), `BaseUrl` (string), `ApiKey` (string, optional)
-- Breaking change: old flat config format is no longer supported
-- Startup validation detects old config format and throws a clear error message with migration instructions and example JSON
-- In-process API (when `Dashboard:Connections` exists) registers as a source automatically (name configurable, defaults to "Local")
+- Test shared handlers in `Transport.RelationalDatabase`: `SetJobLastKnownEventCommandHandler`, `CreateJobTablesCommandHandler`, `GetJobIdQueryHandler`, `SendJobToQueue` logic
+- Test shared handlers in `Transport.Shared` if applicable
+- Test transport-specific handlers for LiteDb (custom job handlers) and Redis (Lua-based job handlers)
+- Use mocked data access -- no real databases, no timing sensitivity
+- Follow existing test conventions: MSTest 3.x, NSubstitute, AutoFixture, FluentAssertions 6.12.2
+- Cover `GetDashboardErrorRetriesQueryHandlerAsync` and `GetDashboardJobsQueryHandlerAsync` where below 40%
 
-### Source-Aware Routing
+### Workstream 2: In-Memory Trace Exporter for CI Integration Tests
 
-- All Blazor page URLs include source context: `/source/{sourceSlug}/connection/{id}/queue/{queueId}`
-- Source slug is derived from the configured `Name` (slugified) — never exposes BaseUrl or ApiKey
-- `DashboardApiClient` methods accept a source identifier and resolve it internally to BaseUrl + credentials
-- Write operations (delete, requeue, reset, cancel) route through the same source-aware path as reads
+- Add `System.Diagnostics.ActivityListener` or OpenTelemetry `InMemoryExporter` to the integration test harness
+- Existing integration tests already exercise traced code paths -- enabling a listener covers `TraceExtensions` automatically
+- Target assemblies: SqlServer, PostgreSQL, SQLite, Redis, LiteDb (all have `TraceExtensions` at 0%)
+- No network calls to Jaeger/external collectors -- in-memory only
+- Must not slow down CI pipeline meaningfully
 
-### Health Monitoring
+### Workstream 3: ObjectPool Dead Code Investigation
 
-- A background hosted service polls each source on a timer (e.g., every 30 seconds)
-- Polling calls `GET /api/v1/dashboard/connections` with a short timeout
-- Health state cached in memory: reachable, unreachable, last-checked timestamp
-- UI reads cached health state — page loads never block on health checks
+- Determine whether `ObjectPool` in core DotNetWorkQueue is still referenced
+- If dead code from dynamic LINQ removal: delete it entirely (prefer compile errors over test coverage of unused code)
+- If still used: add unit tests
 
-### Home Page — Grouped by Source
+### Workstream 4: Dashboard.Api DashboardExtensions (Lower Priority)
 
-- Multiple sources: connections grouped under collapsible source name headers with health indicator
-- Single source: group header hidden, flat list identical to current behavior
-- Offline sources: group header shown with "Source unreachable" warning and retry button
-
-### Partial Failure Handling
-
-- Display data from healthy sources normally
-- Offline sources show their group/section with an inline warning — no blocking, no spinners
-- If a source was healthy at poll time but fails on a specific request, show an error in that source's section
-- Other sources remain fully functional and unaffected
-
-### Backwards Compatibility
-
-- This is a **breaking config change** — old flat `BaseUrl`/`ApiKey` format is removed
-- Startup detection of old config produces a clear, actionable error message with the new format example
-- All existing API endpoints, controllers, and transport logic remain unchanged
-- Single-source deployments work identically to today (just wrapped in `Sources[]` array)
+- Identify which untested branches in `DashboardExtensions` represent real configuration scenarios
+- Add integration tests with different configuration combinations where practical
+- Accept that some DI registration overloads may not be worth testing
 
 ## Non-Functional Requirements
 
-- Page loads must not block on unhealthy sources — background polling handles health
-- Source credentials (BaseUrl, ApiKey) must never appear in URLs, HTML, or client-side state
-- All existing Dashboard API integration tests must continue to pass unchanged
-- Solution must build cleanly on net10.0 and net8.0 in Debug and Release configurations
+- All new tests must pass in CI (GitHub Actions + Jenkins)
+- No new external service dependencies for CI
+- No changes to existing test behavior or existing coverage
+- New unit test projects (if needed) must be added to the solution and CI pipeline
 
 ## Success Criteria
 
-1. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` — 0 errors
-2. `dotnet build "Source/DotNetWorkQueue.sln" -c Release` — 0 errors, 0 warnings
-3. Dashboard UI connects to 2+ configured sources and displays connections grouped by source
-4. Write operations (delete, requeue, reset, cancel) route correctly to the owning source
-5. An offline source shows as unreachable without blocking other sources
-6. Old flat config format produces a clear startup error with migration instructions
-7. Single-source config renders identically to current behavior (no group header)
-8. In-process API works as a source alongside external sources
-9. No secrets (BaseUrl, ApiKey) leak into URLs or client-rendered HTML
-10. All existing Dashboard API integration tests pass without modification
-
-## Testing Strategy
-
-### Unit Tests (mocked HTTP handlers)
-- `DashboardApiClient` multi-source aggregation logic
-- Source routing: correct source receives each request
-- Partial failure: 2 of 3 sources respond, UI shows available data + error for failed source
-- Timeout handling: slow source doesn't block others
-- Health polling: state transitions (healthy → unhealthy → healthy)
-- Config validation: old format detection, missing required fields
-
-### Integration Tests (Memory transport)
-- Spin up 2-3 real API instances using Memory transport (no external services)
-- Verify end-to-end: grouped connection listing, correct source attribution
-- Write operations routed to correct source instance
-- Health monitoring with simulated source failure
-
-### Existing Transport Integration Tests
-- All 38 existing Dashboard API integration test classes (Memory, SQLite, LiteDb, Redis, SqlServer, PostgreSQL) must pass unchanged
-- These validate each API instance independently — no changes needed unless API contract changes
-- If API response shape changes, run full transport integration suite to catch divergence
+1. Job scheduler handlers in `Transport.RelationalDatabase` have unit test coverage above 80%
+2. LiteDb and Redis custom job handlers have targeted unit tests
+3. `TraceExtensions` across all transports show non-zero coverage after CI integration test run
+4. `ObjectPool` is either deleted (if dead) or tested (if live)
+5. All existing tests continue to pass
+6. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` -- 0 errors
+7. `dotnet build "Source/DotNetWorkQueue.sln" -c Release` -- 0 errors, 0 warnings
 
 ## Constraints
 
-- Breaking configuration change — requires documentation and clear migration error
-- UI-side aggregation only — no API gateway/proxy layer
-- Each Dashboard API instance is standalone and unmodified
-- Transport-specific logic stays entirely within the API layer
-- Blazor Server (server-side rendering) — all HTTP calls are server-side C#
+- Job scheduler integration tests remain disabled in CI due to timing issues -- do not attempt to fix that here
+- FluentAssertions pinned to 6.12.2 (last MIT version)
+- Must work on net10.0 and net8.0
+- Dashboard.Ui coverage improvement is out of scope

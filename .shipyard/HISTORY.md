@@ -679,3 +679,83 @@
 - [2026-04-09T15:31:54Z] Session ended during build (may need /shipyard:resume)
 - [2026-04-09T18:03:51Z] Session ended during build (may need /shipyard:resume)
 - [2026-04-09T18:03:57Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-12T23:08:28Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T13:47:58Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T13:49:52Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T13:50:59Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T14:06:21Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T14:10:47Z] Session ended during build (may need /shipyard:resume)
+
+## 2026-04-13 — Phase 4 Build Complete (Code Coverage roadmap)
+
+- **Action:** `/shipyard:resume` → `/shipyard:build 4` (resumed post-build pipeline from handoff)
+- **Scope:** LiteDb + Redis transport job handler tests + 2 production seam refactors
+- **Plans executed:** 10/10 (1.1, 1.2, 2.1–2.5, 3.1–3.3). All green on first dispatch, 0 review retries.
+- **Commits (pre-resume, from earlier session):**
+  - `c7a9dd80` — BaseLua.TryExecute virtualization (test seam)
+  - `336b0c91` — RedisJobQueueCreation ctor → IQueueCreation
+  - `05d31843`, `222de596`, `f36b6095`, `fd4b40b6`, `9cbbc714` — LiteDb tests wave
+  - `d28f62f7`, `9de5d9c2`, `6f932db7` — Redis tests wave
+- **Resume-session verification:**
+  - Full-solution Debug build: 0 errors, 2 pre-existing obsolete-API warnings unrelated
+  - LiteDb.Tests: 166/166 pass (862 ms)
+  - Redis.Tests: 190/190 pass (485 ms)
+- **Post-build gates:**
+  - Verifier: PASS (orchestrator-direct after verifier agent produced no output)
+  - Auditor: CLEAN (no secrets, no new deps, refactors benign)
+  - Simplifier: 1 high-priority finding (disposed-connection false-positive test) — resolved by option B (documentary comment)
+  - Documenter: 3 CLAUDE.md lessons approved and appended
+- **Deferred (acknowledged, not blocking):**
+  - `DoesJobExistLuaTests` `[TestInitialize]` refactor
+  - Project-wide `CreateTableNameHelper` copy-paste cleanup (belongs in dedicated phase)
+- **Status:** Phase 4 COMPLETE. Phase 5 (Dashboard.Api DashboardExtensions) is the only remaining phase in the code-coverage milestone.
+
+## 2026-04-13 — Phase 5 Planned (Code Coverage roadmap)
+
+- **Action:** `/shipyard:plan 5`
+- **Scope:** Dashboard.Api `DashboardExtensions` coverage (33.3% → ~64% target)
+- **Feature branch:** `phase-5-dashboard-coverage` (branched from master post-phase-4; will merge via PR per user Decision 5)
+- **Discussion capture (CONTEXT-5.md):** ambition=balanced, test layer=researcher decides, dead-overload policy=delete (turned out void), branch workflow=feature branch + PR
+- **Agent stalls handled directly:**
+  - Researcher agent dispatched, stalled mid-work (same pattern as Phase 4 verifier) → orchestrator performed the research directly and wrote RESEARCH.md
+  - Architect and verifier agents skipped on purpose (to avoid the same stall pattern) → orchestrator wrote plan files directly per user Decision B
+- **Key research finding: Decision 4 is void.** `DashboardExtensions` has only 3 public methods, all with real callers. The `IConfiguration` overload (0% coverage) is the production Dashboard.Ui entrypoint. No deletion work needed.
+- **Plans produced (4 plans / 2 waves):**
+  - Wave 1 (parallel unit tests):
+    - PLAN-1.1 — `IConfiguration` overload + transport switch tests (~50 lines)
+    - PLAN-1.2 — `EnableSwagger` + `ApiKey` security definition tests (~38 lines)
+    - PLAN-1.3 — CORS + `AuthorizationPolicy` tests (~17 lines)
+  - Wave 2 (integration test): PLAN-2.1 — Swagger + CORS integration via `DashboardTestServer` (~12 lines)
+- **Self-critique caught before commit:** wave-1 file conflict (PLAN-1.2 and PLAN-1.3 both appended to `DashboardExtensionsTests.cs`) → resolved by giving each plan its own feature-scoped test file. Also caught a wrong property name (`Connections` → `ConnectionRegistrations`) in PLAN-1.1 and dropped a redundant InternalsVisibleTo fallback in PLAN-1.3.
+- **Stale plan handling:** the old Schyntax/Lib cleanup `PLAN-1.1.md` (from the April 2026 pre-code-coverage roadmap) was archived to `.shipyard/phases/5/plans/archived-schyntax-cleanup/PLAN-1.1.md` via git mv so history is preserved.
+- **Status:** Phase 5 PLANNED. Ready for `/shipyard:build 5` on branch `phase-5-dashboard-coverage`.
+- [2026-04-13T14:58:25Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:01:15Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:05:36Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:15:49Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:20:03Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:22:24Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:23:04Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:23:24Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:59:17Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T15:59:56Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-13T18:20:27Z] Session ended during build (may need /shipyard:resume)
+
+- [2026-04-13T18:22:26Z] /shipyard:resume -> /shipyard:build 5: resuming post-build pipeline; all 4 plans already committed, dispatching retroactive reviewers
+
+- [2026-04-13T18:28:13Z] Phase 5 retroactive reviews complete: PLAN-1.1 PASS, PLAN-1.2 PASS, PLAN-1.3 PASS (pivot sound), PLAN-2.1 PASS (2 minor non-blocking)
+
+## 2026-04-13 — Phase 5 Build Complete (Code Coverage roadmap, final phase)
+
+- **Action:** `/shipyard:resume` -> `/shipyard:build 5` (retroactively ran reviewer gate + full post-build pipeline)
+- **Scope:** Dashboard.Api DashboardExtensions coverage (33.3% -> projected ~70%)
+- **Plans executed (pre-resume):** 4/4 (PLAN-1.1, 1.2, 1.3, 2.1) — committed in earlier sessions: `485811d4`, `efea5ad9`, `7a7174de`
+- **Retroactive reviews:** 4/4 PASS (0 critical, 2 minor non-blocking on PLAN-2.1)
+- **Verification:** PASS — build 0 errors, Dashboard.Api.Tests 216/216, integration tests 226/226 on Memory|Sqlite|LiteDb filter, no regressions
+- **Audit:** CLEAN — no secrets, no new deps, no IaC, no OWASP findings
+- **Simplification:** MINOR — 1 medium applied (split SwaggerEndpointTests.cs into 3 per-class files), 2 low-priority pre-existing issues deferred
+- **Documentation:** MINOR — 1 CLAUDE.md lesson added (MvcOptions.Conventions in bare ServiceCollection), 1 inline WHY comment on DashboardTestServer.cs
+- **Post-review fixups verified:** build PASS, 3/3 new integration tests pass on both net8.0 and net10.0
+- **Status:** Phase 5 COMPLETE. All 5 phases of the code-coverage milestone complete. Ready for `/shipyard:ship`.
+
+- [2026-04-13T19:15:16Z] /shipyard:ship: PR #114 opened (https://github.com/blehnen/DotNetWorkQueue/pull/114). 7 commits pushed. Code-coverage milestone shipped. Awaiting review + merge.

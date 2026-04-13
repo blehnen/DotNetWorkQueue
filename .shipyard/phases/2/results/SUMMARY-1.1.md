@@ -1,26 +1,26 @@
-# Build Summary: Plan 1.1
+# Build Summary: Plan 1.1 -- CreateJobTablesCommandHandler Tests
 
 ## Status: complete
 
 ## Tasks Completed
-- Task 1: SourceHealthState model + ISourceHealthMonitor interface — complete (`775103db`)
-  - Files: `SourceStatus.cs`, `SourceHealthState.cs`, `ISourceHealthMonitor.cs`
-- Task 2: SourceHealthMonitor implementation + unit tests — complete (`4445d814`)
-  - Files: `SourceHealthMonitor.cs`, `SourceHealthMonitorTests.cs`
-- Task 3: Program.cs registration — complete (`2410be2e`)
-  - Files: `Program.cs`, `DotNetWorkQueue.Dashboard.Ui.csproj` (InternalsVisibleTo)
-
-## Files Created
-- `Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceStatus.cs` — enum: Unknown, Healthy, Unhealthy
-- `Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceHealthState.cs` — record with Status, LastChecked, ErrorMessage
-- `Source/DotNetWorkQueue.Dashboard.Ui/Services/ISourceHealthMonitor.cs` — GetHealth(slug), GetAllHealth()
-- `Source/DotNetWorkQueue.Dashboard.Ui/Services/SourceHealthMonitor.cs` — BackgroundService with ConcurrentDictionary, 30s poll, 5s timeout
-- `Source/DotNetWorkQueue.Dashboard.Ui.Tests/Services/SourceHealthMonitorTests.cs` — 8 unit tests
+- Task 1: Happy-path tests + verification of internal interactions -- complete
+- Task 2: Constructor null-guard tests for 3 ctor parameters -- complete
 
 ## Files Modified
-- `Source/DotNetWorkQueue.Dashboard.Ui/Program.cs` — registered SourceHealthMonitor as singleton + hosted service
-- `Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboard.Ui.csproj` — added InternalsVisibleTo for test project
+- `Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/Basic/CommandHandler/CreateJobTablesCommandHandlerTests.cs` (NEW, 167 lines)
+- New folder created: `Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/Basic/CommandHandler/`
+
+## Decisions Made
+- Used `Assert.ThrowsExactly<ArgumentNullException>` (MSTest 3.x API) -- the existing `Guard.NotNull` does throw `ArgumentNullException`
+- Used inline `IDbConnection`/`IDbCommand`/`ITransactionWrapper` mocks via NSubstitute, following the `DoesJobExistQueryHandlerTests` pattern
+- Private `CreateFixture()` factory method for handler construction
 
 ## Verification Results
-- 48 tests passing on both net10.0 and net8.0 (40 from Phase 1 + 8 new)
-- Full solution builds with 0 errors
+- Build: 0 warnings, 0 errors
+- Tests: 7 passed, 0 failed
+
+## Commit
+`8c17db45 shipyard(phase-2): add CreateJobTablesCommandHandler tests`
+
+## Issues Encountered
+- Builder agent did not auto-commit during execution; orchestrator committed the file post-hoc after verifying it built and ran cleanly.
