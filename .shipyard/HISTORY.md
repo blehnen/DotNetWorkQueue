@@ -772,3 +772,5 @@
 - [2026-04-14T19:29:07Z] Session ended during build (may need /shipyard:resume)
 - [2026-04-14T20:00:26Z] Phase 1: Phase 1 build complete: all gates passed, ready for /shipyard:ship or Phase 2 planning (complete)
 - [2026-04-14T20:09:11Z] Phase 2: Planning phase 2: NuGet 0.4.0 release (planning)
+- [2026-04-14T20:35:36Z] Phase 2: Building phase 2 wave 1 (PLAN-1.1 pre-flight) (building)
+- [2026-04-14T21:50:02Z] Phase 2: Phase 2 complete: 0.4.0 shipped to nuget.org via tag v0.4.0 (complete)

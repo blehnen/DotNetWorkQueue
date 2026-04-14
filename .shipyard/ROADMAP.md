@@ -27,7 +27,7 @@ project-reference fallback.
 Phase 1  (TaskScheduler: Lock contention fix + unit tests)       [COMPLETE — branch phase-1-lock-fix, 12 commits, _lockSocket=0, 9/9 tests]
    |
    v
-Phase 2  (TaskScheduler: NuGet 0.4.0 release + verify on nuget.org) [PENDING]
+Phase 2  (TaskScheduler: NuGet 0.4.0 release + verify on nuget.org) [COMPLETE — 0.4.0 live on nuget.org, tag v0.4.0, commit b904ac3]
    |
    v   (hard gate: package must be visible on nuget.org)
    |

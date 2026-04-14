@@ -1,8 +1,8 @@
 {
   "schema": 3,
   "phase": 2,
-  "position": "Planning phase 2: NuGet 0.4.0 release",
-  "status": "planning",
-  "updated_at": "2026-04-14T20:09:11Z",
+  "position": "Phase 2 complete: 0.4.0 shipped to nuget.org via tag v0.4.0",
+  "status": "complete",
+  "updated_at": "2026-04-14T21:50:02Z",
   "blocker": null
 }

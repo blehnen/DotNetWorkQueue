@@ -2,11 +2,22 @@
 
 ## Open
 
+### ISSUE-029: GitHub Actions workflow uses deprecated Node.js 20 actions
+- **Severity:** Low (maintenance)
+- **Source:** Phase 2 (TaskScheduler 0.4.0 release) — surfaced during `gh run watch` on the v0.4.0 publish workflow
+- **Repo:** DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler
+- **Status:** Open
+- **Files:**
+  - `.github/workflows/ci.yml`
+- **Description:** The sibling repo's CI workflow uses `actions/checkout@v4` and `actions/setup-dotnet@v4`, both of which run on Node.js 20. GitHub Actions is deprecating Node.js 20 on runners by September 2026 (forced to Node.js 24 by default on June 2, 2026). Non-blocking for 0.4.0 — the advisory was just a warning, the workflow ran green. But unless upgraded, these actions will stop working after the deprecation deadline.
+- **Remediation:** Upgrade to newer action versions that support Node.js 24. Check `actions/checkout@v5` / `actions/setup-dotnet@v5` (or whatever the current latest is at remediation time) and bump the workflow file. Verify a workflow run succeeds post-bump before shipping.
+- **Not urgent for 0.5.0** — just do it before 2026-06-02 to avoid forced-migration surprises.
+
 ### ISSUE-028: Add `<remarks>` XML doc on TaskSchedulerJobCountSync.Start() describing non-blocking semantics
 - **Severity:** Minor
 - **Source:** Phase 1 (TaskScheduler lock fix) — Documenter review
 - **Repo:** DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler
-- **Status:** Open (deferred from Phase 1)
+- **Status:** CLOSED (landed in Phase 2 release commit `b904ac3` as part of the 0.4.0 release, 2026-04-14)
 - **Description:** After Phase 1 made `Start()` non-blocking (poller runs on a dedicated background thread), the method's XML `<summary>` still just says "Starts this instance". Library consumers who subclass `TaskSchedulerJobCountSync` or wrap `ITaskSchedulerJobCountSync` can't see the behavior change from IDE tooltips.
 - **Remediation:** Add a `<remarks>` block to the `Start()` XML doc on both `Source/ITaskSchedulerJobCountSync.cs` and `Source/TaskSchedulerJobCountSync.cs`, describing the synchronous-then-background-poller handoff. ~10 lines across both files.
 - **Why deferred from Phase 1:** The ROADMAP.md Phase 1 success criterion #2 requires `ITaskSchedulerJobCountSync.cs` to be byte-identical to master. Strictly interpreted, XML doc comments are part of the file bytes. Adding them would break the literal invariant. Phase 2 (0.4.0 release) can land the doc change alongside the CHANGELOG entry — they both document the same observable behavior change.
