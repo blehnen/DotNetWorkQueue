@@ -1,122 +1,211 @@
----
-phase: cleanup-docs-version
-plan: "1.1"
-wave: 1
-dependencies: []
-must_haves:
-  - Lib/ directory deleted entirely
-  - README.md Schyntax references replaced with Cronos/cron
-  - CLAUDE.md Schyntax references replaced with Cronos
-  - CHANGELOG.md entry for 0.9.3
-  - Version bumped to 0.9.3 in DotNetWorkQueue.csproj
-  - Solution builds cleanly
-files_touched:
-  - Lib/ (deleted)
-  - README.md
-  - CLAUDE.md
-  - CHANGELOG.md
-  - Source/DotNetWorkQueue/DotNetWorkQueue.csproj
-tdd: false
----
-
-# Plan 1.1: Cleanup, Documentation, and Version Bump
-
-Delete vendored Schyntax DLLs, update all documentation, bump version to 0.9.3.
+# Plan 1.1: IConfiguration Overload + Transport Switch Tests
 
 ## Context
 
-All code changes are complete (Phases 1-4). This final phase cleans up vendored files, updates user-facing documentation, and bumps the version for the breaking release.
+`DashboardExtensions.AddDotNetWorkQueueDashboard(IServiceCollection, IConfiguration)` currently has **0% line coverage** despite being the production code path used by `Source/DotNetWorkQueue.Dashboard.Ui/Program.cs:45`. The private helper `AddConnectionByTransport` is also at 0% because it is only reachable through this overload.
+
+This plan closes both gaps with unit tests that build an in-memory `IConfiguration` (no JSON files, no disk I/O), invoke the overload, and assert the DI state. Transitively, the transport-name switch (`SqlServer`, `PostgreSql`, `SQLite`, `LiteDb`, `Redis`) gets covered via parameterization.
+
+Estimated coverage delta: **~50 lines** (the IConfiguration overload body + all 5 transport arms + error branches). This is the highest-ROI plan in Phase 5.
 
 ## Dependencies
 
-None (all prior phases complete).
+None — runs in Wave 1, parallel with PLAN-1.2 and PLAN-1.3.
 
 ## Tasks
 
-<task id="1" files="Lib/" tdd="false">
-  <action>
-  Delete the entire `Lib/` directory:
-  ```bash
-  rm -rf Lib/
-  ```
-  This removes `Lib/Schyntax/net8.0/` and `Lib/Schyntax/net10.0/` (the only remaining contents after issue #101 removed JpLabs and issue #102 removed Aq.ExpressionJsonSerializer).
+### Task 1: Happy-path Memory-transport test
+**Files:** `Source/DotNetWorkQueue.Dashboard.Api.Tests/Extensions/DashboardExtensionsFromConfigurationTests.cs` (NEW)
+**Action:** create
+**Description:**
+Create a new test class `DashboardExtensionsFromConfigurationTests` in the same `DotNetWorkQueue.Dashboard.Api.Tests.Extensions` namespace as the existing `DashboardExtensionsTests`. Add the first test:
 
-  Verify: `ls Lib/` should fail (directory does not exist).
-  </action>
-  <verify>! ls Lib/ 2>/dev/null && echo "PASS: Lib/ deleted" || echo "FAIL: Lib/ still exists"</verify>
-  <done>Lib/ directory and all vendored DLLs deleted.</done>
-</task>
+```csharp
+[TestMethod]
+public void AddDotNetWorkQueueDashboard_FromConfiguration_Memory_RegistersConnection()
+{
+    var config = new ConfigurationBuilder()
+        .AddInMemoryCollection(new Dictionary<string, string>
+        {
+            ["Dashboard:EnableSwagger"] = "false",
+            ["Dashboard:Connections:0:Transport"] = "SQLite",
+            ["Dashboard:Connections:0:ConnectionString"] = "Data Source=:memory:",
+            ["Dashboard:Connections:0:DisplayName"] = "TestDb",
+            ["Dashboard:Connections:0:Queues:0"] = "test-queue"
+        })
+        .Build();
 
-<task id="2" files="README.md, CLAUDE.md, CHANGELOG.md" tdd="false">
-  <action>
-  Update documentation files:
+    var services = new ServiceCollection();
+    services.AddLogging();
+    services.AddDotNetWorkQueueDashboard(config.GetSection("Dashboard"));
 
-  **README.md** (3 changes):
-  1. Line 91: Replace Schyntax scheduling reference with cron format. Change "Jobs may be scheduled using [Schyntax](...) format" to "Jobs may be scheduled using standard cron expressions (5-field or 6-field with seconds), parsed by [Cronos](https://github.com/HangfireIO/Cronos)."
-  2. Line 99: Replace "See [Schyntax](...) for the event scheduling format" with "See [crontab.guru](https://crontab.guru/) for the cron expression format. 6-field expressions (with seconds) are also supported."
-  3. Line 144: Replace "Custom libraries in `/Lib`: [Schyntax](...), [Aq.ExpressionJsonSerializer](...)" with updated dependency info. Remove Schyntax, remove Aq.ExpressionJsonSerializer (now NuGet), remove the `/Lib` reference entirely. Add Cronos and CronExpressionDescriptor to the NuGet dependencies section if one exists, or update this line.
+    var provider = services.BuildServiceProvider();
+    var options = provider.GetRequiredService<DashboardOptions>();
+    options.EnableSwagger.Should().BeFalse();
+    options.ConnectionRegistrations.Should().NotBeEmpty();
+}
+```
 
-  **CLAUDE.md** (2 changes):
-  1. Line 69: Replace "Schyntax format" with "cron format" in the JobScheduler description.
-  2. Line 98: Replace "Custom libraries in `/Lib`: Schyntax (scheduling), Aq.ExpressionJsonSerializer (LINQ serialization)" — remove both (both are now NuGet packages), add Cronos and CronExpressionDescriptor to Key Dependencies section above.
+**Note on internal access:** `DashboardOptions.ConnectionRegistrations` is declared `internal` (in `DashboardOptions.cs:96`). This is accessible from the test project because `Source/DotNetWorkQueue.Dashboard.Api/InternalsVisibleForTests.cs` already grants `InternalsVisibleTo("DotNetWorkQueue.Dashboard.Api.Tests")`. No production change needed for visibility.
 
-  **CHANGELOG.md**:
-  Add entry at the top for version 0.9.3:
-  ```markdown
-  ## 0.9.3
+**Critical — IConfiguration namespace shadowing (CLAUDE.md lesson):**
+- `using Microsoft.Extensions.Configuration;` at the top of the file is NOT sufficient because the test lives under `DotNetWorkQueue.Dashboard.Api.Tests.*` namespace, so `DotNetWorkQueue.IConfiguration` shadows via namespace walk-up
+- **Use `global::Microsoft.Extensions.Configuration.IConfiguration`** explicitly anywhere the type is referenced by name. For the test above, the `ConfigurationBuilder` local is safe because the C# compiler infers the `IConfigurationRoot` return type; but if you add a helper method parameter typed as `IConfiguration`, use the fully-qualified type.
+- Verify the using directive for the configuration section getter: `ConfigurationExtensions.GetSection(…)` is in `Microsoft.Extensions.Configuration`
 
-  ### Breaking Changes
-  - Replaced Schyntax schedule format with standard cron expressions (5-field and 6-field with seconds) using [Cronos](https://github.com/HangfireIO/Cronos)
-  - `IJobSchedule.Previous()` now returns `DateTimeOffset?` (nullable) instead of `DateTimeOffset`
-  - All heartbeat and job schedule strings must use cron format instead of Schyntax DSL
-  - Removed vendored `/Lib` directory (Schyntax DLLs)
+**Use `SQLite` as the happy-path transport**, not `Memory`. The `AddConnectionByTransport` switch has no `Memory` case — only `SqlServer`, `PostgreSql`, `SQLite`, `LiteDb`, `Redis`. SQLite with `:memory:` gives a valid-looking connection string without needing a real database.
 
-  ### Added
-  - `IJobSchedule.Description` property — human-readable schedule descriptions via [CronExpressionDescriptor](https://github.com/bradymholt/cron-expression-descriptor)
-  - Structured logging of schedule descriptions in `JobScheduler` when jobs are added
-  - Auto-detection of 5-field (standard) vs 6-field (with seconds) cron expressions
-  ```
-  </action>
-  <verify>grep -i "Schyntax" README.md CLAUDE.md; echo "Should be 0 matches (excluding Lessons Learned in CLAUDE.md if applicable)"</verify>
-  <done>All documentation updated. Schyntax references replaced with Cronos/cron. CHANGELOG entry added for 0.9.3.</done>
-</task>
+**Acceptance Criteria:**
+- Test file compiles with no warnings-as-errors
+- Test passes: `dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Tests/DotNetWorkQueue.Dashboard.Api.Tests.csproj" --filter "FullyQualifiedName~AddDotNetWorkQueueDashboard_FromConfiguration_Memory_RegistersConnection"`
+- No use of `using DotNetWorkQueue;` that would import the shadowing `IConfiguration`
+- Test does NOT call `BuildServiceProvider()` in a way that triggers actual transport connections (we're only asserting DI registration)
 
-<task id="3" files="Source/DotNetWorkQueue/DotNetWorkQueue.csproj" tdd="false">
-  <action>
-  In `Source/DotNetWorkQueue/DotNetWorkQueue.csproj`:
+### Task 2: Parameterized transport-switch test (all 5 arms + default error)
+**Files:** `Source/DotNetWorkQueue.Dashboard.Api.Tests/Extensions/DashboardExtensionsFromConfigurationTests.cs` (MODIFY — add to the new class)
+**Action:** modify
+**Description:**
+Add a parameterized test that iterates all 5 valid transport names and one invalid name to exercise every arm of the `AddConnectionByTransport` switch statement.
 
-  1. Update `<Version>` from current value to `0.9.3`
-  2. Update `<Description>` if it still references Schyntax or net48 — ensure it mentions cron scheduling
+Use MSTest `[DataRow]` attributes (the existing tests don't appear to use `[DynamicData]`, so `[DataRow]` is the simpler choice). The default case of the switch throws `ArgumentException`, so the invalid-transport row expects a throw.
 
-  Then run full verification:
-  1. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` — 0 errors
-  2. `dotnet build "Source/DotNetWorkQueue.sln" -c Release` — 0 errors, 0 warnings
-  3. `dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj"` — all tests pass
-  4. `grep -r "Schyntax" Source/ --include="*.cs" --include="*.csproj"` — 0 matches
-  5. `grep -i "Schyntax" README.md CLAUDE.md` — 0 matches
-  </action>
-  <verify>dotnet build "Source/DotNetWorkQueue.sln" -c Release --verbosity quiet 2>&1 | tail -3 && ! grep -rq "Schyntax" Source/ --include="*.cs" --include="*.csproj" && echo "PASS" || echo "FAIL"</verify>
-  <done>Version 0.9.3, solution builds clean, zero Schyntax references anywhere.</done>
-</task>
+```csharp
+[DataTestMethod]
+[DataRow("SqlServer", "Server=localhost;Database=Test;Integrated Security=true")]
+[DataRow("PostgreSql", "Host=localhost;Database=test;Username=test")]
+[DataRow("SQLite", "Data Source=:memory:")]
+[DataRow("LiteDb", "Filename=:memory:")]
+[DataRow("Redis", "localhost:6379")]
+public void AddDotNetWorkQueueDashboard_FromConfiguration_AllTransports_RegisterCleanly(
+    string transport, string connectionString)
+{
+    var config = new ConfigurationBuilder()
+        .AddInMemoryCollection(new Dictionary<string, string>
+        {
+            ["Dashboard:EnableSwagger"] = "false",
+            ["Dashboard:Connections:0:Transport"] = transport,
+            ["Dashboard:Connections:0:ConnectionString"] = connectionString
+        })
+        .Build();
+
+    var services = new ServiceCollection();
+    services.AddLogging();
+
+    // Must not throw for any valid transport name
+    services.AddDotNetWorkQueueDashboard(config.GetSection("Dashboard"));
+
+    var provider = services.BuildServiceProvider();
+    var options = provider.GetRequiredService<DashboardOptions>();
+    options.ConnectionRegistrations.Should().NotBeEmpty();
+}
+
+[TestMethod]
+public void AddDotNetWorkQueueDashboard_FromConfiguration_UnknownTransport_Throws()
+{
+    var config = new ConfigurationBuilder()
+        .AddInMemoryCollection(new Dictionary<string, string>
+        {
+            ["Dashboard:Connections:0:Transport"] = "MongoDB",
+            ["Dashboard:Connections:0:ConnectionString"] = "mongodb://localhost"
+        })
+        .Build();
+
+    var services = new ServiceCollection();
+    services.AddLogging();
+
+    Assert.ThrowsExactly<ArgumentException>(() =>
+        services.AddDotNetWorkQueueDashboard(config.GetSection("Dashboard")));
+}
+```
+
+**Note on test values:**
+- Connection strings are throwaway — the `AddConnectionByTransport` switch only stores them in `DashboardOptions.Connections[]`, it never opens them. The tests must not attempt to resolve a consumer/producer that would try to connect.
+- Use `Assert.ThrowsExactly<ArgumentException>` per CLAUDE.md MSTest 3.x lesson (NOT `Assert.ThrowsException`).
+
+**Acceptance Criteria:**
+- All 5 `[DataRow]` cases pass
+- The invalid-transport test passes (assertion catches `ArgumentException`)
+- Test method count increases by 6 (5 DataRow iterations as MSTest counts them as 1 parameterized method + 1 separate error method = 2 methods shown in test output, but 6 test cases)
+
+### Task 3: IConfiguration missing-Transport / missing-ConnectionString error tests
+**Files:** `Source/DotNetWorkQueue.Dashboard.Api.Tests/Extensions/DashboardExtensionsFromConfigurationTests.cs` (MODIFY — add to the new class)
+**Action:** modify
+**Description:**
+The `IConfiguration` overload has two defensive guards at lines 178–181:
+```csharp
+if (string.IsNullOrEmpty(transport))
+    throw new ArgumentException("Each Dashboard connection must specify a Transport.");
+if (string.IsNullOrEmpty(connectionString))
+    throw new ArgumentException($"Dashboard connection '{displayName}' must specify a ConnectionString.");
+```
+
+Add two tests, one for each branch:
+
+```csharp
+[TestMethod]
+public void AddDotNetWorkQueueDashboard_FromConfiguration_MissingTransport_Throws()
+{
+    var config = new ConfigurationBuilder()
+        .AddInMemoryCollection(new Dictionary<string, string>
+        {
+            // Transport missing
+            ["Dashboard:Connections:0:ConnectionString"] = "Data Source=:memory:"
+        })
+        .Build();
+
+    var services = new ServiceCollection();
+    services.AddLogging();
+
+    var ex = Assert.ThrowsExactly<ArgumentException>(() =>
+        services.AddDotNetWorkQueueDashboard(config.GetSection("Dashboard")));
+
+    StringAssert.Contains(ex.Message, "Transport");
+}
+
+[TestMethod]
+public void AddDotNetWorkQueueDashboard_FromConfiguration_MissingConnectionString_Throws()
+{
+    var config = new ConfigurationBuilder()
+        .AddInMemoryCollection(new Dictionary<string, string>
+        {
+            ["Dashboard:Connections:0:Transport"] = "SQLite",
+            ["Dashboard:Connections:0:DisplayName"] = "Broken"
+            // ConnectionString missing
+        })
+        .Build();
+
+    var services = new ServiceCollection();
+    services.AddLogging();
+
+    var ex = Assert.ThrowsExactly<ArgumentException>(() =>
+        services.AddDotNetWorkQueueDashboard(config.GetSection("Dashboard")));
+
+    StringAssert.Contains(ex.Message, "ConnectionString");
+}
+```
+
+Use `StringAssert.Contains` (MSTest built-in) or FluentAssertions `ex.Message.Should().Contain("Transport")`. Match the pattern already used in `DashboardExtensionsTests.cs` which prefers FluentAssertions for readability.
+
+**Acceptance Criteria:**
+- Both tests pass
+- Error messages actually contain the words "Transport" and "ConnectionString" respectively (verifying we hit the right branch, not just any `ArgumentException`)
 
 ## Verification
 
+Run the new test file:
 ```bash
-# Lib/ gone
-! ls Lib/ 2>/dev/null
-
-# Zero Schyntax in source
-grep -r "Schyntax" Source/ --include="*.cs" --include="*.csproj"
-
-# Zero Schyntax in docs
-grep -i "Schyntax" README.md CLAUDE.md
-
-# Version is 0.9.3
-grep "<Version>" Source/DotNetWorkQueue/DotNetWorkQueue.csproj
-
-# Full build
-dotnet build "Source/DotNetWorkQueue.sln" -c Release
-
-# Tests pass
-dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj"
+dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Tests/DotNetWorkQueue.Dashboard.Api.Tests.csproj" -c Debug --filter "FullyQualifiedName~DashboardExtensionsFromConfigurationTests"
 ```
+
+Expected: all tests pass, 8 total (1 happy-path + 5 parameterized transport rows + 1 unknown-transport + 2 error-branch = 8 test case results).
+
+Also confirm no regressions:
+```bash
+dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Tests/DotNetWorkQueue.Dashboard.Api.Tests.csproj" -c Debug
+```
+
+Expected: all existing `Dashboard.Api.Tests` pass (baseline before plan was green).
+
+## Coverage Target
+
+This plan is expected to take `DashboardExtensions` from 33.3% to approximately **60%** line coverage on its own (covers ~50 lines: the full IConfiguration overload body + the transport switch body + the 2 error-branch paths). Cluster D + cluster D-err + cluster E from RESEARCH.md section 6.
