@@ -2,6 +2,17 @@
 
 ## Open
 
+### ISSUE-030: README usage example uses wrong named argument `udpBroadcastPort:` instead of `broadCastPort:`
+- **Severity:** Low (documentation)
+- **Source:** Phase 3 (DNQ integration test project) — researcher investigation of 0.4.0 public API
+- **Repo:** DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler
+- **Status:** Open
+- **Files:**
+  - `README.md` (sibling repo)
+- **Description:** The sibling repo's `README.md` shows a `InjectDistributedTaskScheduler` usage example that names the port argument `udpBroadcastPort:`. The actual public API parameter is named `broadCastPort`. Copy-pasting the README example verbatim produces a compile error (CS1739 — no such parameter). Not a runtime bug, but a trap for consumers following the documentation.
+- **Remediation:** Update the README install/usage example to use `broadCastPort:` (or drop the named argument and use positional). Land in a follow-up 0.4.1 doc-only release (or amend the README in trunk and mention it in the 0.5.0 changelog).
+- **Workaround in Phase 3:** DNQ integration tests pass positional arguments to sidestep the bug.
+
 ### ISSUE-029: GitHub Actions workflow uses deprecated Node.js 20 actions
 - **Severity:** Low (maintenance)
 - **Source:** Phase 2 (TaskScheduler 0.4.0 release) — surfaced during `gh run watch` on the v0.4.0 publish workflow
