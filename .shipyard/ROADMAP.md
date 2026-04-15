@@ -324,12 +324,12 @@ cat Jenkinsfile
 
 ## Phase Summary
 
-| Phase | Repo | Name | Risk | Depends On |
-|-------|------|------|------|------------|
-| 1 | TaskScheduler | Lock contention fix + unit tests | High | -- |
-| 2 | TaskScheduler | NuGet 0.4.0 release + verify | Medium | 1 |
-| 3 | DotNetWorkQueue | Integration test project (green locally) | Medium | 2 (hard gate: nuget.org visibility) |
-| 4 | DotNetWorkQueue | Jenkins + GitHub Actions CI wiring | Medium | 3 |
+| Phase | Repo | Name | Risk | Depends On | Status |
+|-------|------|------|------|------------|--------|
+| 1 | TaskScheduler | Lock contention fix + unit tests | High | -- | shipped |
+| 2 | TaskScheduler | NuGet 0.4.0 release + verify | Medium | 1 | shipped |
+| 3 | DotNetWorkQueue | Integration test project (green locally) | Medium | 2 (hard gate: nuget.org visibility) | complete (2026-04-15) |
+| 4 | DotNetWorkQueue | Jenkins + GitHub Actions CI wiring | Medium | 3 | planned |
 
 ## Execution Order Rationale
 
