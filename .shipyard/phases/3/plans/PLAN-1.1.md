@@ -35,7 +35,7 @@ run strictly in parallel without touching shared files.
 **Locked decisions** (see `.shipyard/phases/3/CONTEXT-3.md`):
 
 - Project path: `Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/`
-- Target frameworks: `net10.0;net8.0`
+- Target framework: `net10.0` (single-target; matches Memory integration test project and Jenkins CI)
 - CPM: add to `Source/Directory.Packages.props`, bare `<PackageReference>` in csproj
 - MSTest 4.1.0, NSubstitute 5.3.0, AutoFixture 4.18.1, FluentAssertions 6.12.2 (do NOT upgrade)
 - `[assembly: DoNotParallelize]` for cross-test NetMQ port serialization
@@ -49,7 +49,7 @@ run strictly in parallel without touching shared files.
 1. Add a new `<PackageVersion Include="DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler" Version="0.4.0" />` entry to `Source/Directory.Packages.props` inside the existing `<ItemGroup>` that contains the other PackageVersion elements (alongside the Core or Test-Infrastructure group — use Core group, after line 13 `CronExpressionDescriptor` is a reasonable slot; group it with a `<!-- TaskScheduling -->` comment for clarity).
 
 2. Create the project directory `Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/` and create the csproj file inside it. Mirror `Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj` with the following differences:
-   - `<TargetFrameworks>net10.0;net8.0</TargetFrameworks>` (multi-target per ROADMAP line 198)
+   - `<TargetFrameworks>net10.0</TargetFrameworks>` (single-target; matches Memory.Integration.Tests and Jenkins CI)
    - Include the same test-framework PackageReferences (bare, no Version): `AutoFixture`, `AutoFixture.AutoNSubstitute`, `FluentAssertions`, `Microsoft.NET.Test.Sdk`, `coverlet.collector`, `MSTest.TestFramework`, `MSTest.TestAdapter`, `NSubstitute`
    - Add `<PackageReference Include="DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler" />` (bare, version inherited from CPM)
    - Keep ProjectReferences to: `..\DotNetWorkQueue\DotNetWorkQueue.csproj`, `..\DotNetWorkQueue.Transport.Memory\DotNetWorkQueue.Transport.Memory.csproj`, `..\DotNetWorkQueue.IntegrationTests.Shared\DotNetWorkQueue.IntegrationTests.Shared.csproj`
@@ -59,7 +59,7 @@ run strictly in parallel without touching shared files.
 3. Run restore to prove 0.4.0 resolves from nuget.org.
   </action>
   <verify>cd /mnt/f/git/dotnetworkqueue && dotnet restore "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" 2>&1 | tee /tmp/p3-restore.log && grep -E "DotNetWorkQueue\.TaskScheduling\.Distributed\.TaskScheduler.*0\.4\.0" /tmp/p3-restore.log || echo "Restore completed; check log for 0.4.0 resolution"</verify>
-  <done>Directory.Packages.props contains the 0.4.0 PackageVersion entry. The new csproj exists with TargetFrameworks=net10.0;net8.0, CPM-style PackageReferences (no Version attributes), and the three ProjectReferences. `dotnet restore` completes with exit code 0 and `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler` 0.4.0 is resolved from nuget.org (no errors like NU1101/NU1102).</done>
+  <done>Directory.Packages.props contains the 0.4.0 PackageVersion entry. The new csproj exists with TargetFrameworks=net10.0, CPM-style PackageReferences (no Version attributes), and the three ProjectReferences. `dotnet restore` completes with exit code 0 and `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler` 0.4.0 is resolved from nuget.org (no errors like NU1101/NU1102).</done>
 </task>
 
 <task id="2" files="Source/DotNetWorkQueue.sln" tdd="false">
@@ -155,5 +155,5 @@ namespace DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.T
 After creating both files, build the project to prove everything compiles clean.
   </action>
   <verify>cd /mnt/f/git/dotnetworkqueue && dotnet build "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" -c Debug --nologo 2>&1 | tail -15</verify>
-  <done>Both files exist. `dotnet build` on the csproj exits 0, `Build succeeded`, 0 errors. `grep -c "DoNotParallelize" Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/AssemblyInit.cs` returns >= 1. The project produces both `net8.0` and `net10.0` output DLLs under `bin/Debug/`. Running `dotnet test` on the project succeeds (0 tests discovered is OK at this stage — plan 1.1 adds no test methods).</done>
+  <done>Both files exist. `dotnet build` on the csproj exits 0, `Build succeeded`, 0 errors. `grep -c "DoNotParallelize" Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/AssemblyInit.cs` returns >= 1. The project produces a `net10.0` output DLL under `bin/Debug/net10.0/`. Running `dotnet test` on the project succeeds (0 tests discovered is OK at this stage — plan 1.1 adds no test methods).</done>
 </task>

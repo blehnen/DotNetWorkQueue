@@ -23,7 +23,7 @@ Wave 2's three plans touch strictly disjoint files (three separate test `.cs` fi
 
 | # | Criterion | Covered by |
 |---|-----------|-----------|
-| 1 | Project builds clean for net10.0 and net8.0 | PLAN-1.1 Task 2 verify, PLAN-3.1 Task 2 |
+| 1 | Project builds clean on net10.0 (single-target, matches other DNQ integration test projects) | PLAN-1.1 Task 2 verify, PLAN-3.1 Task 2 |
 | 2 | All three test classes pass locally; 5 consecutive runs in loop | PLAN-2.1/2.2/2.3 Task 2 (per-class) + PLAN-3.1 Task 1 (full suite) |
 | 3 | Test project references NuGet 0.4.0 (no project reference) | PLAN-1.1 Task 1 (`Directory.Packages.props` PackageVersion + bare PackageReference) |
 | 4 | `dotnet build -c Release -p:CI=true` clean | PLAN-3.1 Task 2 |

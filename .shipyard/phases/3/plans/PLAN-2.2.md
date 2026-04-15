@@ -64,7 +64,7 @@ Create `ConcurrencyRegressionTests.cs`. Structure:
 License header: none (Memory test convention).
   </action>
   <verify>cd /mnt/f/git/dotnetworkqueue && dotnet test "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" --filter "FullyQualifiedName~ConcurrencyRegressionTests" --nologo 2>&1 | tail -30</verify>
-  <done>`dotnet test --filter ConcurrencyRegressionTests` exits 0 on both net8.0 and net10.0. Test completes well under 30s (typical: < 5s). Final count asserted == 0 via FluentAssertions. No `udpBroadcastPort:` usage in the file.</done>
+  <done>`dotnet test --filter ConcurrencyRegressionTests` exits 0 on net10.0. Test completes well under 30s (typical: < 5s). Final count asserted == 0 via FluentAssertions. No `udpBroadcastPort:` usage in the file.</done>
 </task>
 
 <task id="2" files="Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/ConcurrencyRegressionTests.cs" tdd="false">
@@ -78,8 +78,8 @@ Flakiness check + named-arg guard:
 
 3. If deadlock detector trips on any run, that is a hard failure — STOP and flag to the verifier. Do NOT raise the 30s timeout to work around it (that would mask a real regression of Phase 1's lock fix). A passing 30s deadlock detector is Phase 3's cross-repo regression signal.
 
-4. Confirm the test ran on both net8.0 and net10.0 (look for both TFMs in output).
+4. Confirm the test ran on net10.0.
   </action>
   <verify>cd /mnt/f/git/dotnetworkqueue && (grep -n "udpBroadcastPort" Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/ConcurrencyRegressionTests.cs && echo "FAIL" && exit 1 || true) && for i in 1 2 3 4 5; do dotnet test "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" --filter "FullyQualifiedName~ConcurrencyRegressionTests" --nologo || { echo "FAIL run $i"; break; }; done</verify>
-  <done>5 consecutive runs green. No named-argument usage. No timeout/deadlock in any run. Both TFMs exercised.</done>
+  <done>5 consecutive runs green. No named-argument usage. No timeout/deadlock in any run. `net10.0` exercised.</done>
 </task>

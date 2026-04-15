@@ -72,7 +72,7 @@ Create `NodeDiscoveryTests.cs`:
 **No inline LGPL header** (Memory test convention).
   </action>
   <verify>cd /mnt/f/git/dotnetworkqueue && dotnet test "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" --filter "FullyQualifiedName~NodeDiscoveryTests" --nologo 2>&1 | tail -40</verify>
-  <done>Both test methods discovered and passing on both net8.0 and net10.0. Tests complete in < 30 seconds total. No `udpBroadcastPort:` in file. Both test methods exercise the SAME port (node-pool semantics).</done>
+  <done>Both test methods discovered and passing on net10.0. Tests complete in < 30 seconds total. No `udpBroadcastPort:` in file. Both test methods exercise the SAME port (node-pool semantics).</done>
 </task>
 
 <task id="2" files="Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/NodeDiscoveryTests.cs" tdd="false">

@@ -7,7 +7,7 @@ must_haves:
   - EndToEndSchedulingTests.cs authored, using positional args on InjectDistributedTaskScheduler (ISSUE-030 workaround)
   - Uses Memory transport and TestHelpers.BeaconInterface / EndToEndPortBase
   - Full end-to-end: producer enqueues jobs, consumer processes them via a distributed-scheduler-wired container, assertion that all jobs are consumed
-  - Tests pass on both net10.0 and net8.0
+  - Tests pass on net10.0
 files_touched:
   - Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/EndToEndSchedulingTests.cs
 tdd: false
@@ -49,14 +49,14 @@ Structural requirements:
    - `Helpers.GenerateData`, `Helpers.Verify`, and `VerifyQueueCount` wiring: copy the pattern from `Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/Consumer/SimpleConsumer.cs` — the shared runner's `.Run<...>(...)` method already owns the metrics polling loop (CLAUDE.md lesson) so we inherit the race-free assertion for free.
    - Do NOT add `[DoNotParallelize]` at the class level — the assembly-level attribute from PLAN-1.1 task 3 already handles it.
 
-4. Platform note: if the test runs on net8.0 and net10.0, use no conditional compilation — the public API is identical on both TFMs.
+4. Platform note: project is `net10.0`-only — no conditional compilation needed.
 
 5. Inspect `Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/Consumer/SimpleConsumer.cs` for the exact `Helpers.GenerateData` / `Helpers.Verify` identifiers and any local `SharedClasses.cs` you must clone into the new test project. If a `SharedClasses.cs` helper is missing in the new project, copy it from the Memory test project verbatim (new file is still in scope for this task — same class file).
 
 **Name collision warning**: the helper class `DotNetWorkQueue.IntegrationTests.Shared.Helpers` versus local `SharedClasses.cs`-defined `Helpers` may need disambiguation. If so, use the local namespace-nested name.
   </action>
   <verify>cd /mnt/f/git/dotnetworkqueue && dotnet test "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" --filter "FullyQualifiedName~EndToEndSchedulingTests" --nologo 2>&1 | tail -30</verify>
-  <done>`dotnet test --filter EndToEndSchedulingTests` exits 0. At least one test method is discovered and passes on BOTH net8.0 and net10.0 (the output shows `Passed!` lines for both TFMs). The test does not use named argument `udpBroadcastPort:` (grep the file to confirm). Run the filter loop 3 times locally to check for flakes.</done>
+  <done>`dotnet test --filter EndToEndSchedulingTests` exits 0. At least one test method is discovered and passes on net10.0. The test does not use named argument `udpBroadcastPort:` (grep the file to confirm). Run the filter loop 3 times locally to check for flakes.</done>
 </task>
 
 <task id="2" files="Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/EndToEndSchedulingTests.cs" tdd="false">
@@ -71,10 +71,10 @@ Hardening + ISSUE-030 grep guard:
 
 3. If any run fails, adjust timeout (the `timeOut` parameter on the `.Run<>()` call) up to 240s, and re-run the loop. Do NOT relax assertions.
 
-4. Confirm both TFMs are exercised: look for `net8.0` and `net10.0` in the test run output, or pass `-f net8.0` and `-f net10.0` separately and confirm green on each.
+4. Confirm `net10.0` TFM is exercised in the output.
 
 Keep the test class small — this task is verification only, not new code.
   </action>
   <verify>cd /mnt/f/git/dotnetworkqueue && (grep -n "udpBroadcastPort" Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/EndToEndSchedulingTests.cs && echo "FAIL: named arg present" && exit 1 || true) && for i in 1 2 3 4 5; do dotnet test "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" --filter "FullyQualifiedName~EndToEndSchedulingTests" --nologo || { echo "FAIL run $i"; break; }; done</verify>
-  <done>5 consecutive runs green. Zero `udpBroadcastPort` references in the file. Both net8.0 and net10.0 results appear in the output with `Passed!`.</done>
+  <done>5 consecutive runs green. Zero `udpBroadcastPort` references in the file. `net10.0` result appears in the output with `Passed!`.</done>
 </task>

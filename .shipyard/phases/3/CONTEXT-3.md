@@ -45,7 +45,7 @@ Captured during `/shipyard:plan 3` discussion. Phase 3 creates a new integration
 
 - **Project path:** `Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/`
 - **Project file:** `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj` (note the `.Integration.Tests` suffix matches DNQ convention, e.g. `DotNetWorkQueue.Transport.Memory.Integration.Tests`)
-- **Target frameworks:** `net10.0;net8.0` (matches the rest of DNQ's test projects).
+- **Target framework:** `net10.0` (matches DNQ's other integration test projects — `DotNetWorkQueue.Transport.Memory.Integration.Tests` is `net10.0`-only. Jenkins CI runs `net10.0` on ubuntu-latest per CLAUDE.md, so multi-targeting test projects to net8.0 would produce output Jenkins never exercises).
 - **Package management:** DNQ uses **Central Package Management** via `Source/Directory.Packages.props`. All package versions live there, NOT in individual csproj files. The Phase 3 builder must add a `<PackageVersion Include="DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler" Version="0.4.0" />` entry to `Source/Directory.Packages.props` AND a bare `<PackageReference Include="DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler" />` (no `Version=` attribute) in the test project's csproj.
 - **Test stack versions (pinned in `Source/Directory.Packages.props`):**
   - MSTest 4.1.0

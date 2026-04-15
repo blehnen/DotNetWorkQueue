@@ -55,7 +55,7 @@ dotnet list "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Int
 — must show `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler` at version `0.4.0` (ROADMAP success criterion #3).
   </action>
   <verify>cd /mnt/f/git/dotnetworkqueue && for i in 1 2 3 4 5; do dotnet test "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" --nologo || { echo "RUN $i FAILED"; exit 1; }; done && dotnet list "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" package | grep -i "DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler"</verify>
-  <done>5 consecutive full-project runs green on both net8.0 and net10.0. `dotnet list package` output contains `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler` with version `0.4.0` (NuGet resolution, not a project reference).</done>
+  <done>5 consecutive full-project runs green on net10.0. `dotnet list package` output contains `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler` with version `0.4.0` (NuGet resolution, not a project reference).</done>
 </task>
 
 <task id="2" files="" tdd="false">

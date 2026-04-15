@@ -188,14 +188,17 @@ because flakes here block Phase 4.
 
 Create a new integration test project that `PackageReference`s
 `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler 0.4.0` and exercises
-distributed scheduling end-to-end. Tests must be green locally on both
-`net10.0` and `net8.0` before any CI wiring is touched.
+distributed scheduling end-to-end. Tests must be green locally on `net10.0`
+(matches all other DNQ integration test projects, which are `net10.0`-only —
+Jenkins CI runs `net10.0` on ubuntu-latest per CLAUDE.md) before any CI wiring
+is touched.
 
 ### Scope
 
 1. **Create project**
    - `Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.IntegrationTests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.IntegrationTests.csproj`
-   - Target frameworks: `net10.0;net8.0`.
+   - Target framework: `net10.0` (matches DNQ's other integration test
+     projects; Jenkins CI only runs `net10.0`).
    - `PackageReference` to
      `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler` version `0.4.0`
      (NuGet only, no `ProjectReference`).
@@ -228,7 +231,7 @@ distributed scheduling end-to-end. Tests must be green locally on both
 
 ### Success Criteria
 
-1. Project builds clean for both `net10.0` and `net8.0`:
+1. Project builds clean on `net10.0`:
    `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` -- 0 errors, 0 new
    warnings.
 2. All three test classes pass locally. Run the full project 5 times in a
