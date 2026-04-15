@@ -1,57 +1,121 @@
-# Verification Report
-**Phase:** 3 -- Transport-specific Job Handler Unit Tests (SqlServer / PostgreSQL / SQLite)
-**Date:** 2026-04-12
-**Type:** build-verify
+# Phase 3 Verification — DNQ Integration Test Project for TaskScheduler 0.4.0
 
-## Results
+**Phase:** 3
+**Type:** plan-review (Mode A)
+**Date:** 2026-04-14
+**Authored by:** orchestrator (inline) after verifier agent runs truncated mid-investigation
+
+Phase 3 creates `Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/` in the DNQ repo, consuming the freshly-published 0.4.0 NuGet package via CPM.
+
+## Plan Coverage Check
+
+| Plan | Wave | Tasks | Outcome |
+|------|------|-------|---------|
+| PLAN-1.1 | 1 | 3 | Scaffolding: csproj + CPM entry, SLN wiring, AssemblyInit + TestHelpers |
+| PLAN-2.1 | 2 | 2 | EndToEndSchedulingTests + 5x flakiness loop |
+| PLAN-2.2 | 2 | 2 | ConcurrencyRegressionTests + 5x flakiness loop (REVISED inline to use confirmed-public interface + explicit Start()) |
+| PLAN-2.3 | 2 | 2 | NodeDiscoveryTests + 5x flakiness loop (REVISED inline for same reason) |
+| PLAN-3.1 | 3 | 2 | Full-project 5x loop + solution Release build |
+
+Wave 2's three plans touch strictly disjoint files (three separate test `.cs` files). They all read from `TestHelpers.cs` (created in PLAN-1.1 Task 3) but none modify it — parallel-safe.
+
+## Phase 3 Success Criteria (from ROADMAP lines 229–241)
+
+| # | Criterion | Covered by |
+|---|-----------|-----------|
+| 1 | Project builds clean on net10.0 (single-target, matches other DNQ integration test projects) | PLAN-1.1 Task 2 verify, PLAN-3.1 Task 2 |
+| 2 | All three test classes pass locally; 5 consecutive runs in loop | PLAN-2.1/2.2/2.3 Task 2 (per-class) + PLAN-3.1 Task 1 (full suite) |
+| 3 | Test project references NuGet 0.4.0 (no project reference) | PLAN-1.1 Task 1 (`Directory.Packages.props` PackageVersion + bare PackageReference) |
+| 4 | `dotnet build -c Release -p:CI=true` clean | PLAN-3.1 Task 2 |
+| 5 | All pre-existing DNQ tests continue to pass | PLAN-3.1 Task 2 (solution-wide Release build + test) |
+
+## CONTEXT-3 Decision Coverage
+
+| Decision | Status | Where |
+|----------|--------|-------|
+| #1 Public API via InjectDistributedTaskScheduler | HONORED | All Wave 2 plans use `container.InjectDistributedTaskScheduler(port, beaconInterface)` |
+| #2 `[assembly: DoNotParallelize]` | HONORED | PLAN-1.1 Task 3 creates AssemblyInit.cs |
+| #3 Both lightweight + end-to-end tests | HONORED | PLAN-2.1 (end-to-end jobs), PLAN-2.2 (lightweight counter hammering), PLAN-2.3 (discovery) |
+| #4 Project layout + CPM + sln wiring | HONORED | PLAN-1.1 Tasks 1 & 2 |
+| #5 Public API signature + port seeds + beacon policy + ISSUE-030 workaround | HONORED | All Wave 2 plans use positional args, disjoint seeds 50000/55000/60000, TestHelpers.BeaconInterface |
+| #6 CI wiring out of scope | HONORED | No plan touches Jenkinsfile or .github/workflows/ci.yml |
+
+## Structural Rules
+
+- Task count per plan: all plans ≤ 3 tasks (1.1=3, 2.1=2, 2.2=2, 2.3=2, 3.1=2) ✓
+- Wave dependencies: Wave 2 depends on Wave 1, Wave 3 depends on Wave 2 ✓
+- Intra-wave file conflicts: none (three disjoint test files in Wave 2) ✓
+- Acceptance criteria are testable (every plan has dotnet test / dotnet build verify commands) ✓
+
+## Inline Revisions Made (2 surgical edits)
+
+Two issues flagged during verifier investigation and fixed inline by the orchestrator rather than dispatching another architect round:
+
+1. **PLAN-2.2 Task 1 — Visibility fallback stripped, explicit Start() added.**
+   The plan originally hedged on whether `ITaskSchedulerJobCountSync` was public in the 0.4.0 NuGet and included a pivot-to-ATaskScheduler fallback. Verifier investigation confirmed the interface IS public (namespace `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler`, members `GetCurrentTaskCount`, `IncreaseCurrentTaskCount`, `DecreaseCurrentTaskCount`, `Start`, event `RemoteCountChanged`). The fallback prose was replaced with confirmed-public guidance. Additionally, an explicit `sync.Start()` step was added with a rationale block: without Start(), the `_outbound?.Enqueue(...)` null-safe guard added in Phase 1 PLAN-1.2 causes every enqueue to silently no-op, making the test a **false positive** that would pass even if Phase 1's lock fix were reverted. A test that doesn't call Start() doesn't exercise the poller path at all.
+
+2. **PLAN-2.3 Task 1 — Visibility fallback stripped, explicit Start() added for BOTH nodes.**
+   Same fix as above, applied to both `[TestMethod]` blocks in NodeDiscoveryTests. Both `syncA.Start()` and `syncB.Start()` must be called before any wire traffic flows — otherwise the discovery test hangs until the 10s timeout expires with no peer events.
+
+Both edits were made directly in the plan files; no content was removed or restructured beyond these two sections.
+
+## Open Questions (non-blocking)
+
+- **`SchedulerContainer` usage shape.** The plan references `new SchedulerContainer(RegisterService)` from RESEARCH.md's README quote. Verifier investigation confirmed `SchedulerContainer` is a public class in DNQ core at `Source/DotNetWorkQueue/SchedulerContainer.cs:30` (`public class SchedulerContainer : BaseContainer`). Builder should spot-check the constructor signature during PLAN-1.1 implementation — the name suggests `Action<IContainer> registerService` but the exact shape should be verified against the class definition.
+- **Container disposal propagation to the sync Singleton.** PLAN-2.3 says "verify at implementation time" whether disposing `SchedulerContainer` propagates to the registered `ITaskSchedulerJobCountSync` Singleton. Builder should confirm and adjust cleanup code if necessary.
+
+## Mode A Verdict
+
+**PASS (after inline revisions).** All phase requirements are covered, all CONTEXT-3 decisions are honored, and the two outstanding verifier-flagged issues have been addressed via surgical edits to PLAN-2.2 and PLAN-2.3.
+
+Proceed to task scaffolding + commit.
+
+---
+
+## Build-Time Verification (Mode B) — 2026-04-15
+
+**Phase build executed during `/shipyard:build 3`.** This section rolls up the build outcomes after all waves completed.
+
+### Spec Correction During Build (commit `ee3c1ecd`)
+
+The plan's "Target frameworks: `net10.0;net8.0`" requirement was factually wrong — CONTEXT-3 claimed it "matches the rest of DNQ's test projects" but `DotNetWorkQueue.Transport.Memory.Integration.Tests` (the plan's mirror target) is `net10.0`-only, and Jenkins CI only runs `net10.0` on ubuntu-latest. User approved Option B: update the spec to single-target `net10.0`. ROADMAP lines 192/198/231, CONTEXT-3 §4, VERIFICATION.md row 1, and all five PLAN files were updated to reflect the corrected single-target spec.
+
+### Plans & Outcomes
+
+| Plan | Commit(s) | Review Verdict | Notes |
+|------|-----------|----------------|-------|
+| PLAN-1.1 | `362c39f4`, `7c62372d`, `93506699` | PASS | 3 atomic commits; csproj + SLN + AssemblyInit + TestHelpers + CPM entry |
+| PLAN-2.1 | `a117b2aa` | PASS (scope-reduced) | EndToEnd scope reduced from "50-message produce/consume" to "SimpleInjector Verify() smoke test" after three independent technical blockers surfaced during build (see SUMMARY-2.1 "Decisions Made"). User-approved during build |
+| PLAN-2.2 | `e31d96fa` | PASS | **Critical Phase 1 lock-fix regression guard.** 12 threads × 5000 iters, 30s deadlock detector, `Start()` before spawning threads (non-negotiable — without `Start()` the test is a false positive) |
+| PLAN-2.3 | `a8567c38` | PASS | Rewritten during build recovery after parallel-wave builder used nonexistent `SchedulerContainer.GetInstance<>()`. `IContainer` closure pattern factored into private `Node` helper class |
+| PLAN-3.1 | (verification-only) | PASS | Release build + regression check |
+
+### Success Criteria Final Status
 
 | # | Criterion | Status | Evidence |
 |---|-----------|--------|----------|
-| 1 | Full solution builds clean in Debug | PASS | `dotnet build Source/DotNetWorkQueue.sln -c Debug` exit code 0. `Build succeeded. 0 Error(s)`. Only 2 pre-existing `SYSLIB0012` warnings in `DotNetWorkQueue.Transport.LiteDB.IntegrationTests/ConnectionString.cs:28` and `DotNetWorkQueue.Transport.SQLite.Integration.Tests/ConnectionString.cs:24` -- unrelated to Phase 3. |
-| 2 | Plan 1.1 -- SqlServer `SetJobLastKnownEventCommandHandler` refactored to inject `IDbConnectionFactory` | PASS | Per REVIEW-1.1: constructor at `Source/DotNetWorkQueue.Transport.SqlServer/Basic/CommandHandler/SetJobLastKnownEventCommandHandler.cs:41-49` takes `IDbConnectionFactory`, null-guarded; `using (var conn = _dbConnectionFactory.Create())` at line 56; no `new SqlConnection(` remains; generic `ICommandHandler<SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>>` signature preserved; `DbType.AnsiString`/`DbType.DateTimeOffset` parameter mappings correct. |
-| 3 | Plan 1.2 -- PostgreSQL `SetJobLastKnownEventCommandHandler` refactored (re-refactored mid-flight) | PASS | Per REVIEW-2.7-2.8: commit `9c77537d` dropped the sealed `NpgsqlConnection` cast; handler now uses `IDbConnection` + `commandSql.CreateParameter()` at `Source/DotNetWorkQueue.Transport.PostgreSQL/Basic/CommandHandler/SetJobLastKnownEventCommandHandler.cs:51-72`. `DbType.AnsiString` for `@JobName`, `DbType.Int64` for time params -- semantically equivalent to prior `NpgsqlDbType.Bigint` (verified against `PostgreSQLJobSchema.cs:62-63` column declarations). |
-| 4 | Plan 2.1 -- SqlServerJobSchema tests added and pass | PASS | File `Source/DotNetWorkQueue.Transport.SqlServer.Tests/Basic/SqlServerJobSchemaTests.cs`. REVIEW-2.1-2.2-2.3 confirmed 5 tests covering table count, columns, PK (name/Unique/Clustered/column), table name, and owner wiring. Rolled into the SqlServer test run below. |
-| 5 | Plan 2.2 -- PostgreSqlJobSchema tests added and pass | PASS | File `Source/DotNetWorkQueue.Transport.PostgreSQL.Tests/Basic/PostgreSqlJobSchemaTests.cs`. 4 tests per review. Rolled into PostgreSQL test run below. |
-| 6 | Plan 2.3 -- SqliteJobSchema tests added and pass | PASS | File `Source/DotNetWorkQueue.Transport.SQLite.Tests/Basic/SqliteJobSchemaTests.cs`. 4 tests per review. Rolled into SQLite test run below. |
-| 7 | Plan 2.4 -- SqlServerSendJobToQueue tests added and pass | PASS | File `Source/DotNetWorkQueue.Transport.SqlServer.Tests/Basic/SqlServerSendJobToQueueTests.cs`. 4 tests exercising `DoesJobExist`/`DeleteJob` protected surface + ctor. |
-| 8 | Plan 2.5 -- PostgreSqlSendJobToQueue tests added and pass | PASS | File `Source/DotNetWorkQueue.Transport.PostgreSQL.Tests/Basic/PostgreSqlSendJobToQueueTests.cs`. 7 tests incl. the 3 `JobAlreadyExistsError` substring branches. |
-| 9 | Plan 2.6 -- SqliteSendToJobQueue tests added and pass | PASS | File `Source/DotNetWorkQueue.Transport.SQLite.Tests/Basic/SqliteSendToJobQueueTests.cs`. 4 tests using `TestableSqliteSendToJobQueue` subclass pattern. |
-| 10 | Plan 2.7 -- SqlServer `SetJobLastKnownEventCommandHandler` tests added and pass | PASS | File `Source/DotNetWorkQueue.Transport.SqlServer.Tests/Basic/CommandHandler/SetJobLastKnownEventCommandHandlerTests.cs`. 7 tests: two null-guards (`Assert.ThrowsExactly<ArgumentNullException>`), ctor happy path, connection lifecycle (Open/Execute/Dispose), CommandText from cache, parameter count/names/types/values. |
-| 11 | Plan 2.8 -- PostgreSQL `SetJobLastKnownEventCommandHandler` tests added and pass (post-refactor) | PASS | File `Source/DotNetWorkQueue.Transport.PostgreSQL.Tests/Basic/CommandHandler/SetJobLastKnownEventCommandHandlerTests.cs`. 6 tests: two null-guards, ctor happy path, handle lifecycle, CommandText from cache, parameter names/types/values with `UtcDateTime.Ticks` conversion asserted. |
-| 12 | SqlServer.Tests filter run green | PASS | `dotnet test ... --filter "FullyQualifiedName~SqlServerJobSchemaTests|FullyQualifiedName~SqlServerSendJobToQueueTests|FullyQualifiedName~SetJobLastKnownEventCommandHandlerTests" -c Debug --no-build` -> `Passed! - Failed: 0, Passed: 16, Skipped: 0, Total: 16, Duration: 252 ms` on net10.0. |
-| 13 | PostgreSQL.Tests filter run green | PASS | `dotnet test ... --filter "FullyQualifiedName~PostgreSqlJobSchemaTests|FullyQualifiedName~PostgreSqlSendJobToQueueTests|FullyQualifiedName~SetJobLastKnownEventCommandHandlerTests" -c Debug --no-build` -> `Passed! - Failed: 0, Passed: 17, Skipped: 0, Total: 17, Duration: 225 ms` on net10.0. |
-| 14 | SQLite.Tests filter run green | PASS | `dotnet test ... --filter "FullyQualifiedName~SqliteJobSchemaTests|FullyQualifiedName~SqliteSendToJobQueueTests" -c Debug --no-build` -> `Passed! - Failed: 0, Passed: 8, Skipped: 0, Total: 8, Duration: 136 ms` on net10.0. |
-| 15 | No regressions in previously-passing suites (via full solution compile) | PASS | Solution builds 0 errors under Debug across net10.0 and net8.0. Two unrelated SYSLIB0012 warnings pre-exist (Phase 1 baseline). No new warnings introduced by Phase 3 changes. |
-| 16 | Wave 1 refactors are DI-compatible (no init changes required) | PASS | Reviewers confirmed `IDbConnectionFactory` already registered in both `SQLServerMessageQueueInit.cs:67` and `PostgreSQLMessageQueueInit.cs:65`; handlers resolved via SimpleInjector's `ICommandHandler<T>` scan -- no explicit registration edits. Build success corroborates. |
-| 17 | Wave 2 tests use MSTest 3.x `Assert.ThrowsExactly` for null-guard assertions | PASS | Both `SetJobLastKnownEventCommandHandlerTests` files use `Assert.ThrowsExactly<ArgumentNullException>` per REVIEW-2.7-2.8. |
+| 1 | Project builds clean on net10.0 | ✅ | `dotnet build …Integration.Tests.csproj -c Debug` → 0 warnings, 0 errors |
+| 2 | All three test classes pass locally; 5 consecutive runs | ✅ | 5/5 green, 4 tests each, ~26s per run, zero flakes |
+| 3 | Test project references NuGet 0.4.0 (no project reference) | ✅ | `dotnet list package` shows 0.4.0 in both requested and resolved columns |
+| 4 | `dotnet build -c Release -p:CI=true` clean | ⚠️ | 0 errors, 2 pre-existing SYSLIB0012 warnings in LiteDB/SQLite `ConnectionString.cs` (last touched in commit `fadc5db4`, well before Phase 3). Not regressions; deferred to a cleanup phase |
+| 5 | Pre-existing DNQ tests continue to pass | ✅ | `DotNetWorkQueue.Tests` → 896/896 green (1m5s). `DotNetWorkQueue.Transport.Memory.Integration.Tests` → 57/57 green (7m57s) |
 
-**Totals across Phase 3 filter runs:** 41 Passed / 0 Failed / 0 Skipped across SqlServer (16), PostgreSQL (17), and SQLite (8). The filter totals (16/17/8 = 41) match the expected 41 new tests reported by the build summary across 8 new test files.
+### Test Execution Summary
+- **Full Phase 3 suite:** 4 tests (1 EndToEnd smoke + 1 Concurrency regression + 2 NodeDiscovery) — 5/5 consecutive green, ~26s per run.
+- **Core unit regression:** 896/896 passing in 1m5s.
+- **Memory integration regression:** 57/57 passing in 7m57s.
+- **Full solution Release build:** 0 errors, 2 pre-existing warnings.
 
-## Regression Check
+### Issues Discovered During Build (captured for lessons-learned)
+1. **Plan-time "mirror project X" directive can contradict plan-time literal specs when project X has drifted.** PLAN-1.1 told the builder to mirror Memory.Integration.Tests' csproj but also hardcoded `net10.0;net8.0`; Memory is actually `net10.0`-only. The builder chose "mirror reality" and the plan was wrong. Lesson: at plan time, don't assume inheritance targets still match the verbiage — spot-check.
+2. **Shared test runner (`SimpleConsumer.Run<>()`) exposes `Action<TTransportCreate>` but not `Action<IContainer>`.** Plan directive "clone the Memory SimpleConsumer call site" is incompatible with "inject into the container" when the shared runner has no container seam. Adding an `Action<IContainer>` overload to `DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.SimpleConsumer` is a reasonable future enhancement — tracked for a future phase.
+3. **Memory transport storage is per-container.** Two-container producer/consumer hand-rolls don't share state via `RegisterNonScopedSingleton(scope)` alone. Future end-to-end tests for scheduler-injected consumers will need either a single-container pattern or a shared storage seam.
+4. **`SchedulerContainer.GetInstance<T>()` does not exist** in 0.4.0. The closure pattern (capture `IContainer` during `registerService` callback, trigger build via `CreateTaskScheduler()`, resolve from captured container) is the only way to resolve `ITaskSchedulerJobCountSync`. Worth a dedicated lessons-learned entry.
+5. **Cross-namespace walk-up gotcha for `IDataStorage`.** Cloning `SharedClasses.cs` from the Memory test project into a differently-named namespace breaks namespace walk-up resolution. Same root cause as the existing `IConfiguration` and `Metrics.Metrics` lessons in CLAUDE.md. Copies from the Memory test project into sibling test projects need explicit `using DotNetWorkQueue.Transport.Memory;`.
+6. **`Start()` before threads is non-negotiable for `ConcurrencyRegressionTests`.** Without it, `_outbound` is null and `Increase/DecreaseCurrentTaskCount` take the null-safe no-op guard, making the test a false positive. Caught in plan-time Mode A revision (see the plan-time "Inline Revisions Made" section above); confirmed correct during build.
+7. **DNQ queue names must be alphanumeric/underscore/dot.** `Guid.NewGuid().ToString()` produces hyphenated strings that DNQ rejects. Use `Guid.NewGuid().ToString("N")` or a sanitized format.
+8. **Agent turn budget exhaustion was the dominant execution failure mode.** 4 out of 5 builder agent dispatches during Phase 3 ended without committing their work or writing SUMMARY files, forcing the main driver to take over directly. For Phase 4 / future work, consider: tighter per-task scope, explicit "commit after EVERY task" directives, or direct main-driver execution for verification-heavy tasks.
 
-- Prior phase VERIFICATION files (Phases 1-2) were not reopened; however the solution-wide Debug build under both net10.0 and net8.0 completes with 0 errors, which is a strict superset of the Phase 2 pass criterion for compilation. No new warnings were introduced.
-- `.shipyard/ISSUES.md` review: no deferred findings newly matured into Phase 3 scope. LiteDb + Redis job handler tests remain intentionally deferred (see Scope Notes).
+## Mode B Verdict
 
-## Gaps
-
-None blocking. Non-blocking observations carried forward from reviews (do not affect Phase 3 verdict):
-
-- **PostgreSqlJobSchemaTests** does not assert `pk.Columns.Count == 1` -- a future regression adding a second PK column would silently pass. Suggested tightening. (REVIEW-2.1-2.2-2.3)
-- **SqliteJobSchemaTests** same loosening on PK column count assertion.
-- **SetJobLastKnownEventCommandHandlerTests (PostgreSQL)** does not assert `connection.Dispose()` / `command.Dispose()` the way the SqlServer counterpart does. Disposal is guaranteed by `using`, so low risk.
-- Minor style inconsistencies across the three JobSchema test files (mock vs concrete `TableNameHelper`; license header presence).
-
-These are **suggestions only**, not Phase 3 gaps.
-
-## Scope Notes
-
-- **LiteDb and Redis** transports are **intentionally deferred** to a future phase. Phase 3 scope was explicitly SqlServer / PostgreSQL / SQLite job handler coverage. This is documented in the phase plan and is not a gap.
-
-## Recommendations
-
-- Open a follow-up ticket for the three non-blocking tightening suggestions (PK count assertions, disposal assertions, style alignment) -- suitable for a simplifier pass.
-- Add LiteDb + Redis job handler coverage in the next phase of the coverage roadmap.
-
-## Verdict
-
-**PASS** -- Phase 3 is complete and verified. All 10 plans delivered, full Debug solution build is clean, and all new Phase 3 tests run green (41 passing, 0 failing across SqlServer/PostgreSQL/SQLite net10.0). The mid-flight PostgreSQL handler re-refactor (commit `9c77537d`) resolved the sealed-type testability wall and is semantically equivalent to the prior implementation (verified against `PostgreSQLJobSchema` column declarations). Wave 1 DI-injection refactors and Wave 2 test suites both integrate cleanly with no regressions.
+**PASS.** All five ROADMAP success criteria satisfied (criterion #4 with the documented pre-existing-warning deviation, acknowledged as not-a-regression). All Wave 2 test classes green in 5x flakiness loop. Core + Memory regression suites clean. Phase 3 ready for the post-phase audit/simplify/document gates.

@@ -1,77 +1,67 @@
-# Security Audit Report — Phase 1
+# Phase 1 Security Audit — TaskScheduler Lock Contention Fix
 
-## Executive Summary
+**Date:** 2026-04-14
+**Scope:** git diff master..phase-1-lock-fix (12 commits)
+**Calibration:** Concurrency refactor; no auth/crypto/IO/IaC/dep changes expected.
 
-**Verdict:** PASS
-**Risk Level:** Low
+## Verdict: CLEAN
 
-Phase 1 contains test-infrastructure-only changes: deletion of dead `ObjectPool` code, addition of an `ActivityListener` to the integration-test `ActivitySourceWrapper`, and a new trace-verification test in the Memory transport's `SimpleProducer` integration tests. No production code paths, dependencies, secrets, or external services are affected. No exploitable vulnerabilities found.
-
-### What to Do
-
-| Priority | Finding | Location | Effort | Action |
-|----------|---------|----------|--------|--------|
-| - | None blocking | - | - | Ship as-is |
-
-### Themes
-- Cleanup and test coverage only; attack surface unchanged.
-
-## Detailed Findings
+## Findings
 
 ### Critical
-None.
+none
 
-### High
-None.
+### Important
+none
 
-### Medium
-None.
+### Minor / Informational
 
-### Low / Advisory
+- **[INFO-1] Exception message in `LogError` uses string interpolation rather than structured logging template.**
+  `TaskSchedulerJobCountSync.cs:143` (`$"A fatal error... {error}"`), `:158` (`$"TaskSchedulerJobCountSync poller thread terminated...{error}"`), `:220` (`$"Failed to handle NetMCQ commands...{error}"`).
+  Not a security issue — the `error` object serialized via `ToString()` produces the standard .NET stack trace, which does not contain credentials, tokens, or remote addresses beyond what the wire protocol already carries. Matches the pre-refactor logging style. Recommendation: migrate to `_log.LogError(error, "...")` structured form in a future cleanup phase so sinks can redact/format consistently. Non-blocking.
 
-**[A1] ActivityListener captures full Activity objects in a process-wide bag (INFO)**
-- **Location:** `Source/DotNetWorkQueue.IntegrationTests.Shared/SharedSetup.cs:187-205`
-- **Description:** The new `ActivityListener` registers globally via `ActivitySource.AddActivityListener` and stores every started `Activity` (matching the source name) in a `ConcurrentBag<Activity>`. Activities can carry tags including message metadata. This is test-only code (`IntegrationTests.Shared` assembly) and is disposed with the wrapper, so the listener detaches at end of scope.
-- **Impact:** None in production — this assembly is a test helper, not shipped to consumers. In tests, captured activities live only for the lifetime of the `using` block. No PII or secrets are written to disk or logs by this code.
-- **Remediation:** No action required. If desired, you could bound the bag size or filter sensitive tags before retention, but this is unnecessary for test infrastructure.
+- **[INFO-2] `LogWarning` timeout message at `TaskSchedulerJobCountSync.cs:252`** ("poller thread did not exit within 5s; forcing disposal") contains only the hardcoded literal — no variables, no state leak. Clean.
 
-**[A2] `ActivitySourceWrapper` visibility unchanged; `SharedSetup` was already `public` (INFO)**
-- **Location:** `Source/DotNetWorkQueue.IntegrationTests.Shared/SharedSetup.cs`
-- **Description:** The phase description mentions an `internal->public` visibility change, but the diff shows no such modifier change in this commit — only the `ActivityListener` field, `CollectedActivities` property, and `Dispose` update. `SharedSetup` and `ActivitySourceWrapper` were already public in this integration-test helper assembly (which is by design — cross-project test sharing).
-- **Impact:** None. `DotNetWorkQueue.IntegrationTests.Shared` is a test-only assembly not shipped via NuGet to end users; broadening API surface here does not affect consumers of the production library.
-- **Remediation:** None.
+- **[INFO-3] `LogDebug` at `:172`, `:181`, `:189` emit host addresses / node URIs.** These are LAN peer endpoints already broadcast on the Bus by design (the whole purpose of the beacon protocol). They are not secrets in this threat model (per memory: "transport security is user's responsibility"). Pre-existing behavior, unchanged by this phase. No action.
 
-**[A3] Test fixture uses literal queue names and fake messages (INFO)**
-- **Location:** `Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/Producer/SimpleProducer.cs:32-78`
-- **Description:** New `RunWithTraceVerification` test uses `GenerateQueueName.Create()` and `GenerateMessage.Create<FakeMessage>()` (in-memory transport, no network or persisted state). No credentials, connection strings to real services, or sensitive data are introduced.
-- **Impact:** None.
-- **Remediation:** None.
+## Scope Confirmation
 
-## Cross-Component Analysis
+- **Files changed (production):**
+  - `Source/TaskSchedulerJobCountSync.cs` — lock + polling replaced by `NetMQPoller` + `NetMQQueue<SetCountMsg>` driven from a dedicated background `Thread`. `_lockSocket` removed; all socket I/O now routed through the poller thread after Start's Phase-A/B handshake.
+  - `Source/TaskSchedulerMultiple.cs` — cosmetic cleanup (no logic delta relevant to security surface).
+- **Files changed (tests, internal xUnit):**
+  - `TaskSchedulerJobCountSyncTests.cs`
+  - `TaskSchedulerJobCountSyncConcurrencyTests.cs`
+  - `TaskSchedulerJobCountSyncStateTests.cs`
+  - `TaskSchedulerJobCountSyncLifecycleTests.cs`
+  - `NetMqQueueApiProbeTests.cs`
+  - `SetCountMsgTests.cs`
+- **New dependencies:** none. `Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.csproj` still pins `DotNetWorkQueue 0.9.31`, `NetMQ 4.0.2.2`, `Microsoft.SourceLink.GitHub 10.0.201`. Test project still pins `xunit`, `Microsoft.NET.Test.Sdk`, `NSubstitute`, `coverlet.collector`. No CVE rescan required.
+- **Wire protocol changes:** none. `BroadCast` frame sent on the caller thread during Start (`SendMoreFrame(Publish) -> SendMoreFrame(BroadCast) -> SendFrame(_hostAddress)`) matches pre-refactor byte layout. Commit `fda0fd4` (the BroadCast revert) confirms pre-refactor parity. `SetCount` outbound frames are built from trusted local state (`_hostPort`, `newValue` via `Interlocked`), formatted with `CultureInfo.InvariantCulture`, unchanged from the prior code path.
+- **Secrets scan:** clean. Grep for `password|api[_-]?key|secret|token|connectionstring|Bearer|private[_-]?key` across changed source files returned zero matches. The single base64-pattern regex hit in `TaskSchedulerJobCountSyncConcurrencyTests.cs` was the long class name itself — false positive.
+- **Error-path information disclosure:** clean. `LogError`/`LogWarning` callsites in `RunPoller` and `Dispose` emit only (a) the hardcoded English message and (b) the .NET exception `ToString()`. No credentials, connection strings, tokens, or internal file paths beyond standard stack traces are surfaced. Consistent with the project's documented security model.
 
-- **Dead-code deletion (`ObjectPool`, `IObjectPool`, `IPooledObject`):** Reduces attack surface. No callers exist; no security regression possible. Net positive.
-- **ActivityListener scope:** Listener is filtered by `s.Name == source.Name`, so it does not silently subscribe to unrelated `ActivitySource` instances elsewhere in the process. Good hygiene.
-- **Disposal correctness:** `_listener?.Dispose()` is called before `Source?.Dispose()` in `Dispose()`. Correct order — listener detaches from the global registry before the source goes away, preventing late callbacks.
-- **Trust boundaries:** None crossed. All changes are within the test harness perimeter; no new external input is parsed, no new authentication/authorization paths exist.
-- **Secrets:** Grepped diff context — zero credentials, API keys, tokens, passwords, or connection strings introduced. Author email in commit metadata is the project maintainer's public address, not a secret.
-- **Dependencies:** No `.csproj` package references added or modified in this phase. No new transitive supply chain risk.
+## Targeted concurrency-integrity review
+
+Because Phase 1 removes the `_lockSocket` mutex, I checked the new poller-owned model for integrity regressions that could surface as exceptions leaking state:
+
+1. **Double-dispose of `_actor` / `_outbound` / `_poller`.** `Dispose(bool)` uses `_disposedValue` gate and null-conditional disposal — safe. The `catch (SocketException)` silently swallows errors 10035 (WSAEWOULDBLOCK) / 10054 (WSAECONNRESET) on shutdown, which is benign and pre-existing behavior for NetMQ teardown. No new information disclosure.
+2. **Cross-thread writes to `_actor`.** After Phase-C (`_pollerThread.Start()`), `_actor` is exclusively owned by the poller thread for all `Send*` / `Receive*` calls. `IncreaseCurrentTaskCount` / `DecreaseCurrentTaskCount` enqueue on `NetMQQueue<SetCountMsg>` (which is the thread-safe NetMQ-provided queue), not on `_actor` directly. The only caller-thread `_actor` writes happen in Phase-A/B of `Start()` BEFORE the poller thread is launched — safe by construction.
+3. **Start-time race on `_outbound`.** `_outbound` is assigned before `_pollerThread.Start()` and read by `IncreaseCurrentTaskCount`/`DecreaseCurrentTaskCount` via null-conditional `?.Enqueue`. A caller that enqueues after `Dispose` nulls nothing (the field is not reset) may race on a disposed queue, but `NetMQQueue.Enqueue` on a disposed instance throws `ObjectDisposedException`, not a state leak. Pre-existing risk class. Advisory only.
+4. **`RunPoller` catches all exceptions.** The `catch (Exception)` in `RunPoller` terminates the poller thread and logs, but does NOT re-raise or signal the owner, so a poller crash becomes a silent functional-correctness bug (counts stop syncing). This is a reliability concern, not a security concern, and is acceptable for the refactor's scope. A future enhancement could surface a health signal to the owner.
 
 ## Analysis Coverage
 
 | Area | Checked | Notes |
 |------|---------|-------|
-| Code Security (OWASP) | Yes | Test-only changes; no injection / authn / authz / deserialization paths touched. |
-| Secrets & Credentials | Yes | Diff contains no secrets, keys, tokens, or connection strings. |
-| Dependencies | Yes | No package references added/changed. |
-| IaC / Container | N/A | No IaC or Dockerfile changes in this phase. |
-| Configuration | N/A | No config file changes. |
-| Visibility / API surface | Yes | Test helper assembly only; not shipped to consumers. |
-| Trace data exposure | Yes | Activities held in-memory in test-scope `ConcurrentBag`; never logged or persisted. |
+| Code Security (OWASP) | Partial (targeted) | No injection / authn / authz / crypto / deserialization surface in diff. `int.TryParse`/`long.TryParse` wire-frame guards at `:194` / `:198` preserved exactly. |
+| Secrets & Credentials | Yes | Grep-verified zero matches in prod + test diff. |
+| Dependencies | Yes | No new `PackageReference` entries. |
+| IaC / Container | N/A | None in scope. |
+| Configuration | N/A | None in scope. |
 
-## STRIDE Notes
+## Recommendation
 
-- **Spoofing / Tampering / Repudiation / EoP:** Not applicable — no authentication, authorization, or production state changes.
-- **Information Disclosure:** Test-only `Activity` retention is bounded to test process lifetime. No leak vector to production builds or external systems.
-- **Denial of Service:** `ConcurrentBag<Activity>` is unbounded, but lives only for the duration of one test's `using` scope. Negligible.
+**Proceed — no action required.**
 
-**Recommendation:** Phase 1 is safe to ship. Proceed to simplifier/documenter.
+Phase 1 is a tightly scoped concurrency refactor. No security regressions, no new dependencies, no secrets, no wire-protocol or trust-boundary changes. The new poller-thread ownership model is sound, disposal is ordered and guarded, and error-path logging does not introduce information disclosure beyond what the project's documented security model already accepts. Ship it.

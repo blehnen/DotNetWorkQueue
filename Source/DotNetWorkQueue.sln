@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Integration
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.Memory.Integration.Tests", "DotNetWorkQueue.Transport.Memory.Integration.Tests\DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj", "{F42D92E4-3CA3-4B9E-ACB2-CCAFE4648017}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests", "DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests\DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj", "{8327C430-4C67-4A09-BC25-47875DEC068B}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests", "DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests\DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj", "{D1CFD06B-2DD8-40CA-8BA2-171B251331F6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkQueue.Transport.SqlServer.Integration.Tests", "DotNetWorkQueue.Transport.SqlServer.IntegrationTests\DotNetWorkQueue.Transport.SqlServer.Integration.Tests.csproj", "{6295D4BA-002E-46CB-BA81-F168137CD44E}"
@@ -171,6 +173,18 @@ Global
 		{F42D92E4-3CA3-4B9E-ACB2-CCAFE4648017}.Release|x64.Build.0 = Release|Any CPU
 		{F42D92E4-3CA3-4B9E-ACB2-CCAFE4648017}.Release|x86.ActiveCfg = Release|Any CPU
 		{F42D92E4-3CA3-4B9E-ACB2-CCAFE4648017}.Release|x86.Build.0 = Release|Any CPU
+		{8327C430-4C67-4A09-BC25-47875DEC068B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8327C430-4C67-4A09-BC25-47875DEC068B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8327C430-4C67-4A09-BC25-47875DEC068B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8327C430-4C67-4A09-BC25-47875DEC068B}.Debug|x64.Build.0 = Debug|Any CPU
+		{8327C430-4C67-4A09-BC25-47875DEC068B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8327C430-4C67-4A09-BC25-47875DEC068B}.Debug|x86.Build.0 = Debug|Any CPU
+		{8327C430-4C67-4A09-BC25-47875DEC068B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8327C430-4C67-4A09-BC25-47875DEC068B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8327C430-4C67-4A09-BC25-47875DEC068B}.Release|x64.ActiveCfg = Release|Any CPU
+		{8327C430-4C67-4A09-BC25-47875DEC068B}.Release|x64.Build.0 = Release|Any CPU
+		{8327C430-4C67-4A09-BC25-47875DEC068B}.Release|x86.ActiveCfg = Release|Any CPU
+		{8327C430-4C67-4A09-BC25-47875DEC068B}.Release|x86.Build.0 = Release|Any CPU
 		{D1CFD06B-2DD8-40CA-8BA2-171B251331F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D1CFD06B-2DD8-40CA-8BA2-171B251331F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1CFD06B-2DD8-40CA-8BA2-171B251331F6}.Debug|x64.ActiveCfg = Debug|Any CPU

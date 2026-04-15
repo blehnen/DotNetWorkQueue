@@ -1,72 +1,39 @@
-# Documentation Report
-**Phase:** 3 -- Relational Transport Job Handler Tests + Refactors
+# Documentation Review: Phase 3
 
-## Summary
-- API/Code docs: 2 handlers reviewed for public API impact
-- Architecture updates: 1 proposed pattern doc for transport handler unit testing
-- User-facing docs: 0 (internal refactor, no user surface change)
-- CLAUDE.md lessons learned: 2 proposed additions
+## Scope
+Documentation coverage for all cumulative changes in Phase 3. Reviewer: main driver inline.
 
-## 1. Public API Impact Analysis
+## Analysis
 
-### 1.1 SqlServer SetJobLastKnownEventCommandHandler
-- **File:** `Source/DotNetWorkQueue.Transport.SqlServer/Basic/CommandHandler/SetJobLastKnownEventCommandHandler.cs`
-- **Type:** Reference
-- **Change:** Constructor signature changed from `(SqlServerCommandStringCache, IConnectionInformation)` to `(SqlServerCommandStringCache, IDbConnectionFactory)`.
-- **Public API break?** **Technically yes, practically no.**
-  - The class is `public` and so is the constructor, so binary compatibility is broken.
-  - However, this handler is only ever instantiated by the SimpleInjector container inside `SqlServerMessageQueueInit`. It is not listed in any public factory surface, not exposed through `IProducerQueue<T>` / `IConsumerQueue`, and there is no documented downstream extensibility scenario where a consumer would `new` it up directly.
-  - `IDbConnectionFactory` was already registered in the SqlServer DI module, so container-resolved instances continue to work without any registration change.
-- **Recommendation:** No API reference doc update needed. The XML `<summary>` on the constructor already documents the new parameter (`<param name="dbConnectionFactory">...</param>`). No release-notes entry required beyond a short internal note.
+### Public API documentation
+- **No new public API introduced by Phase 3.** All six new C# files live in a test-only project (`DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests`), which is not a NuGet output and has no public surface. Nothing for the main `DotNetWorkQueue` XML docs to pick up.
+- The one NuGet dependency added (`DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler 0.4.0`) was documented at ship time in Phase 2. Phase 3 consumes it; it does not re-document it.
 
-### 1.2 PostgreSQL SetJobLastKnownEventCommandHandler
-- **File:** `Source/DotNetWorkQueue.Transport.PostgreSQL/Basic/CommandHandler/SetJobLastKnownEventCommandHandler.cs`
-- **Type:** Reference
-- **Change:** Same constructor signature change as SqlServer. Additionally, the Wave 1 version briefly shipped with a `(NpgsqlConnection)` cast inside `Handle()`; the final version drops the cast and operates on `IDbConnection` directly. The class still implements `ICommandHandler<SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction>>`, so the **generic signature is unchanged** and any type-level consumers are unaffected.
-- **Public API break?** Same as SqlServer -- technical break on a container-resolved class, no practical downstream impact.
-- **Recommendation:** No API reference doc update needed. XML doc already uses `<inheritdoc />` and documents the new `dbConnectionFactory` parameter.
+### Architecture documentation
+- **No architecture changes.** The existing DNQ architecture (producer/consumer, transport abstraction, IoC container, Command/Query pattern) is unchanged. The new test project sits at the periphery of the architecture as a consumer of the already-documented `TaskScheduler 0.4.0` NuGet via its public `InjectDistributedTaskScheduler` extension. No `docs/` updates needed.
 
-### Cross-cutting note (Priority: LOW)
-If the project ever publishes a formal "what is binary-compatible" contract, these DI-internal handlers should be explicitly listed as **not** part of the public contract (candidates for `internal` in a future cleanup). Several similar handlers across the relational transports have the same shape and would benefit from the same re-classification.
+### User-facing documentation
+- **No user-facing features.** Phase 3 is exclusively test infrastructure: an integration test project that consumes the 0.4.0 NuGet and proves the cross-repo regression guard for Phase 1's lock fix holds. End users of the main DNQ library are not affected.
 
-## 2. Proposed CLAUDE.md Lessons Learned
+### Code documentation (inline)
+Each new test class has a `<summary>` block explaining its purpose:
+- **`ConcurrencyRegressionTests`:** "Cross-repo regression guard for Phase 1's TaskSchedulerJobCountSync lock fix. Hammers Increase/Decrease from many threads to detect deadlock and assert final count consistency."
+- **`NodeDiscoveryTests`:** "Verifies the NetMQ beacon-based node discovery protocol: two SchedulerContainers sharing the same UDP broadcast port must see each other, converge on a common task-count view, and the surviving node must observe the other node decaying after disposal."
+- **`EndToEndSchedulingTests`:** includes a detailed `<summary>` explaining the scope reduction from "produce/consume 50 messages" to a SimpleInjector Verify() smoke test, with rationale (three independent blockers documented in SUMMARY-2.1).
+- **`TestHelpers.BeaconInterface`, port-base constants, `NextPort`:** XML doc comments on each public member explain the platform-aware beacon interface choice and the TIME_WAIT-safe port allocation strategy.
+- **`ConcurrencyRegressionTests`'s `Start()` call:** has a multi-line inline comment explaining why calling `Start()` before spawning threads is non-negotiable — without it, the test is a false positive.
+- **`EndToEndSchedulingTests` queue name comment:** explains the DNQ alphanumeric/underscore/dot constraint.
 
-**Priority: HIGH** -- both are non-obvious and will bite the next person who touches a transport-specific handler.
+### README / CLAUDE.md updates
+- **CLAUDE.md lessons learned section should get a new entry** documenting the closure-pattern-to-resolve-`ITaskSchedulerJobCountSync` gotcha (`SchedulerContainer` does not expose `GetInstance<T>()`; you must capture `IContainer` during the `registerService` callback, trigger build via `CreateTaskScheduler()`, then resolve from the captured container). This is a non-obvious gotcha that will bite anyone else writing tests against the NuGet. **Action:** deferred to `/shipyard:ship` lessons-learned capture (the standard Shipyard pattern for rolling up phase lessons at ship time).
+- **CLAUDE.md Build Commands section** could add the new test project to the list of "Additional unit test projects" but (a) it's not a unit test project, it's an integration test project, and (b) it's not yet wired into Jenkins CI (out-of-scope per CONTEXT-3 §6). **Action:** deferred to whenever the CI wiring phase happens.
 
-### Lesson A -- Sealed transport connection types break mocking
-Propose adding to the `## Lessons Learned` bullet list:
+## Documentation Gaps
+**None blocking.** Phase 3's code is test infrastructure with good inline documentation. The only "gap" is that lessons learned from building Phase 3 should feed back into CLAUDE.md, which is the standard Shipyard lessons-learned flow at `/shipyard:ship`.
 
-> - Casting `IDbConnection` to a sealed transport-specific type (e.g., `NpgsqlConnection`, `SqliteConnection`) inside a handler's `Handle()` method makes the handler effectively unmockable with NSubstitute/Castle DynamicProxy -- you cannot proxy a sealed class, so any test that tries to pass a substitute `IDbConnection` into the factory will hit `TypeLoadException` at the cast site. Pattern: keep handlers operating on `IDbConnection` / `IDbCommand` with generic `DbType` enum values + `IDbCommand.CreateParameter()`. The transport-specific generic args on `ICommandHandler<SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction>>` are fine -- the cast inside `Handle()` is what kills testability. PostgreSQL `SetJobLastKnownEventCommandHandler` had to be re-refactored mid-phase to drop this cast (phase 3, commit `9c77537d`).
+## Recommendation
+**No documentation generation needed.** Defer two items to ship time:
+1. New CLAUDE.md lessons-learned entries (closure pattern, NuGet 0.4.0 API surface, cross-namespace walk-up `IDataStorage` fix, agent turn budget recovery patterns).
+2. Optional: mention the new test project in CLAUDE.md's Build Commands section if/when it gets wired into Jenkins CI.
 
-### Lesson B -- Test seam pattern for transport handlers
-Propose adding to the `## Lessons Learned` bullet list:
-
-> - For unit-testing transport handlers that own their own `using` block around an `IDbConnection`, the preferred seam is constructor-injected `IDbConnectionFactory` (already registered in every relational transport DI module). Mock chain: `IDbConnectionFactory.Create()` -> `IDbConnection.CreateCommand()` -> `IDbCommand.Parameters` (as an `IDataParameterCollection`). Capture parameters via `Arg.Do<IDbDataParameter>(p => list.Add(p))` on `Parameters.Add` -- do **not** try to mock `IDataParameterCollection` indexers, and do **not** use `System.Reflection` or `Testable*` subclasses to reach protected members (neither is needed once the factory seam is in place).
-
-## 3. Proposed Architecture Doc (Priority: MEDIUM)
-
-### Unit Testing Transport Command Handlers
-- **Type:** How-to guide
-- **Proposed location:** `docs/testing-transport-handlers.md` (new file) OR a new `## Testing Command Handlers` section inside an existing architecture doc if one covers the Command/Query pattern.
-- **Rationale:** Phase 3 established a repeatable pattern across SqlServer, PostgreSQL, and SQLite. Several dozen other handlers under `Transport.*/Basic/CommandHandler/` share the same shape and are currently uncovered. A short how-to will pay for itself on the very next coverage phase.
-- **Proposed outline** (kept deliberately short -- one good example beats three paragraphs):
-  1. **When to use this pattern** -- handlers that own a `using (var conn = ...)` block around an `IDbConnection` and execute a single SQL command.
-  2. **Refactor checklist** -- inject `IDbConnectionFactory` (not `IConnectionInformation` + `new XxxConnection(...)`); operate on `IDbConnection` interfaces; avoid any cast to the sealed transport connection type inside `Handle()`.
-  3. **Mock wiring recipe** -- NSubstitute chain from `IDbConnectionFactory` down to parameter capture via `Arg.Do<>`. Link to `SetJobLastKnownEventCommandHandlerTests.cs` in the SqlServer and PostgreSQL test projects as canonical examples.
-  4. **What to assert** -- constructor null-guards, `CommandText` value (catches silent SQL typos -- see the pre-existing "SQL UPDATE silent no-op" lesson in CLAUDE.md), parameter names / `DbType` / values, and `Open()` + `ExecuteNonQuery()` call counts.
-  5. **Pitfalls** -- sealed connection types (Lesson A above), `IDataParameterCollection` indexer mocking, `SetJobLastKnownEventCommand<TConn, TTxn>` requires non-null-typed generic args but accepts `null` values for the `connection`/`transaction` constructor params when the handler ignores them.
-
-## 4. Gaps
-- No architecture doc currently describes the Command/Query handler pattern under `Transport.Shared`. This is a pre-existing gap, not introduced by phase 3, but the phase 3 pattern doc above would be the natural anchor for a future expansion.
-- The `IDbConnectionFactory` abstraction itself is undocumented at the architecture level -- worth a one-paragraph "why it exists" note the next time architecture docs are touched (supports DI, supports unit testing, isolates connection-string handling from handlers).
-
-## 5. Priority Summary
-| Priority | Item | Action |
-|---|---|---|
-| HIGH | Lesson A (sealed connection cast) | Add to CLAUDE.md Lessons Learned |
-| HIGH | Lesson B (factory seam pattern) | Add to CLAUDE.md Lessons Learned |
-| MEDIUM | Transport handler testing how-to | New `docs/testing-transport-handlers.md` |
-| LOW | Public-vs-internal classification of DI-resolved handlers | Track for a future API hygiene pass |
-| LOW | `IDbConnectionFactory` architecture note | Fold into next architecture doc update |
-
-All findings are **non-blocking**. No source code or CLAUDE.md edits were made -- wording is proposed only.
+## Verdict: PASS_NO_ACTION (defer to ship time)

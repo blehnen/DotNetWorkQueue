@@ -1,83 +1,120 @@
-# Phase 4 Verification
+# Phase 4 Verification — CI Wiring
 
-**Phase:** 4 — LiteDb + Redis transport job handler tests
-**Status:** ✅ PASS
-**Verifier:** Orchestrator (direct, after dispatched verifier agent failed to produce output)
-**Date:** 2026-04-13
+**Mode:** A (Coverage & Structure)  
+**Date:** 2026-04-15  
+**Status:** Pre-execution plan review
 
-## Summary
+## Plan Coverage Check
 
-Phase 4 is complete. All 10 plans built cleanly on first dispatch (0 review retries), 39 new tests added across 8 new test files, and 2 production seam refactors merged without regression. Full-solution Debug build succeeds with 0 errors and 2 pre-existing obsolete-API warnings unrelated to this phase.
+| Plan | Wave | Tasks | Files | Outcome |
+|------|------|-------|-------|---------|
+| PLAN-1.1 | 1 | 1 | `.github/workflows/ci.yml` | READY |
+| PLAN-1.2 | 1 | 1 | `Jenkinsfile` | READY |
 
-## Build & Test Results
+Both plans are in Wave 1 and touch strictly disjoint files, enabling parallel execution.
 
-### Full-solution build
-```
-dotnet build "Source/DotNetWorkQueue.sln" -c Debug
-Build succeeded. 2 Warning(s). 0 Error(s). Time Elapsed 00:01:09.
-```
-Both warnings (`SYSLIB0012: Assembly.CodeBase`) pre-exist in `Transport.LiteDB.IntegrationTests/ConnectionString.cs:28` and `Transport.SQLite.Integration.Tests/ConnectionString.cs:24`. Not introduced by Phase 4.
+## Success Criteria Mapping
 
-### Unit test projects (--no-build)
-| Project | Passed | Failed | Skipped | Total | Duration |
-|---|---|---|---|---|---|
-| `DotNetWorkQueue.Transport.LiteDb.Tests` | 166 | 0 | 0 | 166 | 862 ms |
-| `DotNetWorkQueue.Transport.Redis.Tests` | 190 | 0 | 0 | 190 | 485 ms |
+| # | Criterion | Covered By | Status |
+|---|-----------|-----------|--------|
+| 1 | GitHub Actions PR runs new project on ubuntu-latest / net10.0, passes | PLAN-1.1 task 1 (ci.yml step append) | **READY** |
+| 2 | Jenkins master build runs new stage on Docker agent, passes (no Codecov upload) | PLAN-1.2 task 1 (Jenkinsfile stage append, no stash/coverage) | **READY** |
+| 3 | Jenkins total stages +1 (14 total); 5s stagger pattern preserved | PLAN-1.2 task 1 (`sleep(time: 65, ...)` formula verified) | **READY** |
+| 4 | No existing CI stage regresses | Implicit in both plans (no edits to existing stages/steps) | **READY** |
+| 5 | Beacon-skip decision tracked in issue link (if needed) | Out-of-scope per CONTEXT-4: addressed in follow-up PR if feature-branch run fails | **N/A** |
 
-All new tests from Phase 4 run and pass. No regressions in existing tests.
+**Verdict:** All 5 success criteria are either directly covered by plan tasks or explicitly marked out-of-scope with follow-up path approved.
 
-## Plan Coverage
+## CONTEXT-4 Decision Coverage
 
-| # | Plan | Verdict | Commit | Tests |
-|---|---|---|---|---|
-| 1.1 | BaseLua TryExecute virtualization (refactor) | PASS | `c7a9dd80` | — (enabling refactor) |
-| 1.2 | RedisJobQueueCreation → IQueueCreation (refactor) | PASS | `336b0c91` | — (enabling refactor) |
-| 2.1 | LiteDb SetJobLastKnownEventCommandHandler | PASS | `05d31843` | 4 |
-| 2.2 | LiteDbSendJobToQueue | PASS (partial scope) | `222de596` | 5 |
-| 2.3 | LiteDb GetJobIdQueryHandler | PASS | `f36b6095` | 7 |
-| 2.4 | LiteDb RollbackMessageCommandHandler | PASS (partial scope) | `fd4b40b6` | 6 |
-| 2.5 | LiteDb DashboardUpdateMessageBodyCommandHandler | PASS | `9cbbc714` | +6 (9 total) |
-| 3.1 | RedisJobQueueCreation | PASS | `d28f62f7` | 5 |
-| 3.2 | Redis DoesJobExistLua | PASS | `9de5d9c2` | 7 |
-| 3.3 | Redis DashboardUpdateMessageBodyLua | PASS | `6f932db7` | 6 |
-| | **Total** | | | **46 new unit tests** (39 primary + 7 bonus/existing-expansion) |
+| Decision | Locked Statement | Honored by Plans? | Evidence |
+|----------|------------------|-------------------|----------|
+| **#1: Optimistic UDP** | No skip mechanism, no `[TestCategory]`, no `--network=host` | YES | PLAN-1.1 task: no coverage/filter flags. PLAN-1.2 task: no `--filter`, no `--network=host`, no `[TestCategory]` — literal block has none of these. |
+| **#2: Feature branch first** | No commit to master; all changes on branch | YES | Both plans' commit messages are descriptive (no branch name hardcoding). Build-time flow creates branch per CONTEXT-4. |
+| **#3: No Codecov from new stage** | No `--collect`, `--settings`, `--results-directory`, `stash`, or `.trx` upload | YES | PLAN-1.1: ci.yml step has `--no-build -c Debug` only (no coverage flags). PLAN-1.2: literal stage body omits all coverage lines; task instruction explicitly forbids `--settings`, `--collect`, `--results-directory`, `stash`. |
+| **#3 (Correction note)** | Use `-c Debug`, NOT `-c Release -p:CI=true` | YES | PLAN-1.2 task: literal block uses `-f net10.0 -c Debug` (no `-p:CI=true`). Task instruction (line 87) explicitly says "use `-c Debug` to match the 13 existing stages and avoid a redundant double-build" and forbids `-c Release` and `-p:CI=true`. |
+| **#4: Append at end, preserve stagger** | New stage 14th, `sleep(time: 65, ...)`, don't renumber stages 1–13 | YES | PLAN-1.2 task: insert between lines 297–298 (after Dashboard closing brace, before parallel closing brace). Stagger formula verified: `(14-1)*5 = 65`. Task forbids touching any existing `sleep` value. |
+| **#5: GitHub Actions — same job, no new job** | Add to existing `build-and-test` job, append one step | YES | PLAN-1.1 task: "Append a new step to the `build-and-test` job ... after the existing 'Unit Tests - Memory' step (currently ends at line 65)." No new job, no matrix changes. |
 
-(Handoff claimed 39; actual count including bonus `JobAlreadyExistsError` branches in 2.2 and the existing tests in 2.5's expanded file is closer to 46. Both numbers are directionally correct — the phase added 39 tests to previously-uncovered handlers.)
+**Verdict:** All 5 locked decisions are honored. The -c Debug correction is explicitly stated in PLAN-1.2 task instruction (line 87).
 
-## Partial-Completion Analysis
+## Structural Rules
 
-### Plan 2.2 — `LiteDbSendJobToQueue.DoesJobExist` deferred
-**Claim in SUMMARY-2.2.md:** `DoesJobExist` is "left to LiteDb integration tests" because `LiteDbConnectionManager.GetDatabase()` has no injection seam.
+**Task Count:**
+- PLAN-1.1: 1 task (within ≤3 limit)
+- PLAN-1.2: 1 task (within ≤3 limit)
+- **PASS**
 
-**Verification:** LiteDb has no job-scheduler integration tests in `DotNetWorkQueue.Transport.LiteDB.IntegrationTests/`, but `DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/JobScheduler/` contains `JobSchedulerTests.cs` and `JobSchedulerMultipleTests.cs`. The job-scheduler LINQ integration tests exercise the full `IJobScheduler` → `LiteDbSendJobToQueue` → `DoesJobExist` path when running against a real LiteDb database.
+**File Disjointness (Wave 1 parallel execution):**
+- PLAN-1.1 touches: `.github/workflows/ci.yml` only
+- PLAN-1.2 touches: `Jenkinsfile` only
+- No overlap; no task ordering dependency
+- **PASS**
 
-**Verdict:** Deferral is safe. DoesJobExist is transitively integration-tested.
+**Wave Dependencies:**
+- Both plans in Wave 1, no inter-plan dependencies declared
+- No circular dependencies
+- **PASS**
 
-### Plan 2.4 — `RollbackMessageCommandHandler.Handle()` deferred
-**Claim in SUMMARY-2.4.md:** Handle() is "already exercised by the LiteDb integration tests" via consumer failure paths.
+**Acceptance Criteria (testability):**
 
-**Verification:** `DotNetWorkQueue.Transport.LiteDB.IntegrationTests/` contains `Consumer/` and `ConsumerAsync/` directories which exercise the full consumer pipeline against real in-memory and file-based LiteDb databases. Consumer abort, worker failure, and heartbeat-expiry paths all trigger rollback → `RollbackMessageCommandHandler.Handle()`.
+PLAN-1.1 `<done>` block (lines 87–93):
+- ✓ "`.github/workflows/ci.yml` contains exactly one new `- name: Integration Tests - TaskScheduler Distributed` step" — verifiable via `grep -c`
+- ✓ "new step is the last step in the `build-and-test` job and appears after 'Unit Tests - Memory'" — verifiable via `grep -n` ordering
+- ✓ "YAML parses cleanly with `python3 -c \"import yaml; yaml.safe_load(...)\"`" — runnable command provided
+- ✓ "No coverage-collection flags were introduced" — verifiable via grep for absence of patterns
+- ✓ "Single commit on working branch with message specified" — git-verifiable
 
-**Verdict:** Deferral is safe. Handle() is fully integration-tested.
+PLAN-1.2 `<done>` block (lines 150–158):
+- ✓ "exactly one new `stage('TaskScheduler Distributed')` block, placed as last stage" — verifiable via `grep -c` + line ordering
+- ✓ "first `steps` action is `sleep(time: 65, ...)`" — verifiable via grep + awk range extraction
+- ✓ "total `sleep(time: ` count is 14" — verifiable via `grep -c "sleep(time: "`
+- ✓ "All 13 existing stagger offsets unchanged" — verifiable via exact `grep -n "sleep(time: "` output comparison
+- ✓ "New stage body is exact literal block with NO coverage/Release/filter/retry-failed-tests" — verifiable via awk range + grep absence
+- ✓ "Coverage Report stage unchanged (still unstashes 13)" — verifiable via `grep -c "^                unstash "`
+- ✓ "Single commit on working branch with message specified" — git-verifiable
 
-## Integration Risk
+All acceptance criteria are **objectively measurable** via bash commands, not subjective.
 
-- Plan 1.1 (BaseLua virtualization): additive `virtual` keyword only. No existing Redis Lua script handler overrides these methods — the change is a pure seam for testability. Redis test suite passes.
-- Plan 1.2 (RedisJobQueueCreation → IQueueCreation): `RedisQueueCreation` already implements `IQueueCreation`, so this is API-compatible with existing DI wiring. Redis test suite passes.
-- Cross-plan conflicts: none observed.
+**Verdict: PASS**
 
-## Gaps Identified
+---
 
-**None blocking.** Documented partial scopes (2.2, 2.4) are defensible; both deferred paths have integration-level coverage.
+## Risk Assessment
 
-**Low-priority note for future cleanup (not Phase 4 scope):** `LiteDbConnectionManager` has no injection seam. Adding one (similar to Phase 3's `IDbConnectionFactory` refactor for relational transports) would enable Handle()-level unit tests for any LiteDb command handler that calls `GetDatabase()`. This is a candidate for a future maintenance phase, not a Phase 4 gap.
+| Risk | Rating | Mitigation in Plans |
+|------|--------|---------------------|
+| UDP multicast blocked in Docker bridge | Medium | CONTEXT-4 decision #1 (optimistic approach): no pre-emptive skip. Feature-branch run will surface failure; follow-up PR for skip mechanism pre-approved. |
+| CONTEXT-4 `-c Debug` correction misunderstood | Low | PLAN-1.2 task instruction (line 87) explicitly states the correction and forbids `-c Release` / `-p:CI=true`. Literal block snippet uses `-c Debug`. |
+| Jenkinsfile structure mismatch (e.g., stagger is a loop, not inline sleeps) | Low | RESEARCH.md confirmed stagger is inline `sleep(time: N, unit: 'SECONDS')` calls; exact line table provided (lines 70–86). No hidden formula. |
+| ci.yml YAML indentation wrong | Low | PLAN-1.1 task specifies "6-space indentation under `steps:`" and "blank line before `- name:`". Verify command includes YAML parse check. |
+| Stagger formula off by one | Low | RESEARCH.md verified: stages 1–13 are 0s, 5s, ..., 60s. Formula `(n-1)*5` confirmed. Stage 14 = 65s. Exact grep output listed in PLAN-1.2 verify block. |
 
-## Recommendations
+**Verdict: Medium risk is inherent to Phase 4 (UDP unknown) and pre-approved. All other risks mitigated by explicit instructions.**
 
-1. **Proceed to auditor → simplifier → documenter gates.** Phase 4 is test-only plus two trivial seam refactors; a brief audit is appropriate.
-2. **Simplifier should check for cross-transport mock helper duplication.** Phase 3 deferred this finding; Phase 4 adds more mock-heavy test files that may share patterns worth extracting.
-3. **Documenter candidates for CLAUDE.md lessons:**
-   - In-memory `LiteDatabase` pattern for handler tests
-   - BaseLua `virtual TryExecute` seam for Redis Lua unit testing
-   - LiteDbConnectionManager has no injection seam (Handle()-level unit tests not viable)
-4. **After Phase 4 ships, Phase 5 (Dashboard.Api DashboardExtensions) is the only remaining roadmap item.**
+---
+
+## Cross-Plan Integrity
+
+**Forward References:** None. PLAN-1.1 and PLAN-1.2 are independent edits to disjoint files. The GitHub Actions step runs in `build-and-test` job on `ubuntu-latest`. The Jenkins stage runs in `Integration Tests` parallel block on Docker agent. No shared resources, no output of one used as input to the other.
+
+**File Conflicts:** None. `.github/workflows/ci.yml` and `Jenkinsfile` are separate files.
+
+**Hidden Ordering Dependencies:** None. Both plans can execute in parallel.
+
+**Verdict: READY for parallel execution**
+
+---
+
+## Overall Verdict: **PASS**
+
+### Summary
+Phase 4 plans are well-structured, complete, and ready for execution:
+
+1. **Coverage:** All 5 ROADMAP success criteria addressed; no requirements orphaned.
+2. **CONTEXT-4 adherence:** All 5 locked decisions honored in plan tasks.
+3. **Structural soundness:** ≤1 task per plan, disjoint files, no circular dependencies, testable acceptance criteria.
+4. **Risk:** Medium UDP risk is pre-approved with follow-up path. Other risks are low and mitigated by explicit instructions.
+5. **Feasibility:** File paths, line numbers, and stagger formula verified against live repo state.
+
+**Next Step:** Builder executes both tasks in parallel (Wave 1), then verifies acceptance criteria per the `<done>` blocks. Push to feature branch and confirm both CI surfaces (GitHub Actions + Jenkins) run green before merging to master.

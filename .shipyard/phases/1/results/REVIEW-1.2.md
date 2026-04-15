@@ -1,62 +1,85 @@
-# Review: Plan 1.2
+# Review: Plan 1.2 (Poller infrastructure refactor)
 
-## Verdict: PASS
+Two-stage review by separate reviewer agent dispatches.
 
-## Stage 1 - Spec Compliance
+## Verdict: PASS (with minor suggestions)
 
-### Task 1: Add ActivityListener to ActivitySourceWrapper
-- Status: PASS
-- Evidence: `Source/DotNetWorkQueue.IntegrationTests.Shared/SharedSetup.cs` lines 185-218
-  - Line 187: private `_listener` field
-  - Line 189-200: constructor builds `ActivityListener` with:
-    - `ShouldListenTo = s => s.Name == source.Name` (filters to wrapper's source)
-    - `Sample` returns `ActivitySamplingResult.AllDataAndRecorded`
-    - `ActivityStarted` adds to `CollectedActivities` bag
-    - Registered via `ActivitySource.AddActivityListener(_listener)`
-  - Line 207: `CollectedActivities` exposed as `ConcurrentBag<Activity>`
-  - Line 209-217: `Dispose()` disposes `_listener` BEFORE `Source`, then preserves the existing `TraceSettings.Enabled` 2-second flush sleep
-  - `using System.Collections.Concurrent;` added (line 2)
-- Notes: Implementation matches the plan exactly. Disposal order is correct (listener first, then source).
+Stage 1 (spec compliance) verdict: **PASS**. Stage 2 (code quality) verdict: **MINOR_ISSUES** — 0 critical, 3 important (advisory, non-blocking), 6 minor. Nothing blocks Wave 3.
 
-### Task 2: Add RunWithTraceVerification test to Memory SimpleProducer
-- Status: PASS
-- Evidence: `Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/Producer/SimpleProducer.cs` lines 32-78
-  - New `[TestMethod]` named `RunWithTraceVerification` (does not conflict with existing `Run` test on lines 14-30)
-  - Creates queue creator, then `SharedSetup.CreateTrace("producer")` (line 49)
-  - Wires trace into `SharedSetup.CreateCreator<MemoryMessageQueueInit>` (line 53-55) so the producer registers the trace decorator chain
-  - Sends one message via `queue.Send(GenerateMessage.Create<FakeMessage>())` (line 60)
-  - Asserts `trace.CollectedActivities.Count > 0` (line 66) AND uses `CollectionAssert.Contains` for `"SendMessage"` operation name (line 70-71) with a diagnostic listing the actual collected names if it fails
-  - Uses `oCreation.RemoveQueue()` for cleanup (line 74)
-- Notes: Existing `Run` `[DataRow]` test remains unchanged. New test follows the same MSTest patterns used elsewhere in this project.
+## Stage 1 — Spec Compliance
 
-### Test Verification
-- Builder reports 1/1 passing in 1s. I cannot rerun from this review-only role, but the static analysis above is consistent with the reported result: the listener filter matches the source the producer publishes from, and the `Memory` transport's send path goes through `SendMessageDecorator` which emits the `"SendMessage"` activity asserted by the test.
+### Checklist results
 
-## Stage 2 - Code Quality
+**Task 1 — Scaffold**
+- `_poller` field near `_actor`: PASS
+- Poller construction in `Start()` after `GetHostAddress` round-trip: PASS (Task 3 subsumed the empty-ctor form, expected)
+- `_poller?.Dispose()` in `Dispose(bool)` before `_actor?.Dispose()`: PASS
 
-### Critical
-- None.
+**Task 2 — Inbound on poller**
+- `OnActorReady(object, NetMQActorEventArgs)` — signature corrected from plan's `NetMQSocketEventArgs`. Acceptable deviation because `NetMQActor.ReceiveReady` is actually typed that way.
+- Body reads first frame via `_actor.ReceiveFrameString(Encoding.ASCII)`: PASS
+- `int.TryParse`/`long.TryParse` guards preserved: PASS
+- `_actor.ReceiveReady += OnActorReady` subscribed: PASS
+- `_poller.Run()` replaces old `while(!_stopRequested) ProcessMessages()`: PASS
+- Initial `BroadCast` sent directly on caller thread before poller construction (CONTEXT-1.md #5): PASS
+- `_stopRequested`, `_running`, `ProcessMessages()` all deleted: PASS
+- `while(_running) Sleep(100)` hot-wait gone: PASS
+- `_poller?.Stop()` called before `_actor?.Dispose()`: PASS
+- `SocketException` 10035/10054 swallow preserved: PASS
 
-### Minor (logged to ISSUES.md)
-- **Pre-existing latent bug in `CreateTrace`** (`SharedSetup.cs` lines 161-180): when `TraceSettings.Enabled` is true the constructed `TracerProvider` is assigned to a local `openTelemetry` variable that is immediately discarded. The provider should be returned/owned by the wrapper so it disposes correctly. NOT introduced by this plan and out of scope for Plan 1.2; flagging for awareness only.
-- **`SharedSetup` visibility change**: The promotion from `internal` to `public` is justified (the test in a different assembly needs `CreateTrace`/`CreateCreator`, and the contained `ActivitySourceWrapper`/`InterceptorAdding` were already public so the helpers were essentially unusable as-internal anyway). The 12 integration test projects that reference `IntegrationTests.Shared` already used these helpers via the project's own internal callers, so no behavior change. An `InternalsVisibleTo` would have been a smaller surface change, but the chosen approach is acceptable and consistent with the existing public types in this file. No remediation required.
-- **OTLP coexistence**: When `TraceSettings.Enabled=true` (currently never set in CI), both the OTLP TracerProvider AND the new `ActivityListener` will be registered against the same source. `ActivitySource.AddActivityListener` is additive and OpenTelemetry's internal listener does not conflict with user listeners, so this is safe. Flagging only because future devs may not realize traces will be both exported AND collected in-memory in that mode.
+**Task 3 — Outbound queue + `_lockSocket` removal**
+- `_outbound` field, construction, and `ReceiveReady` wiring: PASS
+- Poller initializer `{ _actor, _outbound }`: PASS
+- `OnOutboundReady` drains via `TryDequeue(out, TimeSpan.Zero)` and emits 4-frame wire format: PASS
+- `CultureInfo.InvariantCulture` used for numeric formatting: PASS
+- `IncreaseCurrentTaskCount` lock-free with `Interlocked.Increment` + `_outbound?.Enqueue`: PASS
+- `DecreaseCurrentTaskCount` symmetric: PASS
+- `GetCurrentTaskCount` lock-free `Interlocked.Read + Values.Sum()`: PASS
+- `_outbound?.Dispose()` positioned between `_poller.Dispose()` and `_actor.Dispose()`: PASS
+- **`_lockSocket` field and all `lock(_lockSocket)` blocks deleted**: PASS — `grep -c _lockSocket = 0`
 
-### Positive
-- Listener correctly filters by exact source name (`s.Name == source.Name`) — prevents cross-test bleed when multiple tests run in parallel with different queue names.
-- Disposal order is correct: listener before source. Subscribing to a disposed source could otherwise raise spurious activity callbacks on a disposing object.
-- `ConcurrentBag<Activity>` is the right choice — `ActivityStarted` callbacks can fire from worker threads in async transports.
-- Test asserts BOTH non-empty AND specific operation name `"SendMessage"` with a diagnostic message that prints the actual names if the assertion fails — exactly the kind of actionable failure output a reviewer wants to see.
-- Atomic commits: Task 1 and Task 2 are in separate commits with conventional `shipyard(phase-1):` prefixes.
-- Fully-qualified `DotNetWorkQueue.IntegrationTests.Metrics.Metrics` — the right call given the `DotNetWorkQueue.*` namespace walk-up shadowing pattern documented in CLAUDE.md (same root cause as the `IConfiguration` lesson). Builder correctly identified and avoided a real C# resolution trap.
-- No files modified outside the plan scope.
-- The new test does not modify or weaken the existing `Run` test, it adds alongside it.
+**Cross-task**
+- Public API on `ITaskSchedulerJobCountSync` untouched: PASS
+- `SetCountMsg` declared as `internal readonly record struct`: PASS
+- Only `TaskSchedulerJobCountSync.cs` modified (no new files): PASS
 
-## Cross-Validation With Prior Findings
-- No prior `REVIEW-*.md` from earlier plans in this phase exists yet.
-- `.shipyard/ISSUES.md` does not exist yet — this review will be the first to populate it (with the minor items above).
+### Headline regression sentinel
 
-## Summary
-**Verdict:** APPROVE
-Both tasks correctly implemented with evidence in the code. The two builder deviations (visibility change, fully-qualified Metrics) are both justified and minimal. No critical or important findings. Plan 1.2 is ready to proceed to verification.
-Critical: 0 | Important: 0 | Suggestions: 3
+**`_lockSocket` = 0** — Phase 1 success criterion #1 met.
+
+### Stage 1 deviations
+
+Only the `NetMQActorEventArgs` signature correction, acknowledged and acceptable (the plan text was wrong about the NetMQActor API; the actual NetMQ type is what compiled). Captured as micro-lesson so PLAN-1.3 doesn't rehash it.
+
+## Stage 2 — Code Quality
+
+### Critical findings
+
+None.
+
+### Important findings (advisory, non-blocking)
+
+1. **`Dispose()` cross-thread expectation.** `Start()` blocks on `_poller.Run()`, so `Dispose()` must be called from a different thread. `NetMQPoller.Stop()` is thread-safe by NetMQ contract and waits for `Run()` to return. The design is correct, but a one-line maintainer comment on `Dispose` noting the cross-thread expectation would prevent future "simplifications" that break it. Deferred as optional polish.
+
+2. **`OnActorReady` exception scope.** The try/catch wrapper is present and mirrors the old `ProcessMessages` wrapper. An exception thrown from a `RemoteCountChanged?.Invoke` user handler would be caught and logged as "Failed to handle NetMCQ commands", which is misleading. **This is pre-existing** — the old code had the same flaw — not introduced by this refactor.
+
+3. **`_outbound?.Enqueue` null-guard.** Genuine pre-Start protection. If `Increase`/`Decrease` is called before `Start()` completes initialization, the wire broadcast is silently dropped while `_currentTaskCount` still updates via `Interlocked`. The next successful broadcast carries the accumulated value. Works as designed; a one-line comment explaining why the guard is there would prevent someone "fixing" it with a throw. Deferred as optional polish.
+
+### Minor findings
+
+- **`GetCurrentTaskCount` snapshot semantics.** Two-read non-atomicity exists in both old and new code. Old `lock(_lockSocket)` didn't provide a true snapshot across `_currentTaskCount` + dictionary either. Observationally equivalent — no regression.
+- `ContainsKey` + indexer assignment in `OnActorReady` SetCount handler is a double-lookup. Could be simplified to `_otherProcessorCounts[key] = value;` (atomic AddOrUpdate via the concurrent indexer). Pre-existing code pattern not introduced here.
+- `out var temp` could be inlined in the RemovedNode handler.
+- Class XML doc could add `<remarks>` noting that `Start()` is a blocking call.
+- No `GC.SuppressFinalize(this)` in `Dispose()` — pre-existing, not a refactor regression.
+- `_poller.Dispose()` correctly waits for `Run()` to exit before releasing (NetMQ contract), so the subsequent `_outbound`/`_actor` disposal is safe. Ordering is correct.
+
+### Positive findings
+
+- **Clean elimination of `_lockSocket`, `_stopRequested`, `_running`, and the `Sleep(100)` spin.** The poller thread model is materially simpler and correct.
+- `NetMQQueue<SetCountMsg>` as the producer→poller handoff is idiomatic NetMQ and removes cross-thread socket access entirely.
+- `SetCountMsg` record struct is a lightweight value type that fits the queue use case perfectly.
+
+## Decision
+
+PLAN-1.2 is **APPROVED**. All findings are minor or advisory. The headline deliverable (`_lockSocket = 0`) is in place. Wave 3 (PLAN-1.3) is unblocked — it will add the async-friendly `Start()` and bounded `Dispose` cleanup, which may naturally address the Stage-2 "important" finding #1 (cross-thread expectation comment).

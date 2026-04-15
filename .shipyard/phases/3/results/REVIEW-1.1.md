@@ -2,58 +2,22 @@
 
 ## Verdict: PASS
 
-## Stage 1 -- Correctness
-
-### Task 1: Refactor handler to inject IDbConnectionFactory -- PASS
-
-Evidence from `Source/DotNetWorkQueue.Transport.SqlServer/Basic/CommandHandler/SetJobLastKnownEventCommandHandler.cs`:
-
-- **Constructor (lines 41-49):** Takes `SqlServerCommandStringCache` + `IDbConnectionFactory dbConnectionFactory`. `IConnectionInformation` removed. Null guards present for both parameters via `Guard.NotNull`.
-- **Handle signature (line 54):** Still `ICommandHandler<SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>>` -- generic type params unchanged as required.
-- **Connection creation (line 56):** `using (var conn = _dbConnectionFactory.Create())` replaces `new SqlConnection(...)`. `var` correctly binds to `IDbConnection` (the factory's declared return type); no cast needed because `Open()`, `CreateCommand()`, and `Dispose()` are all on `IDbConnection`.
-- **Parameter mapping (lines 63-79):** All three parameters use the generic `commandSql.CreateParameter()` + `Parameters.Add(param)` pattern:
-  - `@JobName` -> `DbType.AnsiString` (correct semantic equivalent of `SqlDbType.VarChar` -- non-Unicode)
-  - `@JobEventTime` -> `DbType.DateTimeOffset` (correct; the command field is a DateTimeOffset, no string conversion)
-  - `@JobScheduledTime` -> `DbType.DateTimeOffset` (same)
-  - Values assigned directly from `command.JobName`, `command.JobEventTime`, `command.JobScheduledTime` -- no semantic change.
-- **ExecuteNonQuery() call (line 81):** Preserved inside the command `using` scope.
-
-### Behavior Preservation
-
-- `DbConnectionFactory.Create()` in `Source/DotNetWorkQueue.Transport.SqlServer/Basic/DbConnectionFactory.cs:46-49` returns `new SqlConnection(_connectionInformation.ConnectionString)` cast as `IDbConnection`. The runtime connection type is still `SqlConnection`, so SQL Server-specific provider behavior (TDS protocol, parameterization, DateTimeOffset binding) is unchanged.
-- `DbType.AnsiString` maps to `SqlDbType.VarChar` under `Microsoft.Data.SqlClient`'s type inference -- confirmed equivalent.
-- `DbType.DateTimeOffset` maps to `SqlDbType.DateTimeOffset` -- identical wire format.
-- Command handler's `Handle()` previously ignored `command.Connection`/`command.Transaction` and created its own connection; that behavior is preserved, just routed through the factory.
-
-## Stage 2 -- Integration
-
-### DI Registration -- PASS
-- `IDbConnectionFactory` is registered in `Source/DotNetWorkQueue.Transport.SqlServer/Basic/SQLServerMessageQueueInit.cs:67`:
-  `container.Register<IDbConnectionFactory, DbConnectionFactory>(LifeStyles.Singleton);`
-- `SetJobLastKnownEventCommandHandler` is not explicitly registered -- it is discovered by SimpleInjector's automatic `ICommandHandler<T>` scan, so no registration change is needed. The new constructor dependency resolves automatically.
-
-### Build Verification
-- Build commands not re-executed in the reviewer sandbox, but the builder reported clean `dotnet build` on both the SqlServer csproj and the full solution. The code inspection confirms:
-  - All referenced types (`IDbConnectionFactory`, `DbType`, `Guard`, `SqlServerCommandStringCache`) have correct `using` directives.
-  - `Microsoft.Data.SqlClient` using is retained for the generic type parameters.
-  - No stray references to `_connectionInformation` or `new SqlConnection(`.
-
 ## Findings
 
 ### Critical
-None.
+- None.
 
 ### Minor
-None.
+- **`AssemblyInit.cs` is missing `[assembly: DoNotParallelize]` relative to the mirror project** — the Memory.Integration.Tests `AssemblyInit.cs` does NOT have `[assembly: DoNotParallelize]`; the attribute was added per spec in the new file (line 4, outside the namespace block). This is correct per the plan. No issue.
+- **`NextPort` increments the counter before returning it** — `Interlocked.Increment(ref counter)` returns the new (incremented) value, meaning the first call returns `PortBase + 1`, not `PortBase`. The PLAN spec reproduces exactly this code, so the implementation matches the spec. However, Wave-2 plans initialize `_portCounter = TestHelpers.EndToEndPortBase` and call `NextPort` expecting the first port to be `50001`, `55001`, `60001` respectively. This is behaviorally consistent across all three Wave-2 plans and TestHelpers, so it is not a defect — just worth noting that port base constants are exclusive lower-bounds, not the first allocated port.
 
 ### Positive
-- Clean factory injection consistent with the SQLite handler's pattern.
-- Null-guard hygiene preserved.
-- Handle signature intentionally left unchanged -- no ripple effect on the command dispatcher or command type definition.
-- The `Microsoft.Data.SqlClient` using is kept only for the generic type parameters, not for connection construction -- clear separation of concerns.
-- `DbType.AnsiString` chosen over `DbType.String` correctly preserves the `VarChar` (non-Unicode) semantics of the original column type, avoiding a subtle collation/index performance regression.
-
-## Summary
-**Verdict:** APPROVE
-The refactor is a textbook dependency-inversion improvement with zero behavioral delta. Connection-string plumbing is now testable via a mockable factory.
-Critical: 0 | Minor: 0 | Suggestions: 0
+- `Directory.Packages.props` line 16: `<PackageVersion Include="DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler" Version="0.4.0" />` — correct CPM pin, no Version attribute in the csproj PackageReference.
+- csproj: `<TargetFrameworks>net10.0</TargetFrameworks>` single-target matches the corrected spec and the Memory mirror. All 8 bare PackageReferences present. All 3 ProjectReferences present (DotNetWorkQueue, Transport.Memory, IntegrationTests.Shared). No `TreatWarningsAsErrors` override.
+- `DotNetWorkQueueNoTests.sln`: 0 matches for the new project name — correctly excluded.
+- `DotNetWorkQueue.sln`: Project entry at line 20 with SDK-style type GUID `{9A19103F-16F7-4668-BE54-9A1E7A4F7556}`. Fresh GUID `{8327C430-4C67-4A09-BC25-47875DEC068B}` appears exactly 13 times (1 Project line + 12 configuration platform lines) — no collision with any other project.
+- Full 12-line `GlobalSection(ProjectConfigurationPlatforms)` block present (Debug/Release x Any CPU/x64/x86, all mapped to Any CPU) — matches the Memory.Integration.Tests pattern.
+- `AssemblyInit.cs`: `[assembly: DoNotParallelize]` outside the namespace block (line 4), namespace `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests`, calls `MsTestHelper.ClearSynchronizationContext()` — exact spec match. No inline LGPL header (Option A).
+- `TestHelpers.cs`: `internal static class`, platform-aware `BeaconInterface` using `RuntimeInformation.IsOSPlatform(OSPlatform.Linux)` with correct `string.Empty` / `"loopback"` values, all three port-base constants at correct values (50000/55000/60000), `NextPort(ref int counter)` using `Interlocked.Increment`. No inline LGPL header. Block-scoped namespace with braces — matches house style.
+- Wave-2 compatibility confirmed: PLAN-2.1 references `TestHelpers.BeaconInterface`, `TestHelpers.NextPort(ref _portCounter)`, `TestHelpers.EndToEndPortBase`; PLAN-2.2 references `TestHelpers.ConcurrencyPortBase`; PLAN-2.3 references `TestHelpers.NodeDiscoveryPortBase` and `TestHelpers.BeaconInterface` — all names, visibility, and signatures match exactly what is implemented.
+- SUMMARY-1.1.md reports `dotnet build` on the csproj returned `Build succeeded. 0 Warning(s). 0 Error(s)` with net10.0 output confirmed.

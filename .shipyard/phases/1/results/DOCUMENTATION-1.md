@@ -1,58 +1,55 @@
-# Documentation Report
-**Phase:** 1 — Coverage Test Infrastructure (ActivityListener + cleanup)
+# Phase 1 Documentation Review — TaskScheduler Lock Contention Fix
+
+**Date:** 2026-04-14
+**Scope:** 12-commit diff on `phase-1-lock-fix`, proportional to a concurrency refactor with no public API changes.
+**Branch:** `phase-1-lock-fix` (vs `master`)
+
+> Note: relocated by orchestrator. The documenter agent's initial write landed in the sibling repo's `.shipyard/` directory by mistake; this is the canonical DNQ-repo copy.
 
 ## Summary
-- API/Code docs: 1 file reviewed (`SharedSetup.cs`) — 0 XML doc additions needed
-- Architecture updates: 0 (no `docs/` architecture sections exist for test infra)
-- User-facing docs: 0 required
-- CLAUDE.md lessons learned: 2 proposed additions (both Priority: Medium)
 
-## 1. Public API Doc Updates (Priority: Low — non-blocking)
+Phase 1 is an internal-only concurrency refactor: `_lockSocket` + polling has been replaced by a `NetMQPoller` + `NetMQQueue<SetCountMsg>` running on a dedicated background thread. The public surface (`ITaskSchedulerJobCountSync`) is byte-identical to master, no `docs/` directory exists in the repo, and `README.md` does not describe `Start()`'s blocking semantics — so user-facing documentation needs are minimal. The single load-bearing doc deliverable for Phase 2 is a `CHANGELOG.md [0.4.0]` entry that closes out issue #6 (which the existing `0.3.0` entry explicitly deferred). One small XML-doc gap is worth fixing before merge: the new background-thread behavior of `Start()` is observable to extension authors and deserves a one-sentence `<remarks>` on both the interface and the implementation. Internal field/type doc gaps (e.g. `_poller`, `_pollerThread`) are consistent with existing repo style and should be left alone.
 
-**File:** `Source/DotNetWorkQueue.IntegrationTests.Shared/SharedSetup.cs`
-**Type:** Reference
-**Status:** No action required.
+## Findings
 
-### Findings
-- `SharedSetup` is in the `DotNetWorkQueue.IntegrationTests.Shared` assembly — an **integration test support library**, not a shipped public API. The visibility change (`internal` -> `public`) is cosmetic from a consumer standpoint; this assembly is not NuGet-published and has no XML doc generation enabled.
-- `ActivitySourceWrapper` was already `public`. The new members are:
-  - `ConcurrentBag<Activity> CollectedActivities { get; }` — self-describing property name.
-  - Private `_listener` field + constructor wiring — implementation detail, not part of the surface.
-- Project-wide convention: test-support assemblies in this repo do not carry XML doc comments (spot-checked — no existing `///` blocks on `SharedSetup` members). Adding them here would break convention without value.
+### Required for Phase 2 ship
 
-**Recommendation:** None. Leave as-is.
+1. **`CHANGELOG.md` `[0.4.0]` entry — draft below, Phase 2 owner to commit.**
 
-## 2. Architecture Documentation (Priority: Low)
+   Drop this section above the existing `### 0.3.0 2026-04-10` heading, verbatim:
 
-**Scope checked:** `docs/` contains only `docs/jenkins-setup.md`. No architecture or testing-guide documents exist.
+   ```markdown
+   ### 0.4.0 2026-04-XX
 
-### Findings
-- There is no existing "How to write integration tests" or "Tracing in tests" document to update.
-- Creating a brand-new architecture doc for a single test-infrastructure pattern would violate the "update rather than duplicate" rule and create a parallel file with nothing to anchor to.
+   * Fix: rewrite `TaskSchedulerJobCountSync` message loop to eliminate the lock-contention deadlock between `IncreaseCurrentTaskCount` / `DecreaseCurrentTaskCount` and the legacy `ProcessMessages` loop. The old `_lockSocket` + polling pattern has been replaced with a `NetMQPoller` driving the existing `NetMQActor` plus a new `NetMQQueue<SetCountMsg>` for outbound counter updates; all socket I/O now runs on a dedicated background thread (`TaskSchedulerJobCountSync.Poller`, `IsBackground = true`) owned exclusively by the poller. Closes [issue #6](https://github.com/blehnen/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler/issues/6).
+   * **Behavior change:** `TaskSchedulerJobCountSync.Start()` is now non-blocking. It still performs the host-address handshake, the ~1.1s beacon grace sleep, and the initial `BroadCast` synchronously on the caller thread, but socket-poll wiring (`ReceiveReady` handlers + `NetMQPoller` construction) is now spawned onto a dedicated background thread and `Start()` returns as soon as that thread is running. Callers that subclass or wrap `TaskSchedulerJobCountSync` should not rely on `Start()` blocking for the lifetime of the poller. The public interface signature on `ITaskSchedulerJobCountSync` is unchanged.
+   * `Dispose` now calls `_poller.Stop()`, joins the poller thread with a 5-second timeout (logging a warning on timeout), and disposes `_outbound`, `_actor`, and `_poller` in order. Existing socket-close error suppression (Win32 `10035` / `10054`) is preserved.
+   * Add unit and integration tests covering the new poller lifecycle, outbound queue draining, and shutdown timing.
+   ```
 
-**Recommendation:** Defer. If/when a `docs/testing.md` or `docs/contributing.md` is created later in the coverage milestone, add a short "Verifying traces in tests" How-to section that references `ActivitySourceWrapper.CollectedActivities` and the `RunWithTraceVerification` pattern in `Memory/SimpleProducer.cs`. Not worth a standalone file today.
+   Do not let Phase 1 commit this — the release commit is owned by Phase 2.
 
-## 3. CLAUDE.md Lessons Learned (Priority: Medium — recommended)
+### Recommended before merge
 
-Both discoveries match the style and value of existing entries in the "Lessons Learned" section. Proposed additions:
+1. **Add `<remarks>` to `Start()` on both the interface and the implementation.** This is the only externally observable behavior change in the diff; library consumers who subclass `TaskSchedulerJobCountSync` or wrap `ITaskSchedulerJobCountSync` will care.
 
-### Lesson A — ActivityListener required for trace-code coverage
-> `TraceExtensions` and other `Activity`-producing code will report 0% coverage in tests unless an `ActivityListener` is registered with `ActivitySource.AddActivityListener` and returns `ActivitySamplingResult.AllDataAndRecorded`. Without a listener, .NET short-circuits `ActivitySource.StartActivity` and returns `null`, so any `using var activity = source.StartActivity(...)` block is skipped entirely. Integration tests that need to exercise tracing code should use `ActivitySourceWrapper` (in `DotNetWorkQueue.IntegrationTests.Shared.SharedSetup`), which installs a listener and exposes `CollectedActivities` for assertions.
+   - `Source/ITaskSchedulerJobCountSync.cs` — replace the existing one-line `<summary>` on `Start()` with a `<summary>` + `<remarks>` block describing the new non-blocking semantics.
+   - `Source/TaskSchedulerJobCountSync.cs` — mirror the same `<remarks>` block on the implementation's XML doc so IDE tooltips match across the abstraction.
 
-**Why add:** Non-obvious runtime behavior; exactly the class of gotcha CLAUDE.md already documents (cf. the `RedisValue.Null` cast lesson).
+   Cost: ~10 lines, no behavior change, makes the diff self-documenting for the next reader.
 
-### Lesson B — `Metrics.Metrics` namespace walk-up shadowing
-> The nested type `DotNetWorkQueue.Metrics.Metrics` shadows the parent `DotNetWorkQueue.Metrics` namespace in any code under `DotNetWorkQueue.*`. C# resolves unqualified `Metrics` via namespace walk-up before `using` directives, so `new Metrics.NoOpMetrics()` can resolve to `Metrics.Metrics.NoOpMetrics` (wrong) instead of `DotNetWorkQueue.Metrics.NoOpMetrics`. Same failure mode as the existing `IConfiguration` lesson. Use `global::DotNetWorkQueue.Metrics.NoOpMetrics` or add an explicit `using` alias when referencing metrics types from inside the `DotNetWorkQueue.*` namespace hierarchy.
+### Nice-to-have
 
-**Why add:** Direct analog to the already-documented `IConfiguration` shadowing lesson; future bug reports will benefit from cross-reference.
+- None. The `SetCountMsg` record (bottom of `TaskSchedulerJobCountSync.cs`) already has an adequate `<summary>` describing both producers (`IncreaseCurrentTaskCount` / `DecreaseCurrentTaskCount`) and the consumer (poller thread → `Publish/SetCount` wire frame). No further internal field docs are warranted.
 
-**Recommendation:** Add both entries to the "Lessons Learned" section of `CLAUDE.md`. I have not edited `CLAUDE.md` — that is a convention file that should be updated by the maintainer or explicitly requested.
+## Accept-as-is
 
-## Gaps (informational)
-- No contributor/testing guide exists at repo root or under `docs/`. A future milestone could add one; not blocking Phase 1.
-- No XML docs on `IntegrationTests.Shared` public surface generally — consistent across the assembly, so not a Phase 1 regression.
+- **No XML doc on `_poller`, `_outbound`, `_pollerThread`, `_currentTaskCount`, `_otherProcessorCounts`.** Consistent with the rest of the file (`_hostAddress`, `_hostPort`, `_actor`, `_bus`, `_log` are all undocumented private fields too) and with the repo-wide convention that `TreatWarningsAsErrors` is paired with `<NoWarn>CS1591</NoWarn>` on this project.
+- **`SetCountMsg` is `internal`, lives at the bottom of `TaskSchedulerJobCountSync.cs` rather than in its own file.** Appropriate for a one-line record struct used only as a typed payload for the outbound queue. A standalone file would be over-structured.
+- **`README.md` does not mention `Start()`'s blocking semantics.** Verified; there is no claim to correct or revise.
+- **No `docs/` directory exists in the repo.** Out of scope to create one for an internal concurrency refactor.
+- **`CHANGELOG.md` `0.3.0` entry already references the deferred lock-contention work via issue #6.** The 0.4.0 draft above closes that loop cleanly.
 
-## Verification
-- Source inspection of `SharedSetup.cs` (lines 1–248) confirmed member visibility and absence of existing XML doc comments.
-- `docs/` directory enumerated: only `jenkins-setup.md` present.
-- No code examples included in this report (findings are meta-documentation), so no Bash verification step required.
+## Recommendation for Phase 2
+
+Phase 2's release commit should pick up the `[0.4.0]` markdown block from the "Required" section above and land it verbatim in `CHANGELOG.md` immediately above the `### 0.3.0 2026-04-10` heading. The two-line XML-doc `<remarks>` addition on `Start()` should be picked up by Phase 1 before merge so it ships with the same commit as the behavior change it documents.

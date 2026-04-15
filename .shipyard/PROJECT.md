@@ -1,76 +1,100 @@
-# Project: Code Coverage Improvement
+# Project: TaskScheduler Lock Contention Fix + Integration Tests
 
 ## Description
 
-Close the most significant code coverage gaps in DotNetWorkQueue by adding targeted unit tests for job scheduler handlers, enabling trace instrumentation in CI integration tests, and cleaning up dead code. The approach favors integration-test-friendly patterns but uses unit tests where integration tests are impractical (CI timing issues, DI wiring).
+Fix issue #6 in `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler` (lock contention in `TaskSchedulerJobCountSync.ProcessMessages`), release a new 0.4.0 NuGet package, then add a new integration test project in `DotNetWorkQueue` that exercises the published package end-to-end. The integration tests prove distributed task scheduling works correctly, catch regressions of the concurrency bug, and validate node discovery / broadcast behavior.
 
-Current overall coverage: 88.9% line / 73.4% branch. The goal is not a specific number but to close obvious gaps in under-tested areas.
+The work spans two repositories in strict sequence: the fix and unit tests ship first from the TaskScheduler repo, then the DotNetWorkQueue integration tests reference the published 0.4.0 package.
 
 ## Goals
 
-1. Unit test the shared job scheduler command/query handlers in `Transport.RelationalDatabase` and transport-specific variants in LiteDb and Redis
-2. Enable in-memory trace exporting in CI integration tests so existing test runs cover `TraceExtensions` code paths across all transports
-3. Investigate `ObjectPool` in core -- if it's dead code from dynamic LINQ removal, delete it
-4. Improve `Dashboard.Api` `DashboardExtensions` branch coverage where practical
+1. Eliminate `_lockSocket` contention in `TaskSchedulerJobCountSync` so `IncreaseCurrentTaskCount` / `DecreaseCurrentTaskCount` no longer stall up to 10ms behind the receive loop.
+2. Add unit tests in the TaskScheduler repo covering the new concurrency model.
+3. Publish `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler` 0.4.0 to NuGet with deterministic Source Link (`-p:CI=true`).
+4. Create a new integration test project in DotNetWorkQueue that references the 0.4.0 NuGet package and proves distributed scheduling works end-to-end.
+5. Wire the new integration tests into both Jenkins and GitHub Actions CI.
 
 ## Non-Goals
 
-- Dashboard.Ui Blazor component testing (needs bUnit/Playwright infrastructure -- separate effort)
-- Fixing job scheduler integration test CI timing issues (separate effort)
-- Achieving a specific coverage percentage target
-- Writing tests for DI/startup wiring overloads that aren't worth chasing
+- Redesigning the `ITaskSchedulerBus` abstraction or the beacon/discovery protocol.
+- Public API changes to the TaskScheduler module (fix is behavioral only).
+- Migrating the TaskScheduler repo's test tooling (keep whatever it currently uses for unit tests).
+- Throughput benchmarking gates in CI (too flaky — smoke-test locally only).
+- Dual-reference (project + NuGet) plumbing in the DotNetWorkQueue test project.
 
 ## Requirements
 
-### Workstream 1: Job Scheduler Handler Unit Tests
+### Workstream 1: Lock Contention Fix (TaskScheduler repo)
 
-- Test shared handlers in `Transport.RelationalDatabase`: `SetJobLastKnownEventCommandHandler`, `CreateJobTablesCommandHandler`, `GetJobIdQueryHandler`, `SendJobToQueue` logic
-- Test shared handlers in `Transport.Shared` if applicable
-- Test transport-specific handlers for LiteDb (custom job handlers) and Redis (Lua-based job handlers)
-- Use mocked data access -- no real databases, no timing sensitivity
-- Follow existing test conventions: MSTest 3.x, NSubstitute, AutoFixture, FluentAssertions 6.12.2
-- Cover `GetDashboardErrorRetriesQueryHandlerAsync` and `GetDashboardJobsQueryHandlerAsync` where below 40%
+- Replace `_lockSocket` + `TryReceiveFrameString(10ms)` polling with a `NetMQPoller` that owns `_actor` on a single dedicated thread.
+- Outbound `SetCount` messages from `IncreaseCurrentTaskCount` / `DecreaseCurrentTaskCount` go onto a `NetMQQueue<T>` (where T is a message tuple) rather than directly touching the socket.
+- The poller listens on both `_actor.ReceiveReady` and the `NetMQQueue.ReceiveReady`, draining each in its callback — all socket I/O happens on the poller thread.
+- `GetCurrentTaskCount` reads via `Interlocked.Read(ref _currentTaskCount) + _otherProcessorCounts.Values.Sum()` with no lock.
+- `Interlocked.Increment` / `Decrement` still happen synchronously in the caller so callers get a correct return value; only the wire publish is deferred to the poller.
+- `Start` publishes the initial broadcast through the queue path as well.
+- `Dispose` stops the poller cleanly and disposes `_actor`; remove the `while(_running) Sleep(100)` hot-wait.
+- Preserve public API: `ITaskSchedulerJobCountSync` signatures and behavior (return values, `RemoteCountChanged` event) unchanged.
 
-### Workstream 2: In-Memory Trace Exporter for CI Integration Tests
+### Workstream 2: Unit Tests (TaskScheduler repo)
 
-- Add `System.Diagnostics.ActivityListener` or OpenTelemetry `InMemoryExporter` to the integration test harness
-- Existing integration tests already exercise traced code paths -- enabling a listener covers `TraceExtensions` automatically
-- Target assemblies: SqlServer, PostgreSQL, SQLite, Redis, LiteDb (all have `TraceExtensions` at 0%)
-- No network calls to Jaeger/external collectors -- in-memory only
-- Must not slow down CI pipeline meaningfully
+- Concurrency regression test: spawn N threads hammering `Increase`/`Decrease`; assert no deadlock within timeout and final count equals the expected delta.
+- State consistency test: after a scripted sequence of remote `SetCount` messages injected through a fake `ITaskSchedulerBus`, assert `GetCurrentTaskCount` returns the correct aggregate.
+- Lifecycle test: `Start` → operate → `Dispose` completes without hanging.
+- Match whatever test conventions already exist in the TaskScheduler repo (inspect before writing).
 
-### Workstream 3: ObjectPool Dead Code Investigation
+### Workstream 3: NuGet Release (TaskScheduler repo)
 
-- Determine whether `ObjectPool` in core DotNetWorkQueue is still referenced
-- If dead code from dynamic LINQ removal: delete it entirely (prefer compile errors over test coverage of unused code)
-- If still used: add unit tests
+- Version bump to **0.4.0** in the .csproj.
+- Update `CHANGELOG.md` with the fix description and link to issue #6.
+- Build Release with `-p:CI=true` for deterministic Source Link.
+- Pack `.nupkg` + `.snupkg` from a clean Release build.
+- `dotnet nuget push "deploy/*.nupkg" --api-key $KEY --source https://api.nuget.org/v3/index.json` (CLI auto-picks matching `.snupkg`).
+- Verify the package appears on nuget.org with green validation indicators before proceeding.
 
-### Workstream 4: Dashboard.Api DashboardExtensions (Lower Priority)
+### Workstream 4: Integration Test Project (DotNetWorkQueue repo)
 
-- Identify which untested branches in `DashboardExtensions` represent real configuration scenarios
-- Add integration tests with different configuration combinations where practical
-- Accept that some DI registration overloads may not be worth testing
+- New project: `Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.IntegrationTests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.IntegrationTests.csproj`
+- Target frameworks: `net10.0;net8.0` matching the rest of the repo.
+- `PackageReference` to `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler` 0.4.0 (NuGet only — no project reference).
+- Test stack: MSTest 3.x, NSubstitute, AutoFixture, FluentAssertions 6.12.2 (matching house style).
+- Added to `DotNetWorkQueue.sln` (and `DotNetWorkQueueNoTests.sln` if applicable).
+- Test classes:
+  1. **`EndToEndSchedulingTests`** — spin up 2–3 in-process scheduler nodes on localhost, dispatch jobs, assert all are consumed across the nodes, remote counts converge.
+  2. **`ConcurrencyRegressionTests`** — hammer `Increase`/`Decrease` from many threads while the receive loop runs; assert no deadlock within a generous timeout and final counts are consistent.
+  3. **`NodeDiscoveryTests`** — verify `Broadcast` / `AddedNode` / `RemovedNode` wire messages produce the expected state transitions; verify `RemoteCountChanged` raises.
+- Use a Memory transport for the underlying DNQ queue so no external services are required.
+
+### Workstream 5: CI Wiring
+
+- Jenkinsfile: add a new parallel stage for the integration test project; match the existing staggered-startup pattern (5s interval) to avoid clone storms.
+- GitHub Actions: add the project to the unit+integration test job in `.github/workflows/ci.yml`.
+- Verify NetMQ UDP beacon discovery works inside the Jenkins Docker agents before enabling; if UDP multicast is blocked, either pin the bus to a specific TCP endpoint in the tests or skip beacon-based tests in that environment.
 
 ## Non-Functional Requirements
 
-- All new tests must pass in CI (GitHub Actions + Jenkins)
-- No new external service dependencies for CI
-- No changes to existing test behavior or existing coverage
-- New unit test projects (if needed) must be added to the solution and CI pipeline
+- No public API changes in the TaskScheduler module (behavioral fix only).
+- All existing DotNetWorkQueue tests continue to pass.
+- New integration tests must run deterministically in both Jenkins Docker agents and GitHub Actions ubuntu-latest runners — no flakiness tolerated.
+- No network calls to external services; all tests use loopback + inproc.
+- Both net10.0 and net8.0 must pass.
+- FluentAssertions pinned to 6.12.2 (last MIT version).
+- License headers on all new files per `DotNetWorkQueue.licenseheader`.
 
 ## Success Criteria
 
-1. Job scheduler handlers in `Transport.RelationalDatabase` have unit test coverage above 80%
-2. LiteDb and Redis custom job handlers have targeted unit tests
-3. `TraceExtensions` across all transports show non-zero coverage after CI integration test run
-4. `ObjectPool` is either deleted (if dead) or tested (if live)
-5. All existing tests continue to pass
-6. `dotnet build "Source/DotNetWorkQueue.sln" -c Debug` -- 0 errors
-7. `dotnet build "Source/DotNetWorkQueue.sln" -c Release` -- 0 errors, 0 warnings
+1. `TaskSchedulerJobCountSync` no longer contains the `_lockSocket` mutex around `TryReceiveFrameString`; all socket access is on the poller thread.
+2. Concurrency regression unit test in the TaskScheduler repo passes reliably under load.
+3. `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler` 0.4.0 is published on nuget.org with deterministic Source Link (green validation indicators).
+4. New integration test project in DotNetWorkQueue builds against the 0.4.0 NuGet and all three test classes pass locally.
+5. Jenkins parallel stage runs the new integration tests and they pass on first commit.
+6. GitHub Actions CI runs the new integration tests and they pass.
+7. `dotnet build "Source/DotNetWorkQueue.sln" -c Release -p:CI=true` — 0 errors, 0 warnings.
 
 ## Constraints
 
-- Job scheduler integration tests remain disabled in CI due to timing issues -- do not attempt to fix that here
-- FluentAssertions pinned to 6.12.2 (last MIT version)
-- Must work on net10.0 and net8.0
-- Dashboard.Ui coverage improvement is out of scope
+- **Strict sequencing**: fix → unit tests → pack → push NuGet → integration tests. The integration test project cannot exist before 0.4.0 is published because it has no project reference.
+- Work spans two repositories: `F:\Git\DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler` (fix + unit tests + NuGet) and `F:\Git\DotNetWorkQueue` (integration tests + CI wiring).
+- NuGet versions are one-way: once 0.4.0 is pushed, cannot re-push or downgrade. Validate locally before pushing.
+- NuGet pushes always use `dotnet nuget push "deploy/*.nupkg"` form so `.snupkg` is picked up automatically.
+- Must target net10.0 and net8.0 for both repos where applicable.
+- Jenkins Docker agents may have UDP multicast restrictions — validate before enabling beacon-dependent tests there.

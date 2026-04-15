@@ -451,3 +451,6 @@ codcov*.txt
 codecov*.txt
 NuGetScratchbrian/
 Deploy.bat
+
+# Shipyard worktrees (isolated feature branches)
+.worktrees/

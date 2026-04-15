@@ -2,6 +2,66 @@
 
 ## Open
 
+### ISSUE-030: README usage example uses wrong named argument `udpBroadcastPort:` instead of `broadCastPort:`
+- **Severity:** Low (documentation)
+- **Source:** Phase 3 (DNQ integration test project) — researcher investigation of 0.4.0 public API
+- **Repo:** DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler
+- **Status:** Open
+- **Files:**
+  - `README.md` (sibling repo)
+- **Description:** The sibling repo's `README.md` shows a `InjectDistributedTaskScheduler` usage example that names the port argument `udpBroadcastPort:`. The actual public API parameter is named `broadCastPort`. Copy-pasting the README example verbatim produces a compile error (CS1739 — no such parameter). Not a runtime bug, but a trap for consumers following the documentation.
+- **Remediation:** Update the README install/usage example to use `broadCastPort:` (or drop the named argument and use positional). Land in a follow-up 0.4.1 doc-only release (or amend the README in trunk and mention it in the 0.5.0 changelog).
+- **Workaround in Phase 3:** DNQ integration tests pass positional arguments to sidestep the bug.
+
+### ISSUE-029: GitHub Actions workflow uses deprecated Node.js 20 actions
+- **Severity:** Low (maintenance)
+- **Source:** Phase 2 (TaskScheduler 0.4.0 release) — surfaced during `gh run watch` on the v0.4.0 publish workflow
+- **Repo:** DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler
+- **Status:** Open
+- **Files:**
+  - `.github/workflows/ci.yml`
+- **Description:** The sibling repo's CI workflow uses `actions/checkout@v4` and `actions/setup-dotnet@v4`, both of which run on Node.js 20. GitHub Actions is deprecating Node.js 20 on runners by September 2026 (forced to Node.js 24 by default on June 2, 2026). Non-blocking for 0.4.0 — the advisory was just a warning, the workflow ran green. But unless upgraded, these actions will stop working after the deprecation deadline.
+- **Remediation:** Upgrade to newer action versions that support Node.js 24. Check `actions/checkout@v5` / `actions/setup-dotnet@v5` (or whatever the current latest is at remediation time) and bump the workflow file. Verify a workflow run succeeds post-bump before shipping.
+- **Not urgent for 0.5.0** — just do it before 2026-06-02 to avoid forced-migration surprises.
+
+### ISSUE-028: Add `<remarks>` XML doc on TaskSchedulerJobCountSync.Start() describing non-blocking semantics
+- **Severity:** Minor
+- **Source:** Phase 1 (TaskScheduler lock fix) — Documenter review
+- **Repo:** DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler
+- **Status:** CLOSED (landed in Phase 2 release commit `b904ac3` as part of the 0.4.0 release, 2026-04-14)
+- **Description:** After Phase 1 made `Start()` non-blocking (poller runs on a dedicated background thread), the method's XML `<summary>` still just says "Starts this instance". Library consumers who subclass `TaskSchedulerJobCountSync` or wrap `ITaskSchedulerJobCountSync` can't see the behavior change from IDE tooltips.
+- **Remediation:** Add a `<remarks>` block to the `Start()` XML doc on both `Source/ITaskSchedulerJobCountSync.cs` and `Source/TaskSchedulerJobCountSync.cs`, describing the synchronous-then-background-poller handoff. ~10 lines across both files.
+- **Why deferred from Phase 1:** The ROADMAP.md Phase 1 success criterion #2 requires `ITaskSchedulerJobCountSync.cs` to be byte-identical to master. Strictly interpreted, XML doc comments are part of the file bytes. Adding them would break the literal invariant. Phase 2 (0.4.0 release) can land the doc change alongside the CHANGELOG entry — they both document the same observable behavior change.
+
+### ISSUE-027: Test helper DRY opportunity — XunitLogger / NextPort / BeaconInterface copied across 4 test files
+- **Severity:** Medium
+- **Source:** Phase 1 (TaskScheduler lock fix) — Simplifier review
+- **Repo:** DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler
+- **Status:** Open (deferred from Phase 1)
+- **Description:** `Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Tests/` now has 4 test files (existing `TaskSchedulerJobCountSyncTests` + 3 new from PLAN-2.1) each with a verbatim copy of `private class XunitLogger : ILogger`, a per-file `_nextPort + NextPort()` counter, and a `BeaconInterface` static. About 80 LoC of pure copy-paste.
+- **Remediation:** Create `Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Tests/NetMqTestSupport.cs` with an `internal sealed class XunitLogger`, an `internal static class TestPorts` with a decade-aware `Next()` that preserves disjoint seeds per caller, and an `internal static class BeaconInterfaces.Default`. Then delete the nested copies in each test file. Net delete ~60 LoC, effort ~20 minutes.
+- **Why deferred:** Phase 1 is a concurrency refactor; a test-helper consolidation is out of scope. Worth doing if Phase 2/3 adds more test files to this project.
+
+### ISSUE-026: NetMqQueueApiProbeTests.cs is design-time scaffolding superseded by real handler tests
+- **Severity:** Low
+- **Source:** Phase 1 (TaskScheduler lock fix) — Simplifier review
+- **Repo:** DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler
+- **Status:** Open (deferred from Phase 1)
+- **Description:** `Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Tests/NetMqQueueApiProbeTests.cs` (35 LoC) was created in PLAN-1.1 Task 1 to validate that `NetMQQueue<T>` + `NetMQPoller` + `ReceiveReady` actually compile and run against NetMQ 4.0.2.2. The real handler tests from PLAN-2.1 now exercise the same API paths, making the probe redundant.
+- **Remediation:** Delete `NetMqQueueApiProbeTests.cs` entirely. Preserves the probe's historical role via git history.
+- **Why deferred:** Low-value cleanup; the file doesn't cost anything at runtime and it documents the original concern.
+
+### ISSUE-025: RunPoller start race on fast Start() → Dispose() cycles
+- **Severity:** Low (noisy, not functional)
+- **Source:** Phase 1 (TaskScheduler lock fix) — PLAN-1.3 code quality review
+- **Repo:** DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler
+- **Status:** Open (deferred from Phase 1)
+- **Files:**
+  - `Source/TaskSchedulerJobCountSync.cs` — `RunPoller()` method
+- **Description:** If `Dispose()` fires between `_pollerThread.Start()` and the `_poller = new NetMQPoller { _actor, _outbound }` assignment inside `RunPoller`, `_poller?.Stop()` no-ops because `_poller` is still null. The poller thread then constructs and runs an orphan poller until the underlying `_actor` is disposed, causing an `ObjectDisposedException` that is caught by the `RunPoller` try/catch but produces a noisy error log on pathological Start→Dispose cycles. Functionally safe — logged and swallowed — but cosmetically ugly.
+- **Remediation:** Add a `volatile bool _disposing` flag set by `Dispose(bool)` before `_poller?.Stop()`. `RunPoller` early-returns if `_disposing` is true before constructing `_poller`.
+- **Why deferred:** Not a functional bug, only affects error logs in a niche race. Good to fix in a later hardening pass.
+
 ### ISSUE-019: Missing SUMMARY-1.1.md artifact for Plan 1.1 (LiteDb history tests)
 - **Severity:** Important
 - **Source:** Plan 1.1 Review

@@ -295,6 +295,18 @@ pipeline {
                         stash includes: 'coverage/**/*.xml', name: 'cov-dashboard'
                     }
                 }
+
+                stage('TaskScheduler Distributed') {
+                    agent { label 'docker' }
+                    steps {
+                        sleep(time: 65, unit: 'SECONDS')
+                        sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                        sh '''
+                            dotnet test "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" \
+                                -f net10.0 -c Debug
+                        '''
+                    }
+                }
             }
         }
 
