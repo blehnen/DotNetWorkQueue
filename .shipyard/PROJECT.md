@@ -6,7 +6,7 @@
 
 ## Description
 
-Resolve 24 DNQ-local issues accumulated across prior milestones in `.shipyard/ISSUES.md`. The hero is a real correctness bug in `DotNetWorkQueue.Transport.RelationalDatabase.RecordComplete` (ISSUE-014) that silently mis-writes message-history completion metadata when `DurationMs = 0` and `StartedUtc IS NULL`. That alone justifies a point release. Alongside that, ship two performance wins — compile the `ValidateQueueName` regex (ISSUE-002) and eliminate a redundant Redis round-trip in `PurgeMessageHistoryHandler`'s orphan path (ISSUE-016) — as part of a tag-triggered DNQ NuGet `0.9.32` release.
+Resolve 24 DNQ-local issues accumulated across prior milestones in `.shipyard/ISSUES.md`. The hero is a real correctness bug in `DotNetWorkQueue.Transport.RelationalDatabase.RecordComplete` (ISSUE-014) that silently mis-writes message-history completion metadata when `DurationMs = 0` and `StartedUtc IS NULL`. That alone justifies a point release. Alongside that, ship two performance wins — compile the `ValidateQueueName` regex (ISSUE-002) and eliminate a redundant Redis round-trip in `PurgeMessageHistoryHandler`'s orphan path (ISSUE-016) — as part of a DNQ NuGet `0.9.32` release, published via manual `dotnet nuget push` from the local deploy directory (DNQ's current publishing flow — tag-triggered GH Actions publishing is not wired up for DNQ yet and is deferred to a future milestone).
 
 After the release PR merges, a follow-up polish PR lands the remaining 16 Suggestion-level issues covering unused usings, stale XML doc, shipyard artifact backfills, dead local functions, empty NETFULL shell files, and an `OpenTelemetry.TracerProvider` leak in a shared test fixture.
 
@@ -14,7 +14,7 @@ The milestone is scoped to DNQ-local code only. 6 issues in the sibling `TaskSch
 
 ## Goals
 
-1. Ship DNQ NuGet `0.9.32` to nuget.org containing the 8 Important-severity fixes via the same tag-triggered GH Actions flow that shipped `TaskScheduler 0.4.0`.
+1. Ship DNQ NuGet `0.9.32` to nuget.org containing the 8 Important-severity fixes via manual `dotnet nuget push` from the local deploy directory (DNQ's current release pattern — `.nupkg` and `.snupkg` co-pushed from `deploy/`). A GH Actions tag-triggered publish workflow is a nice-to-have deferred to a future milestone.
 2. Burn down the remaining 16 Suggestion-level issues in one follow-up PR without requiring another release.
 3. Preserve full test-suite green state throughout: 896/896 core unit tests, 57/57 Memory integration tests, plus all relational transport integration suites that Jenkins has live services for.
 4. Confirm Jenkins full 14-stage parallel matrix + GH Actions `build-and-test` job stay green on every phase PR before merge.
@@ -61,7 +61,7 @@ One wave, one PR, one release. Each issue lands as its own atomic commit on bran
 - Bump `<Version>` in `Source/Directory.Build.props` from `0.9.31` to `0.9.32`.
 - Add `## 0.9.32 (2026-04-XX)` section to `CHANGELOG.md` summarizing the 8 issues with ISSUE-* references.
 - Update `README.md` if it carries a "current version" mention.
-- Tag `v0.9.32` after the PR merges to master. GH Actions tag-triggered publish workflow handles the actual NuGet push.
+- After the PR merges to master, build Release locally with `-p:CI=true`, pack to `deploy/`, manually publish via `dotnet nuget push "deploy/*.nupkg" --api-key <KEY> --source https://api.nuget.org/v3/index.json` (the CLI auto-picks up the matching `.snupkg`). Then tag `v0.9.32` locally and push the tag for release traceability. There is no tag-triggered GH Actions publish workflow for DNQ today — that's deferred to a future milestone.
 
 ### Phase 2 — Polish & Cleanup (16 issues)
 

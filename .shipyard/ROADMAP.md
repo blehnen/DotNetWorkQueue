@@ -22,7 +22,7 @@
 
 ### Objective
 
-Ship DNQ NuGet `0.9.32` via the tag-triggered GH Actions publish workflow (same flow as `TaskScheduler 0.4.0`). One PR against master on branch `cleanup-all-open-issues`. Per-issue atomic commits. Final commit is the release commit. Tag `v0.9.32` after merge; GH Actions pushes `.nupkg` + `.snupkg` to nuget.org.
+Ship DNQ NuGet `0.9.32` via DNQ's current manual publishing flow: `dotnet nuget push "deploy/*.nupkg" --api-key <KEY> --source https://api.nuget.org/v3/index.json` from the local deploy directory. One PR against master on branch `cleanup-all-open-issues`. Per-issue atomic commits. Final commit is the release commit. After the PR merges, local clean build Release with `-p:CI=true`, pack to `deploy/`, manual push, then tag `v0.9.32` for release traceability. **DNQ does not currently have a tag-triggered GH Actions publish workflow** (that's a nice-to-have deferred to a future milestone); the sibling `TaskScheduler` repo is the one with tag-triggered publish, not this one.
 
 ### Scope (8 Important issues + release commit)
 
@@ -60,7 +60,7 @@ Ship DNQ NuGet `0.9.32` via the tag-triggered GH Actions publish workflow (same 
 - Bump `<Version>` in `Source/Directory.Build.props` from `0.9.31` → `0.9.32`.
 - Add `## 0.9.32 (2026-04-XX)` section to `CHANGELOG.md` summarizing the 8 issues with ISSUE-* references.
 - Update any `README.md` "current version" mention.
-- After PR merges to master, annotated tag `v0.9.32` (unsigned, matching prior release convention). GH Actions tag-triggered workflow publishes both `.nupkg` and `.snupkg`.
+- After PR merges to master: local clean build Release with `-p:CI=true`, pack `.nupkg` + `.snupkg` to `deploy/`, inspect the nuspec for deterministic Source Link, then manually push via `dotnet nuget push "deploy/*.nupkg" --api-key <KEY> --source https://api.nuget.org/v3/index.json` (CLI auto-picks matching `.snupkg`). Tag `v0.9.32` (annotated, unsigned, matching prior release convention) after the manual push lands. This is DNQ's current release pattern — **no tag-triggered GH Actions workflow exists for DNQ today**; that automation is deferred to a future milestone.
 
 ### Success Criteria
 
