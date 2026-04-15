@@ -291,3 +291,28 @@
 - For ASP.NET Core middleware, always check canonical ordering: UseRouting → UseAuthentication → UseAuthorization → UseEndpoints
 
 ---
+
+## [2026-04-13] Code Coverage Milestone — Phase 5: Dashboard.Api DashboardExtensions
+
+### What Went Well
+- The balanced-budget plan shape (3 parallel unit-test plans in Wave 1 + 1 sequential integration-test plan in Wave 2) was the right structure for a DI/startup file where coverage gaps cluster by configuration surface (Swagger, CORS, auth, IConfiguration)
+- All 4 plans passed reviewer on first attempt (4× PASS, 0 retries) — the research phase's upfront classification of "what clusters are unit-testable vs. must-be-integration-testable" paid off
+- The Wave 2 scope extension (PLAN-2.1 absorbing PLAN-1.3's dropped branch guard) kept delivery on track without a new plan cycle
+- Full milestone outcome: 5 phases, ~130 new tests, 2 production refactors, coverage 88.9% → projected ~90%, zero regressions
+
+### Surprises / Discoveries
+- `AddControllers(action)` in a bare `ServiceCollection` propagates filters but silently drops `MvcOptions.Conventions` — 4 debugging iterations before the pivot decision. Root cause is ASP.NET Core's internal `ConfigureMvcOptions` pipeline behaving differently without a real `IHostEnvironment`. Lesson captured in CLAUDE.md for future ASP.NET Core test authors.
+- A mid-build session that was interrupted 9 times across multiple days still resumed cleanly via `/shipyard:resume` — the STATE.json + HISTORY.md + artifact inspection was sufficient to reconstruct intent without losing work
+- Retroactive reviewer gates work: when a build session interrupts between `Step 4b: Collect Results` and `Step 4c: Review Gate`, the reviewer can run against the committed SUMMARY + git diff after the fact and produce the same verdict it would have during the original session
+
+### Pitfalls to Avoid
+- When a unit test for DI wiring is hitting the 4th debugging iteration, STOP and pivot to an integration test. The root cause is usually framework-internal behavior that won't be documented publicly and that fights back against "clever" workarounds. The direct `.Apply()` unit test + integration test combo is almost always cleaner than forcing the bare `ServiceCollection` path.
+- Don't bundle multiple `[TestClass]` types into one .cs file in an integration test project when every existing file is one-class-per-file — it breaks navigation and diverges from convention even if it "works". Split up front; don't wait for the simplifier gate.
+- Build session interruptions silently leave state stale: STATE.json said "Building wave 1" for ~24 hours across 9 interruption notes even though all 4 plans were committed. The phase-5 resume worked because artifacts were the source of truth, not STATE.json — but it's a reminder that STATE.json should not be trusted alone when a resume happens after interruptions.
+
+### Process Improvements
+- For phases where plans classify into unit-testable-cluster vs integration-testable-cluster, have the researcher produce a Wave-1-can-trigger-Wave-2-scope-change contract explicitly in RESEARCH.md — that's what made the PLAN-1.3 → PLAN-2.1 scope extension frictionless this phase
+- After any `/shipyard:resume`, explicitly reconcile STATE.json against artifact inventory (plans/*, results/SUMMARY-*, results/REVIEW-*, git log) before deciding what to do next. The session's first action should be "what's real" vs "what does STATE say", and trust the artifacts
+- The retroactive reviewer pattern (dispatch N parallel reviewers for already-committed plans, then proceed to verifier) is safe and efficient — document it as a supported resume path if a build session interrupts between waves and review gates
+
+---
