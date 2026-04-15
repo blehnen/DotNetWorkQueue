@@ -793,3 +793,4 @@
 - [2026-04-15T16:40:31Z] Phase 4: Building phase 4 (worktree phase-4-ci-wiring) (building)
 - [2026-04-15T16:52:50Z] Phase 4: Phase 4 build complete in worktree; pending CI validation on push (success criteria #1, #2) (complete)
 - [2026-04-15T16:53:01Z] Phase 4: Phase 4 build complete in worktree; pending CI validation on push (complete)
+- [2026-04-15T19:26:38Z] Phase 4: TaskScheduler 0.4.0 milestone shipped via PR #115 (shipped)

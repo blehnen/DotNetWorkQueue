@@ -316,3 +316,45 @@
 - The retroactive reviewer pattern (dispatch N parallel reviewers for already-committed plans, then proceed to verifier) is safe and efficient — document it as a supported resume path if a build session interrupts between waves and review gates
 
 ---
+
+## [2026-04-15] Milestone: TaskScheduler 0.4.0 + DNQ Integration Tests + CI Wiring (issue #6)
+
+**Shipped via PR #115. Cross-repo: Phases 1-2 in sibling `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler`, Phases 3-4 in DNQ.**
+
+### What Went Well
+
+- **Optimistic UDP multicast on Jenkins Docker paid off.** CONTEXT-4 decision #1 (ship without pre-emptive `[TestCategory("BeaconRequired")]` skip) turned out correct — NetMQ beacon discovery worked on the Docker bridge network on the first Jenkins run of PR #115, and no follow-up skip mechanism was needed.
+- **Phase 1's NetMQ poller refactor held under real concurrency load.** ConcurrencyRegressionTests (12 threads × 5000 iters, 30s deadlock detector) passed in 5/5 consecutive runs with ~2s wall clock per run. The fix is real and the regression guard catches it.
+- **Phase 2's tag-triggered GH Actions publish path mirrored 0.3.0 cleanly.** No local `dotnet nuget push` needed; both `.nupkg` and `.snupkg` published with green badges on nuget.org via run 24423676631.
+- **Phase 4's additive-only CI change** (15 lines across 2 files, 0 deletions, 0 modifications) made both Jenkins and GitHub Actions integration boringly predictable once the merge conflict was resolved.
+
+### Surprises / Discoveries
+
+- **Jenkins is PR-triggered, not branch-triggered.** Any "feature-branch-first validation" workflow MUST open a (draft) PR before Jenkins will pick it up. Pushing a feature branch alone is insufficient. **Implication:** the Shipyard worktree workflow's "push for validation" step for CI-sensitive phases must include `gh pr create --draft` as the actual trigger, not just `git push`.
+- **Agent turn budget exhaustion is the dominant failure mode** for multi-task builder dispatches. 4/5 Phase 3 builder agents dropped their commits or SUMMARY files mid-response, forcing the main driver to take over. **For 1-task plans with exact-match anchors, direct edits from the main thread are faster and more reliable than dispatching an agent.** This became Phase 4's default execution strategy and worked well.
+- **`git fetch origin` silently skipped at milestone start caused the ship-time merge conflict.** Local master worked the TaskScheduler milestone in isolation (9 commits) while origin was shipping Phase 5 dashboard-coverage via PR #114 (5 commits) in parallel. The two diverged until PR #115 couldn't merge. Recovery: merge origin/master into local master, resolve conflicts in `.shipyard/ROADMAP.md` (ours) + `.shipyard/HISTORY.md` (concatenate) + `.shipyard/STATE.json` (ours) + delete a stray archived phase file, then rebase `phase-4-ci-wiring` onto the unified master. **Always `git fetch origin master` before `/shipyard:plan 1` on a new milestone.**
+- **Plan "mirror project X" directives can contradict literal specs** when project X has drifted from the plan author's mental model. PLAN-1.1 told the Phase 3 builder to mirror `Memory.Integration.Tests` AND spec'd `net10.0;net8.0`, but Memory is `net10.0`-only — the builder had to choose, and the plan's literal spec was wrong. Spot-check inheritance targets at plan time with an actual `cat` / `grep`, not from memory.
+- **Shared test runners may not expose the seam the plan assumes.** PLAN-2.1 told the Phase 3 builder to "use `DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation.SimpleConsumer.Run<>()`" to inject the distributed task scheduler — but that runner's signature exposes `Action<TTransportCreate> setOptions` (transport options), not `Action<IContainer> registerService` (container registration). Research must verify the exact seam exists before the architect commits to a plan pattern.
+- **Memory transport storage is per-container.** Two `QueueContainer<MemoryMessageQueueInit>` instances don't share the underlying `IDataStorage` via `RegisterNonScopedSingleton(scope)` alone. A naive producer/consumer split across two containers never sees the produced messages. Phase 3 EndToEndSchedulingTests was scope-reduced to a SimpleInjector `Verify()` smoke test because of this constraint.
+- **PLAN-1.2 had a plan data error** (expected "unstash count = 13" but pre-edit actual was 14). Research should spot-check grep counts with exact commands, not estimated counts.
+- **The auditor agent wrote `AUDIT-4.md` to the WRONG directory** (`.shipyard/phases-archive-code-coverage/4/results/` instead of `.shipyard/phases/4/results/`). The agent's path resolution found an existing archive directory and wrote there by default. Had to move the file to the correct location before commit. **Watch for this in future ship flows where an archive directory with the same shape exists.**
+
+### Pitfalls to Avoid
+
+- **`SchedulerContainer.GetInstance<T>()` does not exist in `TaskScheduler 0.4.0`.** The only way to resolve `ITaskSchedulerJobCountSync` is the **IContainer closure pattern**: capture `IContainer` during the `SchedulerContainer(registerService)` callback, trigger build via `CreateTaskScheduler()`, then resolve from the captured container. An earlier NodeDiscoveryTests draft used the nonexistent API and produced 10 compile errors; rewritten during build recovery using the pattern discovered by the PLAN-2.2 builder.
+- **`Start()` before spawning hammering threads is non-negotiable for `ConcurrencyRegressionTests`.** Without `Start()`, `_outbound` is null and the null-safe guard from Phase 1 short-circuits every `IncreaseCurrentTaskCount` / `DecreaseCurrentTaskCount` call — the test becomes a false positive that would pass even if Phase 1's lock fix were reverted. A comment in the test documents this invariant explicitly.
+- **DNQ queue names must be alphanumeric/underscore/dot.** `Guid.NewGuid().ToString()` produces hyphenated strings that DNQ validation rejects with `Queue name contains invalid characters`. Use `Guid.NewGuid().ToString("N")` (no hyphens) or a sanitized format.
+- **Cross-namespace walk-up gotcha for `IDataStorage`.** Cloning `SharedClasses.cs` from the Memory test project into a differently-named namespace breaks walk-up resolution of `DotNetWorkQueue.Transport.Memory.IDataStorage`. Same root cause as the existing `IConfiguration` and `Metrics.Metrics` shadowing lessons. **Always add `using DotNetWorkQueue.Transport.Memory;` explicitly when cloning from that project.**
+- **`-p:CI=true` is a NuGet packaging flag, not a test-run flag.** It enables `ContinuousIntegrationBuild` in `Directory.Build.props` for deterministic Source Link during `dotnet build -c Release`. It has no effect on `dotnet test`. Don't copy-paste it into test invocations — the Phase 4 CONTEXT-4 draft made this mistake and had to be corrected mid-research.
+- **Jenkinsfile stagger formula `(n-1) * 5` is at its ceiling with 14 stages** (worst-case startup delay 65s). A future 15th stage will push to 70s and may need the formula revisited or a different approach. Captured as a known issue for a future cleanup phase.
+
+### Process Improvements
+
+- **Before `/shipyard:plan 1` on any new milestone: `git fetch origin master && git log HEAD..origin/master --oneline`** to confirm local master is current. If origin has unpulled work, decide whether to pull or branch from origin/master BEFORE the milestone starts, not at ship time.
+- **For 1-task plans with exact-match anchors, execute inline from the main thread** rather than dispatching a builder agent. Agent reliability for tiny plans is worse than direct edits because of turn budget exhaustion. Reserve builder agents for multi-task plans or plans that require iterative API discovery.
+- **Always `gh pr create --draft` for CI-sensitive feature branches.** The Shipyard worktree protocol's "feature branch first" validation step needs a draft PR to trigger Jenkins, not just a push. Update `/shipyard:worktree create` docs / the CONTEXT capture template to mention this.
+- **When cloning a file from one test project into another, do a namespace walk-up sanity check.** For every `using` the new file relies on implicitly, verify the new project's namespace hierarchy can reach it. When in doubt, add explicit `using` directives up front rather than debugging walk-up resolution later.
+- **Auditor agent path-resolution hardening:** the auditor should verify the path it's writing to is under `.shipyard/phases/{N}/results/` and NOT under `.shipyard/phases-archive*/`. Captured as a Shipyard framework feedback item.
+
+---
+

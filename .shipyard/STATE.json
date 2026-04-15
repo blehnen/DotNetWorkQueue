@@ -1,8 +1,8 @@
 {
   "schema": 3,
   "phase": 4,
-  "position": "Phase 4 build complete in worktree; pending CI validation on push",
-  "status": "complete",
-  "updated_at": "2026-04-15T16:53:01Z",
+  "position": "TaskScheduler 0.4.0 milestone shipped via PR #115",
+  "status": "shipped",
+  "updated_at": "2026-04-15T19:26:38Z",
   "blocker": null
 }
