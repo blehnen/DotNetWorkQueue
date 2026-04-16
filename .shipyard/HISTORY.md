@@ -1,5 +1,16 @@
 # Shipyard History
 
+## 2026-04-16 — Phase 2 Planned (Polish & Cleanup)
+
+- **Action:** `/shipyard:plan 2`
+- **Scope:** 2 open issues + verification of 14 already-resolved (14 of 16 already done)
+- **Plans:** 3 plans in Wave 1 (all parallel)
+  - PLAN-1.1: ISSUE-018 (Purge_Skips_Enqueued_Records test)
+  - PLAN-1.2: ISSUE-024 (TracerProvider leak fix + ForceFlush)
+  - PLAN-1.3: Verify 14 resolved issues + ISSUES.md cleanup
+- **Critique verdict:** READY (one file path fixed in PLAN-1.3)
+- **Status:** Planned, ready for build
+
 ## 2026-04-16 — Phase 1 Build Complete (DNQ 0.9.32 Release)
 
 - **Action:** `/shipyard:build 1`
