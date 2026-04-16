@@ -1,5 +1,18 @@
 # Shipyard History
 
+## 2026-04-16 — Phase 1 Planned (DNQ 0.9.32 Release)
+
+- **Action:** `/shipyard:plan 1`
+- **Scope:** 4 open issues + release commit (4 of 8 original issues already resolved)
+- **Decisions:**
+  - Plan covers only open issues (016, 017, 019, 020) + release commit
+  - ISSUE-020: researcher investigated ICreationScope idempotency (confirmed safe)
+- **Plans:** 4 plans across 2 waves
+  - Wave 1 (parallel): PLAN-1.1 (Redis perf + test), PLAN-1.2 (LiteDb comment), PLAN-1.3 (archive artifact)
+  - Wave 2 (sequential): PLAN-2.1 (version bump + CHANGELOG)
+- **Critique verdict:** READY
+- **Status:** Planned, ready for build
+
 ## 2026-03-26 — Project Initialized
 
 - **Action:** `/shipyard:init`
@@ -794,3 +807,4 @@
 - [2026-04-15T16:52:50Z] Phase 4: Phase 4 build complete in worktree; pending CI validation on push (success criteria #1, #2) (complete)
 - [2026-04-15T16:53:01Z] Phase 4: Phase 4 build complete in worktree; pending CI validation on push (complete)
 - [2026-04-15T19:26:38Z] Phase 4: TaskScheduler 0.4.0 milestone shipped via PR #115 (shipped)
+- [2026-04-15T21:27:32Z] Phase 1: Project definition captured, ready for planning (ready)
