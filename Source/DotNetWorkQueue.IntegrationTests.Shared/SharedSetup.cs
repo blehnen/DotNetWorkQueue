@@ -156,15 +156,16 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         public static ActivitySourceWrapper CreateTrace(string name, bool collectActivities = false)
         {
             var traceName = TraceSettings.TraceName(name);
+            TracerProvider openTelemetry = null;
             if (TraceSettings.Enabled)
             {
-                var openTelemetry = Sdk.CreateTracerProviderBuilder()
+                openTelemetry = Sdk.CreateTracerProviderBuilder()
                     .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(traceName))
                     .AddSource(traceName, traceName)
                     .AddOtlpExporter(o =>
                     {
                         o.Endpoint = new Uri($"http://{TraceSettings.Host}:{TraceSettings.Port}");
-                       
+
                         // Using Batch Exporter (which is default)
                         // The other option is ExportProcessorType.Simple
                         o.ExportProcessorType = ExportProcessorType.Batch;
@@ -178,17 +179,19 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                     })
                     .Build();
             }
-            return new ActivitySourceWrapper(new ActivitySource(traceName), collectActivities);
+            return new ActivitySourceWrapper(new ActivitySource(traceName), collectActivities, openTelemetry);
         }
     }
 
     public class ActivitySourceWrapper : IDisposable
     {
         private readonly ActivityListener _listener;
+        private readonly TracerProvider _provider;
 
-        public ActivitySourceWrapper(ActivitySource source, bool collectActivities = false)
+        public ActivitySourceWrapper(ActivitySource source, bool collectActivities = false, TracerProvider provider = null)
         {
             Source = source;
+            _provider = provider;
 
             // Listener is ALWAYS registered so trace decorator code paths execute
             // during integration tests (preserves the TraceExtensions coverage cascade).
@@ -218,10 +221,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         {
             _listener?.Dispose();
             Source?.Dispose();
-
-            //if jaeger is using udp, sometimes the messages get lost; there doesn't seem to be a flush() call ?
-            if (TraceSettings.Enabled)
-                System.Threading.Thread.Sleep(2000);
+            if (_provider != null)
+            {
+                _provider.ForceFlush(2000);
+                _provider.Dispose();
+            }
         }
     }
 
