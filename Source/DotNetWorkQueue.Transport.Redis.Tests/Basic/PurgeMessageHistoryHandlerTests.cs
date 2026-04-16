@@ -90,6 +90,46 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             Assert.AreEqual(0L, result);
         }
 
+        /// <summary>
+        /// Enqueued (value 0) is non-terminal and must not be purged.
+        /// Also documents RedisValue.Null-to-int collision protection —
+        /// (int)RedisValue.Null yields 0, which matches Enqueued.
+        /// </summary>
+        [TestMethod]
+        public void Purge_Skips_Enqueued_Records()
+        {
+            // Arrange
+            var (handler, db) = CreateEnabledWithDb();
+            var cutoff = DateTime.UtcNow;
+            var queueId = "msg-enqueued";
+            var completedTicks = (cutoff - TimeSpan.FromHours(2)).Ticks;
+
+            // SortedSetRangeByScore returns one member (8-param interface signature)
+            db.SortedSetRangeByScore(
+                    Arg.Any<RedisKey>(),
+                    Arg.Any<double>(),
+                    Arg.Any<double>(),
+                    Arg.Any<Exclude>(),
+                    Arg.Any<Order>(),
+                    Arg.Any<long>(),
+                    Arg.Any<long>(),
+                    Arg.Any<CommandFlags>())
+                .Returns(new RedisValue[] { queueId });
+
+            // Status = Enqueued
+            db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("Status"), Arg.Any<CommandFlags>())
+                .Returns((RedisValue)(int)MessageHistoryStatus.Enqueued);
+            db.HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("CompletedUtc"), Arg.Any<CommandFlags>())
+                .Returns((RedisValue)completedTicks);
+
+            // Act
+            var result = handler.Purge(cutoff);
+
+            // Assert: Enqueued records must NOT be deleted
+            db.DidNotReceive().KeyDelete(Arg.Any<RedisKey>(), Arg.Any<CommandFlags>());
+            Assert.AreEqual(0L, result);
+        }
+
         [TestMethod]
         public void Purge_Removes_Old_Complete_Records()
         {
