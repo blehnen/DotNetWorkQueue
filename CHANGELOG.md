@@ -1,3 +1,11 @@
+### 0.9.32 -- 2026-04-16
+- Fix: Redis `PurgeMessageHistoryHandler` eliminates redundant `CompletedUtc` round-trip in orphan cleanup path; `HashGet("CompletedUtc")` now executes only when the hash exists (ISSUE-016)
+- Fix: RelationalDatabase `WriteMessageHistoryHandler.RecordComplete` removes `StartedUtc IS NOT NULL` guard from WHERE clause so `DurationMs=0` is written for sub-millisecond completions (ISSUE-014)
+- Test: Redis `Purge_Handles_Missing_Hash_Gracefully` asserts `CompletedUtc` is never read in orphan path via `DidNotReceive()` (ISSUE-017)
+- Test: LiteDb history `CleanupAsync` documents that double-dispose of `CreationScope` is safe (idempotent via `_disposedValue` guard) (ISSUE-020)
+- Cleanup: delete 7 empty shell files left after NETFULL removal, remove dead `MakeTrackingParam` local function, remove no-op `dynamic=true` test cases from JobSchedulerTests (ISSUE-015, ISSUE-021, ISSUE-022, ISSUE-023)
+- Archive: create missing SUMMARY-1.1.md for LiteDb history test plan audit trail (ISSUE-019)
+
 ### 0.9.31 — 2026-04-09
 - **Breaking:** Dashboard UI config changed: `DashboardApi:BaseUrl` / `ApiKey` replaced by `DashboardApi:Sources[]` array; old format throws `InvalidOperationException` with migration example at startup (GitHub #96)
 - Dashboard UI connects to multiple Dashboard API instances from one deployment; each source gets a `Name`, `BaseUrl`, and optional `ApiKey` in the config array
