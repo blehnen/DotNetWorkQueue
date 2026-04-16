@@ -55,7 +55,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             {
                 var queueId = member.ToString();
                 var rawStatus = db.HashGet(HistoryHashKey(queueId), "Status");
-                var rawCompleted = db.HashGet(HistoryHashKey(queueId), "CompletedUtc");
 
                 if (!rawStatus.HasValue)
                 {
@@ -65,6 +64,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                     continue;
                 }
 
+                var rawCompleted = db.HashGet(HistoryHashKey(queueId), "CompletedUtc");
                 var status = (MessageHistoryStatus)(int)rawStatus;
                 var completedTicks = rawCompleted.HasValue ? (long)rawCompleted : 0L;
 
