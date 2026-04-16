@@ -1,119 +1,104 @@
-# Project: DNQ Open-Issue Cleanup Milestone (0.9.32)
+# Project: DNQ Automated NuGet Publishing via GitHub Actions
 
-**Captured:** 2026-04-15
-**Branch:** `cleanup-all-open-issues` (off master @ `a222cae0`)
-**Shipping target:** DNQ NuGet `0.9.32` (Phase 1) + polish PR (Phase 2)
+**Captured:** 2026-04-16
+**Branch:** `master` (feature branch TBD at `/shipyard:plan` time)
+**Shipping target:** no runtime version bump for this milestone itself — first real exercise on the next DNQ release (likely `v0.9.33`)
 
 ## Description
 
-Resolve 24 DNQ-local issues accumulated across prior milestones in `.shipyard/ISSUES.md`. The hero is a real correctness bug in `DotNetWorkQueue.Transport.RelationalDatabase.RecordComplete` (ISSUE-014) that silently mis-writes message-history completion metadata when `DurationMs = 0` and `StartedUtc IS NULL`. That alone justifies a point release. Alongside that, ship two performance wins — compile the `ValidateQueueName` regex (ISSUE-002) and eliminate a redundant Redis round-trip in `PurgeMessageHistoryHandler`'s orphan path (ISSUE-016) — as part of a DNQ NuGet `0.9.32` release, published via manual `dotnet nuget push` from the local deploy directory (DNQ's current publishing flow — tag-triggered GH Actions publishing is not wired up for DNQ yet and is deferred to a future milestone).
+Today, DNQ ships to NuGet.org via a manual local workflow: `dotnet build -c Release -p:CI=true`, `dotnet pack` (solution + explicit Dashboard.Ui), then 24 `dotnet nuget push` invocations against the `deploy/` directory (12 `.nupkg` + 12 `.snupkg`, with the `.snupkg` half done by hand because the CLI's auto-match logic is unreliable on Windows). Release discipline is entirely in the committer's head.
 
-After the release PR merges, a follow-up polish PR lands the remaining 16 Suggestion-level issues covering unused usings, stale XML doc, shipyard artifact backfills, dead local functions, empty NETFULL shell files, and an `OpenTelemetry.TracerProvider` leak in a shared test fixture.
-
-The milestone is scoped to DNQ-local code only. 6 issues in the sibling `TaskScheduler` repo (025, 026, 027, 028, 029, 030) are explicitly out of scope and tracked separately. (ISSUE-027 test helper DRY and ISSUE-029 GH Actions Node.js 20 deprecation were initially thought DNQ-local but audit confirmed both are tagged `Repo: DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler`.)
+This milestone replaces that manual flow with a `v*` tag-triggered GitHub Actions workflow that builds, packs all 12 packages (including the Web-SDK-based Dashboard.Ui), publishes nupkg+snupkg to NuGet.org, and creates a GitHub Release with attached artifacts. A pre-publish "verify gate" job enforces three invariants: (1) the tag matches `v<SemVer>` regex, (2) the tag name equals `Source/Directory.Build.props`'s `<Version>`, and (3) the tagged commit carries a green Jenkins status (the "B2" gate — tag must land on a commit Jenkins has already blessed, which naturally forces PR-discipline since only PR'd commits get full Jenkins integration coverage). Reference workflows exist at `F:\Git\DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler` and `F:\Git\expression-json-serializer`, but both are single-package repos; DNQ's 12-package multi-project layout plus Dashboard.Ui's Web-SDK quirk require a different packing strategy.
 
 ## Goals
 
-1. Ship DNQ NuGet `0.9.32` to nuget.org containing the 8 Important-severity fixes via manual `dotnet nuget push` from the local deploy directory (DNQ's current release pattern — `.nupkg` and `.snupkg` co-pushed from `deploy/`). A GH Actions tag-triggered publish workflow is a nice-to-have deferred to a future milestone.
-2. Burn down the remaining 16 Suggestion-level issues in one follow-up PR without requiring another release.
-3. Preserve full test-suite green state throughout: 896/896 core unit tests, 57/57 Memory integration tests, plus all relational transport integration suites that Jenkins has live services for.
-4. Confirm Jenkins full 14-stage parallel matrix + GH Actions `build-and-test` job stay green on every phase PR before merge.
-5. Close 24 DNQ-local entries from `.shipyard/ISSUES.md` (Open → Resolved), leaving only the 6 sibling-repo entries and any new discoveries surfaced mid-milestone.
+1. **One action ships a release:** pushing tag `v0.9.33` on a green master commit results in all 12 packages on NuGet.org within ~60 seconds, with a GitHub Release auto-created containing the attached 24 artifact files, with no manual steps after the tag push.
+2. **Prevent misfires:** a malformed tag (`vtest`, `v0.9`), a tag/Directory.Build.props version mismatch, or a tag on a Jenkins-red commit must fail the workflow *before* any publish step runs.
+3. **Eliminate Windows snupkg pain:** all `.snupkg` pushes run on ubuntu-latest via explicit split `nuget push` commands (one per file glob), sidestepping the CLI's Windows auto-match bug entirely.
+4. **Single version source of truth:** `Source/Directory.Build.props` carries `<Version>`; the 12 csprojs inherit. One edit per release instead of 12.
+5. **Audit trail:** the workflow uploads the 24 packaged files as a 90-day retention artifact, so if NuGet.org rejects a package, the exact bits can be downloaded without a rebuild.
 
 ## Non-Goals
 
-1. **Sibling `TaskScheduler` repo issues** — all 6 carry a `Repo: DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler` tag in `ISSUES.md`:
-   - **ISSUE-025** RunPoller start race on fast `Start() → Dispose()` cycles
-   - **ISSUE-026** `NetMqQueueApiProbeTests.cs` design-time scaffolding to delete
-   - **ISSUE-027** Test helper DRY (`XunitLogger` / `NextPort` / `BeaconInterface` copied across 4 test files)
-   - **ISSUE-028** `Start()` `<remarks>` XML doc (apparently closed in Phase 2 release commit but not removed from Open section)
-   - **ISSUE-029** GH Actions deprecated Node.js 20 actions in the sibling's `ci.yml`
-   - **ISSUE-030** Sibling README uses wrong named arg `udpBroadcastPort:` instead of `broadCastPort:`
+- **Version auto-derivation from the tag.** Rejected (flavor "C") because a typoed tag would silently ship a wrong version. Version lives in `Directory.Build.props`; the tag is just a trigger and its name is validated to match.
+- **Jenkins status gating via Jenkinsfile changes.** Rejected (flavor "B1") — we use the cheaper B2 variant that just reads GitHub's commit-status API for the pre-existing Jenkins rollup status posted from the original PR build. No Jenkinsfile edits.
+- **Keeping `deploy/Deploy.bat` as a local fallback.** Retired — CI becomes the only path. The workflow can be re-run manually via `workflow_dispatch` if ad-hoc re-publishing is needed.
+- **Auto-publishing to TaskScheduler or expression-json-serializer repos.** Those already have their own workflows and are out of scope.
+- **Release notes authoring.** GH Release notes use `--generate-notes` (auto-scraped from merged PRs since last tag). Hand-authored notes remain the committer's option via manual Release edits post-publish.
+- **Shipping a runtime version bump as part of this milestone.** The workflow is infrastructure — first real release it exercises becomes the next version (likely `v0.9.33` in a future milestone).
 
-   Out of scope; tracked for a separate sibling-repo PR whenever there's a reason to ship `TaskScheduler 0.5.0`.
-2. **Architectural refactors** — no API changes, no namespace moves, no new abstractions. Fix / perf / cleanup in place only.
-3. **New features or API surface** — no new public types, no new methods, no new extension points. Behavioral corrections and test-side improvements only.
-4. **Pre-existing `SYSLIB0012` warnings** in `LiteDB.IntegrationTests/ConnectionString.cs` and `SQLite.Integration.Tests/ConnectionString.cs` — flagged previously as a cleanup target, but explicitly NOT in the 30 tracked issues. Let them linger one more cycle.
-5. **Major version bump** — `0.9.31 → 0.9.32` patch release only, not `0.10.0`.
-6. **Phase 1 feature additions** — the release PR is strictly correctness + perf + test fixes. No scope creep into "while I'm here, let me add X."
+## Requirements
 
-## Requirements (Functional, Grouped by Phase)
+### Workflow structure (`.github/workflows/publish.yml`, new file)
 
-### Phase 1 — 0.9.32 Release (8 Important issues + release commit)
+- Trigger: `push: tags: [ 'v*' ]` + `workflow_dispatch` (with a `dry_run: boolean` input that short-circuits the publish/release steps while still running gate + build-pack).
+- Three sequential jobs on `ubuntu-latest`, each `needs:` the previous:
+  1. **`verify-gate`** — runs a script (bash) that:
+     - Asserts the tag matches regex `^v\d+\.\d+\.\d+(-[\w\.]+)?$`.
+     - Extracts the tag's SHA, checks out `Source/Directory.Build.props` at that SHA, greps `<Version>...</Version>`, and asserts the stripped tag equals that value.
+     - Queries `GET /repos/{owner}/{repo}/commits/{sha}/statuses` via `gh api` or the REST API directly, and asserts that the named Jenkins rollup status context (exact string TBD at implementation — verified via a recent PR's statuses, most likely `continuous-integration/jenkins/branch`) has state `success`.
+     - Fails the job with a descriptive error message on any mismatch.
+  2. **`build-pack`** — runs `dotnet restore`, then `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release -p:CI=true --no-restore`, then two `dotnet pack` calls (solution-level `--no-build`, then explicit `Dashboard.Ui` `--no-build`) into `deploy/`. Asserts exactly 12 `.nupkg` + 12 `.snupkg` files exist in `deploy/` (fail on any other count). Uploads `deploy/*` as workflow artifact `nuget-packages-v<version>` with 90-day retention.
+  3. **`publish`** — downloads the artifact, runs two independent `dotnet nuget push` commands (`.nupkg` glob then `.snupkg` glob) against `https://api.nuget.org/v3/index.json` with `--api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate`. On success, runs `gh release create v<version> deploy/*.nupkg deploy/*.snupkg --title "DNQ v<version>" --generate-notes`. Skipped entirely when `dry_run=true`.
 
-One wave, one PR, one release. Each issue lands as its own atomic commit on branch `cleanup-all-open-issues`. Final commit in Phase 1 is the release commit.
+### Source structure changes
 
-**Correctness / Release-critical trio**
-- **ISSUE-014** — Fix `RelationalDatabase.RecordComplete` WHERE clause so `DurationMs = 0` rows write correctly when `StartedUtc IS NULL`. Add a regression test that reproduces pre-fix failure and passes post-fix. Verify fix applies across SqlServer, PostgreSQL, SQLite transports.
-- **ISSUE-002** — Compile the `ValidateQueueName` regex across all relational transports (use `RegexOptions.Compiled` or `[GeneratedRegex]`). Verify no existing test asserts the regex is non-compiled.
-- **ISSUE-016** — Eliminate redundant Redis round-trip in orphan path of `PurgeMessageHistoryHandler`. Confirm via existing test that behavior is unchanged; add assertion if the test currently doesn't catch the round-trip.
+- `Source/Directory.Build.props` gains a `<Version>0.9.33</Version>` line in the existing `<PropertyGroup>`. (Initial value matches the next planned release; bumped per-release going forward.)
+- All 12 packable csprojs have their `<Version>0.9.32</Version>` lines removed:
+  - `DotNetWorkQueue`
+  - `DotNetWorkQueue.Dashboard.Api`
+  - `DotNetWorkQueue.Dashboard.Client`
+  - `DotNetWorkQueue.Dashboard.Ui`
+  - `DotNetWorkQueue.Transport.LiteDB`
+  - `DotNetWorkQueue.Transport.Memory`
+  - `DotNetWorkQueue.Transport.PostgreSQL`
+  - `DotNetWorkQueue.Transport.Redis`
+  - `DotNetWorkQueue.Transport.RelationalDatabase`
+  - `DotNetWorkQueue.Transport.SQLite`
+  - `DotNetWorkQueue.Transport.Shared`
+  - `DotNetWorkQueue.Transport.SqlServer`
+- `.gitignore` confirms `deploy/` is ignored (or adds it if missing). The existing tracked `deploy/Deploy.bat` and `deploy/*.nupkg` / `deploy/*.snupkg` files are deleted from the repo.
 
-**Test reliability**
-- **ISSUE-017** — Add `CompletedUtc` non-read assertion in the orphan test so it's not fragile.
-- **ISSUE-020** — Fix `LiteDbHistoryEnabledTests.CleanupAsync` double-dispose of `_scope` after `_creation.Dispose()`.
-- **ISSUE-022** — Fix the no-op `dynamic=true` test case in PostgreSQL `JobSchedulerTests` so it actually asserts the dynamic code path.
+### Documentation changes
 
-**Housekeeping**
-- **ISSUE-001** — Remove unused `fixture` variable in `QueueCreatorTests` post Plan 1.1 refactor.
-- **ISSUE-019** — Backfill the missing `SUMMARY-1.1.md` shipyard artifact for the LiteDb history tests phase (archive-only, no code impact).
+- `CLAUDE.md` lesson correction: the current lesson claims `dotnet nuget push *.nupkg` auto-pushes matching `.snupkg` files. This is false on Windows (user has had to manually push all 12 snupkg files every release). Replace with guidance that the GH Actions workflow splits into two push commands for portability.
+- `CLAUDE.md` new lesson: describe the `v<version>` tag → workflow release flow, the B2 Jenkins gate, and `Source/Directory.Build.props` as the single version source of truth.
+- `CLAUDE.md` "Build Commands" section: add a short paragraph pointing at `.github/workflows/publish.yml` for release builds, keeping the existing `dotnet pack` commands as "this is what CI runs; don't invoke locally for a real release."
 
-**Release commit (final commit of Phase 1)**
-- Bump `<Version>` in `Source/Directory.Build.props` from `0.9.31` to `0.9.32`.
-- Add `## 0.9.32 (2026-04-XX)` section to `CHANGELOG.md` summarizing the 8 issues with ISSUE-* references.
-- Update `README.md` if it carries a "current version" mention.
-- After the PR merges to master, build Release locally with `-p:CI=true`, pack to `deploy/`, manually publish via `dotnet nuget push "deploy/*.nupkg" --api-key <KEY> --source https://api.nuget.org/v3/index.json` (the CLI auto-picks up the matching `.snupkg`). Then tag `v0.9.32` locally and push the tag for release traceability. There is no tag-triggered GH Actions publish workflow for DNQ today — that's deferred to a future milestone.
+### One-time manual configuration (outside the PR)
 
-### Phase 2 — Polish & Cleanup (16 issues)
-
-One PR against updated master. No release. Architect splits into waves by file cluster at plan time.
-
-- **Suggestion (16):** ISSUE-003 through 013 (unused usings, stale XML doc, `DisposeAsync` patterns, log message text, parens clarity, missing SUMMARYs), 015 (dead local function in `RecordComplete_WithoutStartedUtc_PassesDurationZero` test), 018 (missing test for Enqueued status in `PurgeMessageHistoryHandler`), 021 (empty NETFULL shell files), 023 (blank line artifacts from NETFULL removal), 024 (`OpenTelemetry.TracerProvider` leak in `SharedSetup.CreateTrace`).
+- Add `NUGET_API_KEY` secret in GitHub repo Settings → Secrets and variables → Actions.
+- No additional permissions changes required — `GITHUB_TOKEN` with default `contents: write` is sufficient for `gh release create`.
 
 ## Non-Functional Requirements
 
-- **Test green:** no regression in 896/896 core unit tests + 57/57 Memory integration tests on every PR.
-- **CI green:** Jenkins 14-stage parallel matrix + GH Actions `build-and-test` job green on every PR before merge.
-- **Release integrity:** `0.9.32` ships with deterministic Source Link paths (`-p:CI=true`), Symbols visible on nuget.org, version ordering preserved (`0.9.31 < 0.9.32`).
-- **Per-issue atomic commits:** each ISSUE-NNN resolution is a single commit so git blame / bisect can attribute individual fixes. Commit messages reference the ISSUE-NNN ID.
-- **No scope creep:** if the planner / researcher discovers related issues mid-plan, they go into `.shipyard/ISSUES.md` as new entries, NOT into the current milestone's plan.
+- **Idempotency:** Re-running the workflow on a partial-failure tag must safely complete the remaining pushes. Achieved via `--skip-duplicate` on both NuGet push commands and `gh release create` running last (failure before push leaves no Release to conflict with; failure after leaves the Release but `--skip-duplicate` prevents re-push conflicts).
+- **Portability:** Workflow runs on `ubuntu-latest`. No Windows-specific steps. All path separators and glob patterns must work in bash.
+- **Fail-fast:** Any gate mismatch or count assertion must abort the workflow before any network side effect (NuGet push, Release creation).
+- **Determinism:** `-p:CI=true` on all build + pack calls enables `ContinuousIntegrationBuild` (per existing `Directory.Build.props`), ensuring deterministic Source Link paths so NuGet.org's Source Link validation stays green.
+- **Secret hygiene:** `NUGET_API_KEY` is referenced only in the `publish` job. No echo, no log leakage.
+- **Observability:** Each job's summary clearly reports: tag validated, version matched, Jenkins status observed, 24 files packed, N files pushed, Release URL.
 
 ## Success Criteria
 
-1. **Phase 1:** DNQ NuGet `0.9.32` live on nuget.org with green Symbols + deterministic Source Link badges. Tag `v0.9.32` on master. CHANGELOG contains the 8-issue release notes. All 8 Important ISSUE-* refs moved from Open to Resolved in `.shipyard/ISSUES.md`.
-2. **Phase 1:** Jenkins + GH Actions green on the PR before merge; 896/896 core unit tests + 57/57 Memory integration tests + all Jenkins relational transport stages green.
-3. **Phase 2:** 16 remaining DNQ-local issues resolved and moved from Open to Resolved. Jenkins + GH Actions green on the PR. No release. No regressions.
-4. **Milestone:** `.shipyard/ISSUES.md` Open section contains only the 6 sibling-repo entries (025, 026, 027, 028, 029, 030) plus any entries opened mid-milestone from new discoveries. Everything DNQ-local that was open at milestone start is closed.
+1. **Dry-run passes:** `workflow_dispatch` with `dry_run=true` on the merged milestone runs `verify-gate` + `build-pack` to green with 24 artifacts uploaded, no push, no Release — confirming packaging works without spending a version.
+2. **First real release ships:** the next DNQ release tag (e.g., `v0.9.33`) fires the workflow, 12 `.nupkg` + 12 `.snupkg` land on NuGet.org within ~60 seconds of the tag push, GH Release is auto-created with all 24 files attached, and the NuGet.org Source Link indicator shows green for each package.
+3. **Bad-tag misfires blocked:** pushing `vtest` or `v0.9.34` when `Directory.Build.props` says `0.9.33` fails at `verify-gate` with no network side effect.
+4. **Jenkins-red commit blocked:** tagging a commit whose Jenkins status is `failure` or `pending` fails at `verify-gate`.
+5. **No snupkg manual steps:** the user never runs `dotnet nuget push` locally for `.snupkg` files again.
+6. **Version bump is one commit:** the release PR for the next version touches `Source/Directory.Build.props` only (plus any feature-specific source), not 12 csprojs.
 
 ## Constraints
 
-**Technical**
-- net10.0 / net8.0 multi-target preserved for library projects; integration test projects remain `net10.0`-only (CLAUDE.md convention).
-- Central Package Management (CPM) pattern preserved — no direct `Version=` attributes on `PackageReference`.
-- `-p:CI=true` required on the Release build so Source Link paths are deterministic.
-- Push `.nupkg` + `.snupkg` together from the deploy directory — `.snupkg` can't be pushed separately after the `.nupkg` is live.
-- Phase 1 tag format: `v0.9.32` (annotated, unsigned, matching prior release convention).
-- API key stays in GH Secrets. No local `dotnet nuget push`.
-
-**Workflow**
-- Jenkins is PR-triggered, not branch-triggered. Each phase MUST open a draft PR to trigger CI. Merge only after both CI surfaces go green.
-- Per-issue atomic commits; per-phase single PR; per-milestone two PRs total (release PR + polish PR).
-- Pre-release local pack + `.nupkg` inspection pre-tag to catch Source Link / Symbols red badges before they hit nuget.org.
-
-**Scope**
-- Sibling `TaskScheduler` repo is out of scope. Any fix that requires touching `/mnt/f/Git/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler/` goes into a separate Shipyard instance or `/shipyard:quick` in that repo.
-- No architectural refactors. Fix in place.
-
-## Risks & Mitigations
-
-| Risk | Mitigation |
-|---|---|
-| ISSUE-014 fix requires a schema assumption we can't hold. | Architect verifies during `/shipyard:plan 1` Research: trace `RecordStart → RecordComplete` in all 3 relational transports, confirm the WHERE clause is the right fix site. |
-| `0.9.32` release fails verification on nuget.org (Symbols red, Source Link red). | Mirror the TaskScheduler Phase 2 pre-flight pattern: local clean pack + `.nupkg` inspection before tagging. |
-| Phase 2's 16-issue PR too large to review. | Architect splits Phase 2 into waves by file cluster (unused-usings sweep, shipyard artifact backfills, OpenTelemetry leak fix). |
-| Version-ordering goof (e.g., tagging `v0.9.4`). | CLAUDE.md lesson captured; release plan task explicitly asserts the tag is `v0.9.32`. |
-| Integration tests for SqlServer/PostgreSQL/Redis/LiteDb/SQLite need external services the dev machine doesn't run. | Phase 1 local verification runs only in-memory suites (core unit + Memory integration). Jenkins handles external-service suites as the hard gate — matches the Phase 3 TaskScheduler milestone pattern. |
-
-## Related Milestones
-
-- **Prior milestone:** `TaskScheduler 0.4.0 + DNQ Integration Tests + CI Wiring` shipped via PR #115 as `190f1226` + ship commit `ddc8daf0` + cleanup commit `a222cae0`. 4 phases, 2 repos, resolved issues 028 and several others.
-- **Next milestone (tentative):** sibling `TaskScheduler 0.5.0` if/when the 4 sibling-repo issues justify another release.
+- **Technical:**
+  - DNQ has 12 packable csprojs today, one of which (`Dashboard.Ui`) uses `Microsoft.NET.Sdk.Web` and is NOT picked up by solution-level `dotnet pack`. Workflow must explicit-pack it.
+  - Jenkins is PR-triggered, not branch-triggered (per existing lessons). This is what makes the B2 gate pattern work: PR builds post commit statuses that later tag commits on master inherit.
+  - The exact Jenkins status context name is unknown at design time — must be observed from a recent PR's commit statuses during implementation.
+  - `Directory.Packages.props` exists (`ManagePackageVersionsCentrally=true`), so package-reference versions are already centralized — no interaction with this milestone's `<Version>` centralization, but worth noting both centralizations live in `Source/`.
+- **Operational:**
+  - User must add `NUGET_API_KEY` secret manually in GitHub repo settings before the first real release.
+  - The `better-sqlite3` native rebuild warning in the WSL dev environment is non-blocking but worth fixing separately (`sudo apt install build-essential`).
+- **Scope:**
+  - No changes to `.github/workflows/ci.yml`. It keeps running unit tests on PRs and master pushes.
+  - No changes to Jenkinsfile. The B2 gate reads Jenkins' existing status output.
+- **Timeline:** no external deadline; this is developer-experience infrastructure. Ship when ready.
