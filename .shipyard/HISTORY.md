@@ -1,5 +1,16 @@
 # Shipyard History
 
+## 2026-04-16 — Phase 2 Build Complete (Polish & Cleanup)
+
+- **Action:** `/shipyard:build 2`
+- **Plans executed:** 3/3 (PLAN-1.1, PLAN-1.2, PLAN-1.3)
+- **Commits:** 2
+  - `67ca863a` — add Purge_Skips_Enqueued_Records test (ISSUE-018)
+  - `bf408f64` — fix TracerProvider leak, replace Sleep with ForceFlush (ISSUE-024)
+- **Verification:** 5/5 PurgeMessageHistoryHandler tests pass, SharedSetup builds clean
+- **ISSUES.md:** 018, 024 moved to Resolved
+- **Status:** Phase 2 complete, all phases done
+
 ## 2026-04-16 — Phase 2 Planned (Polish & Cleanup)
 
 - **Action:** `/shipyard:plan 2`
@@ -842,3 +853,4 @@
 - [2026-04-16T14:17:51Z] Session ended during build (may need /shipyard:resume)
 - [2026-04-16T14:41:52Z] Session ended during build (may need /shipyard:resume)
 - [2026-04-16T14:42:44Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-16T16:23:20Z] Session ended during build (may need /shipyard:resume)

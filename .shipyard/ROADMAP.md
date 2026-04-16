@@ -10,7 +10,7 @@
 | Phase | Repo | Name | Risk | Depends On | Status |
 |-------|------|------|------|------------|--------|
 | 1 | DotNetWorkQueue | 0.9.32 Release (8 Important issues + release) | Medium | -- | complete |
-| 2 | DotNetWorkQueue | Polish & Cleanup (16 Suggestion issues) | Low | 1 (hard gate: `v0.9.32` tag pushed + nuget.org Symbols/SourceLink green) | planned |
+| 2 | DotNetWorkQueue | Polish & Cleanup (16 Suggestion issues) | Low | 1 (hard gate: `v0.9.32` tag pushed + nuget.org Symbols/SourceLink green) | complete |
 
 **Milestone totals:** Phase 1 = 8 issues + release commit. Phase 2 = 16 issues. Total DNQ-local = 24. Sibling out of scope = 6.
 
