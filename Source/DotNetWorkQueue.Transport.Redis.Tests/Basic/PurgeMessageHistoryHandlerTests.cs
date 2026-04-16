@@ -153,6 +153,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             // Assert: orphan index entry cleaned up via SortedSetRemove, no KeyDelete
             db.Received(1).SortedSetRemove(Arg.Any<RedisKey>(), Arg.Any<RedisValue>(), Arg.Any<CommandFlags>());
             db.DidNotReceive().KeyDelete(Arg.Any<RedisKey>(), Arg.Any<CommandFlags>());
+            db.DidNotReceive().HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("CompletedUtc"), Arg.Any<CommandFlags>());
             Assert.AreEqual(1L, result);
         }
     }

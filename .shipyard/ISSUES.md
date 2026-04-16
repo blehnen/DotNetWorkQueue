@@ -65,20 +65,22 @@
 ### ISSUE-019: Missing SUMMARY-1.1.md artifact for Plan 1.1 (LiteDb history tests)
 - **Severity:** Important
 - **Source:** Plan 1.1 Review
-- **Status:** Open
+- **Status:** Resolved — Phase 1 PLAN-1.3, 2026-04-16
 - **Files:**
-  - `.shipyard/phases/1/results/SUMMARY-1.1.md` (missing)
+  - `.shipyard/phases/1/results/SUMMARY-1.1.md` (created)
 - **Description:** The builder did not deposit a SUMMARY artifact before review. The test-run output (pass count, duration, LiteDB bug fix rationale) is unrecorded, breaking the audit trail. The results directory contains `REVIEW-1.2.md` but no `SUMMARY-1.1.md`.
 - **Remediation:** Create `.shipyard/phases/1/results/SUMMARY-1.1.md` documenting the test run output and the LiteDB `Get()` workaround rationale.
+- **Resolution:** Created SUMMARY-1.1.md documenting all 19 LiteDb history tests and the FindAll+LINQ workaround.
 
 ### ISSUE-020: LiteDbHistoryEnabledTests.CleanupAsync may double-dispose _scope after _creation.Dispose()
 - **Severity:** Important
 - **Source:** Plan 1.1 Review
-- **Status:** Open
+- **Status:** Resolved — commit 4a474f10, 2026-04-16
 - **Files:**
   - `Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/Tests/LiteDbHistoryTests.cs` (lines 208-254, CleanupAsync)
 - **Description:** `_scope` is assigned from `_creation.Scope`. `CleanupAsync` calls `_creation.Dispose()` then `_scope.Dispose()` independently. If `ICreationScope` is not idempotent on dispose, this is a double-dispose. The same pattern appears in MemoryHistoryTests, so it is likely safe, but it is unconfirmed.
 - **Remediation:** Verify `ICreationScope.Dispose()` is idempotent. If confirmed, add a comment. If not, null `_scope` after `_creation.Dispose()` to guard against double-dispose.
+- **Resolution:** Confirmed LiteDb CreationScope.Dispose() is idempotent (guarded by `_disposedValue`). Added 3-line clarifying comment in CleanupAsync.
 
 ### ISSUE-014: RelationalDatabase RecordComplete WHERE clause blocks DurationMs=0 write when StartedUtc IS NULL
 - **Severity:** Important
@@ -102,20 +104,22 @@
 ### ISSUE-016: Redundant Redis round-trip in orphan path of PurgeMessageHistoryHandler
 - **Severity:** Important
 - **Source:** Plan 1.2 Review
-- **Status:** Open
+- **Status:** Resolved — commit 54477f41, 2026-04-16
 - **Files:**
   - `Source/DotNetWorkQueue.Transport.Redis/Basic/PurgeMessageHistoryHandler.cs` (Purge method, loop body)
 - **Description:** `rawCompleted` is read unconditionally before the `!rawStatus.HasValue` guard. When the hash is absent (orphan case), this is a wasted Redis round-trip returning `RedisValue.Null` that is immediately discarded by `continue`. In bulk orphan scans this doubles Redis calls in the hot path.
 - **Remediation:** Move `var rawCompleted = db.HashGet(...)` inside the `rawStatus.HasValue` branch, after the orphan `continue`.
+- **Resolution:** Moved `rawCompleted` HashGet from before the orphan guard to after it, eliminating one Redis round-trip per orphan record.
 
 ### ISSUE-017: Orphan test does not assert CompletedUtc is never read (fragile test)
 - **Severity:** Important
 - **Source:** Plan 1.2 Review
-- **Status:** Open
+- **Status:** Resolved — commit ac91a41e, 2026-04-16
 - **Files:**
   - `Source/DotNetWorkQueue.Transport.Redis.Tests/Basic/PurgeMessageHistoryHandlerTests.cs` (`Purge_Handles_Missing_Hash_Gracefully`)
 - **Description:** The orphan test stubs `Status` to `RedisValue.Null` but does not stub `CompletedUtc` and does not assert it is never called. NSubstitute silently returns default `RedisValue.Null` for the unstubbed call. If the read order changes or the guard moves, the test passes against the wrong code path. Once ISSUE-016 is fixed, add `db.DidNotReceive().HashGet(Arg.Any<RedisKey>(), Arg.Is<RedisValue>("CompletedUtc"), Arg.Any<CommandFlags>())` to make the contract explicit.
 - **Remediation:** After applying ISSUE-016 fix, add the `DidNotReceive` assertion for `CompletedUtc` in the orphan test.
+- **Resolution:** Added `db.DidNotReceive().HashGet(..., "CompletedUtc", ...)` assertion in `Purge_Handles_Missing_Hash_Gracefully` test.
 
 ### ISSUE-018: No test for Enqueued status in PurgeMessageHistoryHandler
 - **Severity:** Suggestion

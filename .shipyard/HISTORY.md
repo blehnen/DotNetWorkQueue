@@ -1,5 +1,34 @@
 # Shipyard History
 
+## 2026-04-16 — Phase 1 Build Complete (DNQ 0.9.32 Release)
+
+- **Action:** `/shipyard:build 1`
+- **Plans executed:** 4/4 (PLAN-1.1, PLAN-1.2, PLAN-1.3, PLAN-2.1)
+- **Commits:** 4 (ISSUE-016 fix, ISSUE-017 test, ISSUE-020 comment, release bump)
+  - `54477f41` — eliminate redundant Redis round-trip (ISSUE-016)
+  - `ac91a41e` — add DidNotReceive assertion for CompletedUtc (ISSUE-017)
+  - `4a474f10` — document double-dispose safety (ISSUE-020)
+  - `7f13b391` — bump version to 0.9.32 + CHANGELOG
+- **Reviews:** All 4 plans PASS (0 critical, 0 important across all reviews)
+- **Verification:** 2,361 tests green (896 core + 190 Redis + 57 Memory integration + transport suites)
+- **Security audit:** PASS — no findings
+- **Simplification:** Clean — zero findings
+- **ISSUES.md:** 016, 017, 019, 020 moved to Resolved
+- **Status:** Phase 1 complete, ready for PR + release
+
+## 2026-04-16 — Phase 1 Planned (DNQ 0.9.32 Release)
+
+- **Action:** `/shipyard:plan 1`
+- **Scope:** 4 open issues + release commit (4 of 8 original issues already resolved)
+- **Decisions:**
+  - Plan covers only open issues (016, 017, 019, 020) + release commit
+  - ISSUE-020: researcher investigated ICreationScope idempotency (confirmed safe)
+- **Plans:** 4 plans across 2 waves
+  - Wave 1 (parallel): PLAN-1.1 (Redis perf + test), PLAN-1.2 (LiteDb comment), PLAN-1.3 (archive artifact)
+  - Wave 2 (sequential): PLAN-2.1 (version bump + CHANGELOG)
+- **Critique verdict:** READY
+- **Status:** Planned, ready for build
+
 ## 2026-03-26 — Project Initialized
 
 - **Action:** `/shipyard:init`
@@ -794,3 +823,11 @@
 - [2026-04-15T16:52:50Z] Phase 4: Phase 4 build complete in worktree; pending CI validation on push (success criteria #1, #2) (complete)
 - [2026-04-15T16:53:01Z] Phase 4: Phase 4 build complete in worktree; pending CI validation on push (complete)
 - [2026-04-15T19:26:38Z] Phase 4: TaskScheduler 0.4.0 milestone shipped via PR #115 (shipped)
+- [2026-04-15T21:27:32Z] Phase 1: Project definition captured, ready for planning (ready)
+- [2026-04-16T14:13:15Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-16T14:14:19Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-16T14:14:29Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-16T14:16:14Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-16T14:17:51Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-16T14:41:52Z] Session ended during build (may need /shipyard:resume)
+- [2026-04-16T14:42:44Z] Session ended during build (may need /shipyard:resume)
