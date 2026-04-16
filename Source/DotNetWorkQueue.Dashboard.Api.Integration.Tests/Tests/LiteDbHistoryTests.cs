@@ -208,6 +208,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             try { _creation?.RemoveQueue(); } catch { /* best-effort */ }
             _creation?.Dispose();
             _creationContainer?.Dispose();
+            // _scope is obtained from _creation.Scope, so _creation.Dispose() above already
+            // disposes it. This explicit call is a belt-and-suspenders guard for the case where
+            // _creation is null. CreationScope.Dispose() is idempotent (guarded by _disposedValue).
             _scope?.Dispose();
         }
 
