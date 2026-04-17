@@ -10,7 +10,7 @@
 | Phase | Name | Risk | Sizing | Depends On | Trigger | Status |
 |-------|------|------|--------|------------|---------|--------|
 | 1 | Version centralization (`<Version>` → `Directory.Build.props`) | Low | S | -- | Code + PR | **complete** (branch `feature/nuget-publish-ci`, commits `bccb0d33..c42a8e40`) |
-| 2 | Publish workflow (`publish.yml` with verify-gate / build-pack / publish) | Medium | M | 1 | Code + PR | pending |
+| 2 | Publish workflow (`publish.yml` with verify-gate / build-pack / publish) | Medium | M | 1 | Code + PR | **complete** (branch `feature/nuget-publish-ci`, commits `5955ce72..940a9a68`) |
 | 3 | Cleanup & docs (retire `deploy/*`, update CLAUDE.md) | Low | S | 2 | Code + PR (may be squashed into Phase 2's PR) | pending |
 | 4 | Dry-run validation (`workflow_dispatch` with `dry_run=true` on master) | Medium | S | 1 + 2 + 3 merged to master | Operational, not code | pending |
 

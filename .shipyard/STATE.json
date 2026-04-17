@@ -1,8 +1,8 @@
 {
   "schema": 3,
   "phase": 2,
-  "position": "Building phase 2 — publish.yml Task 1 (skeleton + verify-gate)",
-  "status": "building",
-  "updated_at": "2026-04-17T13:35:45Z",
+  "position": "Phase 2 build complete — publish.yml shipped (3 jobs + review-feedback fix), all gates PASS, DOCS deferred to Phase 3 per roadmap",
+  "status": "complete",
+  "updated_at": "2026-04-17T13:46:10Z",
   "blocker": null
 }
