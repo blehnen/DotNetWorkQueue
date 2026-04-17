@@ -1,0 +1,66 @@
+name: Publish
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Skip publish + release (exercises verify-gate + build-pack only). Used for Phase 4 operational dry-run.'
+        type: boolean
+        default: true
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  statuses: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_NOLOGO: true
+
+jobs:
+  verify-gate:
+    name: Verify tag, version, and Jenkins status
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Tag regex (push trigger only)
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9\.-]+)?$ ]]; then
+            echo "::error::Tag '${GITHUB_REF_NAME}' does not match ^v[0-9]+\\.[0-9]+\\.[0-9]+(-[A-Za-z0-9\\.-]+)?\\$"
+            exit 1
+          fi
+          echo "Tag '${GITHUB_REF_NAME}' matches regex."
+
+      - name: Tag-version match (push trigger only)
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PROP_VERSION=$(grep -oP '(?<=<Version>)[^<]+' Source/Directory.Build.props)
+          if [[ "${TAG_VERSION}" != "${PROP_VERSION}" ]]; then
+            echo "::error::Tag '${TAG_VERSION}' does not match Directory.Build.props '<Version>${PROP_VERSION}</Version>'"
+            exit 1
+          fi
+          echo "Tag version '${TAG_VERSION}' matches Directory.Build.props."
+
+      - name: Jenkins B2 gate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          state=$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/status" \
+            --jq '.statuses[] | select(.context=="continuous-integration/jenkins/branch") | .state')
+          if [[ "${state}" != "success" ]]; then
+            echo "::error::Jenkins status on ${{ github.sha }} is '${state:-missing}'; required 'success'"
+            exit 1
+          fi
+          echo "Jenkins 'continuous-integration/jenkins/branch' status is 'success' on ${{ github.sha }}."
