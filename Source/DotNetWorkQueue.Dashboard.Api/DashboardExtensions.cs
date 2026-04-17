@@ -28,7 +28,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Newtonsoft.Json.Serialization;
 using Microsoft.Extensions.Configuration;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
@@ -127,18 +127,11 @@ namespace DotNetWorkQueue.Dashboard.Api
                             Name = "X-Api-Key",
                             Description = "API key for dashboard access"
                         });
-                        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                        c.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
                         {
                             {
-                                new OpenApiSecurityScheme
-                                {
-                                    Reference = new OpenApiReference
-                                    {
-                                        Type = ReferenceType.SecurityScheme,
-                                        Id = "ApiKey"
-                                    }
-                                },
-                                Array.Empty<string>()
+                                new OpenApiSecuritySchemeReference("ApiKey", doc, externalResource: null),
+                                new System.Collections.Generic.List<string>()
                             }
                         });
                     }
