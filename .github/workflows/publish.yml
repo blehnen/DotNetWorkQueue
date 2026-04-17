@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
   statuses: read
 
 env:
@@ -140,16 +140,13 @@ jobs:
     needs: build-pack
     if: ${{ github.event_name == 'push' || inputs.dry_run == false }}
     runs-on: ubuntu-latest
+    # Elevated permission scoped to this job only (contents:write is needed
+    # by gh release create; verify-gate and build-pack run with contents:read).
+    permissions:
+      contents: write
     steps:
       - name: Checkout (for gh release create)
         uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: |
-            8.0.x
-            10.0.x
 
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -157,17 +154,27 @@ jobs:
           name: nuget-packages
           path: deploy/
 
+      # The nupkg and snupkg pushes are deliberately split into two commands.
+      # The dotnet CLI's auto-match of .snupkg alongside .nupkg is unreliable
+      # on Windows (CLAUDE.md lesson). Splitting is also easier to diagnose
+      # if one half fails — the failing step is immediately obvious.
+      # The ubuntu-latest runner has dotnet preinstalled so no setup-dotnet
+      # action is needed for `dotnet nuget push`.
       - name: Push .nupkg to NuGet.org
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
           dotnet nuget push "deploy/*.nupkg" \
-            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --api-key "$NUGET_API_KEY" \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
 
       - name: Push .snupkg to NuGet.org
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
           dotnet nuget push "deploy/*.snupkg" \
-            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --api-key "$NUGET_API_KEY" \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
 
