@@ -869,3 +869,5 @@
 - [2026-04-17T13:30:24Z] Phase 2: Phase 2 planned — 1 plan / 1 wave / 3 tasks, CRITIQUE=READY, ready for build (planned)
 - [2026-04-17T13:35:45Z] Phase 2: Building phase 2 — publish.yml Task 1 (skeleton + verify-gate) (building)
 - [2026-04-17T13:46:10Z] Phase 2: Phase 2 build complete — publish.yml shipped (3 jobs + review-feedback fix), all gates PASS, DOCS deferred to Phase 3 per roadmap (complete)
+- [2026-04-17T13:51:47Z] Phase 3: Planning phase 3 — cleanup & docs (planning)
+- [2026-04-17T13:55:44Z] Phase 3: Phase 3 planned — 1 plan / 2 tasks (cleanup + CLAUDE.md edits), CRITIQUE=READY (planned)
