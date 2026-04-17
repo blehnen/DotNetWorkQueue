@@ -134,3 +134,58 @@ jobs:
           path: deploy/*
           retention-days: 90
           if-no-files-found: error
+
+  publish:
+    name: Push to NuGet.org and create GitHub Release
+    needs: build-pack
+    if: ${{ github.event_name == 'push' || inputs.dry_run == false }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (for gh release create)
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: deploy/
+
+      - name: Push .nupkg to NuGet.org
+        run: |
+          dotnet nuget push "deploy/*.nupkg" \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+      - name: Push .snupkg to NuGet.org
+        run: |
+          dotnet nuget push "deploy/*.snupkg" \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            deploy/*.nupkg deploy/*.snupkg \
+            --title "DotNetWorkQueue ${{ github.ref_name }}" \
+            --generate-notes
+
+      - name: Job summary
+        run: |
+          {
+            echo "## Publish summary"
+            echo ""
+            echo "- Tag: ${{ github.ref_name }}"
+            echo "- NuGet feed: https://api.nuget.org/v3/index.json"
+            echo "- Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+          } >> "$GITHUB_STEP_SUMMARY"
