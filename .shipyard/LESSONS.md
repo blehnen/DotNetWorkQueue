@@ -358,3 +358,28 @@
 
 ---
 
+## [2026-04-17] Milestone: DNQ Automated NuGet Publishing via GitHub Actions
+
+### What Went Well
+- **Phase scope reality-check during research.** Phase 3's research step discovered in ~60 seconds that `deploy/*.{bat,nupkg,snupkg}` files were already untracked (`git ls-files deploy/` empty; `.gitignore` covered them via `*.nupkg`/`*.snupkg`/`Deploy.bat` patterns). The roadmap's "git rm 25 files" step was entirely moot. The plan was revised from 3 tasks to 2, a `.gitignore` intent-rule was added instead of a behaviorally-meaningful rule, and the cleanup became a plain `rm` instead of a `git rm`. Cost of the sanity check: nil. Cost of discovering the mistake at build time: a wasted task + embarrassing commit messages + possible retries. Pattern for future cleanup phases.
+- **Orchestrator-direct execution across all 3 phases avoided the repo's builder-agent stall pattern.** Project memory already documented that builder/researcher agents have a history of stalling on this codebase (`feedback_agent_lockups.md`). This milestone wrote CONTEXT.md / RESEARCH.md / plan files / SUMMARY.md / REVIEW.md inline via the orchestrator, dispatched only read-only auditor + simplifier agents (both completed cleanly), and used atomic task-scoped Bash commits. Zero stalls across 14 commits.
+- **Review-feedback applied in the same build cycle, not as a retry.** Phase 2's auditor (MINOR) and simplifier (LOW) findings were applied in a single follow-up commit (`940a9a68`) within the same `/shipyard:build 2` invocation. Full retry cycles exist for CRITICAL findings; MINOR / LOW findings are better handled by a feedback commit that keeps the build momentum.
+
+### Surprises / Discoveries
+- **GitHub's `/commits/{sha}/statuses` (plural) endpoint is a live landmine for naive jq filters.** The roadmap's original design used `.[] | select(.context=="...") | .state`, which against a commit with 15+ historical `pending` updates emits a multi-line blob. `[[ "$state" == "success" ]]` then silently fails because multi-line bash string comparison never matches a single-word target. Phase 1.5's manual API test against PR #116 exposed this before the workflow shipped. The `/status` (singular) rollup endpoint returns latest-per-context and was the correct fix.
+- **Phase 1.5 "side task" as an explicit unblock gate was load-bearing.** Without the side-task discipline (discover the exact Jenkins context string + test against real commits), the workflow would have shipped with a silent-fail gate. Pattern: whenever a plan references a literal string that isn't in the codebase (`continuous-integration/jenkins/branch` was discovered, not known), carve out an XS discovery task and gate downstream planning on its completion.
+- **Roadmap-to-reality drift is real even on recently-authored roadmaps.** The roadmap was authored 2026-04-16; Phase 3's reality-check ran 2026-04-17. In that single day, no drift occurred in the codebase, yet the roadmap's assumption about tracked `deploy/*` files was wrong from the start. Authorship-time correctness is not the same as run-time correctness.
+
+### Pitfalls to Avoid
+- **Don't use `\w` in bash `[[ =~ ]]` regex.** Bash's ERE does not support PCRE classes. POSIX bracket classes (`[A-Za-z0-9\.-]`) work everywhere bash runs.
+- **Don't omit `2>/dev/null` on `ls | wc -l` under `set -euo pipefail`.** Without it, an empty-glob `ls` returns non-zero and `set -e` kills the script before `wc -l` can produce `0`. The `2>/dev/null` is load-bearing, not cosmetic.
+- **Don't inline `${{ secrets.X }}` into `run:` when you can bind via `env:` block.** Inline is masked by GH but `env:` isolation is the documented best practice — survives `set -x`, survives CLI self-logging, and survives any future tool that echoes its command line.
+- **Don't pass inline `${{ }}` values into bash strings without considering injection.** `GITHUB_REF_NAME` is user-controllable (a malicious actor can push a tag named ``"; rm -rf /"``). In `publish.yml`, the tag-regex gate runs BEFORE any bash interpolation of `GITHUB_REF_NAME`, and the regex's character class rejects shell metacharacters — fail-closed by construction.
+
+### Process Improvements
+- **Codify "reality-check" as a research-agent standing instruction for cleanup / migration / retirement phases.** The `git ls-files`, `git grep`, `.gitignore` test pattern takes under a minute and prevents planning against false premises. Low effort, high leverage.
+- **Discovery-task gate pattern:** any plan that requires a literal string not in the codebase gets an XS-sized "discover and document" task marked as an explicit gate before downstream plans can be authored. The Phase 1.5 pattern worked; make it the default for similar situations.
+- **Use `TaskOutput` with `block=true` for long-running verifications.** Background `dotnet build` + `TaskOutput` polling keeps the orchestrator alive for other setup work in parallel. Used during ship verification — cleaner than `sleep`-polling.
+
+---
+
