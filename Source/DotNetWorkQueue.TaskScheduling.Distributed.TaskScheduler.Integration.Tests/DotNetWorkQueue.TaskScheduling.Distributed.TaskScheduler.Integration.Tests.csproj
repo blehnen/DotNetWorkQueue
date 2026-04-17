@@ -14,6 +14,7 @@
     <PackageReference Include="MSTest.TestAdapter" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler" />
+    <PackageReference Include="System.Security.Cryptography.Xml" />
   </ItemGroup>
 
   <ItemGroup>
