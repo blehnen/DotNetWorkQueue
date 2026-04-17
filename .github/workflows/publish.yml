@@ -1,0 +1,198 @@
+name: Publish
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Skip publish + release (exercises verify-gate + build-pack only). Used for Phase 4 operational dry-run.'
+        type: boolean
+        default: true
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  statuses: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_NOLOGO: true
+
+jobs:
+  verify-gate:
+    name: Verify tag, version, and Jenkins status
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Tag regex (push trigger only)
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9\.-]+)?$ ]]; then
+            echo "::error::Tag '${GITHUB_REF_NAME}' does not match ^v[0-9]+\\.[0-9]+\\.[0-9]+(-[A-Za-z0-9\\.-]+)?\\$"
+            exit 1
+          fi
+          echo "Tag '${GITHUB_REF_NAME}' matches regex."
+
+      - name: Tag-version match (push trigger only)
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PROP_VERSION=$(grep -oP '(?<=<Version>)[^<]+' Source/Directory.Build.props)
+          if [[ "${TAG_VERSION}" != "${PROP_VERSION}" ]]; then
+            echo "::error::Tag '${TAG_VERSION}' does not match Directory.Build.props '<Version>${PROP_VERSION}</Version>'"
+            exit 1
+          fi
+          echo "Tag version '${TAG_VERSION}' matches Directory.Build.props."
+
+      - name: Jenkins B2 gate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          state=$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/status" \
+            --jq '.statuses[] | select(.context=="continuous-integration/jenkins/branch") | .state')
+          if [[ "${state}" != "success" ]]; then
+            echo "::error::Jenkins status on ${{ github.sha }} is '${state:-missing}'; required 'success'"
+            exit 1
+          fi
+          echo "Jenkins 'continuous-integration/jenkins/branch' status is 'success' on ${{ github.sha }}."
+
+  build-pack:
+    name: Build, pack, and upload NuGet packages
+    needs: verify-gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Restore
+        run: dotnet restore Source/DotNetWorkQueueNoTests.sln
+
+      - name: Build
+        run: dotnet build Source/DotNetWorkQueueNoTests.sln -c Release -p:CI=true --no-restore
+
+      - name: Pack (solution)
+        run: dotnet pack Source/DotNetWorkQueueNoTests.sln -c Release -p:CI=true --no-build -o deploy/
+
+      - name: Pack (Dashboard.Ui -- Web SDK not auto-packed by solution)
+        run: dotnet pack Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboard.Ui.csproj -c Release -p:CI=true --no-build -o deploy/
+
+      - name: Assert package counts (12 nupkg + 12 snupkg)
+        run: |
+          set -euo pipefail
+          nupkg_count=$(ls deploy/*.nupkg 2>/dev/null | wc -l)
+          snupkg_count=$(ls deploy/*.snupkg 2>/dev/null | wc -l)
+          echo "nupkg_count=${nupkg_count} snupkg_count=${snupkg_count}"
+          if [[ "${nupkg_count}" -ne 12 ]]; then
+            echo "::error::Expected 12 .nupkg files in deploy/, got ${nupkg_count}"
+            ls -la deploy/ || true
+            exit 1
+          fi
+          if [[ "${snupkg_count}" -ne 12 ]]; then
+            echo "::error::Expected 12 .snupkg files in deploy/, got ${snupkg_count}"
+            ls -la deploy/ || true
+            exit 1
+          fi
+
+      - name: Job summary
+        run: |
+          {
+            echo "## Build-pack summary"
+            echo ""
+            echo "- Tag/ref: ${{ github.ref_name }}"
+            echo "- SHA: ${{ github.sha }}"
+            echo "- Packages: 12 .nupkg + 12 .snupkg"
+            echo ""
+            echo "### Packed files"
+            echo ""
+            echo '```'
+            ls -la deploy/ | sed 's/^/    /'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: deploy/*
+          retention-days: 90
+          if-no-files-found: error
+
+  publish:
+    name: Push to NuGet.org and create GitHub Release
+    needs: build-pack
+    if: ${{ github.event_name == 'push' || inputs.dry_run == false }}
+    runs-on: ubuntu-latest
+    # Elevated permission scoped to this job only (contents:write is needed
+    # by gh release create; verify-gate and build-pack run with contents:read).
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout (for gh release create)
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: deploy/
+
+      # The nupkg and snupkg pushes are deliberately split into two commands.
+      # The dotnet CLI's auto-match of .snupkg alongside .nupkg is unreliable
+      # on Windows (CLAUDE.md lesson). Splitting is also easier to diagnose
+      # if one half fails — the failing step is immediately obvious.
+      # The ubuntu-latest runner has dotnet preinstalled so no setup-dotnet
+      # action is needed for `dotnet nuget push`.
+      - name: Push .nupkg to NuGet.org
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          dotnet nuget push "deploy/*.nupkg" \
+            --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+      - name: Push .snupkg to NuGet.org
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          dotnet nuget push "deploy/*.snupkg" \
+            --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            deploy/*.nupkg deploy/*.snupkg \
+            --title "DotNetWorkQueue ${{ github.ref_name }}" \
+            --generate-notes
+
+      - name: Job summary
+        run: |
+          {
+            echo "## Publish summary"
+            echo ""
+            echo "- Tag: ${{ github.ref_name }}"
+            echo "- NuGet feed: https://api.nuget.org/v3/index.json"
+            echo "- Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+          } >> "$GITHUB_STEP_SUMMARY"

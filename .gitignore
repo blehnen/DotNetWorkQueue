@@ -454,3 +454,8 @@ Deploy.bat
 
 # Shipyard worktrees (isolated feature branches)
 .worktrees/
+
+# Release artifacts (published via .github/workflows/publish.yml)
+# Note: *.nupkg and *.snupkg above already cover these globally; this
+# entry asserts directory-level intent for the deploy/ output folder.
+deploy/
