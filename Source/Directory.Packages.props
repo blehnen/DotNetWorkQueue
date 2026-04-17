@@ -5,24 +5,24 @@
     <PackageVersion Include="GuerrillaNtp" Version="3.1.0" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageVersion Include="OpenTelemetry" Version="1.14.0" />
-    <PackageVersion Include="Polly.Core" Version="8.6.5" />
-    <PackageVersion Include="SimpleInjector" Version="5.5.0" />
-    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="10.0.1" />
-    <PackageVersion Include="Cronos" Version="0.11.1" />
+    <PackageVersion Include="OpenTelemetry" Version="1.15.2" />
+    <PackageVersion Include="Polly.Core" Version="8.6.6" />
+    <PackageVersion Include="SimpleInjector" Version="5.5.1" />
+    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="10.0.6" />
+    <PackageVersion Include="Cronos" Version="0.12.0" />
     <PackageVersion Include="CronExpressionDescriptor" Version="2.45.0" />
 
     <!-- TaskScheduling -->
-    <PackageVersion Include="DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler" Version="0.4.0" />
+    <PackageVersion Include="DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler" Version="0.5.0" />
 
     <!-- Build tooling -->
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.102" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.202" />
 
     <!-- Dashboard -->
     <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.3" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="7.2.0" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.3" />
-    <PackageVersion Include="MudBlazor" Version="9.1.0" />
+    <PackageVersion Include="MudBlazor" Version="9.3.0" />
 
     <!-- Transport: SQL Server -->
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.3" />
@@ -37,7 +37,7 @@
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="9.0.3" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
     <PackageVersion Include="MsgPack.Cli" Version="1.0.1" />
-    <PackageVersion Include="StackExchange.Redis" Version="2.10.1" />
+    <PackageVersion Include="StackExchange.Redis" Version="2.12.14" />
 
     <!-- Transport: LiteDB -->
     <PackageVersion Include="LiteDB" Version="5.0.21" />
@@ -48,21 +48,21 @@
     <PackageVersion Include="AutoFixture.AutoNSubstitute" Version="4.18.1" />
     <PackageVersion Include="CompareNETObjects" Version="4.84.0" />
     <PackageVersion Include="FluentAssertions" Version="6.12.2" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
     <PackageVersion Include="Microsoft.Testing.Extensions.Retry" Version="1.6.2" />
-    <PackageVersion Include="MSTest.TestAdapter" Version="4.1.0" />
-    <PackageVersion Include="MSTest.TestFramework" Version="4.1.0" />
+    <PackageVersion Include="MSTest.TestAdapter" Version="4.2.1" />
+    <PackageVersion Include="MSTest.TestFramework" Version="4.2.1" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
-    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.14.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.2" />
     <PackageVersion Include="Tynamix.ObjectFiller" Version="1.5.9" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
   </ItemGroup>
 
   <!-- Microsoft.AspNetCore.TestHost: TFM-conditional versions -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="8.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="8.0.26" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
-    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.6" />
   </ItemGroup>
 </Project>
