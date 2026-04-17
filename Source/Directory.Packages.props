@@ -34,7 +34,7 @@
     <PackageVersion Include="System.Data.SQLite.Core" Version="1.0.119" />
 
     <!-- Transport: Redis -->
-    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="9.0.3" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.6" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
     <PackageVersion Include="MsgPack.Cli" Version="1.0.1" />
     <PackageVersion Include="StackExchange.Redis" Version="2.12.14" />
