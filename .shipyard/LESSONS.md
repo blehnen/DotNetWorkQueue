@@ -1,5 +1,29 @@
 # Shipyard Lessons Learned
 
+## [2026-04-18] Milestone: Dependency Refresh (PR #118)
+
+### What Went Well
+- Aggressive one-pass strategy delivered: 8 major bumps + 15 low-risk bumps + 1 CVE fix on a single branch, zero reverts, zero aborts, Jenkins green on first full run.
+- Per-bump atomic commits preserved revert granularity on the feature branch while the PR squashed cleanly on merge — best of both worlds.
+- Pre-flight landmine enumeration from prior CLAUDE.md lessons (MudBlazor attr renames, sealed-transport mocking, `-p:CI=true` discipline) meant every predicted risk either hit where expected or was absorbed by existing abstractions.
+- Direct-edit-over-agent-dispatch for bulk manifest edits (per prior session lesson) kept the Phase 2 + Phase 3 bump commits fast and deterministic.
+
+### Surprises / Discoveries
+- Swashbuckle 7→10 dragged in a Microsoft.OpenApi 1→2 namespace restructure — types flattened from `Microsoft.OpenApi.Models.*` to root `Microsoft.OpenApi`, `AddSecurityRequirement` became a lambda, `OpenApiSecurityRequirement` values changed type. 5 edits across Dashboard.Api + swagger tests. Non-obvious from the Swashbuckle release notes.
+- Npgsql 8→10 and SqlClient 6→7 compiled clean on first try despite being classified as "high-risk" — the codebase's `IDbConnection` discipline absorbed both leaps with zero migration surface. Risk classification was precautionary; actual cost was zero.
+- PLAN-5.1's initial draft target version for the CVE fix (`System.Security.Cryptography.Xml 8.0.2`) was itself the vulnerable version named in the CVE advisory. Caught in plan critique, not runtime — but if it had slipped past critique the build would have "fixed" the warning by silently re-introducing the vulnerability.
+
+### Pitfalls to Avoid
+- Do not author CVE-fix plans against "bump to latest" — always cite the advisory's explicit patched version. The vulnerable version often sits numerically close to the fix.
+- Do not let `.shipyard/STATE.json` drift uncommitted across session boundaries. The next `git pull` blocks on "local changes would be overwritten" and is easy to misdiagnose as a tag/remote issue (happened twice this milestone).
+- Do not assume a release-notes landmine list is exhaustive. Swashbuckle 10's OpenApi v2 dependency was buried; only hit when building.
+
+### Process Improvements
+- Consider a pre-pull git hook that auto-stashes `.shipyard/STATE.json` to eliminate the session-drift foot-gun at the workflow level rather than via discipline.
+- Shipyard's `/shipyard:ship` ran on an already-merged milestone in this case — that worked but felt off. Future milestones: run ship BEFORE merge when possible, so the lessons-capture question is fresh in-context rather than a retrospective.
+
+---
+
 ## [2026-04-09] Milestone: Dashboard UI — Support Multiple API Sources (issue #96)
 
 ### What Went Well
