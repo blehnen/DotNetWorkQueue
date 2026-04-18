@@ -20,7 +20,7 @@ using DotNetWorkQueue.Dashboard.Api;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Swashbuckle.AspNetCore.SwaggerGen;
 

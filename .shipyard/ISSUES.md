@@ -2,6 +2,21 @@
 
 ## Open
 
+### ISSUE-031: Transitive `System.Security.Cryptography.Xml 8.0.2` high-severity CVE (NU1903) via TaskScheduler integration tests
+- **Severity:** High (CVE, but surface is test-only)
+- **Source:** Phase 2 (dependency-refresh milestone) — surfaced during Debug build after bumping low-risk packages
+- **Repo:** DotNetWorkQueue (this repo)
+- **Status:** **Resolved** — Phase 3 Wave 5 PLAN-5.1, 2026-04-17. Added `<PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.6" />` to `Source/Directory.Packages.props` and `<PackageReference>` to TaskScheduler.Integration.Tests.csproj. NU1903 grep on `dotnet build -c Debug` output returns 0 matches for this package.
+- **Files:**
+  - `Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/*.csproj` (transitive path via `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler 0.5.0`)
+- **Description:** Debug build surfaces 4× NU1903 warnings: `Package 'System.Security.Cryptography.Xml' 8.0.2 has a known high severity vulnerability` (GHSA-37gx-xxp4-5rgx and GHSA-w3x6-4m5h-cxqf). The package is a transitive dep pulled in through the TaskScheduler 0.5.0 NuGet via test-only paths — it is not in `Source/Directory.Packages.props` directly. Consumer shipping surface is unaffected.
+- **Remediation options:**
+  1. Add a direct `<PackageVersion>` for `System.Security.Cryptography.Xml` at a patched version (≥8.0.3 / ≥9.0.0 / ≥10.0.0 depending on the consuming test project's target) to force the CPM override.
+  2. Upstream fix in the TaskScheduler repo — drop or update the dep there and cut a new TaskScheduler release.
+  3. Accept the risk (test-integration-only, no production surface) and suppress the warning.
+- **Recommended:** Option 1 — add a CPM-level direct reference to force the patched transitive. Cheap, reversible, no upstream coordination needed. Evaluate during Phase 3 if scope permits; otherwise defer to a follow-up hygiene PR.
+- **Not a Phase 2 blocker** — warnings, not errors; unit tests all green.
+
 ### ISSUE-030: README usage example uses wrong named argument `udpBroadcastPort:` instead of `broadCastPort:`
 - **Severity:** Low (documentation)
 - **Source:** Phase 3 (DNQ integration test project) — researcher investigation of 0.4.0 public API
