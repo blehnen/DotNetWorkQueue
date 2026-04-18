@@ -2,6 +2,10 @@
 
 ## Open
 
+_No open issues._
+
+## Closed
+
 ### ISSUE-019: Missing SUMMARY-1.1.md artifact for Plan 1.1 (LiteDb history tests)
 - **Severity:** Important
 - **Source:** Plan 1.1 Review
@@ -80,8 +84,6 @@
 - **Description:** Pre-existing latent issue (NOT introduced by Plan 1.2). When `TraceSettings.Enabled` is `true`, `CreateTrace` builds a `TracerProvider` via `Sdk.CreateTracerProviderBuilder()...Build()` and assigns it to a local variable `openTelemetry` which is immediately discarded. The provider is never disposed and the OTLP batch exporter background worker leaks for the test run. The 2-second sleep in `ActivitySourceWrapper.Dispose` is a workaround for the missing flush. This was harmless before because `TraceSettings.Enabled` is currently never true in CI, but if a future change enables it, exports will be incomplete and the provider will leak.
 - **Remediation:** Store the provider on `ActivitySourceWrapper` (e.g., `private readonly TracerProvider _provider`) and dispose it in `Dispose()` before the source. Replace the `Thread.Sleep(2000)` with `_provider?.ForceFlush(2000)` for deterministic flushing.
 - **Resolution:** Stored TracerProvider on ActivitySourceWrapper, replaced Thread.Sleep(2000) with ForceFlush(2000) + Dispose(). Null-safe when TraceSettings.Enabled is false.
-
-## Closed
 
 ### ISSUE-031: Transitive `System.Security.Cryptography.Xml 8.0.2` high-severity CVE (NU1903) via TaskScheduler integration tests
 - **Severity:** High (CVE, but surface is test-only)
