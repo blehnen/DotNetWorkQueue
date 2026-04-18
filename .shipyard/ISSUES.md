@@ -17,28 +17,6 @@
 - **Recommended:** Option 1 — add a CPM-level direct reference to force the patched transitive. Cheap, reversible, no upstream coordination needed. Evaluate during Phase 3 if scope permits; otherwise defer to a follow-up hygiene PR.
 - **Not a Phase 2 blocker** — warnings, not errors; unit tests all green.
 
-### ISSUE-030: README usage example uses wrong named argument `udpBroadcastPort:` instead of `broadCastPort:`
-- **Severity:** Low (documentation)
-- **Source:** Phase 3 (DNQ integration test project) — researcher investigation of 0.4.0 public API
-- **Repo:** DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler
-- **Status:** Open
-- **Files:**
-  - `README.md` (sibling repo)
-- **Description:** The sibling repo's `README.md` shows a `InjectDistributedTaskScheduler` usage example that names the port argument `udpBroadcastPort:`. The actual public API parameter is named `broadCastPort`. Copy-pasting the README example verbatim produces a compile error (CS1739 — no such parameter). Not a runtime bug, but a trap for consumers following the documentation.
-- **Remediation:** Update the README install/usage example to use `broadCastPort:` (or drop the named argument and use positional). Land in a follow-up 0.4.1 doc-only release (or amend the README in trunk and mention it in the 0.5.0 changelog).
-- **Workaround in Phase 3:** DNQ integration tests pass positional arguments to sidestep the bug.
-
-### ISSUE-029: GitHub Actions workflow uses deprecated Node.js 20 actions
-- **Severity:** Low (maintenance)
-- **Source:** Phase 2 (TaskScheduler 0.4.0 release) — surfaced during `gh run watch` on the v0.4.0 publish workflow
-- **Repo:** DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler
-- **Status:** Open
-- **Files:**
-  - `.github/workflows/ci.yml`
-- **Description:** The sibling repo's CI workflow uses `actions/checkout@v4` and `actions/setup-dotnet@v4`, both of which run on Node.js 20. GitHub Actions is deprecating Node.js 20 on runners by September 2026 (forced to Node.js 24 by default on June 2, 2026). Non-blocking for 0.4.0 — the advisory was just a warning, the workflow ran green. But unless upgraded, these actions will stop working after the deprecation deadline.
-- **Remediation:** Upgrade to newer action versions that support Node.js 24. Check `actions/checkout@v5` / `actions/setup-dotnet@v5` (or whatever the current latest is at remediation time) and bump the workflow file. Verify a workflow run succeeds post-bump before shipping.
-- **Not urgent for 0.5.0** — just do it before 2026-06-02 to avoid forced-migration surprises.
-
 ### ISSUE-028: Add `<remarks>` XML doc on TaskSchedulerJobCountSync.Start() describing non-blocking semantics
 - **Severity:** Minor
 - **Source:** Phase 1 (TaskScheduler lock fix) — Documenter review
