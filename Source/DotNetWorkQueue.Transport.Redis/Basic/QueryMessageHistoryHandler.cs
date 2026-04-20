@@ -46,9 +46,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         protected virtual IDatabase GetDb() => _connection.Connection.GetDatabase();
 
         /// <inheritdoc />
+        /// <remarks>
+        /// Does not check <see cref="IBaseTransportOptions.EnableHistory"/>. That flag gates
+        /// WRITES only; reads return whatever is in Redis. Missing sorted set → empty result.
+        /// </remarks>
         public IReadOnlyList<MessageHistoryRecord> Get(int pageIndex, int pageSize, MessageHistoryStatus? statusFilter)
         {
-            if (!_options.EnableHistory) return new List<MessageHistoryRecord>();
             var db = GetDb();
 
             // Unfiltered: use Redis server-side pagination — exact range, single call
@@ -94,7 +97,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <inheritdoc />
         public MessageHistoryRecord GetByQueueId(string queueId)
         {
-            if (!_options.EnableHistory) return null;
             var db = GetDb();
             return LoadRecord(db, queueId);
         }
@@ -102,7 +104,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <inheritdoc />
         public long GetCount(MessageHistoryStatus? statusFilter)
         {
-            if (!_options.EnableHistory) return 0;
             var db = GetDb();
             if (!statusFilter.HasValue) return db.SortedSetLength(HistoryIndexKey);
             var members = db.SortedSetRangeByRank(HistoryIndexKey, 0, -1);

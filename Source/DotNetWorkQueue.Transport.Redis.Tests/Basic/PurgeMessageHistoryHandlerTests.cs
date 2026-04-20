@@ -42,20 +42,6 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
         }
 
         [TestMethod]
-        public void Purge_Returns_Zero_When_History_Disabled()
-        {
-            var connection = Substitute.For<IRedisConnection>();
-            var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
-            var options = Substitute.For<IBaseTransportOptions>();
-            options.EnableHistory.Returns(false);
-            var handler = new PurgeMessageHistoryHandler(connection, redisNames, options);
-
-            var result = handler.Purge(DateTime.UtcNow);
-
-            Assert.AreEqual(0L, result);
-        }
-
-        [TestMethod]
         public void Purge_Skips_Processing_Records()
         {
             // Arrange

@@ -44,9 +44,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         protected virtual IDatabase GetDb() => _connection.Connection.GetDatabase();
 
         /// <inheritdoc />
+        /// <remarks>
+        /// Does not check <see cref="IBaseTransportOptions.EnableHistory"/>. That flag gates
+        /// WRITES only; Purge iterates the current sorted set, which is naturally empty when
+        /// history was never written.
+        /// </remarks>
         public long Purge(DateTime olderThan)
         {
-            if (!_options.EnableHistory) return 0;
             var db = GetDb();
             var cutoffTicks = olderThan.Ticks;
             var members = db.SortedSetRangeByScore(HistoryIndexKey, double.NegativeInfinity, cutoffTicks);

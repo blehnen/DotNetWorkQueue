@@ -37,9 +37,13 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         }
 
         /// <inheritdoc />
+        /// <remarks>
+        /// Does not check <see cref="IBaseTransportOptions.EnableHistory"/>. That flag gates
+        /// WRITES only; Purge iterates the current in-memory store, which is naturally empty
+        /// when history was never written.
+        /// </remarks>
         public long Purge(DateTime olderThan)
         {
-            if (!_options.EnableHistory) return 0;
             var key = $"{_connectionInformation.QueueName}|{_connectionInformation.ConnectionString}";
             var records = WriteMessageHistoryHandler.GetRecordsForQueue(key);
             if (records == null) return 0;

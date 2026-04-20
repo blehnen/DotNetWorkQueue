@@ -31,6 +31,7 @@
 <MudTable T="HistoryResponse" Items="_records" Loading="_loading" Dense="true" Hover="true" Elevation="0"
           Breakpoint="Breakpoint.Sm">
     <HeaderContent>
+        <MudTh Style="width: 40px;"></MudTh>
         <MudTh>Queue ID</MudTh>
         <MudTh>Status</MudTh>
         <MudTh>Enqueued</MudTh>
@@ -40,6 +41,15 @@
         <MudTh>Route</MudTh>
     </HeaderContent>
     <RowTemplate>
+        <MudTd DataLabel="" Style="width: 40px;">
+            @if (!string.IsNullOrEmpty(context.ExceptionText))
+            {
+                <MudIconButton Size="Size.Small"
+                               Icon="@(_expandedRows.Contains(context.QueueId ?? string.Empty) ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
+                               OnClick="@(() => ToggleRow(context.QueueId ?? string.Empty))"
+                               aria-label="@(_expandedRows.Contains(context.QueueId ?? string.Empty) ? "Collapse exception" : "Expand exception")" />
+            }
+        </MudTd>
         <MudTd DataLabel="Queue ID">
             <MudText Typo="Typo.body2" Style="font-family: monospace;">
                 @TruncateId(context.QueueId)
@@ -61,10 +71,10 @@
         <MudTd DataLabel="Route">@(context.Route ?? "-")</MudTd>
     </RowTemplate>
     <ChildRowContent>
-        @if (!string.IsNullOrEmpty(context.ExceptionText))
+        @if (!string.IsNullOrEmpty(context.ExceptionText) && _expandedRows.Contains(context.QueueId ?? string.Empty))
         {
             <MudTr>
-                <td colspan="7" style="padding: 8px 16px;">
+                <td colspan="8" style="padding: 8px 16px;">
                     <MudAlert Severity="Severity.Error" Dense="true" Class="my-1">
                         <MudText Typo="Typo.body2" Style="white-space: pre-wrap; font-family: monospace; font-size: 0.8rem;">@context.ExceptionText</MudText>
                     </MudAlert>
@@ -98,7 +108,14 @@
     private bool _loading = true;
     private bool _confirmPurge;
     private string? _error;
+    private readonly HashSet<string> _expandedRows = new(StringComparer.Ordinal);
     private int TotalPages => (int)Math.Ceiling((double)_totalCount / _pageSize);
+
+    private void ToggleRow(string queueId)
+    {
+        if (!_expandedRows.Add(queueId))
+            _expandedRows.Remove(queueId);
+    }
 
     protected override async Task OnInitializedAsync() { _lastRefreshVersion = RefreshVersion; await LoadHistory(); }
 

@@ -38,9 +38,12 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         }
 
         /// <inheritdoc />
+        /// <remarks>
+        /// Does not check <see cref="IBaseTransportOptions.EnableHistory"/>. That flag gates
+        /// WRITES only; reads return whatever is in the in-memory store. Missing store → empty.
+        /// </remarks>
         public IReadOnlyList<MessageHistoryRecord> Get(int pageIndex, int pageSize, MessageHistoryStatus? statusFilter)
         {
-            if (!_options.EnableHistory) return new List<MessageHistoryRecord>();
             var records = GetRecords();
             if (records == null) return new List<MessageHistoryRecord>();
             var query = records.Values.AsEnumerable();
@@ -51,7 +54,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <inheritdoc />
         public MessageHistoryRecord GetByQueueId(string queueId)
         {
-            if (!_options.EnableHistory) return null;
             var records = GetRecords();
             if (records == null) return null;
             records.TryGetValue(queueId, out var record);
@@ -61,7 +63,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <inheritdoc />
         public long GetCount(MessageHistoryStatus? statusFilter)
         {
-            if (!_options.EnableHistory) return 0;
             var records = GetRecords();
             if (records == null) return 0;
             return statusFilter.HasValue ? records.Values.Count(r => r.Status == statusFilter.Value) : records.Count;

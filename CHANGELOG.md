@@ -1,4 +1,24 @@
-### 0.9.32 -- 2026-04-16
+### 0.9.34 — 2026-04-20
+- Fix: dashboard history reads no longer short-circuit on `IBaseTransportOptions.EnableHistory`; fixes empty history when the dashboard container was started before its queue existed (GitHub #119)
+- Fix: Dashboard UI history exceptions now collapse by default with a per-row expand chevron; previously the full stack trace rendered inline and inflated row height on pages with errors
+- Relational (PostgreSQL / SQL Server / SQLite) read and purge handlers catch `DbException` when the history table does not exist and return empty rather than 500
+- Redis and Memory read/purge paths rely on native empty-on-missing behavior; same net effect
+- Test: `PostgreSqlHistoryEnabledTests` + `SqlServerHistoryEnabledTests` close the dashboard integration-test coverage gap (previously only Redis, Memory, LiteDb, SQLite had history-enabled coverage)
+- Test: `DashboardStartupTimingTests` regressions the exact startup-before-queue timing bug on SQLite
+- Follow-up: GitHub #120 tracks the underlying options-factory caching defect that caused this and affects other transport options
+
+### 0.9.33 — 2026-04-18
+- Dependency refresh: 15 low-risk patch/minor bumps + 8 major-version bumps across `Directory.Packages.props` (GitHub #118)
+- `Microsoft.Data.SqlClient` 6.1.3 → 7.0.0
+- `Npgsql` 8.0.8 → 10.0.2 (2-major leap)
+- `Swashbuckle.AspNetCore` 7.2.0 → 10.1.7; required `Microsoft.OpenApi` 1→2 namespace migration in `DashboardExtensions` and swagger tests
+- `coverlet.collector` 6.0.4 → 8.0.1, `Microsoft.Testing.Extensions.Retry` 1.6.2 → 2.2.1
+- `Microsoft.Extensions.Configuration.Binder` / `Http` / `Caching.Memory` 9.0.3 → 10.0.6
+- CVE fix: `System.Security.Cryptography.Xml` overridden to 10.0.6 (NU1903)
+- No API surface changes outside the mandatory Swashbuckle/OpenApi namespace migration
+- `FluentAssertions` remains pinned at 6.12.2 (MIT); net10.0 + net8.0 multi-targeting preserved
+
+### 0.9.32 — 2026-04-16
 - Fix: Redis `PurgeMessageHistoryHandler` eliminates redundant `CompletedUtc` round-trip in orphan cleanup path; `HashGet("CompletedUtc")` now executes only when the hash exists (ISSUE-016)
 - Fix: RelationalDatabase `WriteMessageHistoryHandler.RecordComplete` removes `StartedUtc IS NOT NULL` guard from WHERE clause so `DurationMs=0` is written for sub-millisecond completions (ISSUE-014)
 - Test: Redis `Purge_Handles_Missing_Hash_Gracefully` asserts `CompletedUtc` is never read in orphan path via `DidNotReceive()` (ISSUE-017)
@@ -43,7 +63,7 @@
 - RelationalDatabase: drop `StartedUtc IS NOT NULL` guard from `RecordComplete` UPDATE; the guard made the UPDATE a no-op for sub-ms rows even though the C# computed `DurationMs = 0` correctly
 
 ### 0.9.16 — 2026-04-03 (Dashboard.Api, Dashboard.Ui only)
-- Fix: pre-load plugin assemblies into AppDomain at startup so Newtonsoft `TypeNameHandling` can resolve user POCO types during deserialization
+- Fix: pre-load plugin assemblies at startup; needed by Newtonsoft `TypeNameHandling` to resolve user POCO types
 - Diagnostic logging in `ResolveMessageBodyType` (debug per stage, warning on failure)
 
 ### 0.9.15 — 2026-04-03 (Dashboard.Api, Dashboard.Ui only)
@@ -52,7 +72,7 @@
 
 ### 0.9.14 — 2026-04-03
 - Dashboard UI: replace connection/queue cards with compact tables; remove nav drawer, make title clickable
-- Dashboard UI: self-contained mode runs UI and API in one process (for Docker)
+- Dashboard UI: self-contained mode — UI and API in one process (for Docker)
 - `IConfiguration` overload for JSON-based transport registration (`DashboardConnectionConfig` POCO)
 - Docker image: `blehnen74/dotnetworkqueue-dashboard` on Docker Hub
 
@@ -95,8 +115,8 @@
 - History for all 6 transports
 - `ClearHistoryMonitor` for retention purge, wired into `QueueMonitor`
 - Dashboard API: history endpoints (list, detail, count, purge)
-- Dashboard UI: History tab with status filter, pagination, expandable exceptions, purge
-- `MessageId` and `CorrelationId` pushed into `ILogger` scope during handler execution (always on, zero config)
+- Dashboard UI: History tab with status filter, pagination, inline exceptions, purge
+- `MessageId` and `CorrelationId` pushed into `ILogger` scope during handler execution (zero config)
 
 ### 0.9.8 — 2026-03-17
 - Fix: `InvokeMovedToErrorQueue` now increments the error counter — messages moved to the error queue were not being counted
@@ -121,7 +141,7 @@
 - SQLite transport: `EnableWalMode` option (default `true`) — sets WAL journal mode on new file-based queues
 - Metrics now prefixed with `dotnetworkqueue.` — in Prometheus, search for `dotnetworkqueue_` to find all queue metrics
 
-### 0.9.4 — 2026‑03‑11
+### 0.9.4 — 2026-03-11
 - Switch from forked GuerrillaNtp DLLs to official [GuerrillaNtp 3.1.0](https://www.nuget.org/packages/GuerrillaNtp/) NuGet package
 - Move SNTP time provider (`SntpTime`) into the core library; any transport can now use NTP time, not just Redis
 - Reuse a single `NtpClient` instance per provider (per official docs)
@@ -130,7 +150,7 @@
 - Dashboard API: Named interceptor profiles (`AddInterceptorProfile`) — register once, reference per-queue
 - Dashboard API: Interceptor misconfiguration and missing message type assemblies now return specific error messages instead of 500
 
-### 0.9.3 — 2026‑03‑10
+### 0.9.3 — 2026-03-10
 - Dashboard API consumer tracking — consumers register via HTTP, send heartbeats, get pruned when stale
 - `DotNetWorkQueue.Dashboard.Client` — standalone client library (no core dependency):
   - `DashboardApiClient` — typed C# wrapper for all Dashboard API endpoints
@@ -139,7 +159,7 @@
 - Dashboard UI: Consumer count badges on queue cards
 - `DashboardOptions.EnableConsumerTracking`, `ConsumerHeartbeatIntervalSeconds`, `ConsumerStaleThresholdSeconds`
 
-### 0.9.1 — 2026‑03‑09
+### 0.9.1 — 2026-03-09
 - **Breaking Change** — Replace `App.Metrics` with built-in `System.Diagnostics.Metrics`; `DotNetWorkQueue.AppMetrics` package removed. Use OpenTelemetry.Metrics exporters instead.
 - **Breaking Change** — Remove `SamplingTypes` enum from `IMetrics.Histogram()` and `IMetrics.Timer()`
 - **Breaking Change** — Replace `dynamic CollectedMetrics` with typed `MetricsSnapshot GetCollectedMetrics()` on `IMetrics`
@@ -163,135 +183,135 @@
   - Two-click delete confirmation for single-record deletes
   - Edit body for messages in Error status
 
-### 0.9.0 — 2026‑03‑04
+### 0.9.0 — 2026-03-04
 - Dashboard API for viewing and modifying messages in transports
 - Polly V7 to V8
 
-### 0.8.1 — 2026‑02‑22
+### 0.8.1 — 2026-02-22
 - Fix various long-standing race conditions
 - Fix multiple heartbeat schedulers sharing state in the same process
 
-### 0.8.0 — 2026‑01‑05
+### 0.8.0 — 2026-01-05
 - .NET 10 target
 - Remove out-of-support frameworks
 - **Breaking Change** — SQL client changed from `System.Data.SqlClient` to `Microsoft.Data.SqlClient`; may affect SQL Server connection strings
 
-### 0.7.6 — 2024‑02‑02
+### 0.7.6 — 2024-02-02
 - Remove connection objects from DataStore when queue is complete
 
-### 0.7.5 — 2024‑01‑09
+### 0.7.5 — 2024-01-09
 - Only verify internal container setup in debug mode, as it pins the memory it uses
 
-### 0.7.4 — 2024‑01‑08
+### 0.7.4 — 2024-01-08
 - Add test for scheduler creation with memory queue
 - Move two logging messages from info to debug
 - .NET 8.0 target
 - Remove queue param for workgroups, as it was no longer being used
 
-### 0.7.3 — 2023‑11‑28
+### 0.7.3 — 2023-11-28
 - Error notification will not happen if a rollback notification is being performed
 
-### 0.7.2 — 2023‑11‑28
+### 0.7.2 — 2023-11-28
 - Add notification of queue events to ConsumerQueues
 
-### 0.7.1 — 2023‑11‑21
+### 0.7.1 — 2023-11-21
 - Add property to obtain creation script from `IQueueCreation`. Supported by SQL Server, SQLite, and PostgreSQL.
 
-### 0.7.0 — 2023‑10‑26
+### 0.7.0 — 2023-10-26
 - Fix retry logic for SQLite commands; changes in `System.Data.Sqlite` required changes in transport
 - Switch to `DecorrelatedJitterBackoffV2` for SQL Server, PostgreSQL, and SQLite retries
 
-### 0.6.9 — 2023‑10‑25
+### 0.6.9 — 2023-10-25
 - Update various packages to latest versions
 - Replace `OpenTelemetry.Exporter.Jaeger` with `OpenTelemetry.Exporter.OpenTelemetryProtocol`
 - Remove .NET 5.0 as a supported version
 
-### 0.6.8 — 2022‑07‑19
+### 0.6.8 — 2022-07-19
 - Update Npgsql
 - Add initial admin interface
 
-### 0.6.7 — 2022‑06‑30
+### 0.6.7 — 2022-06-30
 - Update various packages to latest versions
 
-### 0.6.6 — 2022‑04‑29
+### 0.6.6 — 2022-04-29
 - Fix issue with custom default constraints in SQL Server transport
 
-### 0.6.5 — 2022‑02‑06
+### 0.6.5 — 2022-02-06
 - Relational database transports now allow additional columns to be used as part of the dequeue
 
-### 0.6.4 — 2022‑01‑12
+### 0.6.4 — 2022-01-12
 - `ILogger` will now be created using the queue name for the category
 
-### 0.6.3 — 2022‑01‑11
+### 0.6.3 — 2022-01-11
 - Remove Polly Bulkhead; does not correctly work with our task-limited scheduler
 - Remove `MaxQueue` feature from async processing, as it depended on Polly Bulkheads
 - Switch to `ILogger` from `Microsoft.Extensions.Logging.Abstractions`
 
-### 0.6.2 — 2021‑12‑19
+### 0.6.2 — 2021-12-19
 - .NET 6.0 target
 
-### 0.6.1 — 2021‑09‑28
+### 0.6.1 — 2021-09-28
 - Producer will throw an exception on a non-public class used as a message due to internal delegate handling limitations
 
-### 0.6.0 — 2021‑09‑07
+### 0.6.0 — 2021-09-07
 - Switch from https://opentracing.io/ to https://opentelemetry.io/
   **Breaking Change** — OpenTracing always added an entry to headers; OpenTelemetry only adds entries if enabled. Queues must be empty before updating.
 
-### 0.5.4 — 2021‑05‑19
+### 0.5.4 — 2021-05-19
 - Fix error with adding items to a memory queue that has started shutdown
 - Asking for list of error messages should not throw if transport fails; added flag to indicate if errors are loaded
 
-### 0.5.3 — 2021‑05‑18
+### 0.5.3 — 2021-05-18
 - Fix performance issue with in-memory queues
 
-### 0.5.2 — 2021‑04‑18
+### 0.5.2 — 2021-04-18
 - LiteDB transport now supports direct and memory connections; all connections must be made in the same process
 
-### 0.5.1 — 2021‑04‑00
+### 0.5.1 — 2021-04-00
 - LiteDB transport
 - .NET 5 target; many references do not yet support 5.0
 
-### 0.5.0 — 2020‑12‑08
+### 0.5.0 — 2020-12-08
 - Change how connections are set up; **breaking change** to support generic connection settings not expressible in connection strings
 - .NET 4.8 target
 - .NET Standard 2.0 target for SQLite transport; Microsoft SQLite transport deprecated
 - SQL Server transport now supports creating queues in schemas other than `dbo`
 
-### 0.4.6 — 2020‑09‑02
+### 0.4.6 — 2020-09-02
 - Redis transport: re-cache LUA scripts when no longer in cache; fixes issue with server restarts
 
-### 0.4.5 — 2020‑02‑28
+### 0.4.5 — 2020-02-28
 - Make previous error types and count available to message processing
 - Consumer queues now remove errors by default after 30 days; configurable
 
-### 0.4.4 — 2019‑12‑23
+### 0.4.4 — 2019-12-23
 - Fix issue with SQL Server transport and heartbeat reset
 
-### 0.4.3 — 2019‑10‑29
+### 0.4.3 — 2019-10-29
 - Fix issue with registration of message rollback
 
-### 0.4.2 — 2019‑10‑29
+### 0.4.2 — 2019-10-29
 - .NET 4.6.1 target
 - Upgrade packages to latest versions
 
-### 0.4.1 — 2019‑06‑08
+### 0.4.1 — 2019-06-08
 - Fix issue with retry policies using seconds instead of milliseconds
 
-### 0.4.0 — 2019‑06‑02
+### 0.4.0 — 2019-06-02
 - Remove RPC
 - Implement OpenTracing https://opentracing.io/
 - Fix message interception
 
-### 0.3.1 — 2019‑04‑26
+### 0.3.1 — 2019-04-26
 - Correct versioning for NuGet publish
 
-### 0.3.0 — 2019‑04‑26
+### 0.3.0 — 2019-04-26
 - All modules now target .NET 4.7.2 and .NET Standard 2.0
 - **Breaking Change** — changes to metrics interface to switch to AppMetrics
 - Deprecated Metrics.NET
 - `DotNetWorkQueue.AppMetrics` replaces `DotNetWorkQueue.Metrics.Net`
 
-### 0.2.1 — 2017‑09‑30
+### 0.2.1 — 2017-09-30
 - Refactoring to better share logic between transports
 - **Breaking Change** — fixed various spelling mistakes affecting public signatures
 - **Breaking Change** — fixed typo with internal Redis property; queues should be drained before upgrading
@@ -300,44 +320,44 @@
 - **Breaking Change** — heartbeat configuration now uses Schyntax format instead of timespan
 - New SQLite transport using Microsoft driver
 
-### 0.1.10 — 2017‑03‑19
+### 0.1.10 — 2017-03-19
 - Route support for SQL Server, SQLite, Redis, and PostgreSQL transports
 
-### 0.1.9 — 2016‑10‑08
+### 0.1.9 — 2016-10-08
 - Fix issue with deleting messages with errors for SQL Server, SQLite, PostgreSQL transports
 
-### 0.1.8 — 2016‑09‑24
+### 0.1.8 — 2016-09-24
 - Refactor default task scheduler to allow easier extension
 
-### 0.1.7 — 2016‑08‑16
+### 0.1.7 — 2016-08-16
 - Fix issue with PostgreSQL transport returning wrong message body
 - Update to msgpack.cli 8.0 for Redis transport
 
-### 0.1.6 — 2016‑08‑12
+### 0.1.6 — 2016-08-12
 - PostgreSQL transport
 
-### 0.1.5 — 2016‑08‑04
+### 0.1.5 — 2016-08-04
 - Recurring job scheduler
 - Metrics for LINQ serialization, compiling, and execution
 
-### 0.1.4 — 2016‑06‑22
+### 0.1.4 — 2016-06-22
 - Minor refactor to poison message handling
 - Redis-on-Windows integration tests
 - Refactor `IConnectionInformation` to be immutable
 - Send LINQ expressions as queue items
 - Fix scope issue with scheduler and multiple consumer queues
 
-### 0.1.3 — 2016‑02‑18
+### 0.1.3 — 2016-02-18
 - Fix formatting issue with poison message exception
 - Fix formatting issue with user/system exception
 - Don't run monitor delegates if queue is shutting down
 - SQLite transport
 
-### 0.1.2 — 2015‑11‑22
+### 0.1.2 — 2015-11-22
 - Fix issue with removing SQL Server queues
 - Fix issue with message expiration module running even if transport doesn't support expiration
 
-### 0.1.0 — 2015‑11‑03
+### 0.1.0 — 2015-11-03
 - Initial release to GitHub
 
 
