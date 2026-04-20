@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Configuration;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
@@ -26,6 +27,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
     /// <summary>
     /// Queries message history records for relational database transports.
     /// </summary>
+    /// <remarks>
+    /// Read methods do not check <see cref="IBaseTransportOptions.EnableHistory"/>. That flag gates
+    /// history WRITES only; reads should succeed whenever the history table exists and has data,
+    /// regardless of the current dashboard container's cached options. If the history table does
+    /// not exist (queue was never created with history enabled), reads gracefully return empty.
+    /// </remarks>
     public class QueryMessageHistoryHandler : IQueryMessageHistory
     {
         private readonly IDbConnectionFactory _connectionFactory;
@@ -50,34 +57,40 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <inheritdoc />
         public IReadOnlyList<MessageHistoryRecord> Get(int pageIndex, int pageSize, MessageHistoryStatus? statusFilter)
         {
-            if (!_options.EnableHistory) return new List<MessageHistoryRecord>();
-
             var results = new List<MessageHistoryRecord>();
-            using (var connection = _connectionFactory.Create())
+            try
             {
-                connection.Open();
-                using (var command = connection.CreateCommand())
+                using (var connection = _connectionFactory.Create())
                 {
-                    var where = statusFilter.HasValue ? "WHERE Status = @Status" : "";
-                    var pagination = _paginationSyntax.BuildPaginationClause("@Offset", "@PageSize");
-                    command.CommandText = $@"SELECT QueueID, CorrelationID, Status, EnqueuedUtc, StartedUtc, CompletedUtc,
-                        DurationMs, ExceptionText, RetryCount, Route, MessageType
-                        FROM {_tableNameHelper.HistoryName} {where}
-                        ORDER BY EnqueuedUtc DESC
-                        {pagination}";
-
-                    if (statusFilter.HasValue)
-                        AddParameter(command, "@Status", DbType.Int32, (int)statusFilter.Value);
-
-                    AddParameter(command, "@Offset", DbType.Int32, pageIndex * pageSize);
-                    AddParameter(command, "@PageSize", DbType.Int32, pageSize);
-
-                    using (var reader = command.ExecuteReader())
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
                     {
-                        while (reader.Read())
-                            results.Add(MapRecord(reader));
+                        var where = statusFilter.HasValue ? "WHERE Status = @Status" : "";
+                        var pagination = _paginationSyntax.BuildPaginationClause("@Offset", "@PageSize");
+                        command.CommandText = $@"SELECT QueueID, CorrelationID, Status, EnqueuedUtc, StartedUtc, CompletedUtc,
+                            DurationMs, ExceptionText, RetryCount, Route, MessageType
+                            FROM {_tableNameHelper.HistoryName} {where}
+                            ORDER BY EnqueuedUtc DESC
+                            {pagination}";
+
+                        if (statusFilter.HasValue)
+                            AddParameter(command, "@Status", DbType.Int32, (int)statusFilter.Value);
+
+                        AddParameter(command, "@Offset", DbType.Int32, pageIndex * pageSize);
+                        AddParameter(command, "@PageSize", DbType.Int32, pageSize);
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                                results.Add(MapRecord(reader));
+                        }
                     }
                 }
+            }
+            catch (DbException)
+            {
+                // History table does not exist (queue was never created with history enabled).
+                // Return empty rather than surfacing a 500 to the dashboard UI.
             }
             return results;
         }
@@ -85,26 +98,31 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <inheritdoc />
         public MessageHistoryRecord GetByQueueId(string queueId)
         {
-            if (!_options.EnableHistory) return null;
-
-            using (var connection = _connectionFactory.Create())
+            try
             {
-                connection.Open();
-                using (var command = connection.CreateCommand())
+                using (var connection = _connectionFactory.Create())
                 {
-                    command.CommandText = $@"SELECT QueueID, CorrelationID, Status, EnqueuedUtc, StartedUtc, CompletedUtc,
-                        DurationMs, ExceptionText, RetryCount, Route, MessageType
-                        FROM {_tableNameHelper.HistoryName}
-                        WHERE QueueID = @QueueID";
-
-                    AddParameter(command, "@QueueID", DbType.String, queueId);
-
-                    using (var reader = command.ExecuteReader())
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
                     {
-                        if (reader.Read())
-                            return MapRecord(reader);
+                        command.CommandText = $@"SELECT QueueID, CorrelationID, Status, EnqueuedUtc, StartedUtc, CompletedUtc,
+                            DurationMs, ExceptionText, RetryCount, Route, MessageType
+                            FROM {_tableNameHelper.HistoryName}
+                            WHERE QueueID = @QueueID";
+
+                        AddParameter(command, "@QueueID", DbType.String, queueId);
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                                return MapRecord(reader);
+                        }
                     }
                 }
+            }
+            catch (DbException)
+            {
+                // History table does not exist; treat as not-found.
             }
             return null;
         }
@@ -112,21 +130,26 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <inheritdoc />
         public long GetCount(MessageHistoryStatus? statusFilter)
         {
-            if (!_options.EnableHistory) return 0;
-
-            using (var connection = _connectionFactory.Create())
+            try
             {
-                connection.Open();
-                using (var command = connection.CreateCommand())
+                using (var connection = _connectionFactory.Create())
                 {
-                    var where = statusFilter.HasValue ? "WHERE Status = @Status" : "";
-                    command.CommandText = $"SELECT COUNT(*) FROM {_tableNameHelper.HistoryName} {where}";
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
+                    {
+                        var where = statusFilter.HasValue ? "WHERE Status = @Status" : "";
+                        command.CommandText = $"SELECT COUNT(*) FROM {_tableNameHelper.HistoryName} {where}";
 
-                    if (statusFilter.HasValue)
-                        AddParameter(command, "@Status", DbType.Int32, (int)statusFilter.Value);
+                        if (statusFilter.HasValue)
+                            AddParameter(command, "@Status", DbType.Int32, (int)statusFilter.Value);
 
-                    return Convert.ToInt64(command.ExecuteScalar());
+                        return Convert.ToInt64(command.ExecuteScalar());
+                    }
                 }
+            }
+            catch (DbException)
+            {
+                return 0;
             }
         }
 

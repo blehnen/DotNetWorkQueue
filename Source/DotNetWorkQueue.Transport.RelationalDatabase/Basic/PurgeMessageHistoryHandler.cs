@@ -18,12 +18,18 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
     /// <summary>
     /// Purges old message history records for relational database transports.
     /// </summary>
+    /// <remarks>
+    /// Purge does not check <see cref="IBaseTransportOptions.EnableHistory"/>. Consistent with the
+    /// read-path contract in <see cref="QueryMessageHistoryHandler"/>: if the history table does
+    /// not exist, Purge returns 0 deleted records instead of throwing.
+    /// </remarks>
     public class PurgeMessageHistoryHandler : IPurgeMessageHistory
     {
         private readonly IDbConnectionFactory _connectionFactory;
@@ -45,27 +51,33 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <inheritdoc />
         public long Purge(DateTime olderThan)
         {
-            if (!_options.EnableHistory) return 0;
-
-            using (var connection = _connectionFactory.Create())
+            try
             {
-                connection.Open();
-                using (var command = connection.CreateCommand())
+                using (var connection = _connectionFactory.Create())
                 {
-                    // Delete records where the completed date is older than the cutoff,
-                    // or if never completed, where the enqueued date is older
-                    command.CommandText = $@"DELETE FROM {_tableNameHelper.HistoryName}
-                        WHERE (CompletedUtc IS NOT NULL AND CompletedUtc < @OlderThan)
-                           OR (CompletedUtc IS NULL AND EnqueuedUtc < @OlderThan)";
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
+                    {
+                        // Delete records where the completed date is older than the cutoff,
+                        // or if never completed, where the enqueued date is older
+                        command.CommandText = $@"DELETE FROM {_tableNameHelper.HistoryName}
+                            WHERE (CompletedUtc IS NOT NULL AND CompletedUtc < @OlderThan)
+                               OR (CompletedUtc IS NULL AND EnqueuedUtc < @OlderThan)";
 
-                    var param = command.CreateParameter();
-                    param.ParameterName = "@OlderThan";
-                    param.DbType = DbType.DateTime;
-                    param.Value = olderThan;
-                    command.Parameters.Add(param);
+                        var param = command.CreateParameter();
+                        param.ParameterName = "@OlderThan";
+                        param.DbType = DbType.DateTime;
+                        param.Value = olderThan;
+                        command.Parameters.Add(param);
 
-                    return command.ExecuteNonQuery();
+                        return command.ExecuteNonQuery();
+                    }
                 }
+            }
+            catch (DbException)
+            {
+                // History table does not exist — nothing to purge.
+                return 0;
             }
         }
     }
