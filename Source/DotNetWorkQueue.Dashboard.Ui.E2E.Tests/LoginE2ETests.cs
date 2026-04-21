@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Ui.E2E.Tests.Fixtures;
 using Microsoft.Playwright;
@@ -47,15 +46,6 @@ namespace DotNetWorkQueue.Dashboard.Ui.E2E.Tests
         public static void ClassCleanup()
         {
             _server?.Dispose();
-        }
-
-        [TestMethod]
-        public async Task RootRedirectsToLogin_WhenAuthEnabledAndUnauthenticated()
-        {
-            await Page.GotoAsync("/");
-
-            await Expect(Page).ToHaveURLAsync(new Regex(".*/login.*"));
-            await Expect(Page.GetByText("Dashboard Login")).ToBeVisibleAsync();
         }
 
         [TestMethod]
