@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Admin;
-using DotNetWorkQueue.Cache;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.Interceptors;
@@ -381,7 +380,6 @@ namespace DotNetWorkQueue.IoC
         /// <param name="registrationType">Type of the registration.</param>
         public static void RegisterFallbacks(IContainer container, RegistrationTypes registrationType)
         {
-            container.RegisterConditional(typeof(ICachePolicy<>), typeof(CachePolicy<>), LifeStyles.Singleton);
             if ((registrationType & RegistrationTypes.Send) == RegistrationTypes.Send)
             {
                 container.RegisterConditional(typeof(IProducerQueue<>), typeof(ProducerQueue<>),
