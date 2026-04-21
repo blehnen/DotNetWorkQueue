@@ -294,6 +294,25 @@ pipeline {
                         '''
                     }
                 }
+
+                stage('Dashboard UI E2E') {
+                    // Uses Microsoft's Playwright .NET image which ships with Chromium
+                    // and the .NET 8 SDK. The E2E test project targets net8.0 only.
+                    agent {
+                        docker {
+                            image 'mcr.microsoft.com/playwright/dotnet:v1.54.0-noble'
+                            args '--ipc=host'
+                        }
+                    }
+                    steps {
+                        sleep(time: 70, unit: 'SECONDS')
+                        sh '''
+                            dotnet build "Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/DotNetWorkQueue.Dashboard.Ui.E2E.Tests.csproj" -c Debug
+                            dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/DotNetWorkQueue.Dashboard.Ui.E2E.Tests.csproj" \
+                                --no-build -c Debug
+                        '''
+                    }
+                }
             }
         }
 

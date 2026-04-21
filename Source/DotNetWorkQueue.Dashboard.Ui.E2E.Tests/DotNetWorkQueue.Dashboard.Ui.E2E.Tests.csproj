@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- net8.0 only: matches mcr.microsoft.com/playwright/dotnet Docker image runtime. -->
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
+    <NoWarn>1701;1702;1705;NU1701;NU1603</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <NoWarn>1701;1702;1705;NU1701;NU1603</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Using raw Microsoft.Playwright (not .MSTest): the .MSTest wrapper pins
+         MSTest 2.x which conflicts with the repo-wide MSTest 4.x. -->
+    <PackageReference Include="Microsoft.Playwright" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="MSTest.TestFramework" />
+    <PackageReference Include="MSTest.TestAdapter" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="coverlet.collector" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetWorkQueue.Dashboard.Ui\DotNetWorkQueue.Dashboard.Ui.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader" Link="DotNetWorkQueue.licenseheader" />
+  </ItemGroup>
+
+</Project>

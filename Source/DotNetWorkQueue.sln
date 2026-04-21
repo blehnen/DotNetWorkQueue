@@ -79,6 +79,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Dashboard.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Dashboard.Ui.Tests", "DotNetWorkQueue.Dashboard.Ui.Tests\DotNetWorkQueue.Dashboard.Ui.Tests.csproj", "{7A4DBF51-4B7B-4F72-B000-39CDD19FB2CA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorkQueue.Dashboard.Ui.E2E.Tests", "DotNetWorkQueue.Dashboard.Ui.E2E.Tests\DotNetWorkQueue.Dashboard.Ui.E2E.Tests.csproj", "{DE1D3E82-3E76-4F0C-B0C0-17966E9F0DE9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -545,6 +547,18 @@ Global
 		{7A4DBF51-4B7B-4F72-B000-39CDD19FB2CA}.Release|x64.Build.0 = Release|Any CPU
 		{7A4DBF51-4B7B-4F72-B000-39CDD19FB2CA}.Release|x86.ActiveCfg = Release|Any CPU
 		{7A4DBF51-4B7B-4F72-B000-39CDD19FB2CA}.Release|x86.Build.0 = Release|Any CPU
+		{DE1D3E82-3E76-4F0C-B0C0-17966E9F0DE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE1D3E82-3E76-4F0C-B0C0-17966E9F0DE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE1D3E82-3E76-4F0C-B0C0-17966E9F0DE9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DE1D3E82-3E76-4F0C-B0C0-17966E9F0DE9}.Debug|x64.Build.0 = Debug|Any CPU
+		{DE1D3E82-3E76-4F0C-B0C0-17966E9F0DE9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DE1D3E82-3E76-4F0C-B0C0-17966E9F0DE9}.Debug|x86.Build.0 = Debug|Any CPU
+		{DE1D3E82-3E76-4F0C-B0C0-17966E9F0DE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE1D3E82-3E76-4F0C-B0C0-17966E9F0DE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE1D3E82-3E76-4F0C-B0C0-17966E9F0DE9}.Release|x64.ActiveCfg = Release|Any CPU
+		{DE1D3E82-3E76-4F0C-B0C0-17966E9F0DE9}.Release|x64.Build.0 = Release|Any CPU
+		{DE1D3E82-3E76-4F0C-B0C0-17966E9F0DE9}.Release|x86.ActiveCfg = Release|Any CPU
+		{DE1D3E82-3E76-4F0C-B0C0-17966E9F0DE9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
