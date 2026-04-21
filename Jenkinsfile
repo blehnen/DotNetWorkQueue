@@ -294,6 +294,30 @@ pipeline {
                         '''
                     }
                 }
+
+                stage('Dashboard UI E2E') {
+                    // Uses the repo's standard docker-labeled agent (same as other stages)
+                    // and installs Chromium + its system dependencies at stage time via
+                    // Microsoft.Playwright.dll's embedded install command. The earlier
+                    // approach of pulling mcr.microsoft.com/playwright/dotnet failed
+                    // because the agent lacks a Docker CLI for docker-in-docker.
+                    agent { label 'docker' }
+                    steps {
+                        sleep(time: 70, unit: 'SECONDS')
+                        sh '''
+                            dotnet build "Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/DotNetWorkQueue.Dashboard.Ui.E2E.Tests.csproj" -c Debug
+
+                            # Install Playwright browsers (Chromium only) + apt system deps.
+                            dotnet exec \
+                                --runtimeconfig Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/bin/Debug/net10.0/DotNetWorkQueue.Dashboard.Ui.E2E.Tests.runtimeconfig.json \
+                                Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/bin/Debug/net10.0/Microsoft.Playwright.dll \
+                                install --with-deps chromium
+
+                            dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/DotNetWorkQueue.Dashboard.Ui.E2E.Tests.csproj" \
+                                --no-build -c Debug
+                        '''
+                    }
+                }
             }
         }
 
