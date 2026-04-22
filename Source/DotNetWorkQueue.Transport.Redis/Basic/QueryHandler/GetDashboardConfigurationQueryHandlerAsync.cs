@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
+using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 {
@@ -39,10 +40,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             _redisNames = redisNames;
         }
 
-        public Task<byte[]> HandleAsync(GetDashboardConfigurationQuery query)
+        protected virtual IDatabase GetDb() => _connection.Connection.GetDatabase();
+
+        public async Task<byte[]> HandleAsync(GetDashboardConfigurationQuery query)
         {
-            // Redis has no configuration table
-            return Task.FromResult<byte[]>(null);
+            var json = await GetDb().StringGetAsync(_redisNames.Configuration).ConfigureAwait(false);
+            return json.HasValue ? System.Text.Encoding.UTF8.GetBytes(json) : null;
         }
     }
 }
