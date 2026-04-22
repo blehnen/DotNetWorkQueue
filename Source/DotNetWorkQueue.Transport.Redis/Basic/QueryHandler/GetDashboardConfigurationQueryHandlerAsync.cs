@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
+using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 {
@@ -38,6 +39,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             _connection = connection;
             _redisNames = redisNames;
         }
+
+        protected virtual IDatabase GetDb() => _connection.Connection.GetDatabase();
 
         public Task<byte[]> HandleAsync(GetDashboardConfigurationQuery query)
         {
