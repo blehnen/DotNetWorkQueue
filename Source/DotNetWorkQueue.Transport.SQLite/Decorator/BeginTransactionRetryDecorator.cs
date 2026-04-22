@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.Data;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Validation;
@@ -57,7 +58,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         {
             if (_pipeline == null)
             {
-                _policies.Registry.TryGetPipeline(TransportPolicyDefinitions.BeginTransaction, out _pipeline);
+                try
+                {
+                    _policies.Registry.TryGetPipeline(TransportPolicyDefinitions.BeginTransaction, out _pipeline);
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Shutdown race: registry disposed before first invocation.
+                    // Fall through to direct handler — same semantics as the "no pipeline" path.
+                }
             }
             if (_pipeline == null) return _decorated.BeginTransaction();
             return _pipeline.Execute(_ => _decorated.BeginTransaction());
