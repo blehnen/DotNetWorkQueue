@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 
+using System;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Validation;
@@ -49,10 +50,19 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         public TResult Handle(TQuery query)
         {
             Guard.NotNull(() => query, query);
-            if (_policies.Registry.TryGetPipeline(TransportPolicyDefinitions.RetryQueryHandler, out var pipeline))
+            ResiliencePipeline pipeline = null;
+            try
             {
-                return pipeline.Execute(_ => _decorated.Handle(query));
+                _policies.Registry.TryGetPipeline(TransportPolicyDefinitions.RetryQueryHandler, out pipeline);
             }
+            catch (ObjectDisposedException)
+            {
+                // Shutdown race: registry disposed before the last handler call.
+                // Fall through to direct handler — same semantics as the "no policy" branch.
+            }
+
+            if (pipeline != null)
+                return pipeline.Execute(_ => _decorated.Handle(query));
             return _decorated.Handle(query);
         }
     }
