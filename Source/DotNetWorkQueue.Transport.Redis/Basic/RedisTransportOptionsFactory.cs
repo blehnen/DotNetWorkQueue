@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using Newtonsoft.Json;
+using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
@@ -41,6 +42,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             _redisNames = redisNames;
         }
 
+        /// <summary>Test seam — returns an <see cref="IDatabase"/> to execute against.</summary>
+        protected virtual IDatabase GetDb() => _connection.Connection.GetDatabase();
+
         /// <summary>
         /// Creates or returns the cached transport options.
         /// </summary>
@@ -50,26 +54,31 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             if (_options != null) return _options;
             lock (_lock)
             {
-                if (_options == null)
+                if (_options != null) return _options;
+
+                try
                 {
-                    try
+                    var json = GetDb().StringGet(_redisNames.Configuration);
+                    if (json.HasValue)
                     {
-                        var db = _connection.Connection.GetDatabase();
-                        var json = db.StringGet(_redisNames.Configuration);
-                        if (json.HasValue)
+                        var loaded = JsonConvert.DeserializeObject<RedisBaseTransportOptions>(json);
+                        if (loaded != null)
                         {
-                            _options = JsonConvert.DeserializeObject<RedisBaseTransportOptions>(json);
+                            _options = loaded;
+                            return _options;
                         }
                     }
-                    catch
-                    {
-                        // If load fails, use defaults
-                    }
-
-                    _options = _options ?? new RedisBaseTransportOptions();
                 }
+                catch
+                {
+                    // Load failed — fall through to uncached defaults so a subsequent
+                    // Create() can re-attempt the read once Redis is available.
+                }
+
+                // Queue has no persisted options yet — return defaults but do NOT cache.
+                // A subsequent Create() after options are persisted must observe the new value.
+                return new RedisBaseTransportOptions();
             }
-            return _options;
         }
     }
 }
