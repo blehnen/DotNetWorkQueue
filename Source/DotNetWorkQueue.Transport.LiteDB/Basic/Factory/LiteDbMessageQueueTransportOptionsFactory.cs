@@ -66,22 +66,28 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.Factory
             if (_options != null) return _options;
             lock (_creator)
             {
-                if (_options == null)
+                if (_options != null) return _options;
+
+                var loaded = _queryOptions.Handle(new GetQueueOptionsQuery<LiteDbMessageQueueTransportOptions>());
+                if (loaded != null)
                 {
-                    _options = _queryOptions.Handle(new GetQueueOptionsQuery<LiteDbMessageQueueTransportOptions>());
+                    _options = loaded;
+                    return _options;
                 }
-                if (_options == null)
+
+                // Fallback: static cache for in-memory mode (producer/consumer with separate DB instances).
+                // A cache hit here IS real persisted data, so we cache it on the instance field.
+                var key = $"{_connectionInformation.QueueName}|{_connectionInformation.ConnectionString}";
+                if (InMemoryOptionsCache.TryGetValue(key, out var cached))
                 {
-                    // Fallback: check static cache for in-memory mode
-                    var key = $"{_connectionInformation.QueueName}|{_connectionInformation.ConnectionString}";
-                    InMemoryOptionsCache.TryGetValue(key, out _options);
+                    _options = cached;
+                    return _options;
                 }
-                if (_options == null)
-                {
-                    _options = new LiteDbMessageQueueTransportOptions();
-                }
+
+                // Not in store, not in static cache — return defaults but do NOT cache.
+                // A subsequent Create() after queue creation must observe the newly-persisted options.
+                return new LiteDbMessageQueueTransportOptions();
             }
-            return _options;
         }
 
         /// <summary>
