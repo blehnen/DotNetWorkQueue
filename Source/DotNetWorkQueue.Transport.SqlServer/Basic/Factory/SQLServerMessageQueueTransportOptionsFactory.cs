@@ -62,16 +62,19 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Factory
             if (_options != null) return _options;
             lock (_creator)
             {
-                if (_options == null)
+                if (_options != null) return _options;
+
+                var loaded = _queryOptions.Handle(new GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions>());
+                if (loaded != null)
                 {
-                    _options = _queryOptions.Handle(new GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions>());
+                    _options = loaded;
+                    return _options;
                 }
-                if (_options == null) //does not exist in DB; return a new copy
-                {
-                    _options = new SqlServerMessageQueueTransportOptions();
-                }
+
+                // Queue does not yet exist in the store — return defaults but do NOT cache.
+                // A subsequent Create() after queue creation must observe the newly-persisted options.
+                return new SqlServerMessageQueueTransportOptions();
             }
-            return _options;
         }
     }
 }
