@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Validation;
@@ -48,10 +49,19 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
         public TOutput Handle(TCommand command)
         {
             Guard.NotNull(() => command, command);
-            if (_policies.Registry.TryGetPipeline(TransportPolicyDefinitions.RetryCommandHandler, out var pipeline))
+            ResiliencePipeline pipeline = null;
+            try
             {
-                return pipeline.Execute(_ => _decorated.Handle(command));
+                _policies.Registry.TryGetPipeline(TransportPolicyDefinitions.RetryCommandHandler, out pipeline);
             }
+            catch (ObjectDisposedException)
+            {
+                // Shutdown race: registry disposed before the last handler call.
+                // Fall through to direct handler — same semantics as the "no policy" branch.
+            }
+
+            if (pipeline != null)
+                return pipeline.Execute(_ => _decorated.Handle(command));
             return _decorated.Handle(command);
         }
     }
