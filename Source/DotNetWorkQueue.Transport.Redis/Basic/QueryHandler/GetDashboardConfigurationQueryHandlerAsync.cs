@@ -42,10 +42,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 
         protected virtual IDatabase GetDb() => _connection.Connection.GetDatabase();
 
-        public Task<byte[]> HandleAsync(GetDashboardConfigurationQuery query)
+        public async Task<byte[]> HandleAsync(GetDashboardConfigurationQuery query)
         {
-            // Redis has no configuration table
-            return Task.FromResult<byte[]>(null);
+            var json = await GetDb().StringGetAsync(_redisNames.Configuration).ConfigureAwait(false);
+            return json.HasValue ? System.Text.Encoding.UTF8.GetBytes(json) : null;
         }
     }
 }
