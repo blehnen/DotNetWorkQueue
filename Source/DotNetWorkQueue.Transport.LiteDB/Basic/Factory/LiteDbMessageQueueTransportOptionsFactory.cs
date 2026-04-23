@@ -36,6 +36,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.Factory
         private readonly IConnectionInformation _connectionInformation;
         private readonly object _creator = new object();
         private LiteDbMessageQueueTransportOptions _options;
+        private bool _loadedFromStore;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LiteDbMessageQueueTransportOptionsFactory"/> class.
@@ -63,30 +64,37 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.Factory
                 return new LiteDbMessageQueueTransportOptions();
             }
 
-            if (_options != null) return _options;
+            if (_loadedFromStore) return _options;
             lock (_creator)
             {
-                if (_options != null) return _options;
+                if (_loadedFromStore) return _options;
 
                 var loaded = _queryOptions.Handle(new GetQueueOptionsQuery<LiteDbMessageQueueTransportOptions>());
                 if (loaded != null)
                 {
                     _options = loaded;
+                    _loadedFromStore = true;
                     return _options;
                 }
 
                 // Fallback: static cache for in-memory mode (producer/consumer with separate DB instances).
-                // A cache hit here IS real persisted data, so we cache it on the instance field.
+                // A cache hit here IS real persisted data, so we lock it in as the loaded value.
                 var key = $"{_connectionInformation.QueueName}|{_connectionInformation.ConnectionString}";
                 if (InMemoryOptionsCache.TryGetValue(key, out var cached))
                 {
                     _options = cached;
+                    _loadedFromStore = true;
                     return _options;
                 }
 
-                // Not in store, not in static cache — return defaults but do NOT cache.
-                // A subsequent Create() after queue creation must observe the newly-persisted options.
-                return new LiteDbMessageQueueTransportOptions();
+                // Not in store, not in static cache — return a tentative default
+                // whose reference is stable across calls, so callers that mutate the
+                // returned instance (e.g. via the Creation class's Options property)
+                // see their mutations persist. We re-query the store on every Create()
+                // call until it returns non-null, at which point we swap the cached
+                // reference to the loaded options.
+                if (_options == null) _options = new LiteDbMessageQueueTransportOptions();
+                return _options;
             }
         }
 

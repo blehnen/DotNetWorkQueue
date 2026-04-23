@@ -30,6 +30,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Factory
         private readonly IConnectionInformation _connectionInformation;
         private readonly object _creator = new object();
         private PostgreSqlMessageQueueTransportOptions _options;
+        private bool _loadedFromStore;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PostgreSqlMessageQueueTransportOptionsFactory"/> class.
@@ -54,21 +55,27 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Factory
                 return new PostgreSqlMessageQueueTransportOptions();
             }
 
-            if (_options != null) return _options;
+            if (_loadedFromStore) return _options;
             lock (_creator)
             {
-                if (_options != null) return _options;
+                if (_loadedFromStore) return _options;
 
                 var loaded = _queryOptions.Handle(new GetQueueOptionsQuery<PostgreSqlMessageQueueTransportOptions>());
                 if (loaded != null)
                 {
                     _options = loaded;
+                    _loadedFromStore = true;
                     return _options;
                 }
 
-                // Queue does not yet exist in the store — return defaults but do NOT cache.
-                // A subsequent Create() after queue creation must observe the newly-persisted options.
-                return new PostgreSqlMessageQueueTransportOptions();
+                // Queue does not yet exist in the store — return a tentative default
+                // whose reference is stable across calls, so callers that mutate the
+                // returned instance (e.g. via the Creation class's Options property)
+                // see their mutations persist. We re-query the store on every Create()
+                // call until it returns non-null, at which point we swap the cached
+                // reference to the loaded options.
+                if (_options == null) _options = new PostgreSqlMessageQueueTransportOptions();
+                return _options;
             }
         }
     }

@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic.Factory
         }
 
         [TestMethod]
-        public void Create_WhenStoreReturnsNull_DoesNotCacheTheDefaultFallback()
+        public void Create_WhenStoreReturnsNull_ReReadsStoreOnEachCall()
         {
             var (sut, query) = BuildWithConnectionString();
             query.Handle(Arg.Any<GetQueueOptionsQuery<SqLiteMessageQueueTransportOptions>>())
@@ -47,7 +47,34 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic.Factory
 
             Assert.IsNotNull(first);
             Assert.IsNotNull(second);
+            // The store is re-queried on every call until it returns non-null,
+            // so a dashboard / cross-container reader eventually observes the
+            // persisted options (GitHub issue #120).
             query.Received(2).Handle(Arg.Any<GetQueueOptionsQuery<SqLiteMessageQueueTransportOptions>>());
+        }
+
+        [TestMethod]
+        public void Create_WhileStoreEmpty_ReturnsSameInstanceSoCallerMutationsPersist()
+        {
+            // Regression guard: the Creation class exposes `Options` via the factory.
+            // Callers mutate that instance (e.g. `x.Options.EnableHistory = true`) and
+            // expect the subsequent `CreateQueue` persist to see those mutations on
+            // the SAME instance. Returning a fresh default on every call while the
+            // store is empty silently drops those mutations and persists all-default
+            // options — integration test regression observed on PR #137.
+            var (sut, query) = BuildWithConnectionString();
+            query.Handle(Arg.Any<GetQueueOptionsQuery<SqLiteMessageQueueTransportOptions>>())
+                 .Returns((SqLiteMessageQueueTransportOptions)null);
+
+            var first = sut.Create();
+            first.EnableHistory = true;
+            var second = sut.Create();
+
+            Assert.AreSame(first, second,
+                "While the store has no persisted options, Create() must return the " +
+                "same tentative-default instance so caller mutations survive across calls.");
+            Assert.IsTrue(second.EnableHistory,
+                "Mutations made to the first-returned instance must be visible on subsequent calls.");
         }
 
         [TestMethod]
