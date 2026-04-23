@@ -1,3 +1,14 @@
+### 0.9.35 — 2026-04-23
+- Fix: retry decorators across all transports (SqlServer, PostgreSQL, SQLite, Redis, LiteDb) tolerate a disposed Polly registry during queue shutdown — previously threw `ObjectDisposedException` when a background operation raced the dispose path (GitHub #121)
+- CI: auto-publish dashboard docker image on `v*` tag via GitHub Actions (GitHub #122)
+- CI: bump GitHub Actions from v4 to v5 for Node.js 24 compatibility (GitHub #128)
+- CI: re-enable JobScheduler integration tests in Jenkins — previously excluded via stale `FullyQualifiedName!~JobScheduler` filter carried over from the TeamCity era (GitHub #127)
+- Cleanup: remove unused `ICachePolicy` / `CachePolicy` types (GitHub #124)
+- Test: add `SntpTime` base class unit tests (GitHub #125)
+- Test: add bUnit component tests for `Dashboard.Ui` (Phase 1 of GitHub #126)
+- Test: add `Dashboard.Ui` Playwright E2E test project + Jenkins stage 15 (Phase 2 of GitHub #126)
+- Docs: lessons learned on Playwright/bUnit, CI filter re-validation, release flow
+
 ### 0.9.34 — 2026-04-20
 - Fix: dashboard history reads no longer short-circuit on `IBaseTransportOptions.EnableHistory`; fixes empty history when the dashboard container was started before its queue existed (GitHub #119)
 - Fix: Dashboard UI history exceptions now collapse by default with a per-row expand chevron; previously the full stack trace rendered inline and inflated row height on pages with errors
