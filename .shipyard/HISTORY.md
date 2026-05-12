@@ -998,3 +998,5 @@
 - [2026-05-12T20:26:03Z] Session ended during build (may need /shipyard:resume)
 - [2026-05-12T20:34:39Z] Session ended during build (may need /shipyard:resume)
 - [2026-05-12T21:09:32Z] Phase 1: Project definition captured for Outbox Pattern milestone; roadmap generated; ready for planning (ready)
+- [2026-05-12T21:28:30Z] Phase 1: Planning phase 1 (Polly Decorator Bypass Spike) (planning)
+- [2026-05-12T21:49:29Z] Phase 1: Phase 1 planned (1 plan, 3 tasks) — ready for build (planned)
