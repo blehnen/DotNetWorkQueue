@@ -115,28 +115,52 @@ This roadmap decomposes the outbox feature into seven phases ordered to **fail-f
 
 ## Phase 6 — Integration Tests (SqlServer + PostgreSQL)
 
-**Description.** ~12 integration tests, 6 per transport, slotting into the existing Jenkins SqlServer + PostgreSQL stages. No Jenkinsfile changes. Each transport gets the same six scenarios:
+**Description.** ~22 integration tests, 11 per transport, slotting into the existing Jenkins SqlServer + PostgreSQL stages. No Jenkinsfile changes. Coverage is **method-matrix driven**, not scenario-driven — every public method on `IRelationalProducerQueue<T>` must have its own integration test exercising the caller-tx path. This is required because codecov coverage on this repo is driven primarily by integration tests, and `SendMessageCommandHandlerAsync` is a separate class from `SendMessageCommandHandler`, so async branches are not inferred from sync coverage.
 
-1. **Atomic commit:** caller tx writes business row + enqueues message + commits → both rows present.
-2. **Atomic rollback:** caller tx writes business row + enqueues message + rolls back → neither row present.
-3. **Cross-database validation:** caller tx points at database A, queue configured for database B → `InvalidOperationException` before any DB write, queue tables unchanged.
-4. **Connection-state validation:** caller passes a closed connection (or a disposed-tx-with-null-connection) → `InvalidOperationException`.
-5. **Batch atomic commit:** caller tx batch-sends N messages + commits → all N enqueued.
-6. **No-retry verification:** force a transient SQL error mid-send → exception propagates to caller on first attempt (counts attempts via a metrics listener).
+Per transport, the test matrix:
 
-- Use existing integration-test scaffolding patterns (`connectionstring.txt`, queue creation per CLAUDE.md conventions).
+**A. Method × outcome coverage (8 tests per transport):**
+
+| Method | Commit test | Rollback test |
+|---|---|---|
+| `Send(T, DbTransaction)` | ✓ both rows visible | ✓ neither row visible |
+| `SendAsync(T, DbTransaction)` | ✓ both rows visible | ✓ neither row visible |
+| `Send(IEnumerable<...>, DbTransaction)` (batch) | ✓ all N + business row | ✓ neither |
+| `SendAsync(IEnumerable<...>, DbTransaction)` (batch) | ✓ all N + business row | ✓ neither |
+
+Each pair (commit + rollback) confirms atomic semantics with a parallel business write inside the same caller tx.
+
+**B. `IAdditionalMessageData` round-trip (1 test per transport):**
+
+- Enqueue via `Send(msg, additionalData, tx)` with custom headers/correlation ID → commit caller tx → dequeue with a consumer in a separate connection → assert all `additionalData` values round-tripped intact.
+- Exercises the `IAdditionalMessageData` overloads' code path and confirms metadata table writes flow through the caller tx.
+
+**C. Validation (2 tests per transport):**
+
+- **Cross-database:** caller tx connection points to database A, queue configured for database B → `InvalidOperationException` before any DB write; queue tables remain unchanged.
+- **Connection-state:** caller passes a closed connection (or a disposed-tx-with-null-connection) → `InvalidOperationException`; queue tables remain unchanged.
+
+**D. Retry bypass (1 test per transport):**
+
+- Force a transient SQL error mid-send (e.g., short timeout + lock conflict on SqlServer, equivalent on PostgreSQL) → exception propagates to caller on the first attempt; attempt count (via metrics listener) = 1, not 3.
+
+**Implementation notes:**
+- Use existing integration-test scaffolding (`connectionstring.txt`, queue-per-test isolation, Coverlet via `dotnet test`).
 - Queue names use `Guid.NewGuid().ToString("N")` (CLAUDE.md lesson — DNQ rejects hyphens).
-- Tests must be wave-isolated (own queue per test) to allow Jenkins parallel execution.
+- Tests must be wave-isolated (own queue + own caller-tx connection per test) to allow Jenkins parallel execution.
+- Each test runs the caller's business INSERT through a second simple table created at test setup, so atomic semantics are directly verifiable.
+- Metrics listener for retry-bypass test must use polling, not snapshot, to avoid the race documented in CLAUDE.md ("integration test metrics assertions can race").
 
 **Success criteria.**
-- 12 new integration tests pass locally against a real SqlServer and a real PostgreSQL.
+- 22 new integration tests pass locally against a real SqlServer and a real PostgreSQL.
 - Jenkins SqlServer + PostgreSQL integration stages green on a draft PR (PROJECT.md §Success Criteria #11).
 - PROJECT.md §Success Criteria #4, #5, #6 satisfied with explicit test names mapped to each.
+- Coverlet line coverage on the new `HandleExternalTx` (sync + async) and batch external-tx forks shows ≥1 hit per branch in both transports.
 - No new flakiness on retries (CLAUDE.md lesson on metrics-snapshot races: poll, don't snapshot).
 
 **Dependencies.** Phases 3 + 4.
-**Risk.** Mid — first time the full path runs against real DBs; transactional semantics across Microsoft.Data.SqlClient and Npgsql can surprise.
-**Size.** L (8–12 hours).
+**Risk.** Mid — first time the full path runs against real DBs; transactional semantics across Microsoft.Data.SqlClient and Npgsql can surprise. Doubled test count vs. prior draft increases the surface for flakiness, mitigated by strict wave-isolation per test.
+**Size.** L (14–18 hours).
 
 ---
 

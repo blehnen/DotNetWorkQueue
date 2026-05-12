@@ -90,7 +90,7 @@ A single validator runs at the start of every tx-aware `Send`:
 - **Diagnostics:** Validation exceptions must include both the offending database name and the queue's expected database name in their message.
 - **Determinism:** Build must pass `-p:CI=true` for Source Link (existing convention).
 - **Multi-targeting:** Compatible with net10.0 and net8.0 (existing TFMs).
-- **Test coverage:** Both unit (handler logic, validation, ownership invariants) and integration (atomic commit/rollback verified against a real database) coverage on both transports.
+- **Test coverage:** Both unit (handler logic, validation, ownership invariants) and integration (atomic commit/rollback verified against a real database) coverage on both transports. Integration tests must hit **every new public method** on `IRelationalProducerQueue<T>` for each transport — codecov coverage on this repo is driven primarily by integration tests, and `SendMessageCommandHandlerAsync` lives in a separate file from `SendMessageCommandHandler`, so async paths require their own integration coverage and cannot be inferred from sync coverage.
 
 ## Success Criteria
 
@@ -140,7 +140,7 @@ A single validator runs at the start of every tx-aware `Send`:
 
 ## Effort Estimate
 
-**40–55 focused work hours** (~1.5–2.5 weeks elapsed time on this repo factoring CI cycles and PR review).
+**46–61 focused work hours** (~2–3 weeks elapsed time on this repo factoring CI cycles and PR review).
 
 | Component | Hours |
 |---|---:|
@@ -151,6 +151,6 @@ A single validator runs at the start of every tx-aware `Send`:
 | Validation + per-provider `IExternalDbNameExtractor` | 2–3 |
 | DI registration changes (RelationalDatabase + SqlServer + PostgreSQL inits) | 2–3 |
 | Unit tests (~12–15) | 6–8 |
-| Integration tests (~12 — 6 per provider) | 8–12 |
+| Integration tests (~22 — 11 per provider, method-coverage matrix) | 14–18 |
 | XML doc comments + `docs/outbox-pattern.md` draft | 3–4 |
 | Review iterations | 4–6 |
