@@ -6,7 +6,7 @@ This roadmap decomposes the outbox feature into seven phases ordered to **fail-f
 
 ---
 
-## Phase 1 — Polly Decorator Bypass Spike
+## Phase 1 — Polly Decorator Bypass Spike ✅ complete
 
 **Description.** Discovery spike, no production code shipped to master. Stand up a throwaway branch test harness that resolves `SendMessageCommandHandler` (sync + async) for SqlServer and PostgreSQL **without** the `BeginTransactionRetryDecorator` and any related Polly retry wrappers in the chain. Confirm whether a bare-handler resolution is reachable via existing SimpleInjector seams, a keyed registration, or whether the producer must construct the handler directly. Catalog every decorator in the current `Send` chain (trace, retry, metrics) and decide which must be preserved and which must be skipped on the caller-tx path. Output is a one-page memo committed to the feature branch under `.shipyard/notes/` plus a proof-of-concept test (deleted before phase 2 starts) showing the resolution works.
 
