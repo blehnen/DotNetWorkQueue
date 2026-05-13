@@ -133,7 +133,7 @@ A single validator runs at the start of every tx-aware `Send`:
 
 ### Risk Inventory
 
-1. **Polly decorator bypass cleanness** (mid) — verify the bare handler is reachable without retry wrapping; investigate current decorator chain before committing to full plan.
+1. **Polly decorator bypass cleanness** (low — closed by Phase 1 spike) — Mechanism confirmed: `IRetrySkippable` marker interface evaluated at the top of `RetryCommandHandlerOutputDecorator.Handle()`. Reuses the same fallthrough pattern as the existing no-pipeline + shutdown-race branches. See `.shipyard/notes/phase-1-polly-bypass-spike.md`.
 2. **PostgreSQL batch `Send` tx binding** (mid) — if the batch path uses `NpgsqlBatch`, verify it correctly inherits the active transaction on the connection.
 3. **PostgreSQL DB-name case semantics** (low) — quoted identifiers create edge cases; covered by focused unit test.
 4. **Documentation discipline** (low, ship-blocking) — caller-owned-retry contract and lifecycle ownership must be published in `docs/outbox-pattern.md` with the release.
