@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Data.Common;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Shared.Basic.Command
@@ -52,5 +53,20 @@ namespace DotNetWorkQueue.Transport.Shared.Basic.Command
         /// The message data.
         /// </value>
         public IAdditionalMessageData MessageData { get; }
+        /// <summary>
+        /// Optional caller-supplied transaction for the outbox pattern. When set, the relational
+        /// transport's send-message handler skips its internal connection/transaction management
+        /// and uses this transaction's connection and transaction reference instead. When null
+        /// (the default), the transport manages its own connection and transaction lifecycle
+        /// exactly as before.
+        /// </summary>
+        /// <remarks>
+        /// Wired to the bypass mechanism via <c>RelationalSendMessageCommand</c> (a derived class
+        /// in <c>Transport.RelationalDatabase</c>) which exposes <c>SkipRetry</c> through
+        /// <c>IRetrySkippable</c>. The base <c>SendMessageCommand</c> itself does NOT implement
+        /// <c>IRetrySkippable</c> to keep <c>Transport.Shared</c> free of references to
+        /// <c>Transport.RelationalDatabase</c>.
+        /// </remarks>
+        public DbTransaction ExternalTransaction { get; init; }
     }
 }
