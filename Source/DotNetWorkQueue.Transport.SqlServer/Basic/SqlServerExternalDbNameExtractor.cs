@@ -22,26 +22,35 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
     /// <summary>
-    /// SqlServer implementation of <see cref="IExternalDbNameExtractor"/>. Returns the
-    /// uppercase form of <see cref="DbConnection.Database"/> so the validator's
-    /// <see cref="System.StringComparison.Ordinal"/> compare against the queue's
-    /// configured database name behaves case-insensitively (matching SqlServer's
-    /// catalog-name semantics). The matching Phase 3 producer / queue-config side is
-    /// expected to upper-case the configured database name when populating
-    /// <c>IConnectionInformation.Container</c>; this symmetric normalization is the
-    /// per-provider case-handling convention from Phase 2 PLAN-2.1 architect note.
+    /// SqlServer implementation of <see cref="IExternalDbNameExtractor"/>. Returns
+    /// <see cref="DbConnection.Database"/> verbatim — pass-through, no case normalization.
+    /// The validator's <see cref="System.StringComparison.Ordinal"/> comparison against
+    /// <see cref="IConnectionInformation.Container"/> (which equals <c>InitialCatalog</c>
+    /// from the parsed connection string) is therefore case-sensitive.
     /// </summary>
+    /// <remarks>
+    /// Earlier implementations applied <c>ToUpperInvariant</c> on the extractor side but
+    /// did not apply symmetric normalization on the <c>Container</c> side, causing a
+    /// validator-mismatch when the actual SqlServer catalog case differed from the
+    /// uppercased extractor output. Pass-through aligns the SqlServer extractor with
+    /// PostgreSQL's pass-through approach (Phase 4 CONTEXT-4 Decision 2) and avoids the
+    /// symmetry gap. Users must configure <c>Database=&lt;name&gt;</c> in the connection
+    /// string with the exact case as the actual SqlServer catalog (typical and easy to
+    /// satisfy; SqlClient's <c>conn.Database</c> after open returns the canonical name
+    /// from <c>sys.databases</c>).
+    /// </remarks>
     public sealed class SqlServerExternalDbNameExtractor : IExternalDbNameExtractor
     {
         /// <summary>
-        /// Returns the canonical (uppercase) database name reported by the connection.
+        /// Returns the database name reported by the connection verbatim.
         /// </summary>
         /// <param name="connection">An open <see cref="DbConnection"/> from the caller's
         /// transaction. Must not be null.</param>
-        /// <returns>The database name, upper-cased via invariant culture.</returns>
+        /// <returns>The database name as reported by <c>connection.Database</c> (or
+        /// empty string if the connection has no database).</returns>
         public string Extract(DbConnection connection)
         {
-            return connection.Database?.ToUpperInvariant() ?? string.Empty;
+            return connection.Database ?? string.Empty;
         }
     }
 }

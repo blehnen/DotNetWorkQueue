@@ -27,36 +27,24 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
     public class SqlServerExternalDbNameExtractorTests
     {
         [TestMethod]
-        public void Extract_ReturnsConnectionDatabase()
+        public void Extract_ReturnsConnectionDatabaseVerbatim()
         {
+            // Pass-through extractor (Phase 6 fix — earlier ToUpperInvariant did not
+            // symmetrize with the Container side which carries the verbatim user-typed
+            // InitialCatalog value, causing validator-mismatch in integration tests).
             var conn = Substitute.For<DbConnection>();
             conn.Database.Returns("MyDb");
             var sut = new SqlServerExternalDbNameExtractor();
-            Assert.AreEqual("MYDB", sut.Extract(conn));
+            Assert.AreEqual("MyDb", sut.Extract(conn));
         }
 
         [TestMethod]
-        public void ConfiguredComparison_IsOrdinalIgnoreCase()
+        public void Extract_ReturnsEmptyStringWhenConnectionDatabaseIsNull()
         {
-            // The validator uses StringComparison.Ordinal for the final compare
-            // (Phase 2 PLAN-2.1 decision); per-provider case semantics are encoded
-            // in the extractor by normalizing case at extract time. SqlServer is
-            // case-insensitive at the catalog level, so the extractor's output
-            // must compare equal under OrdinalIgnoreCase across "MyDb" and "mydb".
-            var conn1 = Substitute.For<DbConnection>();
-            conn1.Database.Returns("MyDb");
-            var conn2 = Substitute.For<DbConnection>();
-            conn2.Database.Returns("mydb");
+            var conn = Substitute.For<DbConnection>();
+            conn.Database.Returns((string?)null);
             var sut = new SqlServerExternalDbNameExtractor();
-
-            // SqlServer extractor normalizes via OrdinalIgnoreCase semantics.
-            // Implementation choice (uppercase canonicalization) is verified by
-            // round-tripping through string.Equals(OrdinalIgnoreCase).
-            Assert.IsTrue(
-                string.Equals(sut.Extract(conn1), sut.Extract(conn2),
-                    System.StringComparison.OrdinalIgnoreCase),
-                "SqlServer extractor must produce equal outputs for case-variant database names " +
-                "under OrdinalIgnoreCase comparison.");
+            Assert.AreEqual(string.Empty, sut.Extract(conn));
         }
     }
 }
