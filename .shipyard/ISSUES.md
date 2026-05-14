@@ -256,3 +256,14 @@ _No open issues._
 - **Description:** The expression `WorkerTask != null && !WorkerTask.IsCompleted || MessageProcessing != null && MessageProcessing.AsyncTaskCount > 0` relies on implicit operator precedence (`&&` before `||`). While correct, explicit parentheses would improve readability: `(WorkerTask != null && !WorkerTask.IsCompleted) || (MessageProcessing != null && MessageProcessing.AsyncTaskCount > 0)`.
 - **Remediation:** Add parentheses to make the grouping explicit.
 - **Resolution:** Added explicit parentheses to `MultiWorkerBase.Running` property expression. Closed 2026-03-30.
+
+### ISSUE-032: Pre-existing NU1902 OpenTelemetry advisory escalates Release CI build on Transport.SQLite
+- **Severity:** Important
+- **Source:** Phase 2 Wave 3 PLAN-3.2 end-to-end verification (2026-05-14)
+- **Files:**
+  - `Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.csproj`
+  - All packable projects depending on `OpenTelemetry.Api 1.15.2` (emits NU1902 as warning everywhere; escalates to error on Transport.SQLite only)
+- **Description:** `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release -p:CI=true --nologo` fails with `error NU1902: Warning As Error: Package 'OpenTelemetry.Api' 1.15.2 has a known moderate severity vulnerability` on `DotNetWorkQueue.Transport.SQLite.csproj` only. All other projects emit NU1902 as a warning. The escalation appears to come from `TreatWarningsAsErrors=true` interacting with the project-specific NU* warning behavior. **Phase 2 did not introduce this** — `git diff 99003720..HEAD Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.csproj` shows no changes, and the advisory `GHSA-g94r-2vxg-569j` predates Phase 1 completion.
+- **Impact:** The strictest "release-publishing" build path (`-c Release -p:CI=true`) cannot complete cleanly until OpenTelemetry releases a patched version of `OpenTelemetry.Api` (1.15.2 → 1.15.3+) OR the SQLite csproj's NU1902 escalation is overridden (`<NoWarn>$(NoWarn);NU1902</NoWarn>` or similar). Debug builds and per-project Release builds remain clean. Phase 2 unit-test suites (RelationalDatabase, SqlServer, PostgreSQL) all pass; Phase 2 has zero functional regression. Real NuGet release (publish.yml) currently relies on the GHA workflow's gating against Jenkins; the local pre-publish dry-run is the failing surface.
+- **Remediation:** Either (1) bump `OpenTelemetry.*` package versions in `Source/Directory.Packages.props` to whichever line patches `GHSA-g94r-2vxg-569j` (likely OpenTelemetry 1.16+ when GA), or (2) add a `<NoWarn>$(NoWarn);NU1902</NoWarn>` (or selective `<WarningsNotAsErrors>NU1902</WarningsNotAsErrors>`) to `Transport.SQLite.csproj` if option 1 is blocked by .NET 8 compatibility. Out of scope for Phase 2 (no Phase 2 work touched OpenTelemetry); recommend bundling with a future dependency-refresh milestone.
+- **Status:** Open. Tracking; no Phase 2 build/test impact.

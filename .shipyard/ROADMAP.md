@@ -22,7 +22,7 @@ This roadmap decomposes the outbox feature into seven phases ordered to **fail-f
 
 ---
 
-## Phase 2 — Foundation Layer (RelationalDatabase + Shared Plumbing)
+## Phase 2 — Foundation Layer (RelationalDatabase + Shared Plumbing) ✅ complete
 
 **Description.** Pure additive plumbing in `Transport.RelationalDatabase` with no transport-specific behavior. Introduces:
 - `IRelationalProducerQueue<TMessage> : IProducerQueue<TMessage>` interface with the six tx-aware overloads enumerated in PROJECT.md §Functional.
