@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using Polly;
@@ -50,6 +51,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         public async Task<TOutput> HandleAsync(TCommand command)
         {
             Guard.NotNull(() => command, command);
+
+            if (command is IRetrySkippable skippable && skippable.SkipRetry)
+                return await _decorated.HandleAsync(command).ConfigureAwait(false);
+
             ResiliencePipeline pipeline = null;
             try
             {
