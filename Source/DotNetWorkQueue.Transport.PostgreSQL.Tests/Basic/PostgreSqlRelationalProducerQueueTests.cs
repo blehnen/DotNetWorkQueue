@@ -1,0 +1,208 @@
+// ---------------------------------------------------------------------
+//This file is part of DotNetWorkQueue
+//Copyright © 2015-2026 Brian Lehnen
+//
+//This library is free software; you can redistribute it and/or
+//modify it under the terms of the GNU Lesser General Public
+//License as published by the Free Software Foundation; either
+//version 2.1 of the License, or (at your option) any later version.
+//
+//This library is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//Lesser General Public License for more details.
+//
+//You should have received a copy of the GNU Lesser General Public
+//License along with this library; if not, write to the Free Software
+//Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+// ---------------------------------------------------------------------
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
+using System.Threading.Tasks;
+using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Queue;
+using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
+
+namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
+{
+    [TestClass]
+    public class PostgreSqlRelationalProducerQueueTests
+    {
+        // ----- Test fixtures -----
+
+        public class TestMessage { public string Body { get; set; } }
+
+        // PG is case-sensitive — extractor passes through verbatim.
+        // Use the exact same string on both sides for happy-path tests.
+        private const string QueueDb = "mydb";
+
+        private static PostgreSqlRelationalProducerQueue<TestMessage> BuildSut(
+            ICommandHandlerWithOutput<SendMessageCommand, long> syncHandler = null,
+            ICommandHandlerWithOutputAsync<SendMessageCommand, long> asyncHandler = null,
+            ExternalTransactionValidator validator = null,
+            ISentMessageFactory sentFactory = null,
+            IMessageFactory messageFactory = null)
+        {
+            syncHandler ??= Substitute.For<ICommandHandlerWithOutput<SendMessageCommand, long>>();
+            syncHandler.Handle(Arg.Any<SendMessageCommand>()).Returns(42L);
+            asyncHandler ??= Substitute.For<ICommandHandlerWithOutputAsync<SendMessageCommand, long>>();
+            asyncHandler.HandleAsync(Arg.Any<SendMessageCommand>()).Returns(Task.FromResult(42L));
+
+            if (validator == null)
+            {
+                var extractor = Substitute.For<IExternalDbNameExtractor>();
+                extractor.Extract(Arg.Any<DbConnection>()).Returns(QueueDb);
+                var connInfo = Substitute.For<IConnectionInformation>();
+                connInfo.Container.Returns(QueueDb);
+                validator = new ExternalTransactionValidator(extractor, connInfo);
+            }
+
+            sentFactory ??= Substitute.For<ISentMessageFactory>();
+            sentFactory.Create(Arg.Any<IMessageId>(), Arg.Any<ICorrelationId>())
+                .Returns(Substitute.For<ISentMessage>());
+
+            messageFactory ??= Substitute.For<IMessageFactory>();
+            messageFactory.Create(Arg.Any<TestMessage>(), Arg.Any<IDictionary<string, object>>())
+                .Returns(Substitute.For<IMessage>());
+
+            // GenerateMessageHeaders takes ICorrelationIdFactory
+            var generateHeaders = Substitute.For<GenerateMessageHeaders>(
+                Substitute.For<ICorrelationIdFactory>());
+            // AddStandardMessageHeaders takes IHeaders, IGetFirstMessageDeliveryTime
+            var addStandardHeaders = Substitute.For<AddStandardMessageHeaders>(
+                Substitute.For<IHeaders>(),
+                Substitute.For<IGetFirstMessageDeliveryTime>());
+
+            return new PostgreSqlRelationalProducerQueue<TestMessage>(
+                Substitute.For<QueueProducerConfiguration>(
+                    Substitute.For<TransportConfigurationSend>(Substitute.For<IConnectionInformation>()),
+                    Substitute.For<IHeaders>(),
+                    Substitute.For<IConfiguration>(),
+                    new BaseTimeConfiguration(),
+                    Substitute.For<IPolicies>()),
+                Substitute.For<ISendMessages>(),
+                messageFactory,
+                Substitute.For<ILogger>(),
+                generateHeaders,
+                addStandardHeaders,
+                syncHandler, asyncHandler, validator, sentFactory, messageFactory);
+        }
+
+        // Helper: build a non-NpgsqlTransaction DbTransaction for guard/validator tests.
+        // The DbConnection.State=Open and Database=QueueDb so the validator passes.
+        private static DbTransaction BuildNonPgTx(ConnectionState state = ConnectionState.Open)
+        {
+            // NpgsqlConnection is sealed — we cannot substitute it. The validator path
+            // is exercised with a mocked DbConnection (validator works against the base type),
+            // and the cast guard is exercised separately by passing this non-NpgsqlTransaction.
+            var conn = Substitute.For<DbConnection>();
+            conn.State.Returns(state);
+            conn.Database.Returns(QueueDb);
+            var tx = Substitute.For<DbTransaction>();
+            tx.Connection.Returns(conn);
+            return tx;
+        }
+
+        // ----- Tests -----
+
+        [TestMethod]
+        public void Send_NullTransaction_ThrowsArgumentNullException()
+        {
+            var sut = BuildSut();
+            Assert.ThrowsExactly<ArgumentNullException>(
+                () => sut.Send(new TestMessage(), (DbTransaction)null));
+        }
+
+        [TestMethod]
+        public void Send_NonNpgsqlTransaction_ThrowsInvalidOperationException()
+        {
+            // Validator passes (configured to match QueueDb), then the cast guard fires.
+            var sut = BuildSut();
+            var tx = BuildNonPgTx();
+            var ex = Assert.ThrowsExactly<InvalidOperationException>(
+                () => sut.Send(new TestMessage(), tx));
+            StringAssert.Contains(ex.Message, "NpgsqlTransaction");
+        }
+
+        [TestMethod]
+        public void Send_ValidatorRejectsCaseMismatch_ThrowsBeforeCastGuard()
+        {
+            // CONTEXT-4 Decision 2 / Risk #3 closure: case-sensitive validator behavior.
+            // Configure container=QueueDb (lowercase "mydb"), extractor returns "MyDb"
+            // (mixed case). The validator's StringComparison.Ordinal compare MUST treat
+            // these as unequal and throw InvalidOperationException before the cast guard.
+            var extractor = Substitute.For<IExternalDbNameExtractor>();
+            extractor.Extract(Arg.Any<DbConnection>()).Returns("MyDb");
+            var connInfo = Substitute.For<IConnectionInformation>();
+            connInfo.Container.Returns("mydb");
+            var validator = new ExternalTransactionValidator(extractor, connInfo);
+
+            var sut = BuildSut(validator: validator);
+            var tx = BuildNonPgTx();
+            var ex = Assert.ThrowsExactly<InvalidOperationException>(
+                () => sut.Send(new TestMessage(), tx));
+            // Both names appear in the diagnostic. The validator fires BEFORE the cast guard,
+            // so the message must NOT mention NpgsqlTransaction.
+            StringAssert.Contains(ex.Message, "MyDb");
+            StringAssert.Contains(ex.Message, "mydb");
+            Assert.IsFalse(ex.Message.Contains("NpgsqlTransaction"),
+                "Validator must fire before the NpgsqlTransaction cast guard.");
+        }
+
+        [TestMethod]
+        public async Task SendAsync_NullTransaction_ThrowsArgumentNullException()
+        {
+            var sut = BuildSut();
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(
+                async () => await sut.SendAsync(new TestMessage(), (DbTransaction)null));
+        }
+
+        [TestMethod]
+        public void SendBatch_NullTransaction_ThrowsArgumentNullException()
+        {
+            var sut = BuildSut();
+            var msgs = new List<QueueMessage<TestMessage, IAdditionalMessageData>>
+            {
+                new QueueMessage<TestMessage, IAdditionalMessageData>(new TestMessage(), null)
+            };
+            Assert.ThrowsExactly<ArgumentNullException>(() => sut.Send(msgs, null));
+        }
+
+        [TestMethod]
+        public void SendBatch_ValidatorCalledOncePerBatch_NotPerItem()
+        {
+            // CONTEXT-4 Decision 4: validator runs ONCE before the loop, not per item.
+            // We instrument the validator's extractor; counting Extract() calls proxies the
+            // number of Validate() invocations (each Validate runs Extract exactly once on
+            // the happy path through check 4).
+            var extractor = Substitute.For<IExternalDbNameExtractor>();
+            extractor.Extract(Arg.Any<DbConnection>()).Returns(QueueDb);
+            var connInfo = Substitute.For<IConnectionInformation>();
+            connInfo.Container.Returns(QueueDb);
+            var validator = new ExternalTransactionValidator(extractor, connInfo);
+
+            var sut = BuildSut(validator: validator);
+            var tx = BuildNonPgTx();
+            var msgs = new List<QueueMessage<TestMessage, IAdditionalMessageData>>
+            {
+                new QueueMessage<TestMessage, IAdditionalMessageData>(new TestMessage(), null),
+                new QueueMessage<TestMessage, IAdditionalMessageData>(new TestMessage(), null),
+                new QueueMessage<TestMessage, IAdditionalMessageData>(new TestMessage(), null)
+            };
+
+            // Cast guard throws for the non-NpgsqlTransaction; validator already fired once.
+            try { sut.Send(msgs, tx); } catch (InvalidOperationException) { /* expected */ }
+            extractor.Received(1).Extract(Arg.Any<DbConnection>());
+        }
+    }
+}
