@@ -94,7 +94,7 @@ This roadmap decomposes the outbox feature into seven phases ordered to **fail-f
 
 ---
 
-## Phase 5 — Negative-Path Coverage: Non-Relational Transports
+## Phase 5 — Negative-Path Coverage: Non-Relational Transports ✅ complete
 
 **Description.** Defensive phase: confirm the capability-cast pattern correctly **fails** on transports that should not implement the new interface. No production code change expected here — this is verification that Phase 2's design didn't accidentally leak into transports that don't need it.
 
