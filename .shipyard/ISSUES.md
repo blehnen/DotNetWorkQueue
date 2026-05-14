@@ -2,7 +2,35 @@
 
 ## Open
 
-_No open issues._
+### ISSUE-033: Fork-body end-bound overreaches into sibling helpers (PG sync smoke test)
+- **Severity:** Minor (suggestion)
+- **Source:** Phase 4 PLAN-2.1 Review (carryover from Phase 3 REVIEW-2.1 Minor #1)
+- **Status:** Open
+- **Files:**
+  - `Source/DotNetWorkQueue.Transport.PostgreSQL.Tests/Basic/CommandHandler/SendMessageCommandHandlerForkSmokeTests.cs` (line 112)
+  - `Source/DotNetWorkQueue.Transport.SqlServer.Tests/Basic/CommandHandler/SendMessageCommandHandlerForkSmokeTests.cs` (Phase 3 sibling)
+- **Description:** `forkBody = content.Substring(forkStart, Math.Min(6000, content.Length - forkStart))` walks past `HandleExternalTx`'s closing brace into `CreateStatusRecord` and `CreateMetaDataRecord`. Today the helpers are clean of `.Commit()/.Rollback()/.Close()/.Dispose()`, but a future modification to either helper would falsely fail the fork's lifecycle test with a misleading message — masking the actual call site.
+- **Remediation:** Scope the slice to the method body only: locate the next `^        }$` after `forkStart` and slice to that index, or use the next `private`/`public` declaration as the end-bound. ~5 lines of additional logic. Apply consistently to both Phase 3 (SqlServer) and Phase 4 (PostgreSQL) test files.
+
+### ISSUE-034: Fragile relative source-file path in fork smoke tests
+- **Severity:** Minor (suggestion)
+- **Source:** Phase 4 PLAN-2.1 Review (carryover from Phase 3 REVIEW-2.1 Minor #3)
+- **Status:** Open
+- **Files:**
+  - `Source/DotNetWorkQueue.Transport.PostgreSQL.Tests/Basic/CommandHandler/SendMessageCommandHandlerForkSmokeTests.cs` (lines 69-75, 98-104)
+  - `Source/DotNetWorkQueue.Transport.SqlServer.Tests/Basic/CommandHandler/SendMessageCommandHandlerForkSmokeTests.cs` (Phase 3 sibling)
+- **Description:** The `..\..\..\..\` walk-up assumes a 4-level-deep bin output structure (`bin/Debug/net10.0/`). Brittle to TFM changes, output-path overrides, or test-running tools that copy assemblies to staging directories. Accepted in Phase 3 with the rationale "path resolution failure is itself a useful signal."
+- **Remediation:** Use `[CallerFilePath]` on a helper to anchor to the test's own source file location, then walk to the sibling project's source. Fully robust across TFMs and bin layouts. Apply consistently across all transport fork smoke tests.
+
+### ISSUE-035: Path-resolution block duplicated across smoke tests
+- **Severity:** Minor (suggestion)
+- **Source:** Phase 4 PLAN-2.1 Review (carryover from Phase 3 REVIEW-2.1 Minor #4)
+- **Status:** Open
+- **Files:**
+  - `Source/DotNetWorkQueue.Transport.PostgreSQL.Tests/Basic/CommandHandler/SendMessageCommandHandlerForkSmokeTests.cs` (lines 69-75 vs 98-104)
+  - `Source/DotNetWorkQueue.Transport.SqlServer.Tests/Basic/CommandHandler/SendMessageCommandHandlerForkSmokeTests.cs` (Phase 3 sibling)
+- **Description:** Identical 7-line path-resolution block copy-pasted across tests 2 and 3 in each fork smoke test file. Minor maintenance cost.
+- **Remediation:** Extract `private static string GetHandlerSourcePath()` helper. ~8 lines saved per test file. Bundle with ISSUE-034 if `[CallerFilePath]` refactor is adopted.
 
 ## Closed
 

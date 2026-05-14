@@ -69,7 +69,7 @@ This roadmap decomposes the outbox feature into seven phases ordered to **fail-f
 
 ---
 
-## Phase 4 — PostgreSQL Implementation + Unit Tests
+## Phase 4 — PostgreSQL Implementation + Unit Tests ✅ complete
 
 **Description.** Mirrors phase 3 for PostgreSQL. The batch path is the unique discovery point: confirm during this phase whether the PostgreSQL batch send uses `NpgsqlBatch` (Risk #2) and verify it correctly inherits the active transaction from its associated connection. If `NpgsqlBatch` doesn't bind cleanly, fall back to looping single inserts inside the caller's tx — note the deviation in the wiki draft.
 
