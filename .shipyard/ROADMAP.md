@@ -45,7 +45,7 @@ This roadmap decomposes the outbox feature into seven phases ordered to **fail-f
 
 ---
 
-## Phase 3 — SqlServer Implementation + Unit Tests
+## Phase 3 — SqlServer Implementation + Unit Tests ✅ complete
 
 **Description.** Implements the SqlServer half of the feature end-to-end. The full vertical slice: handler fork, validator, DI wiring, and unit tests in the same phase to keep the seam definitions and the tests they exercise co-located.
 
