@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
 {
     /// <summary>
-    /// Validation integration tests for the SqlServer outbox producer's caller-tx path.
+    /// Validation integration tests for the SqlServer outbox producer's caller-transaction path.
     /// Proves the <c>ExternalTransactionValidator</c> runs BEFORE any SQL write:
     /// cross-database mismatch and closed-connection cases both throw
     /// <see cref="InvalidOperationException"/> and leave the queue's metadata table
@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
             // No partial write — queue MetaData table count must be 0.
             AssertQueueRowCount(qc, 0);
 
-            try { wrongTx.Rollback(); } catch { /* ignore — tx may already be invalidated */ }
+            try { wrongTx.Rollback(); } catch { /* ignore — transaction may already be invalidated */ }
         }
 
         [TestMethod]
@@ -79,8 +79,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
 
             var conn = new SqlConnection(ConnectionInfo.ConnectionString);
             conn.Open();
-            var tx = conn.BeginTransaction();
-            // Close the connection. After this either tx.Connection is null (validator
+            var transaction = conn.BeginTransaction();
+            // Close the connection. After this either transaction.Connection is null (validator
             // check 2) or its State != Open (validator check 3); either path must throw
             // InvalidOperationException before any INSERT lands.
             conn.Close();
@@ -88,13 +88,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
             var msg = GenerateMessage.Create<FakeMessage>();
 
             Assert.ThrowsExactly<InvalidOperationException>(
-                () => producer.RelationalProducer.Send(msg, tx));
+                () => producer.RelationalProducer.Send(msg, transaction));
 
             // No partial write
             AssertQueueRowCount(qc, 0);
 
             // Cleanup — both objects may already be disposed/invalidated; swallow.
-            try { tx.Dispose(); } catch { /* ignore */ }
+            try { transaction.Dispose(); } catch { /* ignore */ }
             try { conn.Dispose(); } catch { /* ignore */ }
         }
     }

@@ -99,14 +99,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
 
         // Helper: build a non-SqlTransaction DbTransaction for guard/validator tests.
         // The DbConnection.State=Open and Database=QueueDb so the validator passes.
-        private static DbTransaction BuildNonSqlTx(ConnectionState state = ConnectionState.Open)
+        private static DbTransaction BuildNonSqlTransaction(ConnectionState state = ConnectionState.Open)
         {
             var conn = Substitute.For<DbConnection>();
             conn.State.Returns(state);
             conn.Database.Returns(QueueDb);
-            var tx = Substitute.For<DbTransaction>();
-            tx.Connection.Returns(conn);
-            return tx;
+            var transaction = Substitute.For<DbTransaction>();
+            transaction.Connection.Returns(conn);
+            return transaction;
         }
 
         // ----- Tests -----
@@ -124,9 +124,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
         {
             // Validator passes (we built it to match QueueDb), then the cast guard fires.
             var sut = BuildSut();
-            var tx = BuildNonSqlTx();
+            var transaction = BuildNonSqlTransaction();
             var ex = Assert.ThrowsExactly<InvalidOperationException>(
-                () => sut.Send(new TestMessage(), tx));
+                () => sut.Send(new TestMessage(), transaction));
             StringAssert.Contains(ex.Message, "SqlTransaction");
         }
 
@@ -140,9 +140,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
             var validator = new ExternalTransactionValidator(extractor, connInfo);
 
             var sut = BuildSut(validator: validator);
-            var tx = BuildNonSqlTx();
+            var transaction = BuildNonSqlTransaction();
             var ex = Assert.ThrowsExactly<InvalidOperationException>(
-                () => sut.Send(new TestMessage(), tx));
+                () => sut.Send(new TestMessage(), transaction));
             // Diagnostic message contains both DB names AND does NOT mention SqlTransaction
             // (proves the validator fires before the cast guard).
             StringAssert.Contains(ex.Message, "WRONGDB");
@@ -184,7 +184,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
             var validator = new ExternalTransactionValidator(extractor, connInfo);
 
             var sut = BuildSut(validator: validator);
-            var tx = BuildNonSqlTx();
+            var transaction = BuildNonSqlTransaction();
             var msgs = new List<QueueMessage<TestMessage, IAdditionalMessageData>>
             {
                 new QueueMessage<TestMessage, IAdditionalMessageData>(new TestMessage(), null),
@@ -194,7 +194,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
 
             // Cast guard will throw for the non-SqlTransaction, but the validator fires first.
             // Assert it was called exactly once across the 3-message batch.
-            try { sut.Send(msgs, tx); } catch (InvalidOperationException) { /* expected */ }
+            try { sut.Send(msgs, transaction); } catch (InvalidOperationException) { /* expected */ }
             extractor.Received(1).Extract(Arg.Any<DbConnection>());
         }
 

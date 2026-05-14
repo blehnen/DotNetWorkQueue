@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
 {
     /// <summary>
-    /// Structural smoke tests for the SqlServer sync handler's HandleExternalTx fork.
+    /// Structural smoke tests for the SqlServer sync handler's HandleExternalTransaction fork.
     /// Per RESEARCH §11 Discrepancy #2 + CLAUDE.md sync-vs-async mocking lesson, direct
     /// execution tests of the fork are infeasible at the unit-test level (sealed
     /// SqlConnection/SqlTransaction/SqlCommand types) and live in Phase 6 integration
@@ -35,18 +35,18 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
     public class SendMessageCommandHandlerForkSmokeTests
     {
         [TestMethod]
-        public void HandleExternalTx_PrivateMethod_ExistsWithExpectedSignature()
+        public void HandleExternalTransaction_PrivateMethod_ExistsWithExpectedSignature()
         {
             var handlerType = typeof(DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler.SendMessageCommandHandler);
 
-            var method = handlerType.GetMethod("HandleExternalTx",
+            var method = handlerType.GetMethod("HandleExternalTransaction",
                 BindingFlags.Instance | BindingFlags.NonPublic,
                 binder: null,
                 types: new[] { typeof(SendMessageCommand) },
                 modifiers: null);
 
-            Assert.IsNotNull(method, "HandleExternalTx(SendMessageCommand) must exist as a private instance method.");
-            Assert.AreEqual(typeof(long), method.ReturnType, "HandleExternalTx must return long.");
+            Assert.IsNotNull(method, "HandleExternalTransaction(SendMessageCommand) must exist as a private instance method.");
+            Assert.AreEqual(typeof(long), method.ReturnType, "HandleExternalTransaction must return long.");
         }
 
         [TestMethod]
@@ -67,14 +67,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             var content = File.ReadAllText(sourcePath);
             StringAssert.Contains(content, "commandSend.ExternalTransaction != null",
                 "Handle() must contain the early-branch null-check on ExternalTransaction.");
-            StringAssert.Contains(content, "return HandleExternalTx(commandSend);",
-                "Handle() must dispatch to HandleExternalTx on the early branch.");
-            StringAssert.Contains(content, "private long HandleExternalTx",
-                "HandleExternalTx must be declared private long.");
+            StringAssert.Contains(content, "return HandleExternalTransaction(commandSend);",
+                "Handle() must dispatch to HandleExternalTransaction on the early branch.");
+            StringAssert.Contains(content, "private long HandleExternalTransaction",
+                "HandleExternalTransaction must be declared private long.");
         }
 
         [TestMethod]
-        public void HandleExternalTx_DoesNotCommitOrRollbackOrCloseOrDispose()
+        public void HandleExternalTransaction_DoesNotCommitOrRollbackOrCloseOrDispose()
         {
             // Source-level grep guard for the lifecycle-ownership contract from PROJECT.md
             // §Success Criteria #7. The fork must NEVER call Commit/Rollback/Close/Dispose
@@ -88,10 +88,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             sourcePath = Path.GetFullPath(sourcePath);
 
             var content = File.ReadAllText(sourcePath);
-            // Extract the body of HandleExternalTx by anchoring on its signature and the
+            // Extract the body of HandleExternalTransaction by anchoring on its signature and the
             // closing-brace of the method (the next "        }" at column 8 after its body).
-            var forkStart = content.IndexOf("private long HandleExternalTx", System.StringComparison.Ordinal);
-            Assert.IsTrue(forkStart >= 0, "HandleExternalTx not found in source.");
+            var forkStart = content.IndexOf("private long HandleExternalTransaction", System.StringComparison.Ordinal);
+            Assert.IsTrue(forkStart >= 0, "HandleExternalTransaction not found in source.");
             // Conservative end-bound: search 6000 chars forward (the fork is ~80 lines, plenty).
             var forkBody = content.Substring(forkStart, System.Math.Min(6000, content.Length - forkStart));
 
@@ -112,13 +112,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             }
             var forkCode = codeOnly.ToString();
 
-            Assert.IsFalse(forkCode.Contains(".Commit()"),    "HandleExternalTx must not call .Commit() on the caller's transaction.");
-            Assert.IsFalse(forkCode.Contains(".Rollback()"),  "HandleExternalTx must not call .Rollback() on the caller's transaction.");
-            // Close and Dispose are looked for as method invocations on conn/tx — broad enough
-            // to catch sqlConn.Close(), sqlTx.Dispose(), etc. False-positives unlikely because
+            Assert.IsFalse(forkCode.Contains(".Commit()"),    "HandleExternalTransaction must not call .Commit() on the caller's transaction.");
+            Assert.IsFalse(forkCode.Contains(".Rollback()"),  "HandleExternalTransaction must not call .Rollback() on the caller's transaction.");
+            // Close and Dispose are looked for as method invocations on conn/transaction — broad enough
+            // to catch sqlConn.Close(), sqlTransaction.Dispose(), etc. False-positives unlikely because
             // the fork body has no other Close/Dispose surface.
-            Assert.IsFalse(forkCode.Contains(".Close()"),     "HandleExternalTx must not call .Close() on the caller's connection.");
-            Assert.IsFalse(forkCode.Contains(".Dispose()"),   "HandleExternalTx must not call .Dispose() on the caller's connection or transaction.");
+            Assert.IsFalse(forkCode.Contains(".Close()"),     "HandleExternalTransaction must not call .Close() on the caller's connection.");
+            Assert.IsFalse(forkCode.Contains(".Dispose()"),   "HandleExternalTransaction must not call .Dispose() on the caller's connection or transaction.");
         }
     }
 }

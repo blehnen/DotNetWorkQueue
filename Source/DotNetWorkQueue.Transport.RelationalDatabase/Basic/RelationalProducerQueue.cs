@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
     /// <summary>
     /// Relational-transport variant of <see cref="ProducerQueue{T}"/> exposing
     /// caller-supplied-transaction <c>Send</c>/<c>SendAsync</c> overloads. The four
-    /// tx-aware virtual methods throw <see cref="InvalidOperationException"/> by default;
+    /// transaction-aware virtual methods throw <see cref="InvalidOperationException"/> by default;
     /// SqlServer and PostgreSQL producers (Phases 3 and 4) override them to invoke the
     /// per-transport <c>SendMessageCommandHandler</c> directly with the caller's
     /// transaction in scope.
@@ -91,7 +91,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         // --- 4 hooks (Phase 3/4 override these) ---
 
         /// <summary>
-        /// Synchronous single-message caller-tx send. Phase 3 (SqlServer) and Phase 4
+        /// Synchronous single-message caller-transaction send. Phase 3 (SqlServer) and Phase 4
         /// (PostgreSQL) override this to enlist the queue INSERTs on the caller's
         /// transaction. Default implementation throws.
         /// </summary>
@@ -125,7 +125,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         }
 
         /// <summary>
-        /// Synchronous batch caller-tx send.
+        /// Synchronous batch caller-transaction send.
         /// </summary>
         /// <param name="messages">The batch of messages.</param>
         /// <param name="transaction">Caller-supplied transaction.</param>
@@ -139,7 +139,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         }
 
         /// <summary>
-        /// Async batch caller-tx send.
+        /// Async batch caller-transaction send.
         /// </summary>
         /// <param name="messages">The batch of messages.</param>
         /// <param name="transaction">Caller-supplied transaction.</param>

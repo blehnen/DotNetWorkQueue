@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
     {
         private const string QueueDb = "MyQueueDb";
 
-        private static (ExternalTransactionValidator sut, DbTransaction tx, DbConnection conn)
+        private static (ExternalTransactionValidator sut, DbTransaction transaction, DbConnection conn)
             BuildSut(string actualDbFromExtractor = QueueDb,
                      ConnectionState connState = ConnectionState.Open,
                      bool nullConnectionOnTx = false)
@@ -43,12 +43,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             var conn = Substitute.For<DbConnection>();
             conn.State.Returns(connState);
 
-            var tx = Substitute.For<DbTransaction>();
+            var transaction = Substitute.For<DbTransaction>();
             // DbTransaction.Connection getter — NSubstitute on abstract base
-            tx.Connection.Returns(nullConnectionOnTx ? null : conn);
+            transaction.Connection.Returns(nullConnectionOnTx ? null : conn);
 
             var sut = new ExternalTransactionValidator(extractor, connInfo);
-            return (sut, tx, conn);
+            return (sut, transaction, conn);
         }
 
         [TestMethod]
@@ -61,24 +61,24 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
         [TestMethod]
         public void Validate_WhenConnectionIsNull_ThrowsInvalidOperationException()
         {
-            var (sut, tx, _) = BuildSut(nullConnectionOnTx: true);
-            var ex = Assert.ThrowsExactly<InvalidOperationException>(() => sut.Validate(tx));
+            var (sut, transaction, _) = BuildSut(nullConnectionOnTx: true);
+            var ex = Assert.ThrowsExactly<InvalidOperationException>(() => sut.Validate(transaction));
             StringAssert.Contains(ex.Message, "null Connection");
         }
 
         [TestMethod]
         public void Validate_WhenConnectionNotOpen_ThrowsInvalidOperationException()
         {
-            var (sut, tx, _) = BuildSut(connState: ConnectionState.Closed);
-            var ex = Assert.ThrowsExactly<InvalidOperationException>(() => sut.Validate(tx));
+            var (sut, transaction, _) = BuildSut(connState: ConnectionState.Closed);
+            var ex = Assert.ThrowsExactly<InvalidOperationException>(() => sut.Validate(transaction));
             StringAssert.Contains(ex.Message, "Closed");
         }
 
         [TestMethod]
         public void Validate_WhenDatabaseNameMismatch_ThrowsInvalidOperationExceptionWithBothNames()
         {
-            var (sut, tx, _) = BuildSut(actualDbFromExtractor: "WrongDb");
-            var ex = Assert.ThrowsExactly<InvalidOperationException>(() => sut.Validate(tx));
+            var (sut, transaction, _) = BuildSut(actualDbFromExtractor: "WrongDb");
+            var ex = Assert.ThrowsExactly<InvalidOperationException>(() => sut.Validate(transaction));
             // Diagnostics requirement (PROJECT.md §Non-Functional Diagnostics):
             StringAssert.Contains(ex.Message, "WrongDb");
             StringAssert.Contains(ex.Message, QueueDb);
@@ -87,8 +87,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
         [TestMethod]
         public void Validate_WhenAllChecksPass_DoesNotThrow()
         {
-            var (sut, tx, _) = BuildSut();
-            sut.Validate(tx); // must not throw
+            var (sut, transaction, _) = BuildSut();
+            sut.Validate(transaction); // must not throw
         }
     }
 }

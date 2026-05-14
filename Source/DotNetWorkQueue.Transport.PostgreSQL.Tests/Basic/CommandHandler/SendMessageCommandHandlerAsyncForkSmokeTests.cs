@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
 {
     /// <summary>
-    /// Structural smoke tests for the PostgreSQL async handler's HandleExternalTxAsync fork.
+    /// Structural smoke tests for the PostgreSQL async handler's HandleExternalTransactionAsync fork.
     /// Per RESEARCH §5 + CLAUDE.md sync-vs-async mocking lesson, direct execution tests
     /// are infeasible at the unit-test level and live in Phase 6 integration tests
     /// against a real PostgreSQL instance.
@@ -34,18 +34,18 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
     public class SendMessageCommandHandlerAsyncForkSmokeTests
     {
         [TestMethod]
-        public void HandleExternalTxAsync_PrivateMethod_ExistsWithExpectedSignature()
+        public void HandleExternalTransactionAsync_PrivateMethod_ExistsWithExpectedSignature()
         {
             var handlerType = typeof(DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler.SendMessageCommandHandlerAsync);
 
-            var method = handlerType.GetMethod("HandleExternalTxAsync",
+            var method = handlerType.GetMethod("HandleExternalTransactionAsync",
                 BindingFlags.Instance | BindingFlags.NonPublic,
                 binder: null,
                 types: new[] { typeof(SendMessageCommand) },
                 modifiers: null);
 
-            Assert.IsNotNull(method, "HandleExternalTxAsync(SendMessageCommand) must exist as a private instance method.");
-            Assert.AreEqual(typeof(Task<long>), method.ReturnType, "HandleExternalTxAsync must return Task<long>.");
+            Assert.IsNotNull(method, "HandleExternalTransactionAsync(SendMessageCommand) must exist as a private instance method.");
+            Assert.AreEqual(typeof(Task<long>), method.ReturnType, "HandleExternalTransactionAsync must return Task<long>.");
         }
 
         [TestMethod]
@@ -63,16 +63,16 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
             var content = File.ReadAllText(sourcePath);
             StringAssert.Contains(content, "commandSend.ExternalTransaction != null",
                 "HandleAsync() must contain the early-branch null-check on ExternalTransaction.");
-            StringAssert.Contains(content, "HandleExternalTxAsync(commandSend)",
-                "HandleAsync() must dispatch to HandleExternalTxAsync on the early branch.");
-            StringAssert.Contains(content, "private async Task<long> HandleExternalTxAsync",
-                "HandleExternalTxAsync must be declared private async Task<long>.");
-            StringAssert.Contains(content, "await HandleExternalTxAsync(commandSend).ConfigureAwait(false)",
+            StringAssert.Contains(content, "HandleExternalTransactionAsync(commandSend)",
+                "HandleAsync() must dispatch to HandleExternalTransactionAsync on the early branch.");
+            StringAssert.Contains(content, "private async Task<long> HandleExternalTransactionAsync",
+                "HandleExternalTransactionAsync must be declared private async Task<long>.");
+            StringAssert.Contains(content, "await HandleExternalTransactionAsync(commandSend).ConfigureAwait(false)",
                 "The early-branch must await with ConfigureAwait(false) consistent with the handler's await style.");
         }
 
         [TestMethod]
-        public void HandleExternalTxAsync_DoesNotCommitOrRollbackOrCloseOrDispose()
+        public void HandleExternalTransactionAsync_DoesNotCommitOrRollbackOrCloseOrDispose()
         {
             // CONTEXT-4 Rule B mandates the lifecycle comment uses word forms
             // ("no Commit, Rollback, Close, or Dispose") so plain substring search
@@ -86,21 +86,21 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
             sourcePath = Path.GetFullPath(sourcePath);
 
             var content = File.ReadAllText(sourcePath);
-            var forkStart = content.IndexOf("private async Task<long> HandleExternalTxAsync",
+            var forkStart = content.IndexOf("private async Task<long> HandleExternalTransactionAsync",
                 System.StringComparison.Ordinal);
-            Assert.IsTrue(forkStart >= 0, "HandleExternalTxAsync not found in source.");
+            Assert.IsTrue(forkStart >= 0, "HandleExternalTransactionAsync not found in source.");
             // Conservative end-bound: 6500 chars forward (fork is ~85 lines, plenty).
             var forkBody = content.Substring(forkStart, System.Math.Min(6500, content.Length - forkStart));
 
-            Assert.IsFalse(forkBody.Contains(".Commit()"),   "HandleExternalTxAsync must not call .Commit() on the caller's transaction.");
-            Assert.IsFalse(forkBody.Contains(".Rollback()"), "HandleExternalTxAsync must not call .Rollback() on the caller's transaction.");
-            Assert.IsFalse(forkBody.Contains(".Close()"),    "HandleExternalTxAsync must not call .Close() on the caller's connection.");
-            Assert.IsFalse(forkBody.Contains(".Dispose()"),  "HandleExternalTxAsync must not call .Dispose() on the caller's connection or transaction.");
+            Assert.IsFalse(forkBody.Contains(".Commit()"),   "HandleExternalTransactionAsync must not call .Commit() on the caller's transaction.");
+            Assert.IsFalse(forkBody.Contains(".Rollback()"), "HandleExternalTransactionAsync must not call .Rollback() on the caller's transaction.");
+            Assert.IsFalse(forkBody.Contains(".Close()"),    "HandleExternalTransactionAsync must not call .Close() on the caller's connection.");
+            Assert.IsFalse(forkBody.Contains(".Dispose()"),  "HandleExternalTransactionAsync must not call .Dispose() on the caller's connection or transaction.");
             // Async-specific lifecycle calls:
-            Assert.IsFalse(forkBody.Contains(".CommitAsync"),   "HandleExternalTxAsync must not call .CommitAsync on the caller's transaction.");
-            Assert.IsFalse(forkBody.Contains(".RollbackAsync"), "HandleExternalTxAsync must not call .RollbackAsync on the caller's transaction.");
-            Assert.IsFalse(forkBody.Contains(".CloseAsync"),    "HandleExternalTxAsync must not call .CloseAsync on the caller's connection.");
-            Assert.IsFalse(forkBody.Contains(".DisposeAsync"),  "HandleExternalTxAsync must not call .DisposeAsync on the caller's connection or transaction.");
+            Assert.IsFalse(forkBody.Contains(".CommitAsync"),   "HandleExternalTransactionAsync must not call .CommitAsync on the caller's transaction.");
+            Assert.IsFalse(forkBody.Contains(".RollbackAsync"), "HandleExternalTransactionAsync must not call .RollbackAsync on the caller's transaction.");
+            Assert.IsFalse(forkBody.Contains(".CloseAsync"),    "HandleExternalTransactionAsync must not call .CloseAsync on the caller's connection.");
+            Assert.IsFalse(forkBody.Contains(".DisposeAsync"),  "HandleExternalTransactionAsync must not call .DisposeAsync on the caller's connection or transaction.");
         }
     }
 }

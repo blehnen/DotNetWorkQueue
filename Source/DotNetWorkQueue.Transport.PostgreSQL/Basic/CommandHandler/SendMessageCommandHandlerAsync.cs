@@ -106,7 +106,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             }
 
             if (commandSend.ExternalTransaction != null)
-                return await HandleExternalTxAsync(commandSend).ConfigureAwait(false);
+                return await HandleExternalTransactionAsync(commandSend).ConfigureAwait(false);
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
             var scheduledTime = DateTimeOffset.MinValue;
@@ -201,11 +201,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         /// <returns>The newly-inserted message ID.</returns>
         /// <exception cref="DotNetWorkQueueException">Thrown when the INSERT returns a zero
         /// ID or when the job-uniqueness query rejects the command.</exception>
-        private async Task<long> HandleExternalTxAsync(SendMessageCommand commandSend)
+        private async Task<long> HandleExternalTransactionAsync(SendMessageCommand commandSend)
         {
             // Producer subclass already validated and confirmed NpgsqlTransaction; raw cast OK.
-            var npgsqlTx = (NpgsqlTransaction)commandSend.ExternalTransaction;
-            var npgsqlConn = (NpgsqlConnection)npgsqlTx.Connection;
+            var npgsqlTransaction = (NpgsqlTransaction)commandSend.ExternalTransaction;
+            var npgsqlConn = (NpgsqlConnection)npgsqlTransaction.Connection;
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
             var scheduledTime = DateTimeOffset.MinValue;
@@ -217,11 +217,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             }
 
             // Job-uniqueness query is sync on this transport (no async overload exists; the
-            // existing self-managed-tx async path also calls .Handle() synchronously — see
+            // existing self-managed-transaction async path also calls .Handle() synchronously — see
             // SendMessageCommandHandlerAsync.cs line ~122 in the pre-Phase-4 baseline).
             if (!(string.IsNullOrWhiteSpace(jobName) ||
                   _jobExistsHandler.Handle(new DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>(
-                      jobName, scheduledTime, npgsqlConn, npgsqlTx)) == QueueStatuses.NotQueued))
+                      jobName, scheduledTime, npgsqlConn, npgsqlTransaction)) == QueueStatuses.NotQueued))
             {
                 throw new DotNetWorkQueueException(
                     "Failed to insert record - the job has already been queued or processed");
@@ -230,7 +230,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             long id;
             using (var command = npgsqlConn.CreateCommand())
             {
-                command.Transaction = npgsqlTx;
+                command.Transaction = npgsqlTransaction;
                 command.CommandText = _commandCache.GetCommand(CommandStringTypes.InsertMessageBody);
                 var serialization = _serializer.Serializer.MessageToBytes(
                     new MessageBody { Body = commandSend.MessageToSend.Body },
@@ -265,19 +265,19 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             // eighth argument. IGetTime.GetCurrentUtcDate() is synchronous — invoke directly,
             // no await needed.
             await CreateMetaDataRecordAsync(commandSend.MessageData.GetDelay(), expiration,
-                npgsqlConn, id, commandSend.MessageToSend, commandSend.MessageData, npgsqlTx,
+                npgsqlConn, id, commandSend.MessageToSend, commandSend.MessageData, npgsqlTransaction,
                 _getTime.GetCurrentUtcDate()).ConfigureAwait(false);
 
             if (_options.Value.EnableStatusTable)
             {
                 await CreateStatusRecordAsync(npgsqlConn, id, commandSend.MessageToSend,
-                    commandSend.MessageData, npgsqlTx).ConfigureAwait(false);
+                    commandSend.MessageData, npgsqlTransaction).ConfigureAwait(false);
             }
 
             if (!string.IsNullOrWhiteSpace(jobName))
             {
                 _sendJobStatus.Handle(new SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction>(
-                    jobName, eventTime, scheduledTime, npgsqlConn, npgsqlTx));
+                    jobName, eventTime, scheduledTime, npgsqlConn, npgsqlTransaction));
             }
 
             // Caller owns lifecycle: no Commit, Rollback, Close, or Dispose performed here.

@@ -106,7 +106,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             }
 
             if (commandSend.ExternalTransaction != null)
-                return HandleExternalTx(commandSend);
+                return HandleExternalTransaction(commandSend);
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
             var scheduledTime = DateTimeOffset.MinValue;
@@ -199,13 +199,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <exception cref="DotNetWorkQueueException">Thrown when the INSERT returns a zero ID
         /// or when the job-uniqueness query rejects the command.</exception>
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
-        private long HandleExternalTx(SendMessageCommand commandSend)
+        private long HandleExternalTransaction(SendMessageCommand commandSend)
         {
             // Cast guard: the producer subclass enforces this via GuardSqlTransaction, but
             // re-cast here without a check — an invalid type would have failed at the producer
             // surface with a clean diagnostic message before reaching this method.
-            var sqlTx = (SqlTransaction)commandSend.ExternalTransaction;
-            var sqlConn = (SqlConnection)sqlTx.Connection;
+            var sqlTransaction = (SqlTransaction)commandSend.ExternalTransaction;
+            var sqlConn = (SqlConnection)sqlTransaction.Connection;
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
             var scheduledTime = DateTimeOffset.MinValue;
@@ -218,7 +218,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 
             if (!(string.IsNullOrWhiteSpace(jobName) ||
                   _jobExistsHandler.Handle(new DoesJobExistQuery<SqlConnection, SqlTransaction>(
-                      jobName, scheduledTime, sqlConn, sqlTx)) == QueueStatuses.NotQueued))
+                      jobName, scheduledTime, sqlConn, sqlTransaction)) == QueueStatuses.NotQueued))
             {
                 throw new DotNetWorkQueueException(
                     "Failed to insert record - the job has already been queued or processed");
@@ -228,7 +228,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             using (var command = sqlConn.CreateCommand())
             {
                 command.Connection = sqlConn;
-                command.Transaction = sqlTx;
+                command.Transaction = sqlTransaction;
                 command.CommandText = _commandCache.GetCommand(CommandStringTypes.InsertMessageBody);
                 var serialization = _serializer.Serializer.MessageToBytes(
                     new MessageBody { Body = commandSend.MessageToSend.Body },
@@ -260,17 +260,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             }
 
             CreateMetaDataRecord(commandSend.MessageData.GetDelay(), expiration, sqlConn, id,
-                commandSend.MessageToSend, commandSend.MessageData, sqlTx);
+                commandSend.MessageToSend, commandSend.MessageData, sqlTransaction);
 
             if (_options.Value.EnableStatusTable)
             {
-                CreateStatusRecord(sqlConn, id, commandSend.MessageToSend, commandSend.MessageData, sqlTx);
+                CreateStatusRecord(sqlConn, id, commandSend.MessageToSend, commandSend.MessageData, sqlTransaction);
             }
 
             if (!string.IsNullOrWhiteSpace(jobName))
             {
                 _sendJobStatus.Handle(new SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>(
-                    jobName, eventTime, scheduledTime, sqlConn, sqlTx));
+                    jobName, eventTime, scheduledTime, sqlConn, sqlTransaction));
             }
 
             // Deliberately NO trans.Commit() / Rollback() / Dispose() / sqlConn.Close().

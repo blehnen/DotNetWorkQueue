@@ -104,7 +104,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             }
 
             if (commandSend.ExternalTransaction != null)
-                return HandleExternalTx(commandSend);
+                return HandleExternalTransaction(commandSend);
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
             var scheduledTime = DateTimeOffset.MinValue;
@@ -198,13 +198,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         /// <exception cref="DotNetWorkQueueException">Thrown when the INSERT returns a zero ID
         /// or when the job-uniqueness query rejects the command.</exception>
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
-        private long HandleExternalTx(SendMessageCommand commandSend)
+        private long HandleExternalTransaction(SendMessageCommand commandSend)
         {
             // Cast guard: the producer subclass enforces this via GuardNpgsqlTransaction;
             // an invalid type would have failed at the producer surface with a clean
             // diagnostic message before reaching this method.
-            var npgsqlTx = (NpgsqlTransaction)commandSend.ExternalTransaction;
-            var npgsqlConn = (NpgsqlConnection)npgsqlTx.Connection;
+            var npgsqlTransaction = (NpgsqlTransaction)commandSend.ExternalTransaction;
+            var npgsqlConn = (NpgsqlConnection)npgsqlTransaction.Connection;
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
             var scheduledTime = DateTimeOffset.MinValue;
@@ -217,7 +217,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 
             if (!(string.IsNullOrWhiteSpace(jobName) ||
                   _jobExistsHandler.Handle(new DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>(
-                      jobName, scheduledTime, npgsqlConn, npgsqlTx)) == QueueStatuses.NotQueued))
+                      jobName, scheduledTime, npgsqlConn, npgsqlTransaction)) == QueueStatuses.NotQueued))
             {
                 throw new DotNetWorkQueueException(
                     "Failed to insert record - the job has already been queued or processed");
@@ -226,7 +226,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             long id;
             using (var command = npgsqlConn.CreateCommand())
             {
-                command.Transaction = npgsqlTx;
+                command.Transaction = npgsqlTransaction;
                 command.CommandText = _commandCache.GetCommand(CommandStringTypes.InsertMessageBody);
                 var serialization = _serializer.Serializer.MessageToBytes(
                     new MessageBody { Body = commandSend.MessageToSend.Body },
@@ -259,20 +259,20 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 
             // PG-specific: CreateMetaDataRecord takes a DateTime currentTime as the eighth
             // argument (see SendMessage.BuildMetaCommand). Materialize once via the injected
-            // IGetTime so the metadata row matches the self-managed-tx path's clock semantics.
+            // IGetTime so the metadata row matches the self-managed-transaction path's clock semantics.
             CreateMetaDataRecord(commandSend.MessageData.GetDelay(), expiration, npgsqlConn, id,
-                commandSend.MessageToSend, commandSend.MessageData, npgsqlTx,
+                commandSend.MessageToSend, commandSend.MessageData, npgsqlTransaction,
                 _getTime.GetCurrentUtcDate());
 
             if (_options.Value.EnableStatusTable)
             {
-                CreateStatusRecord(npgsqlConn, id, commandSend.MessageToSend, commandSend.MessageData, npgsqlTx);
+                CreateStatusRecord(npgsqlConn, id, commandSend.MessageToSend, commandSend.MessageData, npgsqlTransaction);
             }
 
             if (!string.IsNullOrWhiteSpace(jobName))
             {
                 _sendJobStatus.Handle(new SetJobLastKnownEventCommand<NpgsqlConnection, NpgsqlTransaction>(
-                    jobName, eventTime, scheduledTime, npgsqlConn, npgsqlTx));
+                    jobName, eventTime, scheduledTime, npgsqlConn, npgsqlTransaction));
             }
 
             // Caller owns lifecycle: no Commit, Rollback, Close, or Dispose performed here.

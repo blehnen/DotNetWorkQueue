@@ -60,8 +60,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// Initializes a new instance of the <see cref="PostgreSqlRelationalProducerQueue{TMessage}"/> class.
         /// </summary>
         /// <param name="configuration">Producer configuration.</param>
-        /// <param name="sendMessages">Send-messages orchestrator (used by the inherited non-tx path).</param>
-        /// <param name="messageFactory">Message factory for the base class (non-tx path).</param>
+        /// <param name="sendMessages">Send-messages orchestrator (used by the inherited non-transaction path).</param>
+        /// <param name="messageFactory">Message factory for the base class (non-transaction path).</param>
         /// <param name="log">Logger.</param>
         /// <param name="generateMessageHeaders">Standard header generator.</param>
         /// <param name="addStandardMessageHeaders">Standard header populator.</param>
@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <param name="validator">External-transaction validator (runs at the API boundary).</param>
         /// <param name="sentMessageFactory">Factory for the <see cref="ISentMessage"/> returned to callers.</param>
         /// <param name="ownMessageFactory">Same <see cref="IMessageFactory"/> instance retained for the
-        /// caller-tx path; re-injected because the base type seals its own copy as private.</param>
+        /// caller-transaction path; re-injected because the base type seals its own copy as private.</param>
         public PostgreSqlRelationalProducerQueue(
             QueueProducerConfiguration configuration,
             ISendMessages sendMessages,
@@ -171,20 +171,20 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
         // ----- private dispatch helpers -----
 
-        private IQueueOutputMessage SendOne(TMessage message, IAdditionalMessageData data, DbTransaction tx)
+        private IQueueOutputMessage SendOne(TMessage message, IAdditionalMessageData data, DbTransaction transaction)
         {
             var additionalHeaders = _generateMessageHeaders.HeaderSetup(data);
             var imsg = _messageFactory.Create(message, additionalHeaders);
-            var cmd = new RelationalSendMessageCommand(imsg, data, tx);
+            var cmd = new RelationalSendMessageCommand(imsg, data, transaction);
             var id = _sendHandler.Handle(cmd);
             return new QueueOutputMessage(_sentMessageFactory.Create(new MessageQueueId<long>(id), data.CorrelationId));
         }
 
-        private async Task<IQueueOutputMessage> SendOneAsync(TMessage message, IAdditionalMessageData data, DbTransaction tx)
+        private async Task<IQueueOutputMessage> SendOneAsync(TMessage message, IAdditionalMessageData data, DbTransaction transaction)
         {
             var additionalHeaders = _generateMessageHeaders.HeaderSetup(data);
             var imsg = _messageFactory.Create(message, additionalHeaders);
-            var cmd = new RelationalSendMessageCommand(imsg, data, tx);
+            var cmd = new RelationalSendMessageCommand(imsg, data, transaction);
             var id = await _sendHandlerAsync.HandleAsync(cmd).ConfigureAwait(false);
             return new QueueOutputMessage(_sentMessageFactory.Create(new MessageQueueId<long>(id), data.CorrelationId));
         }

@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             }
 
             if (commandSend.ExternalTransaction != null)
-                return await HandleExternalTxAsync(commandSend).ConfigureAwait(false);
+                return await HandleExternalTransactionAsync(commandSend).ConfigureAwait(false);
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
             var scheduledTime = DateTimeOffset.MinValue;
@@ -200,11 +200,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <returns>The newly-inserted message ID.</returns>
         /// <exception cref="DotNetWorkQueueException">Thrown when the INSERT returns a zero
         /// ID or when the job-uniqueness query rejects the command.</exception>
-        private async Task<long> HandleExternalTxAsync(SendMessageCommand commandSend)
+        private async Task<long> HandleExternalTransactionAsync(SendMessageCommand commandSend)
         {
             // Producer subclass already validated and confirmed SqlTransaction; raw cast OK.
-            var sqlTx = (SqlTransaction)commandSend.ExternalTransaction;
-            var sqlConn = (SqlConnection)sqlTx.Connection;
+            var sqlTransaction = (SqlTransaction)commandSend.ExternalTransaction;
+            var sqlConn = (SqlConnection)sqlTransaction.Connection;
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
             var scheduledTime = DateTimeOffset.MinValue;
@@ -216,11 +216,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             }
 
             // Job-uniqueness query is sync on this transport (no async overload exists; the
-            // existing self-managed-tx async path also calls .Handle() synchronously — see
+            // existing self-managed-transaction async path also calls .Handle() synchronously — see
             // SendMessageCommandHandlerAsync.cs:121 in the pre-Phase-3 baseline).
             if (!(string.IsNullOrWhiteSpace(jobName) ||
                   _jobExistsHandler.Handle(new DoesJobExistQuery<SqlConnection, SqlTransaction>(
-                      jobName, scheduledTime, sqlConn, sqlTx)) == QueueStatuses.NotQueued))
+                      jobName, scheduledTime, sqlConn, sqlTransaction)) == QueueStatuses.NotQueued))
             {
                 throw new DotNetWorkQueueException(
                     "Failed to insert record - the job has already been queued or processed");
@@ -230,7 +230,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             using (var command = sqlConn.CreateCommand())
             {
                 command.Connection = sqlConn;
-                command.Transaction = sqlTx;
+                command.Transaction = sqlTransaction;
                 command.CommandText = _commandCache.GetCommand(CommandStringTypes.InsertMessageBody);
                 var serialization = _serializer.Serializer.MessageToBytes(
                     new MessageBody { Body = commandSend.MessageToSend.Body },
@@ -262,18 +262,18 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             }
 
             await CreateMetaDataRecordAsync(commandSend.MessageData.GetDelay(), expiration, sqlConn, id,
-                commandSend.MessageToSend, commandSend.MessageData, sqlTx).ConfigureAwait(false);
+                commandSend.MessageToSend, commandSend.MessageData, sqlTransaction).ConfigureAwait(false);
 
             if (_options.Value.EnableStatusTable)
             {
                 await CreateStatusRecordAsync(sqlConn, id, commandSend.MessageToSend,
-                    commandSend.MessageData, sqlTx).ConfigureAwait(false);
+                    commandSend.MessageData, sqlTransaction).ConfigureAwait(false);
             }
 
             if (!string.IsNullOrWhiteSpace(jobName))
             {
                 _sendJobStatus.Handle(new SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>(
-                    jobName, eventTime, scheduledTime, sqlConn, sqlTx));
+                    jobName, eventTime, scheduledTime, sqlConn, sqlTransaction));
             }
 
             // Caller owns lifecycle: no Commit, Rollback, Close, or Dispose performed here.

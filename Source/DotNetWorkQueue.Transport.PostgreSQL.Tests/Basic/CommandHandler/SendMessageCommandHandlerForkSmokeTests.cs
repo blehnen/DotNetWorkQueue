@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
 {
     /// <summary>
-    /// Structural smoke tests for the PostgreSQL sync handler's HandleExternalTx fork.
+    /// Structural smoke tests for the PostgreSQL sync handler's HandleExternalTransaction fork.
     /// Per RESEARCH §5 + CLAUDE.md sync-vs-async mocking lesson, direct execution tests
     /// of the fork are infeasible at the unit-test level (sealed NpgsqlConnection /
     /// NpgsqlTransaction / NpgsqlCommand types) and live in Phase 6 integration tests
@@ -35,29 +35,29 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
     public class SendMessageCommandHandlerForkSmokeTests
     {
         /// <summary>
-        /// Verifies that <c>HandleExternalTx(SendMessageCommand)</c> exists as a private
+        /// Verifies that <c>HandleExternalTransaction(SendMessageCommand)</c> exists as a private
         /// instance method on the PostgreSQL <c>SendMessageCommandHandler</c> with return
         /// type <see cref="long"/>.
         /// </summary>
         [TestMethod]
-        public void HandleExternalTx_PrivateMethod_ExistsWithExpectedSignature()
+        public void HandleExternalTransaction_PrivateMethod_ExistsWithExpectedSignature()
         {
             var handlerType = typeof(DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler.SendMessageCommandHandler);
 
-            var method = handlerType.GetMethod("HandleExternalTx",
+            var method = handlerType.GetMethod("HandleExternalTransaction",
                 BindingFlags.Instance | BindingFlags.NonPublic,
                 binder: null,
                 types: new[] { typeof(SendMessageCommand) },
                 modifiers: null);
 
-            Assert.IsNotNull(method, "HandleExternalTx(SendMessageCommand) must exist as a private instance method.");
-            Assert.AreEqual(typeof(long), method.ReturnType, "HandleExternalTx must return long.");
+            Assert.IsNotNull(method, "HandleExternalTransaction(SendMessageCommand) must exist as a private instance method.");
+            Assert.AreEqual(typeof(long), method.ReturnType, "HandleExternalTransaction must return long.");
         }
 
         /// <summary>
         /// Verifies that <c>Handle()</c> contains the early-branch dispatch to
-        /// <c>HandleExternalTx</c> when <c>ExternalTransaction</c> is non-null, and that
-        /// the private <c>HandleExternalTx</c> method is declared with the expected
+        /// <c>HandleExternalTransaction</c> when <c>ExternalTransaction</c> is non-null, and that
+        /// the private <c>HandleExternalTransaction</c> method is declared with the expected
         /// signature in the source file.
         /// </summary>
         [TestMethod]
@@ -78,10 +78,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
             var content = File.ReadAllText(sourcePath);
             StringAssert.Contains(content, "commandSend.ExternalTransaction != null",
                 "Handle() must contain the early-branch null-check on ExternalTransaction.");
-            StringAssert.Contains(content, "return HandleExternalTx(commandSend);",
-                "Handle() must dispatch to HandleExternalTx on the early branch.");
-            StringAssert.Contains(content, "private long HandleExternalTx",
-                "HandleExternalTx must be declared private long.");
+            StringAssert.Contains(content, "return HandleExternalTransaction(commandSend);",
+                "Handle() must dispatch to HandleExternalTransaction on the early branch.");
+            StringAssert.Contains(content, "private long HandleExternalTransaction",
+                "HandleExternalTransaction must be declared private long.");
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
         /// on the caller's transaction or connection.
         /// </summary>
         [TestMethod]
-        public void HandleExternalTx_DoesNotCommitOrRollbackOrCloseOrDispose()
+        public void HandleExternalTransaction_DoesNotCommitOrRollbackOrCloseOrDispose()
         {
             // CONTEXT-4 Rule B mandates the lifecycle comment uses word forms
             // ("no Commit, Rollback, Close, or Dispose") so plain substring search is
@@ -104,17 +104,17 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
             sourcePath = Path.GetFullPath(sourcePath);
 
             var content = File.ReadAllText(sourcePath);
-            // Extract the body of HandleExternalTx by anchoring on its signature.
+            // Extract the body of HandleExternalTransaction by anchoring on its signature.
             // Conservative end-bound: 6000 chars forward (fork is ~80 lines, plenty).
-            var forkStart = content.IndexOf("private long HandleExternalTx",
+            var forkStart = content.IndexOf("private long HandleExternalTransaction",
                 System.StringComparison.Ordinal);
-            Assert.IsTrue(forkStart >= 0, "HandleExternalTx not found in source.");
+            Assert.IsTrue(forkStart >= 0, "HandleExternalTransaction not found in source.");
             var forkBody = content.Substring(forkStart, System.Math.Min(6000, content.Length - forkStart));
 
-            Assert.IsFalse(forkBody.Contains(".Commit()"), "HandleExternalTx must not call .Commit() on the caller's transaction.");
-            Assert.IsFalse(forkBody.Contains(".Rollback()"), "HandleExternalTx must not call .Rollback() on the caller's transaction.");
-            Assert.IsFalse(forkBody.Contains(".Close()"), "HandleExternalTx must not call .Close() on the caller's connection.");
-            Assert.IsFalse(forkBody.Contains(".Dispose()"), "HandleExternalTx must not call .Dispose() on the caller's connection or transaction.");
+            Assert.IsFalse(forkBody.Contains(".Commit()"), "HandleExternalTransaction must not call .Commit() on the caller's transaction.");
+            Assert.IsFalse(forkBody.Contains(".Rollback()"), "HandleExternalTransaction must not call .Rollback() on the caller's transaction.");
+            Assert.IsFalse(forkBody.Contains(".Close()"), "HandleExternalTransaction must not call .Close() on the caller's connection.");
+            Assert.IsFalse(forkBody.Contains(".Dispose()"), "HandleExternalTransaction must not call .Dispose() on the caller's connection or transaction.");
         }
     }
 }

@@ -42,8 +42,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Decorator
         {
             var msg = Substitute.For<IMessage>();
             var data = new AdditionalMessageData();
-            var tx = Substitute.For<DbTransaction>();
-            return new RelationalSendMessageCommand(msg, data, tx);
+            var transaction = Substitute.For<DbTransaction>();
+            return new RelationalSendMessageCommand(msg, data, transaction);
         }
 
         [TestMethod]

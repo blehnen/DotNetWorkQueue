@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
     /// </summary>
     /// <typeparam name="TMessage">The message type.</typeparam>
     /// <remarks>
-    /// On the tx-aware path the producer never commits, rolls back, or disposes the
+    /// On the transaction-aware path the producer never commits, rolls back, or disposes the
     /// caller's transaction or its connection. The retry decorator is bypassed (the
     /// caller owns retry policy). See <c>docs/outbox-pattern.md</c> for the full
     /// lifecycle contract (Phase 7).

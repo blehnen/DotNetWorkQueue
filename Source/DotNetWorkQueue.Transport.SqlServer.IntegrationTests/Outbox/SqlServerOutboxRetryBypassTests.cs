@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
 {
     /// <summary>
-    /// Integration test proving the SqlServer outbox caller-tx Send path does NOT
+    /// Integration test proving the SqlServer outbox caller-transaction Send path does NOT
     /// retry on failure. The IRetrySkippable marker on RelationalSendMessageCommand
     /// (Phase 3) tells the RetryCommandHandlerOutputDecorator to short-circuit the
     /// Polly retry chain so the caller's external transaction sees the failure
@@ -43,14 +43,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
             using var queue = CreateQueue(qc);
             using var producer = CreateRelationalProducer(qc);
 
-            // Committed-tx technique (RESEARCH §4): open a connection, begin a tx,
+            // Committed-transaction technique (RESEARCH §4): open a connection, begin a transaction,
             // and immediately commit it. The transaction is now in a completed state;
-            // SqlClient nulls tx.Connection after Commit() (validator check 2 trips),
-            // so the next Send against this tx must throw on the very first attempt.
+            // SqlClient nulls transaction.Connection after Commit() (validator check 2 trips),
+            // so the next Send against this transaction must throw on the very first attempt.
             using var conn = new SqlConnection(ConnectionInfo.ConnectionString);
             conn.Open();
-            var tx = conn.BeginTransaction();
-            tx.Commit();
+            var transaction = conn.BeginTransaction();
+            transaction.Commit();
 
             var msg = GenerateMessage.Create<FakeMessage>();
 
@@ -58,8 +58,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
             Exception caught = null;
             try
             {
-                producer.RelationalProducer.Send(msg, tx);
-                Assert.Fail("Expected an exception from the caller-tx Send on a completed tx.");
+                producer.RelationalProducer.Send(msg, transaction);
+                Assert.Fail("Expected an exception from the caller-transaction Send on a completed transaction.");
             }
             catch (Exception ex)
             {
@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
             }
             sw.Stop();
 
-            Assert.IsNotNull(caught, "Caller-tx Send must throw on completed tx.");
+            Assert.IsNotNull(caught, "Caller-transaction Send must throw on completed transaction.");
 
             // Single-attempt assertion: a 3x retry chain with Polly back-off would take
             // seconds. The bypass means the throw is essentially immediate. The 2000ms
@@ -76,13 +76,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
             // timing assertion -- it is the only integration-level pin against the
             // "retry decorator silently regressed" failure mode.
             Assert.IsTrue(sw.ElapsedMilliseconds < 2000,
-                $"Caller-tx Send took {sw.ElapsedMilliseconds}ms -- expected < 2000ms " +
+                $"Caller-transaction Send took {sw.ElapsedMilliseconds}ms -- expected < 2000ms " +
                 "for single-attempt failure (3x retry chain would exceed this).");
 
             // Belt-and-suspenders: no row landed in the queue MetaData table.
             AssertQueueRowCount(qc, 0);
 
-            try { tx.Dispose(); } catch { /* ignore */ }
+            try { transaction.Dispose(); } catch { /* ignore */ }
         }
     }
 }

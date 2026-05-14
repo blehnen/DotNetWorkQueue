@@ -28,7 +28,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
 {
     /// <summary>
-    /// Integration test proving <see cref="AdditionalMessageData"/> survives the caller-tx
+    /// Integration test proving <see cref="AdditionalMessageData"/> survives the caller-transaction
     /// Send path. Verification uses a direct SQL query against the queue's MetaData table
     /// (same pattern as <see cref="DotNetWorkQueue.Transport.SqlServer.IntegrationTests.VerifyQueueData.VerifyPriority"/>)
     /// rather than a live consumer dequeue, avoiding consumer lifecycle complexity.
@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
     ///      by <c>sendResult.SentMessage.CorrelationId.Id.Value</c>. The correlation ID is
     ///      auto-assigned by <c>GenerateMessageHeaders.HeaderSetup</c> when not pre-set,
     ///      and the persisted value must equal what the producer returned to the caller.
-    ///   3. The send result contains no error (confirming the caller-tx path succeeded).
+    ///   3. The send result contains no error (confirming the caller-transaction path succeeded).
     /// </summary>
     [TestClass]
     public class SqlServerOutboxAdditionalDataTests : SqlServerOutboxIntegrationTestBase
@@ -61,11 +61,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
             IQueueOutputMessage sendResult;
             using var conn = new SqlConnection(ConnectionInfo.ConnectionString);
             conn.Open();
-            using (var tx = conn.BeginTransaction())
+            using (var transaction = conn.BeginTransaction())
             {
-                sendResult = producer.RelationalProducer.Send(msg, data, tx);
+                sendResult = producer.RelationalProducer.Send(msg, data, transaction);
                 Assert.IsFalse(sendResult.HasError, sendResult.SendingException?.ToString());
-                tx.Commit();
+                transaction.Commit();
             }
 
             // Sanity: exactly one metadata row was committed.

@@ -120,10 +120,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
             cmd.ExecuteNonQuery();
         }
 
-        protected static void InsertBusinessRow(SqlConnection conn, SqlTransaction tx, string tableName, int id, string val)
+        protected static void InsertBusinessRow(SqlConnection conn, SqlTransaction transaction, string tableName, int id, string val)
         {
             using var cmd = conn.CreateCommand();
-            cmd.Transaction = tx;
+            cmd.Transaction = transaction;
             cmd.CommandText = $"INSERT INTO dbo.{tableName} (Id, Val) VALUES (@id, @val)";
             cmd.Parameters.AddWithValue("@id", id);
             cmd.Parameters.AddWithValue("@val", val);

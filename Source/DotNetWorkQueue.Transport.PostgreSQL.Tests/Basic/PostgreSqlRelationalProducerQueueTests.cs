@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
 
         // Helper: build a non-NpgsqlTransaction DbTransaction for guard/validator tests.
         // The DbConnection.State=Open and Database=QueueDb so the validator passes.
-        private static DbTransaction BuildNonPgTx(ConnectionState state = ConnectionState.Open)
+        private static DbTransaction BuildNonNpgsqlTransaction(ConnectionState state = ConnectionState.Open)
         {
             // NpgsqlConnection is sealed — we cannot substitute it. The validator path
             // is exercised with a mocked DbConnection (validator works against the base type),
@@ -108,9 +108,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var conn = Substitute.For<DbConnection>();
             conn.State.Returns(state);
             conn.Database.Returns(QueueDb);
-            var tx = Substitute.For<DbTransaction>();
-            tx.Connection.Returns(conn);
-            return tx;
+            var transaction = Substitute.For<DbTransaction>();
+            transaction.Connection.Returns(conn);
+            return transaction;
         }
 
         // ----- Tests -----
@@ -128,9 +128,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
         {
             // Validator passes (configured to match QueueDb), then the cast guard fires.
             var sut = BuildSut();
-            var tx = BuildNonPgTx();
+            var transaction = BuildNonNpgsqlTransaction();
             var ex = Assert.ThrowsExactly<InvalidOperationException>(
-                () => sut.Send(new TestMessage(), tx));
+                () => sut.Send(new TestMessage(), transaction));
             StringAssert.Contains(ex.Message, "NpgsqlTransaction");
         }
 
@@ -148,9 +148,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var validator = new ExternalTransactionValidator(extractor, connInfo);
 
             var sut = BuildSut(validator: validator);
-            var tx = BuildNonPgTx();
+            var transaction = BuildNonNpgsqlTransaction();
             var ex = Assert.ThrowsExactly<InvalidOperationException>(
-                () => sut.Send(new TestMessage(), tx));
+                () => sut.Send(new TestMessage(), transaction));
             // Both names appear in the diagnostic. The validator fires BEFORE the cast guard,
             // so the message must NOT mention NpgsqlTransaction.
             StringAssert.Contains(ex.Message, "MyDb");
@@ -192,7 +192,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var validator = new ExternalTransactionValidator(extractor, connInfo);
 
             var sut = BuildSut(validator: validator);
-            var tx = BuildNonPgTx();
+            var transaction = BuildNonNpgsqlTransaction();
             var msgs = new List<QueueMessage<TestMessage, IAdditionalMessageData>>
             {
                 new QueueMessage<TestMessage, IAdditionalMessageData>(new TestMessage(), null),
@@ -201,7 +201,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             };
 
             // Cast guard throws for the non-NpgsqlTransaction; validator already fired once.
-            try { sut.Send(msgs, tx); } catch (InvalidOperationException) { /* expected */ }
+            try { sut.Send(msgs, transaction); } catch (InvalidOperationException) { /* expected */ }
             extractor.Received(1).Extract(Arg.Any<DbConnection>());
         }
 

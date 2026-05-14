@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command
     /// optional caller-supplied <see cref="DbTransaction"/> and signals (via
     /// <see cref="IRetrySkippable"/>) that the retry decorator should bypass its Polly
     /// pipeline on this command. Constructed by <c>RelationalProducerQueue&lt;TMessage&gt;</c>
-    /// when one of the tx-aware <c>Send</c>/<c>SendAsync</c> overloads is invoked.
+    /// when one of the transaction-aware <c>Send</c>/<c>SendAsync</c> overloads is invoked.
     /// </summary>
     public class RelationalSendMessageCommand : SendMessageCommand, IRetrySkippable
     {

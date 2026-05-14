@@ -47,13 +47,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
                 CreateBusinessTable(conn, businessTable);
                 using var producer = CreateRelationalProducer(qc);
 
-                await using (var tx = (SqlTransaction)await conn.BeginTransactionAsync())
+                await using (var transaction = (SqlTransaction)await conn.BeginTransactionAsync())
                 {
                     var msg = GenerateMessage.Create<FakeMessage>();
-                    var result = await producer.RelationalProducer.SendAsync(msg, tx);
+                    var result = await producer.RelationalProducer.SendAsync(msg, transaction);
                     Assert.IsFalse(result.HasError, result.SendingException?.ToString());
-                    InsertBusinessRow(conn, tx, businessTable, 1, "first");
-                    await tx.CommitAsync();
+                    InsertBusinessRow(conn, transaction, businessTable, 1, "first");
+                    await transaction.CommitAsync();
                 }
 
                 AssertQueueRowCount(qc, 1);
@@ -79,13 +79,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
                 CreateBusinessTable(conn, businessTable);
                 using var producer = CreateRelationalProducer(qc);
 
-                await using (var tx = (SqlTransaction)await conn.BeginTransactionAsync())
+                await using (var transaction = (SqlTransaction)await conn.BeginTransactionAsync())
                 {
                     var msg = GenerateMessage.Create<FakeMessage>();
-                    var result = await producer.RelationalProducer.SendAsync(msg, tx);
+                    var result = await producer.RelationalProducer.SendAsync(msg, transaction);
                     Assert.IsFalse(result.HasError, result.SendingException?.ToString());
-                    InsertBusinessRow(conn, tx, businessTable, 1, "first");
-                    await tx.RollbackAsync();
+                    InsertBusinessRow(conn, transaction, businessTable, 1, "first");
+                    await transaction.RollbackAsync();
                 }
 
                 AssertQueueRowCount(qc, 0);
@@ -112,14 +112,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
                 CreateBusinessTable(conn, businessTable);
                 using var producer = CreateRelationalProducer(qc);
 
-                await using (var tx = (SqlTransaction)await conn.BeginTransactionAsync())
+                await using (var transaction = (SqlTransaction)await conn.BeginTransactionAsync())
                 {
                     var batch = BuildBatch(batchSize);
-                    var result = await producer.RelationalProducer.SendAsync(batch, tx);
+                    var result = await producer.RelationalProducer.SendAsync(batch, transaction);
                     Assert.IsFalse(result.HasErrors, "batch async send reported errors");
                     for (var i = 0; i < batchSize; i++)
-                        InsertBusinessRow(conn, tx, businessTable, i, $"row{i}");
-                    await tx.CommitAsync();
+                        InsertBusinessRow(conn, transaction, businessTable, i, $"row{i}");
+                    await transaction.CommitAsync();
                 }
 
                 AssertQueueRowCount(qc, batchSize);
@@ -146,14 +146,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
                 CreateBusinessTable(conn, businessTable);
                 using var producer = CreateRelationalProducer(qc);
 
-                await using (var tx = (SqlTransaction)await conn.BeginTransactionAsync())
+                await using (var transaction = (SqlTransaction)await conn.BeginTransactionAsync())
                 {
                     var batch = BuildBatch(batchSize);
-                    var result = await producer.RelationalProducer.SendAsync(batch, tx);
+                    var result = await producer.RelationalProducer.SendAsync(batch, transaction);
                     Assert.IsFalse(result.HasErrors, "batch async send reported errors");
                     for (var i = 0; i < batchSize; i++)
-                        InsertBusinessRow(conn, tx, businessTable, i, $"row{i}");
-                    await tx.RollbackAsync();
+                        InsertBusinessRow(conn, transaction, businessTable, i, $"row{i}");
+                    await transaction.RollbackAsync();
                 }
 
                 AssertQueueRowCount(qc, 0);
