@@ -61,6 +61,18 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             var init = new RelationalDatabaseMessageQueueInit<long, Guid>();
             init.RegisterStandardImplementations(container, Assembly.GetAssembly(GetType()));
 
+            // Phase 4: outbox-pattern producer wiring (PostgreSQL side)
+            container.Register<IExternalDbNameExtractor, PostgreSqlExternalDbNameExtractor>(LifeStyles.Singleton);
+            container.Register<ExternalTransactionValidator>(LifeStyles.Singleton);
+            // RegisterConditional preempts the open-generic IProducerQueue<> fallback in
+            // ComponentRegistration.RegisterFallbacks (also conditional) and preserves
+            // SimpleInjector's lazy-verification semantics for these open generics — plain
+            // Register triggers eager verification that surfaces pre-existing repo-wide
+            // diagnostic warnings on transient IDisposable types.
+            container.RegisterConditional(typeof(IProducerQueue<>), typeof(PostgreSqlRelationalProducerQueue<>), LifeStyles.Singleton);
+            container.RegisterConditional(typeof(IRelationalProducerQueue<>), typeof(PostgreSqlRelationalProducerQueue<>), LifeStyles.Singleton);
+            container.RegisterConditional(typeof(RelationalProducerQueue<>), typeof(PostgreSqlRelationalProducerQueue<>), LifeStyles.Singleton);
+
             //**all
             container.Register<IDbConnectionFactory, DbConnectionFactory>(LifeStyles.Singleton);
             container.Register<PostgreSqlMessageQueueSchema>(LifeStyles.Singleton);
