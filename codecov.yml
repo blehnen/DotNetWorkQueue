@@ -29,3 +29,15 @@ ignore:
   - "Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/**"
   - "Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/**"
   - "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/**"
+
+coverage:
+  status:
+    project:
+      default:
+        # Allow a 2% drift before failing the project status check.
+        target: auto
+        threshold: 2%
+    patch:
+      default:
+        target: auto
+        threshold: 2%
