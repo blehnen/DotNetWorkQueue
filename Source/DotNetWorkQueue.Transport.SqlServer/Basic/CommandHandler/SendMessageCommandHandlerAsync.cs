@@ -276,7 +276,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                     jobName, eventTime, scheduledTime, sqlConn, sqlTx));
             }
 
-            // Deliberately NO trans.Commit() / Rollback() / Dispose() / sqlConn.Close().
+            // Caller owns lifecycle: no Commit, Rollback, Close, or Dispose performed here.
             return id;
         }
 
