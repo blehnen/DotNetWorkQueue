@@ -34,8 +34,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
     /// <remarks>
     /// On the transaction-aware path the producer never commits, rolls back, or disposes the
     /// caller's transaction or its connection. The retry decorator is bypassed (the
-    /// caller owns retry policy). See <c>docs/outbox-pattern.md</c> for the full
-    /// lifecycle contract (Phase 7).
+    /// caller owns retry policy). See
+    /// <see href="https://github.com/blehnen/DotNetWorkQueue/blob/master/docs/outbox-pattern.md">docs/outbox-pattern.md</see>
+    /// for the full lifecycle contract.
     /// </remarks>
     public interface IRelationalProducerQueue<TMessage> : IProducerQueue<TMessage>
         where TMessage : class
