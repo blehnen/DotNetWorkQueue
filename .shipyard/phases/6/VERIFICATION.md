@@ -259,3 +259,51 @@ ISSUE-033/-034/-035 in `.shipyard/ISSUES.md` are Phase 3/4 fork-smoke-test minor
 - `/mnt/f/git/dotnetworkqueue/.shipyard/PROJECT.md` (Success Criteria section, lines 95-108)
 - `/mnt/f/git/dotnetworkqueue/CLAUDE.md` (project conventions)
 - `/mnt/f/git/dotnetworkqueue/.shipyard/ISSUES.md` (no Phase 6-related open issues)
+
+---
+
+# Phase 6 Build Verification (Addendum)
+
+**Date:** 2026-05-15
+**Type:** build-verification (Step after build complete)
+**Build commits:** b2359928 → ae7bfb66 on `feature/outbox-pattern`
+**Jenkins evidence:** PR-138 build #3 on commit `ae7bfb66` — `continuous-integration/jenkins/pr-merge: SUCCESS`
+
+## Verdict: PASS
+
+All 4 plans built, reviewed, and runtime-validated by Jenkins.
+
+## §B1. Build Completion Matrix
+
+| Plan | Status | Tests | Commits | Review verdict |
+|---|---|---|---|---|
+| PLAN-1.1 (SqlServer method-matrix + base) | complete | 8 | b2359928, 994e1404, 409bd1de, 0b063ad2 | PASS (0/0/1) |
+| PLAN-1.2 (SqlServer validation/retry/AddlData) | complete | 4 | ecf3032c, 1475fc4a, 4030a970 | PASS (0/0/3) |
+| PLAN-2.1 (PG method-matrix + base) | complete | 8 | c64562a7, e35b8a06, 3c0b8017 | PASS (0/0/3) |
+| PLAN-2.2 (PG validation/retry/AddlData) | complete | 4 | 32730700, 9c59f9d4, 32d7902e | PASS (0/0/3) |
+| **Phase total** | **complete** | **24** | **10 test commits + 4 supporting** | **PASS** |
+
+## §B2. PROJECT.md §SC mapping — runtime evidence
+
+| §SC | Plan-verified | Jenkins-validated |
+|---|---|---|
+| #3 (capability cast) | PASS | PASS — `Assert.IsInstanceOfType(producer, typeof(IRelationalProducerQueue<FakeMessage>))` executed in both `CreateRelationalProducer` helpers on Jenkins SqlServer + PostgreSQL stages |
+| #4 (atomic commit) | PASS | PASS — 4 commit-path tests/transport (Send_Commit, SendBatch_Commit, SendAsync_Commit, SendBatchAsync_Commit) all green |
+| #5 (atomic rollback) | PASS | PASS — 4 rollback-path tests/transport all green |
+| #6 (cross-DB validation throws before write) | PASS | PASS — `Validation_CrossDatabaseMismatch_ThrowsBeforeInsert` on both transports green |
+| #8 (retry decorator bypass) | PASS | PASS — `RetryBypass_TransientError_SingleAttempt` on both transports green; wall-clock <2000ms confirmed by passing assert |
+| #11 (Jenkins green) | PASS | PASS — PR-138 build #3 on ae7bfb66 = SUCCESS on full 14-stage matrix |
+
+## §B3. Phase 3 incidental fix audit
+
+PLAN-1.1 surfaced a Phase 3 symmetry bug in `SqlServerExternalDbNameExtractor` during runtime testing (extractor uppercased `connection.Database` while `SqlConnectionInformation.Container` passed through the user-typed `InitialCatalog`, causing Ordinal compares to fail). Fixed in-flight via commit `994e1404` (extractor → pass-through, matching PG's Phase 4 approach). Phase 3 unit tests updated to assert pass-through. Both Phase 3 SqlServer.Tests and Phase 6 cross-DB integration test now pass on the same code path.
+
+## §B4. Findings carried forward
+
+- **Minor finding ISSUE candidate (cross-transport):** Task 3 simplification dropped priority assertion on both SqlServerOutboxAdditionalDataTests AND PostgreSqlOutboxAdditionalDataTests (symmetric reduction). Should be tracked in ISSUES.md for a future strengthening pass that adds priority round-trip to both files together. Non-blocking for Phase 6 ship gate.
+
+## §B5. Hand-off to remaining close-out steps
+
+- **AUDIT:** Phase 6 is test-only code (zero production-code changes besides the Phase 3 extractor fix in commit 994e1404). Auditor scope: confirm no secrets, no SQL injection in test SQL (DDL uses string interpolation with GUID-derived identifiers — safe), no insecure connection-string handling beyond the already-trimmed pattern.
+- **SIMPLIFY:** Expected HIGH symmetric duplication across the 6 new test files BY DESIGN (mirror tests across transports). Simplifier should validate the duplication is intentional and propose no consolidation that would couple the transports.
+- **DOCS:** Test-only phase. No public API doc changes. Documenter should produce a brief test-coverage map only.

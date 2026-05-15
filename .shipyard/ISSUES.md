@@ -295,3 +295,36 @@
 - **Impact:** The strictest "release-publishing" build path (`-c Release -p:CI=true`) cannot complete cleanly until OpenTelemetry releases a patched version of `OpenTelemetry.Api` (1.15.2 → 1.15.3+) OR the SQLite csproj's NU1902 escalation is overridden (`<NoWarn>$(NoWarn);NU1902</NoWarn>` or similar). Debug builds and per-project Release builds remain clean. Phase 2 unit-test suites (RelationalDatabase, SqlServer, PostgreSQL) all pass; Phase 2 has zero functional regression. Real NuGet release (publish.yml) currently relies on the GHA workflow's gating against Jenkins; the local pre-publish dry-run is the failing surface.
 - **Remediation:** Either (1) bump `OpenTelemetry.*` package versions in `Source/Directory.Packages.props` to whichever line patches `GHSA-g94r-2vxg-569j` (likely OpenTelemetry 1.16+ when GA), or (2) add a `<NoWarn>$(NoWarn);NU1902</NoWarn>` (or selective `<WarningsNotAsErrors>NU1902</WarningsNotAsErrors>`) to `Transport.SQLite.csproj` if option 1 is blocked by .NET 8 compatibility. Out of scope for Phase 2 (no Phase 2 work touched OpenTelemetry); recommend bundling with a future dependency-refresh milestone.
 - **Status:** Open. Tracking; no Phase 2 build/test impact.
+
+### ISSUE-036: `Tx` abbreviation drift across outbox feature — rename to `Transaction`
+- **Severity:** Important (consistency / readability)
+- **Source:** User review of PR #138 during Phase 6 Wave 1 build (2026-05-14)
+- **Files:** ~10 source files across `Transport.RelationalDatabase`, `Transport.SqlServer/Basic/`, `Transport.PostgreSQL/Basic/`, and the matching test projects + fork smoke tests that pin private method names via reflection
+- **Description:** The outbox feature drifted to using `Tx` as an abbreviation for "transaction" in **internal** symbols across all phases. The public API surface correctly uses `Transaction` fully spelled (`IRelationalProducerQueue<T>.Send(msg, DbTransaction transaction)`, `protected virtual SendWithExternalTransaction*`), but internal symbols use `Tx`: private methods (`HandleExternalTx`, `HandleExternalTxAsync` — 4 occurrences across SqlServer + PostgreSQL sync/async handlers), local variables (`sqlTx`, `pgTx`, `tx`), and comments. 91 total `Tx`-token occurrences across the new outbox files.
+- **Remediation:** Rename all `Tx` → `Transaction` (fully spelled per user decision):
+  - `HandleExternalTx` → `HandleExternalTransaction` (4 source files + 4 smoke test reflection strings)
+  - `HandleExternalTxAsync` → `HandleExternalTransactionAsync` (analogous)
+  - Local vars: `sqlTx` → `sqlTransaction`, `pgTx` → `npgsqlTransaction`, `tx` → `transaction`
+  - Update XML doc + inline comments referring to "tx"
+  - Update CONTEXT-4 lifecycle-invariant comment if it uses "tx" abbreviation
+  - Re-run all unit + integration tests after rename — smoke tests pinning the private method names via reflection MUST be updated to match
+- **Status:** Resolved 2026-05-14 — commit `9858f04f` on `feature/outbox-pattern`. 24 files, 232 insertions/232 deletions (symmetric token rename). All 4 unit test suites pass (RelationalDatabase 221/221, SqlServer 156/156, PostgreSQL 143/143). All 12 SqlServer Outbox integration tests pass live SqlServer. ROADMAP follow-up: Wave 2 PG plans should use `Transaction` (not `Tx`) from the start.
+
+### ISSUE-037: Outbox AdditionalMessageData tests — symmetric coverage gap (priority round-trip not asserted)
+- **Severity:** Minor (cross-transport symmetric coverage reduction)
+- **Source:** REVIEW-1.2 Minor #1 + REVIEW-2.2 Minor #1 (Phase 6 Wave 1/2 close-out, 2026-05-15)
+- **Files:** `Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/Outbox/SqlServerOutboxAdditionalDataTests.cs`, `Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/Outbox/PostgreSqlOutboxAdditionalDataTests.cs`
+- **Description:** PLAN-1.2 + PLAN-2.2 Task 3 code shapes both called for `data.SetPriority(7)` + direct query of the `priority` column from the MetaData table. Builder simplified to correlation-ID round-trip only (auto-assigned `data.CorrelationId` via `GenerateMessageHeaders.HeaderSetup`, compare against persisted `CorrelationID`). The simplification is sound — the load-bearing `Send(msg, data, tx)` overload is still exercised — but a regression that caused the producer to ignore the caller-supplied `data` parameter would still pass both tests because correlation is auto-assigned on whatever `data` object the producer actually persists. The plan's priority assertion would have caught that specific regression because priority has no auto-assignment fallback. The simplification was applied symmetrically to BOTH transports, so the coverage gap exists on both sides.
+- **Remediation:** Add a single `data.SetPriority(7)` + `EnablePriority = true` queue option + direct SQL read of `priority` column from MetaData table to BOTH `*OutboxAdditionalDataTests` files. Keep the existing correlation-ID assertion. Bundle as one follow-up PR after Phase 6 ships, so both transports stay symmetric.
+- **Status:** Open — deferred to a future strengthening pass (post-Phase-7 ship). Non-blocking for Phase 6 ship gate.
+
+### ISSUE-038: PG Wave 2 plans authored pre-rename used `tx`; builder followed plan literally
+- **Severity:** Low (process)
+- **Source:** Simplifier flagged during Phase 6 close-out (2026-05-15)
+- **Files:** `Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/Outbox/{PostgreSqlOutboxIntegrationTestBase,PostgreSqlOutboxSendTests,PostgreSqlOutboxSendAsyncTests}.cs` (code fix landed in commit `ef848165`); `.shipyard/phases/6/plans/PLAN-2.1.md` + `.shipyard/phases/6/plans/PLAN-2.2.md` (historical artifacts, not changed)
+- **Description:** Commit `9858f04f` (ISSUE-036 resolution) renamed `Tx → Transaction` across the outbox feature. PLAN-2.1 + PLAN-2.2 code shapes were authored hours BEFORE the rename and still showed `tx` as the variable name. Builder followed the plan literally without cross-checking against the freshly-renamed SqlServer Wave 1 reference files. Both Wave 2 reviewer agents passed both plans without flagging the divergence.
+- **Remediation (code):** Resolved 2026-05-15 in commit `ef848165` — `tx` → `transaction` rename across 3 PG outbox files, 34 substitutions, build clean.
+- **Remediation (process — lessons-learned candidates):**
+  1. When a mid-build phase-wide rename lands, run a quick `grep` over outstanding plan files for the old token before kicking off subsequent waves.
+  2. Reviewer-agent priming: cross-check naming conventions against the most recent sibling implementation, not just the plan code shape.
+- **Status:** Resolved (code). Process lessons captured for `.shipyard/LESSONS.md` during ship.

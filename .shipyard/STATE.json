@@ -1,8 +1,8 @@
 {
   "schema": 3,
-  "phase": 6,
-  "position": "Phase 6 planned (4 plans, 12 tasks, 2 waves with base-class deps; verifier=PASS; critique=READY after dep fix)",
+  "phase": 7,
+  "position": "Phase 7 planned (4 plans, 8 tasks, 2 waves; verifier=PASS, critique=READY); ready for /shipyard:build 7",
   "status": "planned",
-  "updated_at": "2026-05-14T20:12:39Z",
+  "updated_at": "2026-05-15T16:30:00Z",
   "blocker": null
 }
