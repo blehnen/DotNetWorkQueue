@@ -104,6 +104,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 _messageExpirationEnabled = _options.Value.EnableMessageExpiration;
             }
 
+            if (commandSend.ExternalTransaction != null)
+                return await HandleExternalTransactionAsync(commandSend).ConfigureAwait(false);
+
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
             var scheduledTime = DateTimeOffset.MinValue;
             var eventTime = DateTimeOffset.MinValue;
@@ -181,6 +184,100 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                         "Failed to insert record - the job has already been queued or processed");
                 }
             }
+        }
+
+        /// <summary>
+        /// Async caller-supplied-transaction fork of <see cref="HandleAsync(SendMessageCommand)"/>.
+        /// Reuses the caller's <see cref="SqlTransaction"/> and its <see cref="SqlConnection"/>
+        /// for all queue INSERTs; never commits, rolls back, closes, or disposes the caller's
+        /// resources. Invoked from <see cref="HandleAsync"/> when
+        /// <see cref="SendMessageCommand.ExternalTransaction"/> is non-null. The producer
+        /// surface (<c>SqlServerRelationalProducerQueue&lt;T&gt;</c>) validates the
+        /// transaction at the API boundary, so this method performs no validation of its own.
+        /// </summary>
+        /// <param name="commandSend">The send-message command carrying a non-null
+        /// <see cref="SendMessageCommand.ExternalTransaction"/>.</param>
+        /// <returns>The newly-inserted message ID.</returns>
+        /// <exception cref="DotNetWorkQueueException">Thrown when the INSERT returns a zero
+        /// ID or when the job-uniqueness query rejects the command.</exception>
+        private async Task<long> HandleExternalTransactionAsync(SendMessageCommand commandSend)
+        {
+            // Producer subclass already validated and confirmed SqlTransaction; raw cast OK.
+            var sqlTransaction = (SqlTransaction)commandSend.ExternalTransaction;
+            var sqlConn = (SqlConnection)sqlTransaction.Connection;
+
+            var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
+            var scheduledTime = DateTimeOffset.MinValue;
+            var eventTime = DateTimeOffset.MinValue;
+            if (!string.IsNullOrWhiteSpace(jobName))
+            {
+                scheduledTime = _jobSchedulerMetaData.GetScheduledTime(commandSend.MessageData);
+                eventTime = _jobSchedulerMetaData.GetEventTime(commandSend.MessageData);
+            }
+
+            // Job-uniqueness query is sync on this transport (no async overload exists; the
+            // existing self-managed-transaction async path also calls .Handle() synchronously — see
+            // SendMessageCommandHandlerAsync.cs:121 in the pre-Phase-3 baseline).
+            if (!(string.IsNullOrWhiteSpace(jobName) ||
+                  _jobExistsHandler.Handle(new DoesJobExistQuery<SqlConnection, SqlTransaction>(
+                      jobName, scheduledTime, sqlConn, sqlTransaction)) == QueueStatuses.NotQueued))
+            {
+                throw new DotNetWorkQueueException(
+                    "Failed to insert record - the job has already been queued or processed");
+            }
+
+            long id;
+            using (var command = sqlConn.CreateCommand())
+            {
+                command.Connection = sqlConn;
+                command.Transaction = sqlTransaction;
+                command.CommandText = _commandCache.GetCommand(CommandStringTypes.InsertMessageBody);
+                var serialization = _serializer.Serializer.MessageToBytes(
+                    new MessageBody { Body = commandSend.MessageToSend.Body },
+                    commandSend.MessageToSend.Headers);
+
+                command.Parameters.Add("@body", SqlDbType.VarBinary, -1);
+                command.Parameters["@body"].Value = serialization.Output;
+
+                commandSend.MessageToSend.SetHeader(
+                    _headers.StandardHeaders.MessageInterceptorGraph, serialization.Graph);
+
+                command.Parameters.Add("@headers", SqlDbType.VarBinary, -1);
+                command.Parameters["@headers"].Value =
+                    _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers);
+
+                id = Convert.ToInt64(await command.ExecuteScalarAsync().ConfigureAwait(false));
+            }
+
+            if (id <= 0)
+            {
+                throw new DotNetWorkQueueException(
+                    "Failed to insert record - the ID of the new record returned by SQL server was 0");
+            }
+
+            var expiration = TimeSpan.Zero;
+            if (_messageExpirationEnabled.Value)
+            {
+                expiration = MessageExpiration.GetExpiration(commandSend, data => data.GetExpiration());
+            }
+
+            await CreateMetaDataRecordAsync(commandSend.MessageData.GetDelay(), expiration, sqlConn, id,
+                commandSend.MessageToSend, commandSend.MessageData, sqlTransaction).ConfigureAwait(false);
+
+            if (_options.Value.EnableStatusTable)
+            {
+                await CreateStatusRecordAsync(sqlConn, id, commandSend.MessageToSend,
+                    commandSend.MessageData, sqlTransaction).ConfigureAwait(false);
+            }
+
+            if (!string.IsNullOrWhiteSpace(jobName))
+            {
+                _sendJobStatus.Handle(new SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>(
+                    jobName, eventTime, scheduledTime, sqlConn, sqlTransaction));
+            }
+
+            // Caller owns lifecycle: no Commit, Rollback, Close, or Dispose performed here.
+            return id;
         }
 
         /// <summary>

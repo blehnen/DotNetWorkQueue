@@ -105,6 +105,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 _messageExpirationEnabled = _options.Value.EnableMessageExpiration;
             }
 
+            if (commandSend.ExternalTransaction != null)
+                return HandleExternalTransaction(commandSend);
+
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
             var scheduledTime = DateTimeOffset.MinValue;
             var eventTime = DateTimeOffset.MinValue;
@@ -178,6 +181,101 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                         "Failed to insert record - the job has already been queued or processed");
                 }
             }
+        }
+
+        /// <summary>
+        /// Caller-supplied-transaction fork of <see cref="Handle(SendMessageCommand)"/>. Reuses
+        /// the caller's <see cref="SqlTransaction"/> and its <see cref="SqlConnection"/> for all
+        /// queue INSERTs; never commits, rolls back, closes, or disposes the caller's resources.
+        /// Invoked from <see cref="Handle"/> when <see cref="SendMessageCommand.ExternalTransaction"/>
+        /// is non-null. The producer surface (<c>SqlServerRelationalProducerQueue&lt;T&gt;</c>)
+        /// guarantees the transaction is a <see cref="SqlTransaction"/> and its connection's
+        /// database matches the queue's configured database via the validator at the API boundary,
+        /// so this method performs no validation of its own.
+        /// </summary>
+        /// <param name="commandSend">The send-message command carrying a non-null
+        /// <see cref="SendMessageCommand.ExternalTransaction"/>.</param>
+        /// <returns>The newly-inserted message ID.</returns>
+        /// <exception cref="DotNetWorkQueueException">Thrown when the INSERT returns a zero ID
+        /// or when the job-uniqueness query rejects the command.</exception>
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        private long HandleExternalTransaction(SendMessageCommand commandSend)
+        {
+            // Cast guard: the producer subclass enforces this via GuardSqlTransaction, but
+            // re-cast here without a check — an invalid type would have failed at the producer
+            // surface with a clean diagnostic message before reaching this method.
+            var sqlTransaction = (SqlTransaction)commandSend.ExternalTransaction;
+            var sqlConn = (SqlConnection)sqlTransaction.Connection;
+
+            var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
+            var scheduledTime = DateTimeOffset.MinValue;
+            var eventTime = DateTimeOffset.MinValue;
+            if (!string.IsNullOrWhiteSpace(jobName))
+            {
+                scheduledTime = _jobSchedulerMetaData.GetScheduledTime(commandSend.MessageData);
+                eventTime = _jobSchedulerMetaData.GetEventTime(commandSend.MessageData);
+            }
+
+            if (!(string.IsNullOrWhiteSpace(jobName) ||
+                  _jobExistsHandler.Handle(new DoesJobExistQuery<SqlConnection, SqlTransaction>(
+                      jobName, scheduledTime, sqlConn, sqlTransaction)) == QueueStatuses.NotQueued))
+            {
+                throw new DotNetWorkQueueException(
+                    "Failed to insert record - the job has already been queued or processed");
+            }
+
+            long id;
+            using (var command = sqlConn.CreateCommand())
+            {
+                command.Connection = sqlConn;
+                command.Transaction = sqlTransaction;
+                command.CommandText = _commandCache.GetCommand(CommandStringTypes.InsertMessageBody);
+                var serialization = _serializer.Serializer.MessageToBytes(
+                    new MessageBody { Body = commandSend.MessageToSend.Body },
+                    commandSend.MessageToSend.Headers);
+
+                command.Parameters.Add("@body", SqlDbType.VarBinary, -1);
+                command.Parameters["@body"].Value = serialization.Output;
+
+                commandSend.MessageToSend.SetHeader(
+                    _headers.StandardHeaders.MessageInterceptorGraph, serialization.Graph);
+
+                command.Parameters.Add("@headers", SqlDbType.VarBinary, -1);
+                command.Parameters["@headers"].Value =
+                    _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers);
+
+                id = Convert.ToInt64(command.ExecuteScalar());
+            }
+
+            if (id <= 0)
+            {
+                throw new DotNetWorkQueueException(
+                    "Failed to insert record - the ID of the new record returned by SQL server was 0");
+            }
+
+            var expiration = TimeSpan.Zero;
+            if (_messageExpirationEnabled.Value)
+            {
+                expiration = MessageExpiration.GetExpiration(commandSend, data => data.GetExpiration());
+            }
+
+            CreateMetaDataRecord(commandSend.MessageData.GetDelay(), expiration, sqlConn, id,
+                commandSend.MessageToSend, commandSend.MessageData, sqlTransaction);
+
+            if (_options.Value.EnableStatusTable)
+            {
+                CreateStatusRecord(sqlConn, id, commandSend.MessageToSend, commandSend.MessageData, sqlTransaction);
+            }
+
+            if (!string.IsNullOrWhiteSpace(jobName))
+            {
+                _sendJobStatus.Handle(new SetJobLastKnownEventCommand<SqlConnection, SqlTransaction>(
+                    jobName, eventTime, scheduledTime, sqlConn, sqlTransaction));
+            }
+
+            // Deliberately NO trans.Commit() / Rollback() / Dispose() / sqlConn.Close().
+            // The caller owns the transaction lifecycle.
+            return id;
         }
 
         /// <summary>

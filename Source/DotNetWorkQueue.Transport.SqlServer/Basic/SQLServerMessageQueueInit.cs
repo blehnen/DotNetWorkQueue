@@ -60,6 +60,18 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             var init = new RelationalDatabaseMessageQueueInit<long, Guid>();
             init.RegisterStandardImplementations(container, Assembly.GetAssembly(GetType()));
 
+            // Phase 3: outbox-pattern producer wiring (SqlServer side)
+            container.Register<IExternalDbNameExtractor, SqlServerExternalDbNameExtractor>(LifeStyles.Singleton);
+            container.Register<ExternalTransactionValidator>(LifeStyles.Singleton);
+            // RegisterConditional preempts the open-generic IProducerQueue<> fallback in
+            // ComponentRegistration.RegisterFallbacks (also conditional) and preserves
+            // SimpleInjector's lazy-verification semantics for these open generics — plain
+            // Register triggers eager verification that surfaces pre-existing repo-wide
+            // diagnostic warnings on transient IDisposable types.
+            container.RegisterConditional(typeof(IProducerQueue<>), typeof(SqlServerRelationalProducerQueue<>), LifeStyles.Singleton);
+            container.RegisterConditional(typeof(IRelationalProducerQueue<>), typeof(SqlServerRelationalProducerQueue<>), LifeStyles.Singleton);
+            container.RegisterConditional(typeof(RelationalProducerQueue<>), typeof(SqlServerRelationalProducerQueue<>), LifeStyles.Singleton);
+
             //override so that we can use schema as needed
             container.Register<ITableNameHelper, SqlServerTableNameHelper>(LifeStyles.Singleton);
 

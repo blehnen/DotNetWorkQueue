@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using DotNetWorkQueue.Validation;
@@ -50,6 +51,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
         public async Task<TOutput> HandleAsync(TCommand command)
         {
             Guard.NotNull(() => command, command);
+
+            if (command is IRetrySkippable skippable && skippable.SkipRetry)
+                return await _decorated.HandleAsync(command).ConfigureAwait(false);
+
             ResiliencePipeline pipeline = null;
             try
             {

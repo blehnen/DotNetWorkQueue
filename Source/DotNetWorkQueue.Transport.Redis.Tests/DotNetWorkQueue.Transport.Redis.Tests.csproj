@@ -18,5 +18,6 @@
   <ItemGroup>
     <ProjectReference Include="..\DotNetWorkQueue.Transport.Redis\DotNetWorkQueue.Transport.Redis.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.RelationalDatabase\DotNetWorkQueue.Transport.RelationalDatabase.csproj" />
   </ItemGroup>
 </Project>
