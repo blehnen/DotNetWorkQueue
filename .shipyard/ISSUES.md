@@ -294,7 +294,7 @@
 - **Description:** `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release -p:CI=true --nologo` fails with `error NU1902: Warning As Error: Package 'OpenTelemetry.Api' 1.15.2 has a known moderate severity vulnerability` on `DotNetWorkQueue.Transport.SQLite.csproj` only. All other projects emit NU1902 as a warning. The escalation appears to come from `TreatWarningsAsErrors=true` interacting with the project-specific NU* warning behavior. **Phase 2 did not introduce this** — `git diff 99003720..HEAD Source/DotNetWorkQueue.Transport.SQLite/DotNetWorkQueue.Transport.SQLite.csproj` shows no changes, and the advisory `GHSA-g94r-2vxg-569j` predates Phase 1 completion.
 - **Impact:** The strictest "release-publishing" build path (`-c Release -p:CI=true`) cannot complete cleanly until OpenTelemetry releases a patched version of `OpenTelemetry.Api` (1.15.2 → 1.15.3+) OR the SQLite csproj's NU1902 escalation is overridden (`<NoWarn>$(NoWarn);NU1902</NoWarn>` or similar). Debug builds and per-project Release builds remain clean. Phase 2 unit-test suites (RelationalDatabase, SqlServer, PostgreSQL) all pass; Phase 2 has zero functional regression. Real NuGet release (publish.yml) currently relies on the GHA workflow's gating against Jenkins; the local pre-publish dry-run is the failing surface.
 - **Remediation:** Either (1) bump `OpenTelemetry.*` package versions in `Source/Directory.Packages.props` to whichever line patches `GHSA-g94r-2vxg-569j` (likely OpenTelemetry 1.16+ when GA), or (2) add a `<NoWarn>$(NoWarn);NU1902</NoWarn>` (or selective `<WarningsNotAsErrors>NU1902</WarningsNotAsErrors>`) to `Transport.SQLite.csproj` if option 1 is blocked by .NET 8 compatibility. Out of scope for Phase 2 (no Phase 2 work touched OpenTelemetry); recommend bundling with a future dependency-refresh milestone.
-- **Status:** Open. Tracking; no Phase 2 build/test impact.
+- **Status:** Resolved 2026-05-15 — Phase 7 PLAN-1.1, commit `88ff8996`. Added `<WarningsNotAsErrors>NU1902</WarningsNotAsErrors>` to all three Release PropertyGroup blocks (`Release|net10.0`, `Release|net8.0`, `Release|AnyCPU`) in `Transport.SQLite.csproj`. Advisory still surfaces as a warning everywhere; only the SQLite-specific Release escalation is neutralized. Long-term remediation (option 1: bump OpenTelemetry to patched version) remains preferable when the patched line is GA.
 
 ### ISSUE-036: `Tx` abbreviation drift across outbox feature — rename to `Transaction`
 - **Severity:** Important (consistency / readability)
@@ -328,3 +328,27 @@
   1. When a mid-build phase-wide rename lands, run a quick `grep` over outstanding plan files for the old token before kicking off subsequent waves.
   2. Reviewer-agent priming: cross-check naming conventions against the most recent sibling implementation, not just the plan code shape.
 - **Status:** Resolved (code). Process lessons captured for `.shipyard/LESSONS.md` during ship.
+
+### ISSUE-039: PROJECT.md describes outdated "OrdinalIgnoreCase vs Ordinal" DB-name comparison
+- **Severity:** Low (documentation drift)
+- **Source:** Phase 7 PLAN-1.2 builder surfaced the discrepancy while authoring `docs/outbox-pattern.md`; documenter DOCS.md §5 confirmed (PROJECT.md lines 76-77).
+- **Files:** `.shipyard/PROJECT.md` §Diagnostics / §Functional Implementation
+- **Description:** PROJECT.md still describes the original (pre-Phase-3-fix) asymmetric design where SqlServer used `OrdinalIgnoreCase` and PostgreSQL used `Ordinal` for the DB-name comparison in `ExternalTransactionValidator`. The Phase 3 extractor pass-through fix (commit `994e1404`) made both transports symmetric: both extractors emit verbatim DB names, and both validators use `StringComparer.Ordinal`. `docs/outbox-pattern.md` correctly reflects the implementation; PROJECT.md does not.
+- **Remediation:** Update PROJECT.md §Diagnostics / §Functional Implementation lines describing the comparator semantics to read "both transports use `StringComparer.Ordinal` (post-Phase-3 pass-through extractor design)." Cross-check the surrounding paragraphs for the same outdated framing.
+- **Status:** Open. Non-blocking for Phase 7 ship gate. Track for next PROJECT.md maintenance pass or bundle with documentation refresh.
+
+### ISSUE-040: `docs/outbox-pattern.md` has no `SendAsync` worked example
+- **Severity:** Low (deferred coverage gap)
+- **Source:** Phase 7 documenter DOCS.md §1 (deliverable adequacy review, 2026-05-15)
+- **Files:** `docs/outbox-pattern.md`
+- **Description:** Per CONTEXT-7 Decision 2 ("ONE worked example, SqlServer commit path canonical"), the tutorial uses synchronous `Send(msg, transaction)` only. `SendAsync` is mentioned in prose ("SendAsync overloads with the same signatures exist on `IRelationalProducerQueue<T>` for async callers; the sync form is shown here for clarity.") but no async worked code example is provided. Modern .NET callers may need explicit `await using`/`await transaction.CommitAsync()` patterns demonstrated. Same applies to the batch overloads (`Send(IEnumerable<>, transaction)`).
+- **Remediation:** Add a second smaller code block showing the async + batch variants. ~15-20 additional lines. Defer until early-user feedback indicates whether the prose forward-pointer suffices or a full async example is needed.
+- **Status:** Open. Non-blocking. Track for post-ship doc refresh once user feedback arrives.
+
+### ISSUE-041: `IRelationalProducerQueue<T>` XML doc link to outbox-pattern.md is plain-text, not hyperlinked
+- **Severity:** Low (XML doc polish)
+- **Source:** Phase 7 documenter DOCS.md §5 (2026-05-15)
+- **Files:** `Source/DotNetWorkQueue.Transport.RelationalDatabase/IRelationalProducerQueue.cs` (or wherever the interface XML doc lives)
+- **Description:** The XML doc comment on `IRelationalProducerQueue<T>` references `docs/outbox-pattern.md` as a `<c>docs/outbox-pattern.md</c>` plain-code path rather than a `<see href="https://github.com/blehnen/DotNetWorkQueue/blob/master/docs/outbox-pattern.md">` hyperlink. Plain-text path is functional (IDE intellisense and Sandcastle build both render it as a code snippet), but a hyperlinked variant resolves on docs.microsoft.com-style consumers.
+- **Remediation:** After PR-138 merges to `master`, the GitHub raw URL becomes stable. Upgrade the XML doc reference to `<see href="...">` style. Trivial 1-line edit per occurrence; cross-check whether other Phase 2-4 public types reference the doc.
+- **Status:** Open. Non-blocking. Wait for stable master URL post-merge; bundle with next docs touch-up.

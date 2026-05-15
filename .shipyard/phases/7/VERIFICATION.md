@@ -278,3 +278,51 @@ All four plans are structured correctly and ready for execution. Specific observ
 ---
 
 *Verification completed 2026-05-15 by Senior Verification Engineer*
+
+---
+
+# Phase 7 Build Verification (Addendum)
+
+**Date:** 2026-05-15
+**Type:** build-verification (after all waves complete)
+**Build commits:** `ba41fef0` → `9156ad25` on `feature/outbox-pattern`
+**Final commit (verification baseline):** `9156ad25`
+
+## Verdict: PASS
+
+All 4 plans built, all 4 reviewed PASS, ROADMAP §Phase 7 success criterion empirically met on full-solution Release build.
+
+## §B1. Build Completion Matrix
+
+| Plan | Status | Commits | Review verdict |
+|---|---|---|---|
+| PLAN-1.1 (csproj fixes + per-project verify) | complete | `ba41fef0`, `88ff8996` | PASS (0/1/1 — ISSUE-032 status bookkeeping caught + fixed) |
+| PLAN-1.2 (docs/outbox-pattern.md) | complete | `b6c967ae`, `9156ad25` (post-review fix) | PASS after fix (0/0/2 — `using` add + ` ```text ` tag + opportunistic `tx→transaction`) |
+| PLAN-1.3 (README outbox bullet) | complete | `af4fee60` | PASS (0/0/0 — zero defects) |
+| PLAN-2.1 (Release + Source Link verify) | complete | — (verification-only) | PASS (0/0/0) |
+
+## §B2. ROADMAP §Phase 7 success criteria — runtime evidence
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| `dotnet build -c Release -p:CI=true` of `DotNetWorkQueueNoTests.sln` produces no XML-doc warnings | **MET** | PLAN-2.1 Task 1: 0 errors, 0 CS1591, 53 NU1902 (non-fatal post-PLAN-1.1) |
+| Wiki draft reviewed and approved (manual gate) | **DEFERRED** | Per CONTEXT-7 Decision 1; manual post-ship task |
+| README points at the new page | **MET** | PLAN-1.3 commit `af4fee60`; PLAN-2.1 Task 3 verified link resolves |
+| Source Link works on Release build with `-p:CI=true` | **MET** | PLAN-2.1 Task 2 nuspec spot-check: `<repository ... commit="9156ad25..." />` present |
+| PROJECT.md §SC #10 satisfied | **MET** | Composite of above |
+
+## §B3. Mid-flight corrections audit
+
+- **ISSUE-032 (NU1902 SQLite escalation):** closed inline by PLAN-1.1 Task 2 / commit `88ff8996`. ISSUES.md status updated. The decision (option B "close inline" vs option A "scope to per-project") was correct — without the fix, the full-solution Release build would have failed and the ROADMAP success criterion would have been unverifiable.
+- **Transport.RelationalDatabase net8.0 doc gate:** RESEARCH §1 surfaced this gap (Release|net10.0 had `<DocumentationFile>`, Release|net8.0 didn't). PLAN-1.1 Task 1 closed it. Without this fix, the net8 multi-target build would silently not enforce XML-doc presence.
+- **Tutorial `using` regression in PLAN-1.2:** REVIEW-1.2 caught the missing `using DotNetWorkQueue.Configuration;` that would have broken copy-paste compilation. Fixed in commit `9156ad25`. This is the kind of review-stage catch that justifies the cost of the review gate.
+
+## §B4. Findings carried forward (ISSUE candidates)
+
+- **PROJECT.md §Diagnostics / §Functional Implementation may describe "OrdinalIgnoreCase vs Ordinal"** (outdated since Phase 3 pass-through fix `994e1404`). Both extractors now use `Ordinal` symmetrically. The new `docs/outbox-pattern.md` correctly reflects implementation; PROJECT.md needs a separate update. **Tracked as ISSUE-039 candidate** (see SUMMARY-1.2 + REVIEW-1.2).
+
+## §B5. Hand-off to remaining close-out steps
+
+- **AUDIT:** Phase 7 changes are 2 csproj edits (warning-policy tuning) + 1 new markdown file + 1 README line. Auditor scope: confirm no secrets in the doc tutorial code, no SQL injection patterns in the example, no insecure connection string handling.
+- **SIMPLIFY:** Cross-task duplication is minimal (PLAN-2.1 is verification-only; PLAN-1.2 is a single file; PLAN-1.3 is a single line). Expected verdict: LOW.
+- **DOCS:** Phase 7 IS the documentation phase — the documenter agent's scope is the post-phase documentation audit (e.g., does anything else in the repo need a pointer update? Did the doc cover all the surface area?), not authoring more docs.
