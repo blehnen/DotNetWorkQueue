@@ -352,3 +352,15 @@
 - **Description:** The XML doc comment on `IRelationalProducerQueue<T>` references `docs/outbox-pattern.md` as a `<c>docs/outbox-pattern.md</c>` plain-code path rather than a `<see href="https://github.com/blehnen/DotNetWorkQueue/blob/master/docs/outbox-pattern.md">` hyperlink. Plain-text path is functional (IDE intellisense and Sandcastle build both render it as a code snippet), but a hyperlinked variant resolves on docs.microsoft.com-style consumers.
 - **Remediation:** After PR-138 merges to `master`, the GitHub raw URL becomes stable. Upgrade the XML doc reference to `<see href="...">` style. Trivial 1-line edit per occurrence; cross-check whether other Phase 2-4 public types reference the doc.
 - **Status:** Open. Non-blocking. Wait for stable master URL post-merge; bundle with next docs touch-up.
+
+### ISSUE-042: `SendMessageCommand.ExternalTransaction` is `public init` — future transport author could bypass retry-decorator gate
+- **Severity:** Low (future-proofing / cross-phase coherence)
+- **Source:** Ship-time AUDIT-SHIP §4.2 (2026-05-15)
+- **Files:** `Source/DotNetWorkQueue.Transport.Shared/Basic/Command/SendMessageCommand.cs` (line ~70, the `ExternalTransaction` property declaration)
+- **Description:** `SendMessageCommand.ExternalTransaction` is declared `public { get; init; }`. The retry decorators check `if (command is IRetrySkippable skippable && skippable.SkipRetry)` to bypass the Polly pipeline on the caller-tx path. `IRetrySkippable` is implemented on `RelationalSendMessageCommand` (the SqlServer/PG subclass) — NOT on the base `SendMessageCommand`. A future transport author writing a custom `SendMessageCommand` subclass that sets `ExternalTransaction` via object initializer would enter the handler fork's caller-tx branch (`if (commandSend.ExternalTransaction != null)`) WITHOUT firing the retry bypass. The handler would execute under Polly's retry chain on the caller's transaction, potentially retrying the queue INSERT against a tx the caller did not intend to retry.
+- **Impact:** **No exploitable risk for the current two registered transports** (SqlServer, PostgreSQL — both go through `RelationalSendMessageCommand` correctly). Affects future transport authors only.
+- **Remediation:** Two options:
+  1. Narrow visibility to `internal { get; init; }` so only transport-package code can set it.
+  2. Move the property entirely to `RelationalSendMessageCommand` (would break the handler fork's `commandSend.ExternalTransaction != null` check without a cast — requires careful refactor).
+  Option 1 is simpler and aligns with the principle that the property is an internal implementation detail of the relational handler fork.
+- **Status:** Open. Future-proofing item; not a ship blocker. Track for next maintenance pass.

@@ -407,3 +407,32 @@
 
 ---
 
+
+## [2026-05-15] Milestone: Outbox Pattern Support for Relational Transports (PR #138)
+
+### What Went Well
+
+- **Phased delivery with explicit CI-gating between waves.** CONTEXT-6 Decision 4 ("Wave 1 → draft PR → Jenkins SqlServer green → Wave 2") caught the Phase 3 extractor symmetry bug before PG work started in Phase 6. Reusable pattern for future split-CI phases on this repo: gate cross-transport waves behind targeted Jenkins green signals rather than waiting for the full matrix at the end.
+- **Per-phase REVIEW agents catch real defects.** REVIEW-1.2 (Phase 7) found a missing `using DotNetWorkQueue.Configuration;` in the outbox tutorial that would have shipped as a broken copy-paste-able example. Without the review gate this would have surfaced as an early-user complaint. Worth the agent cost.
+- **Multi-stage gates (verifier + critique + per-plan reviewer) caught different classes of issues.** Verifier validated requirement coverage; critique validated file paths / API signatures match current code; reviewers validated implementation against plan. Each gate is cheap individually and they don't substitute for each other.
+
+### Surprises / Discoveries
+
+- **Plan code shapes can drift from reality between authoring and build.** Phase 6 PG Wave 2 plans were finalized hours before commit `9858f04f` did the `Tx → Transaction` rename. Builder followed plan literally → 34 `tx` references landed in PG outbox tests inconsistent with the just-renamed SqlServer files. Simplifier caught it during Phase 6 close-out; resolved in commit `ef848165`.
+- **Phase title can imply work that's already done.** ROADMAP Phase 7 said "XML doc comments on every public type/member added in phases 2-4." RESEARCH §1 surfaced that builders had already added docs as they went. The real Phase 7 work turned out to be CSPROJ GATE FIXES + a verification pass — much smaller than ROADMAP anticipated. Researcher's first job in each phase should be "validate the phase scope against current code state."
+- **Pre-existing csproj asymmetry hidden by per-phase scoping.** `Transport.RelationalDatabase.csproj` had `<DocumentationFile>` only on the `Release|net10.0` block — the `Release|net8.0` block was missing it. This had been true since the multi-target work but no phase before Phase 7 ran a full-solution Release build to expose the gap.
+
+### Pitfalls to Avoid
+
+- **When introducing a comparator, normalize BOTH sides of the comparison or NEITHER.** Phase 3 introduced `SqlServerExternalDbNameExtractor` with `.ToUpperInvariant()` on the extractor side. The validator on the other side compared with `StringComparer.Ordinal` against the verbatim `IConnectionInformation.Container`. False mismatches surfaced only when Phase 6 ran integration tests with a mixed-case catalog. The pattern: any new "compare these two strings" code MUST verify both upstream sources apply identical normalization (or both apply none). Fix landed in commit `994e1404` (pass-through on both sides).
+- **Mid-build phase-wide renames leave landmines in outstanding plan files.** ISSUE-036 (`Tx → Transaction`) landed during Phase 6 build. Plans 2.1 and 2.2 for the same phase were authored before the rename. The reviewer agent for PG Wave 2 didn't cross-check against the freshly-renamed SqlServer reference files — both reviewers passed both plans without flagging the `tx` divergence. **Pattern to adopt:** when a phase-wide rename lands mid-build, run `grep -nP "\bOldToken\b" .shipyard/phases/*/plans/*.md` and refresh outstanding plan files before kicking off subsequent waves.
+- **Don't preempt later phases' scope in earlier phase builders.** Phase 2-4 builders added XML doc comments as they went — Phase 7 plans had originally allocated time for that work and would have wasted hours re-authoring. Acknowledge what each phase's builders ACTUALLY do (e.g., "Phase 2-4 builders write XML docs as they go") in ROADMAP so later phase scoping is accurate.
+
+### Process Improvements
+
+- **RESEARCH §1 should always validate phase scope against current code state.** Especially for phases that follow a docs/tests-only phase or a phase with cross-cutting builder discretion. The Phase 7 reframe (`authoring pass → verification pass + csproj gate fixes`) saved significant builder time. Future researcher prompts should explicitly include: "Confirm the work this phase is scoped for has not been incidentally done by earlier phases."
+- **Cross-transport symmetry should be its own dedicated REVIEW dimension.** When two transports get parallel implementations (SqlServer + PostgreSQL), the reviewer for the second transport should explicitly diff against the first transport's freshly-shipped files, not just the plan code shape. The Phase 6 `tx` rename inconsistency would have been caught by the PG reviewer if cross-transport symmetry was a checklist item.
+- **ISSUE-032-style "advisory carry-forward" closure is a viable pattern for ship-blocking advisories that are out of scope.** `<WarningsNotAsErrors>NU1902</WarningsNotAsErrors>` demoted the SQLite escalation from error to warning without suppressing the advisory itself. The advisory still surfaces on every Release build (so the long-term remediation isn't forgotten). Pattern reusable for future advisory carry-forwards.
+- **For Shipyard tracking artifacts: write file path + 1-line description in MILESTONE-REPORT.md, not the full content.** When the artifact is large (e.g., a per-phase VERIFICATION.md), the milestone report should point to it, not duplicate it. Reduces context bloat at ship time and keeps artifacts authoritative.
+
+---
