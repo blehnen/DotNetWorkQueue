@@ -47,6 +47,11 @@ public class OrderCreatedEvent
 }
 
 // --- One-time setup (at application startup) ---
+// NOTE: connection string shown for tutorial clarity only. In production, load
+// credentials from a secrets manager (Azure Key Vault, AWS Secrets Manager, etc.)
+// and use a least-privilege account, not `sa`. The `TrustServerCertificate=true`
+// flag below is appropriate only for local development against a self-signed
+// cert — remove it (or pin a trusted CA) for any non-local environment.
 var conn = new QueueConnection(
     "MyEvents",
     "Server=localhost;Database=AppDb;User Id=sa;Password=...;TrustServerCertificate=true");
@@ -194,5 +199,4 @@ The exception message includes both the connection's reported name and the queue
 - **Not supported:** Memory, Redis, LiteDb, SQLite. The producer instances returned by these
   transports do not implement `IRelationalProducerQueue<T>`. The `is` cast returns false and
   no `NotSupportedException` is thrown — the interface is simply absent, so misconfigured
-  callers fail at the cast rather than at the first `Send`. Phase 5 added negative-path
-  integration tests that confirm the cast fails for all four transports.
+  callers fail at the cast rather than at the first `Send`.
