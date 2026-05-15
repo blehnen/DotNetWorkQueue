@@ -11,6 +11,7 @@ A producer / distributed consumer library for .NET applications. Targets .NET 8.
 - Queue / de-queue POCOs for distributed processing
 - Queue / process compiled LINQ expressions
 - Re-occurring job scheduler
+- Transactional outbox pattern on SqlServer / PostgreSQL (see [`docs/outbox-pattern.md`](docs/outbox-pattern.md))
 
 See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for in-depth documentation.
 
