@@ -70,7 +70,6 @@ sqlConn.Open();
 
 using var transaction = sqlConn.BeginTransaction();
 
-// Business write: INSERT your domain row.
 using (var cmd = sqlConn.CreateCommand())
 {
     cmd.Transaction = transaction;
@@ -89,7 +88,6 @@ var result = relationalProducer.Send(
 if (result.HasError)
     throw new InvalidOperationException($"Enqueue failed: {result.SendingException}");
 
-// Commit: both the business row and the queue row commit atomically.
 transaction.Commit();
 ```
 
