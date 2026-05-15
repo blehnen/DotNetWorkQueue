@@ -35,6 +35,7 @@ async callers; the sync form is shown here for clarity.
 using System.Data;
 using Microsoft.Data.SqlClient;
 using DotNetWorkQueue;
+using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.SqlServer;
 
@@ -62,12 +63,12 @@ using var sqlConn = new SqlConnection(
     "Server=localhost;Database=AppDb;User Id=sa;Password=...;TrustServerCertificate=true");
 sqlConn.Open();
 
-using var tx = sqlConn.BeginTransaction();
+using var transaction = sqlConn.BeginTransaction();
 
 // Business write: INSERT your domain row.
 using (var cmd = sqlConn.CreateCommand())
 {
-    cmd.Transaction = tx;
+    cmd.Transaction = transaction;
     cmd.CommandText =
         "INSERT INTO Orders (OrderId, Status) VALUES (@id, @status)";
     cmd.Parameters.AddWithValue("@id", 42);
@@ -78,17 +79,17 @@ using (var cmd = sqlConn.CreateCommand())
 // Outbox write: enqueue the event inside the same transaction.
 var result = relationalProducer.Send(
     new OrderCreatedEvent { OrderId = 42, Status = "Pending" },
-    tx);
+    transaction);
 
 if (result.HasError)
     throw new InvalidOperationException($"Enqueue failed: {result.SendingException}");
 
 // Commit: both the business row and the queue row commit atomically.
-tx.Commit();
+transaction.Commit();
 ```
 
 To retry the whole operation on a transient failure, wrap the block from `sqlConn.Open()` to
-`tx.Commit()` in your own retry policy (e.g., Polly). The producer does not retry on the
+`transaction.Commit()` in your own retry policy (e.g., Polly). The producer does not retry on the
 caller-transaction path — see [Retry Contract](#retry-contract).
 
 #### PostgreSQL note
@@ -106,17 +107,17 @@ reported database name against the queue's configured catalog — covered in
 The caller owns the connection and transaction for their entire lifetime. The producer participates
 as a guest:
 
-- The producer **never** calls `tx.Commit()`, `tx.Rollback()`, `tx.Dispose()`, `conn.Close()`,
+- The producer **never** calls `transaction.Commit()`, `transaction.Rollback()`, `transaction.Dispose()`, `conn.Close()`,
   or `conn.Dispose()`.
 - The producer performs its queue INSERTs (message body, metadata, status) using the connection
-  and transaction you supply via `tx.Connection` and the `tx` reference directly. It uses no other
+  and transaction you supply via `transaction.Connection` and the `transaction` reference directly. It uses no other
   connection.
 - `IConnectionHolder` and `IConnectionHolderFactory` — the internal machinery that manages
   owned connections on the normal send path — are bypassed entirely on the caller-transaction path.
 - After `Send` returns, the transaction is still open. You decide whether to commit or roll back.
 - If you roll back after a successful `Send`, the queue row is rolled back too. No message is
   delivered. This is the guarantee the pattern provides.
-- ADO.NET transactions are not thread-safe. Do not call `Send(msg, tx)` concurrently with your
+- ADO.NET transactions are not thread-safe. Do not call `Send(msg, transaction)` concurrently with your
   own writes on the same transaction from another thread. This matches the standard ADO.NET
   threading contract.
 
@@ -135,12 +136,12 @@ inconsistent state after a transient failure mid-transaction.
 To retry the whole business operation, wrap both your business writes and the `Send` call in your
 own retry policy and re-call `Send` from scratch on each attempt:
 
-```
+```text
 Polly retry policy
   └─ open connection + begin transaction
   └─ business INSERT
-  └─ relationalProducer.Send(msg, tx)
-  └─ tx.Commit()
+  └─ relationalProducer.Send(msg, transaction)
+  └─ transaction.Commit()
 ```
 
 See PROJECT.md §Functional Implementation and `IRetrySkippable.cs` for implementation details.
