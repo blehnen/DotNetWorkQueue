@@ -112,10 +112,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Outbox
             cmd.ExecuteNonQuery();
         }
 
-        protected static void InsertBusinessRow(NpgsqlConnection conn, NpgsqlTransaction tx, string tableName, int id, string val)
+        protected static void InsertBusinessRow(NpgsqlConnection conn, NpgsqlTransaction transaction, string tableName, int id, string val)
         {
             using var cmd = conn.CreateCommand();
-            cmd.Transaction = tx;
+            cmd.Transaction = transaction;
             cmd.CommandText = $"INSERT INTO {tableName} (Id, Val) VALUES (@id, @val)";
             cmd.Parameters.AddWithValue("@id", id);
             cmd.Parameters.AddWithValue("@val", val);

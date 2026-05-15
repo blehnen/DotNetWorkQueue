@@ -40,13 +40,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Outbox
                 CreateBusinessTable(conn, businessTable);
                 using var producer = CreateRelationalProducer(qc);
 
-                using (var tx = conn.BeginTransaction())
+                using (var transaction = conn.BeginTransaction())
                 {
                     var msg = GenerateMessage.Create<FakeMessage>();
-                    var result = producer.RelationalProducer.Send(msg, tx);
+                    var result = producer.RelationalProducer.Send(msg, transaction);
                     Assert.IsFalse(result.HasError, result.SendingException?.ToString());
-                    InsertBusinessRow(conn, tx, businessTable, 1, "first");
-                    tx.Commit();
+                    InsertBusinessRow(conn, transaction, businessTable, 1, "first");
+                    transaction.Commit();
                 }
 
                 AssertQueueRowCount(qc, 1);
@@ -72,13 +72,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Outbox
                 CreateBusinessTable(conn, businessTable);
                 using var producer = CreateRelationalProducer(qc);
 
-                using (var tx = conn.BeginTransaction())
+                using (var transaction = conn.BeginTransaction())
                 {
                     var msg = GenerateMessage.Create<FakeMessage>();
-                    var result = producer.RelationalProducer.Send(msg, tx);
+                    var result = producer.RelationalProducer.Send(msg, transaction);
                     Assert.IsFalse(result.HasError, result.SendingException?.ToString());
-                    InsertBusinessRow(conn, tx, businessTable, 1, "first");
-                    tx.Rollback();
+                    InsertBusinessRow(conn, transaction, businessTable, 1, "first");
+                    transaction.Rollback();
                 }
 
                 AssertQueueRowCount(qc, 0);
@@ -105,14 +105,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Outbox
                 CreateBusinessTable(conn, businessTable);
                 using var producer = CreateRelationalProducer(qc);
 
-                using (var tx = conn.BeginTransaction())
+                using (var transaction = conn.BeginTransaction())
                 {
                     var batch = BuildBatch(batchSize);
-                    var result = producer.RelationalProducer.Send(batch, tx);
+                    var result = producer.RelationalProducer.Send(batch, transaction);
                     Assert.IsFalse(result.HasErrors);
                     for (var i = 0; i < batchSize; i++)
-                        InsertBusinessRow(conn, tx, businessTable, i, $"row{i}");
-                    tx.Commit();
+                        InsertBusinessRow(conn, transaction, businessTable, i, $"row{i}");
+                    transaction.Commit();
                 }
 
                 AssertQueueRowCount(qc, batchSize);
@@ -139,14 +139,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Outbox
                 CreateBusinessTable(conn, businessTable);
                 using var producer = CreateRelationalProducer(qc);
 
-                using (var tx = conn.BeginTransaction())
+                using (var transaction = conn.BeginTransaction())
                 {
                     var batch = BuildBatch(batchSize);
-                    var result = producer.RelationalProducer.Send(batch, tx);
+                    var result = producer.RelationalProducer.Send(batch, transaction);
                     Assert.IsFalse(result.HasErrors);
                     for (var i = 0; i < batchSize; i++)
-                        InsertBusinessRow(conn, tx, businessTable, i, $"row{i}");
-                    tx.Rollback();
+                        InsertBusinessRow(conn, transaction, businessTable, i, $"row{i}");
+                    transaction.Rollback();
                 }
 
                 AssertQueueRowCount(qc, 0);
