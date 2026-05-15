@@ -3,33 +3,33 @@
 ## Overview
 
 The transactional outbox pattern guarantees that a queue message and a business database write
-either both commit or both roll back. It solves the dual-write problem that arises when your
-application must write to a database table and enqueue a message as part of a single logical
-operation.
+either both commit or both roll back. It solves the dual-write problem: your application needs to
+write a row to its own tables and enqueue a message in one logical operation, and you cannot
+afford to have one succeed while the other fails.
 
-DotNetWorkQueue's default producer opens and manages its own database connection and transaction
-internally. That design is correct for fire-and-forget enqueue, but it precludes the outbox
-pattern because the queue INSERT is not part of your business transaction. The opt-in surface for
-the outbox pattern is `IRelationalProducerQueue<T>`, a derived interface that accepts a
-caller-supplied `DbTransaction` and performs all queue INSERTs inside it without ever committing,
-rolling back, or disposing the caller's resources.
+DotNetWorkQueue's default producer opens and manages its own connection and transaction. That is
+the right default for fire-and-forget enqueue, but it precludes the outbox pattern because the
+queue INSERT is not part of the caller's business transaction. `IRelationalProducerQueue<T>` is
+the opt-in surface that fixes this: a derived interface that accepts a caller-supplied
+`DbTransaction`, runs all queue INSERTs inside it, and never commits, rolls back, or disposes the
+caller's resources.
 
 ## Quick Start
 
 ### Prerequisites
 
 - Your queue transport must be **SqlServer or PostgreSQL**. Memory, Redis, LiteDb, and SQLite do
-  not implement `IRelationalProducerQueue<T>` — see [Supported Transports](#supported-transports).
+  not implement `IRelationalProducerQueue<T>`. See [Supported Transports](#supported-transports).
 - Queue tables must exist before the first `Send` call. Run `CreateQueue()` once at deployment
-  time — see [Schema Deployment Prerequisite](#schema-deployment-prerequisite).
+  time. See [Schema Deployment Prerequisite](#schema-deployment-prerequisite).
 
 ### Example: SqlServer
 
-The example below shows a complete vertical slice: set up the queue, open a connection and
-transaction, perform a business INSERT, enqueue the event, and commit — atomically.
+The example below shows the full flow: set up the queue, open a connection and transaction,
+write a business row, enqueue the event, then commit atomically.
 
-`SendAsync` overloads with the same signatures exist on `IRelationalProducerQueue<T>` for
-async callers; the sync form is shown here for clarity.
+`IRelationalProducerQueue<T>` has `SendAsync` overloads with matching signatures. The sync form
+is shown here.
 
 ```csharp
 using System.Data;
@@ -47,11 +47,10 @@ public class OrderCreatedEvent
 }
 
 // --- One-time setup (at application startup) ---
-// NOTE: connection string shown for tutorial clarity only. In production, load
-// credentials from a secrets manager (Azure Key Vault, AWS Secrets Manager, etc.)
-// and use a least-privilege account, not `sa`. The `TrustServerCertificate=true`
-// flag below is appropriate only for local development against a self-signed
-// cert — remove it (or pin a trusted CA) for any non-local environment.
+// Sample connection string, not for production use. Load credentials from a
+// secrets manager and use a least-privilege account, not `sa`.
+// `TrustServerCertificate=true` is for local dev against a self-signed cert
+// only; remove it (or pin a trusted CA) anywhere else.
 var conn = new QueueConnection(
     "MyEvents",
     "Server=localhost;Database=AppDb;User Id=sa;Password=...;TrustServerCertificate=true");
@@ -93,36 +92,33 @@ transaction.Commit();
 
 To retry the whole operation on a transient failure, wrap the block from `sqlConn.Open()` to
 `transaction.Commit()` in your own retry policy (e.g., Polly). The producer does not retry on the
-caller-transaction path — see [Retry Contract](#retry-contract).
+caller-transaction path. See [Retry Contract](#retry-contract).
 
 #### PostgreSQL note
 
 The same pattern works with `NpgsqlConnection`, `NpgsqlTransaction`, and
 `PostgreSqlMessageQueueInit` as the transport initializer. The capability cast succeeds
-identically. The only behavioral difference is how the DB-name validator compares the connection's
-reported database name against the queue's configured catalog — covered in
-[Database-Name Comparison Semantics](#database-name-comparison-semantics).
+identically. The only behavioral difference is in how the DB-name validator compares the
+connection's reported database against the queue's configured catalog. That difference is covered
+in [Database-Name Comparison Semantics](#database-name-comparison-semantics).
 
 ## Reference
 
 ### Lifecycle Contract
 
-The caller owns the connection and transaction for their entire lifetime. The producer participates
-as a guest:
+The caller owns the connection and transaction. The producer does not manage them:
 
-- The producer **never** calls `transaction.Commit()`, `transaction.Rollback()`, `transaction.Dispose()`, `conn.Close()`,
-  or `conn.Dispose()`.
-- The producer performs its queue INSERTs (message body, metadata, status) using the connection
-  and transaction you supply via `transaction.Connection` and the `transaction` reference directly. It uses no other
-  connection.
-- `IConnectionHolder` and `IConnectionHolderFactory` — the internal machinery that manages
-  owned connections on the normal send path — are bypassed entirely on the caller-transaction path.
-- After `Send` returns, the transaction is still open. You decide whether to commit or roll back.
-- If you roll back after a successful `Send`, the queue row is rolled back too. No message is
-  delivered. This is the guarantee the pattern provides.
-- ADO.NET transactions are not thread-safe. Do not call `Send(msg, transaction)` concurrently with your
-  own writes on the same transaction from another thread. This matches the standard ADO.NET
-  threading contract.
+- The producer **never** calls `transaction.Commit()`, `transaction.Rollback()`,
+  `transaction.Dispose()`, `conn.Close()`, or `conn.Dispose()`.
+- All queue INSERTs (message body, metadata, status) run on the supplied `transaction` and its
+  `transaction.Connection`. The producer opens no other connection.
+- The internal `IConnectionHolder` machinery used on the standard send path is bypassed on the
+  caller-transaction path.
+- After `Send` returns, the transaction is still open. Commit or roll back when you are ready.
+- A rollback after a successful `Send` rolls back the queue row too, so no message is delivered.
+  That is the guarantee.
+- ADO.NET transactions are not thread-safe. Do not call `Send(msg, transaction)` concurrently with
+  writes on the same transaction from another thread. Same rule as the rest of ADO.NET.
 
 See PROJECT.md §Ownership & Threading Contract for the authoritative contract language.
 
@@ -152,8 +148,8 @@ See PROJECT.md §Functional Implementation and `IRetrySkippable.cs` for implemen
 ### Schema Deployment Prerequisite
 
 Queue tables must exist in your database before the first `Send` on the caller-transaction path.
-The outbox path does not auto-create tables — DDL inside the caller's transaction is the wrong
-contract for this pattern (see PROJECT.md §Non-Goals).
+The outbox path does not auto-create tables. Running DDL inside the caller's transaction would
+be the wrong contract for this pattern (see PROJECT.md §Non-Goals).
 
 Deploy the schema once at application startup or as part of your database migration:
 
@@ -177,9 +173,9 @@ that retrieves the name from the open connection:
 | SqlServer  | `SqlServerExternalDbNameExtractor`  | `Ordinal`      |
 | PostgreSQL | `PostgreSqlExternalDbNameExtractor` | `Ordinal`      |
 
-Both extractors return `connection.Database` verbatim — no `ToUpperInvariant`, no normalization.
-The comparison is always `StringComparison.Ordinal` (byte-for-byte). Configure the `Database=`
-key in your connection string with the exact case as the catalog name in your server.
+Both extractors return `connection.Database` verbatim, with no `ToUpperInvariant` or other
+normalization. The comparison is `StringComparison.Ordinal` (byte-for-byte). Configure the
+`Database=` key in your connection string with the exact case as the catalog name on the server.
 
 For SqlServer, `SqlConnection.Database` after open returns the canonical name from
 `sys.databases`, so the case you used when creating the database is what the extractor sees.
@@ -195,6 +191,6 @@ The exception message includes both the connection's reported name and the queue
   transports implements `IRelationalProducerQueue<T>` and the `is` capability cast succeeds.
 
 - **Not supported:** Memory, Redis, LiteDb, SQLite. The producer instances returned by these
-  transports do not implement `IRelationalProducerQueue<T>`. The `is` cast returns false and
-  no `NotSupportedException` is thrown — the interface is simply absent, so misconfigured
-  callers fail at the cast rather than at the first `Send`.
+  transports do not implement `IRelationalProducerQueue<T>`. The `is` cast returns false; no
+  `NotSupportedException` is thrown. The interface is simply absent, so a misconfigured caller
+  fails at the cast rather than at the first `Send`.
