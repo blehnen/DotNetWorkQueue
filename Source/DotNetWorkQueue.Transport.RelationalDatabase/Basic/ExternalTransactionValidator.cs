@@ -32,9 +32,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
     ///   <item><description>Connection state is <see cref="ConnectionState.Open"/> (throws <see cref="InvalidOperationException"/>).</description></item>
     ///   <item><description>Database name reported by the connection (via the injected
     ///       <see cref="IExternalDbNameExtractor"/>) equals the queue's configured
-    ///       database (via <see cref="IConnectionInformation.Container"/>). Comparison is
-    ///       <see cref="StringComparison.Ordinal"/>; per-provider case semantics are
-    ///       encoded by the extractor's normalization. Mismatch throws
+    ///       database (via <see cref="IConnectionInformation.Container"/>). Both registered
+    ///       extractors are pass-through; comparison is
+    ///       <see cref="StringComparison.Ordinal"/>, so case differences between the
+    ///       caller's connection-string catalog and the queue's configured
+    ///       <c>Container</c> will fail this check on both transports. Mismatch throws
     ///       <see cref="InvalidOperationException"/> with both database names in the
     ///       message.</description></item>
     /// </list>

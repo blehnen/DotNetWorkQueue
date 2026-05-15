@@ -22,14 +22,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
     /// <summary>
     /// Extracts the canonical database name from an open <see cref="DbConnection"/> for
-    /// use by <see cref="Basic.ExternalTransactionValidator"/>. Per-provider implementations
-    /// supply the appropriate name comparison semantics:
-    /// <list type="bullet">
-    ///   <item><description>SqlServer uses case-insensitive comparison (<c>StringComparer.OrdinalIgnoreCase</c>).</description></item>
-    ///   <item><description>PostgreSQL uses case-sensitive comparison (<c>StringComparer.Ordinal</c>) to match the database's quoted-identifier semantics.</description></item>
-    /// </list>
-    /// Implementations live in <c>Transport.SqlServer</c> (Phase 3) and
-    /// <c>Transport.PostgreSQL</c> (Phase 4); Phase 2 ships only this contract.
+    /// use by <see cref="Basic.ExternalTransactionValidator"/>. Both registered transport
+    /// implementations (<c>Transport.SqlServer</c> and <c>Transport.PostgreSQL</c>) return
+    /// <c>connection.Database</c> verbatim (pass-through, no case normalization). The
+    /// validator compares the result against <see cref="IConnectionInformation.Container"/>
+    /// using <c>StringComparison.Ordinal</c> — so both transports use case-sensitive,
+    /// byte-verbatim comparison. Callers whose connection strings differ in catalog case
+    /// from the queue's configured <c>Container</c> will see a cross-database validation
+    /// failure even when the underlying database engine would treat the names as identical.
     /// </summary>
     public interface IExternalDbNameExtractor
     {

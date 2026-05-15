@@ -29,15 +29,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     /// from the parsed connection string) is therefore case-sensitive.
     /// </summary>
     /// <remarks>
-    /// Earlier implementations applied <c>ToUpperInvariant</c> on the extractor side but
-    /// did not apply symmetric normalization on the <c>Container</c> side, causing a
-    /// validator-mismatch when the actual SqlServer catalog case differed from the
-    /// uppercased extractor output. Pass-through aligns the SqlServer extractor with
-    /// PostgreSQL's pass-through approach (Phase 4 CONTEXT-4 Decision 2) and avoids the
-    /// symmetry gap. Users must configure <c>Database=&lt;name&gt;</c> in the connection
-    /// string with the exact case as the actual SqlServer catalog (typical and easy to
-    /// satisfy; SqlClient's <c>conn.Database</c> after open returns the canonical name
-    /// from <c>sys.databases</c>).
+    /// Configure <c>Database=&lt;name&gt;</c> in the connection string with the exact case as
+    /// the actual SqlServer catalog. After the connection opens, SqlClient's
+    /// <c>conn.Database</c> returns the canonical name from <c>sys.databases</c>, which
+    /// must equal the queue's configured <see cref="IConnectionInformation.Container"/>
+    /// byte-for-byte under <see cref="System.StringComparison.Ordinal"/> comparison.
     /// </remarks>
     public sealed class SqlServerExternalDbNameExtractor : IExternalDbNameExtractor
     {
