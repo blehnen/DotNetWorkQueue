@@ -115,7 +115,7 @@ This roadmap decomposes the outbox feature into seven phases ordered to **fail-f
 
 ## Phase 6 — Integration Tests (SqlServer + PostgreSQL)
 
-**Description.** ~22 integration tests, 11 per transport, slotting into the existing Jenkins SqlServer + PostgreSQL stages. No Jenkinsfile changes. Coverage is **method-matrix driven**, not scenario-driven — every public method on `IRelationalProducerQueue<T>` must have its own integration test exercising the caller-tx path. This is required because codecov coverage on this repo is driven primarily by integration tests, and `SendMessageCommandHandlerAsync` is a separate class from `SendMessageCommandHandler`, so async branches are not inferred from sync coverage.
+**Description.** 24 integration tests, 12 per transport, slotting into the existing Jenkins SqlServer + PostgreSQL stages. No Jenkinsfile changes. Coverage is **method-matrix driven**, not scenario-driven — every public method on `IRelationalProducerQueue<T>` must have its own integration test exercising the caller-tx path. This is required because codecov coverage on this repo is driven primarily by integration tests, and `SendMessageCommandHandlerAsync` is a separate class from `SendMessageCommandHandler`, so async branches are not inferred from sync coverage.
 
 Per transport, the test matrix:
 
@@ -152,7 +152,7 @@ Each pair (commit + rollback) confirms atomic semantics with a parallel business
 - Metrics listener for retry-bypass test must use polling, not snapshot, to avoid the race documented in CLAUDE.md ("integration test metrics assertions can race").
 
 **Success criteria.**
-- 22 new integration tests pass locally against a real SqlServer and a real PostgreSQL.
+- 24 new integration tests pass locally against a real SqlServer and a real PostgreSQL.
 - Jenkins SqlServer + PostgreSQL integration stages green on a draft PR (PROJECT.md §Success Criteria #11).
 - PROJECT.md §Success Criteria #4, #5, #6 satisfied with explicit test names mapped to each.
 - Coverlet line coverage on the new `HandleExternalTx` (sync + async) and batch external-tx forks shows ≥1 hit per branch in both transports.
@@ -193,7 +193,7 @@ Each pair (commit + rollback) confirms atomic semantics with a parallel business
 
 ## Ordering Summary
 
-```
+```text
 Phase 1 (Spike)        ──┐
                          ├──> Phase 2 (Foundation) ──┬──> Phase 3 (SqlServer)     ──┐
                                                     └──> Phase 4 (PostgreSQL)    ──┤

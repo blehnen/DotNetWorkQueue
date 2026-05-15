@@ -151,6 +151,6 @@ A single validator runs at the start of every tx-aware `Send`:
 | Validation + per-provider `IExternalDbNameExtractor` | 2–3 |
 | DI registration changes (RelationalDatabase + SqlServer + PostgreSQL inits) | 2–3 |
 | Unit tests (~12–15) | 6–8 |
-| Integration tests (~22 — 11 per provider, method-coverage matrix) | 14–18 |
+| Integration tests (24 — 12 per transport, method-coverage matrix) | 14–18 |
 | XML doc comments + `docs/outbox-pattern.md` draft | 3–4 |
 | Review iterations | 4–6 |
