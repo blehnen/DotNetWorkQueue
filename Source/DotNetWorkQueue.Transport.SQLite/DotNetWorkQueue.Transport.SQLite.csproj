@@ -26,7 +26,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0|AnyCPU'">
 		<DefineConstants></DefineConstants>
-		<DocumentationFile>DotNetWorkQueue.Transport.SQLite.xml</DocumentationFile>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
 		<WarningsNotAsErrors>NU1902</WarningsNotAsErrors>
@@ -34,7 +34,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
 		<DefineConstants></DefineConstants>
-		<DocumentationFile>DotNetWorkQueue.Transport.SQLite.xml</DocumentationFile>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
 		<WarningsNotAsErrors>NU1902</WarningsNotAsErrors>
@@ -43,7 +43,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
-    <DocumentationFile>DotNetWorkQueue.Transport.SQLite.xml</DocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <WarningsNotAsErrors>NU1902</WarningsNotAsErrors>
   </PropertyGroup>
 

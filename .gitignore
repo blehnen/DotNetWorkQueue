@@ -459,3 +459,8 @@ Deploy.bat
 # Note: *.nupkg and *.snupkg above already cover these globally; this
 # entry asserts directory-level intent for the deploy/ output folder.
 deploy/
+
+#ignore doc files
+Source/DotNetWorkQueue.Transport.*/DotNetWorkQueue.Transport.*.xml
+.playwright-mcp/
+skills-lock.json

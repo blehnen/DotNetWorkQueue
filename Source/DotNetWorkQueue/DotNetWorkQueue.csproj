@@ -31,7 +31,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
 		<DefineConstants>LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
-		<DocumentationFile>DotNetWorkQueue.xml</DocumentationFile>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
 	</PropertyGroup>
@@ -39,7 +39,7 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0|AnyCPU'">
 		<DefineConstants>LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
-		<DocumentationFile>DotNetWorkQueue.xml</DocumentationFile>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
 	</PropertyGroup>

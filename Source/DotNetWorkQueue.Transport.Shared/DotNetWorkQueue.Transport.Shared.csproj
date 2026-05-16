@@ -29,14 +29,14 @@
 		<DefineConstants></DefineConstants>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
-		<DocumentationFile>DotNetWorkQueue.Transport.Shared.xml</DocumentationFile>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
 		<DefineConstants></DefineConstants>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
-		<DocumentationFile>DotNetWorkQueue.Transport.Shared.xml</DocumentationFile>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 
   <ItemGroup>

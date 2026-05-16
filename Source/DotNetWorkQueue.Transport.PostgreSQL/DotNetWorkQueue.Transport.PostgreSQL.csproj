@@ -29,14 +29,14 @@
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0|AnyCPU'">
 		<DefineConstants></DefineConstants>
-		<DocumentationFile>DotNetWorkQueue.Transport.PostgreSQL.xml</DocumentationFile>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
 		<DefineConstants></DefineConstants>
-		<DocumentationFile>DotNetWorkQueue.Transport.PostgreSQL.xml</DocumentationFile>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
 	</PropertyGroup>
