@@ -436,3 +436,16 @@
 - **For Shipyard tracking artifacts: write file path + 1-line description in MILESTONE-REPORT.md, not the full content.** When the artifact is large (e.g., a per-phase VERIFICATION.md), the milestone report should point to it, not duplicate it. Reduces context bloat at ship time and keeps artifacts authoritative.
 
 ---
+
+## [2026-05-16] Post-ship: 0.9.36 NuGet release flow + wiki update
+
+### Surprises / Discoveries
+
+- **`git tag <name>` without an explicit SHA tags HEAD, which is not always the merge commit.** Initial v0.9.36 tag landed on the release branch's tip commit (`bb44244`, the third commit in PR #140) instead of the master merge SHA (`4a332c56`). `publish.yml`'s verify-gate is the safety net here — it reads the singular `/status` rollup on the tag SHA and fails fast when the status is `missing` (Jenkins only posts `success` on the merge commit, not on individual feature-branch commits even though those commits are reachable from master post-merge). Recovery: `git tag -d`, `git push origin :refs/tags/<name>`, re-tag with explicit SHA, push. Zero NuGet pollution because publish.yml failed at verify-gate before the build-pack job ran. Reusable pattern: always pass the full merge SHA to `git tag` rather than relying on HEAD.
+
+### Process Improvements
+
+- **`<GenerateDocumentationFile>true</GenerateDocumentationFile>` is the modern .NET SDK replacement for hardcoded `<DocumentationFile>RelativePath.xml</DocumentationFile>`.** The legacy pattern wrote XML doc files to the project root (next to the .csproj), polluting source dirs and leading to at least one accidental commit (LiteDB.xml had been tracked since the multi-target work). 10 of 11 packable csprojs had this misconfig; only Transport.SqlServer had `bin\Release\<tfm>\` hardcoded (correct but verbose). PR #140 normalized all 11 to `<GenerateDocumentationFile>true</GenerateDocumentationFile>` — the SDK auto-emits to `bin/<Config>/<TFM>/<AssemblyName>.xml` and `dotnet pack` picks it up identically. Net effect on packaged DLLs unchanged. Pattern to enforce going forward: never hardcode the XML doc path in a packable csproj.
+- **Wiki feature-on-multiple-transports follows the `UserDequeueColumns` precedent.** One wiki page, sidebar entries under EACH applicable transport. Avoids duplication while preserving discoverability from each transport's nav path. Used for outbox: one `OutboxPattern.md`, two sidebar entries (SQL Server + PostgreSQL). Cross-link sentences in each transport page sit next to the existing MessageHistory pointer.
+
+---

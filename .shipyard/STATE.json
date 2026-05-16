@@ -1,8 +1,8 @@
 {
   "schema": 3,
   "phase": 7,
-  "position": "Outbox milestone shipped via PR-138 (push + ready-for-review). All 7 phases complete, 11/11 §SC satisfied, Jenkins build #6 green.",
+  "position": "Outbox milestone closed: 0.9.36 published to NuGet 2026-05-16 (PR #140 release prep, tag v0.9.36 on merge SHA 4a332c56, publish.yml SUCCESS). Wiki updated with OutboxPattern page + cross-links.",
   "status": "shipped",
-  "updated_at": "2026-05-15T17:30:00Z",
+  "updated_at": "2026-05-16T00:00:00Z",
   "blocker": null
 }
