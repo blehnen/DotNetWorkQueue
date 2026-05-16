@@ -1,5 +1,7 @@
 # Inbox Pattern — initial idea (2026-05-16)
 
+**GitHub issue:** [#142](https://github.com/blehnen/DotNetWorkQueue/issues/142)
+
 **Status:** Brainstorming. Not a plan or commitment.
 
 ## User's framing (verbatim intent)
