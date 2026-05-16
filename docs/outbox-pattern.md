@@ -102,6 +102,67 @@ identically. The only behavioral difference is in how the DB-name validator comp
 connection's reported database against the queue's configured catalog. That difference is covered
 in [Database-Name Comparison Semantics](#database-name-comparison-semantics).
 
+### Async and batch variants
+
+The async form replaces every blocking call with its `Async` counterpart:
+
+```csharp
+await using var sqlConn = new SqlConnection(connectionString);
+await sqlConn.OpenAsync();
+
+await using var transaction = await sqlConn.BeginTransactionAsync();
+
+using (var cmd = sqlConn.CreateCommand())
+{
+    cmd.Transaction = (SqlTransaction)transaction;
+    cmd.CommandText = "INSERT INTO Orders (OrderId, Status) VALUES (@id, @status)";
+    cmd.Parameters.AddWithValue("@id", 42);
+    cmd.Parameters.AddWithValue("@status", "Pending");
+    await cmd.ExecuteNonQueryAsync();
+}
+
+var result = await outbox.SendAsync(
+    new OrderCreatedEvent { OrderId = 42, Status = "Pending" },
+    transaction);
+
+if (result.HasError)
+    throw new InvalidOperationException($"Enqueue failed: {result.SendingException}");
+
+await transaction.CommitAsync();
+```
+
+Two notes on the async form:
+
+- `await using` on the transaction calls `DisposeAsync()` when the scope exits. If the
+  transaction has not been committed by then, the runtime rolls it back — same semantics as
+  the synchronous form, just async-friendly.
+- `BeginTransactionAsync()` returns the abstract `DbTransaction`. SqlServer-specific code that
+  needs `SqlTransaction` (like the `cmd.Transaction = ...` line above) requires the cast.
+  `outbox.SendAsync(...)` accepts the abstract `DbTransaction` directly — no cast needed.
+
+To enqueue multiple messages atomically inside one transaction, the batch overloads accept an
+`IEnumerable<T>`:
+
+```csharp
+var batch = new[]
+{
+    new OrderCreatedEvent { OrderId = 42, Status = "Pending" },
+    new OrderCreatedEvent { OrderId = 43, Status = "Pending" }
+};
+
+var results = outbox.Send(batch, transaction);
+
+if (results.HasErrors)
+    throw new InvalidOperationException("One or more batch enqueues failed.");
+
+transaction.Commit();
+```
+
+The batch path runs each enqueue inside the supplied transaction. A rollback after a partially
+successful batch rolls back every queue row written so far, including the successful ones — the
+all-or-nothing guarantee holds for the whole batch, not per message. `SendAsync(batch, transaction)`
+is the async equivalent.
+
 ## Reference
 
 ### Lifecycle Contract

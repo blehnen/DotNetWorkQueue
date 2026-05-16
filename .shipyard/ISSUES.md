@@ -335,7 +335,7 @@
 - **Files:** `.shipyard/PROJECT.md` §Diagnostics / §Functional Implementation
 - **Description:** PROJECT.md still describes the original (pre-Phase-3-fix) asymmetric design where SqlServer used `OrdinalIgnoreCase` and PostgreSQL used `Ordinal` for the DB-name comparison in `ExternalTransactionValidator`. The Phase 3 extractor pass-through fix (commit `994e1404`) made both transports symmetric: both extractors emit verbatim DB names, and both validators use `StringComparer.Ordinal`. `docs/outbox-pattern.md` correctly reflects the implementation; PROJECT.md does not.
 - **Remediation:** Update PROJECT.md §Diagnostics / §Functional Implementation lines describing the comparator semantics to read "both transports use `StringComparer.Ordinal` (post-Phase-3 pass-through extractor design)." Cross-check the surrounding paragraphs for the same outdated framing.
-- **Status:** Open. Non-blocking for Phase 7 ship gate. Track for next PROJECT.md maintenance pass or bundle with documentation refresh.
+- **Status:** Resolved 2026-05-16 — code half landed in commit `41e2be94` (PR #139, XML doc on `IExternalDbNameExtractor` / `ExternalTransactionValidator` / `SqlServerExternalDbNameExtractor.remarks`). PROJECT.md half landed in this cleanup PR — `.shipyard/PROJECT.md` lines 75-76 collapsed to a single bullet stating both transports use `StringComparer.Ordinal` with verbatim pass-through extractors, with a callout to commit `994e1404` for the historical context.
 
 ### ISSUE-040: `docs/outbox-pattern.md` has no `SendAsync` worked example
 - **Severity:** Low (deferred coverage gap)
@@ -343,7 +343,7 @@
 - **Files:** `docs/outbox-pattern.md`
 - **Description:** Per CONTEXT-7 Decision 2 ("ONE worked example, SqlServer commit path canonical"), the tutorial uses synchronous `Send(msg, transaction)` only. `SendAsync` is mentioned in prose ("SendAsync overloads with the same signatures exist on `IRelationalProducerQueue<T>` for async callers; the sync form is shown here for clarity.") but no async worked code example is provided. Modern .NET callers may need explicit `await using`/`await transaction.CommitAsync()` patterns demonstrated. Same applies to the batch overloads (`Send(IEnumerable<>, transaction)`).
 - **Remediation:** Add a second smaller code block showing the async + batch variants. ~15-20 additional lines. Defer until early-user feedback indicates whether the prose forward-pointer suffices or a full async example is needed.
-- **Status:** Open. Non-blocking. Track for post-ship doc refresh once user feedback arrives.
+- **Status:** Resolved 2026-05-16 — added a new "Async and batch variants" section after the PostgreSQL note. Shows `await using` connection + transaction, `OpenAsync` + `BeginTransactionAsync` + `CommitAsync` flow with the `(SqlTransaction)` cast required by `cmd.Transaction =`, plus a batch overload example demonstrating the all-or-nothing rollback semantics for the whole batch.
 
 ### ISSUE-041: `IRelationalProducerQueue<T>` XML doc link to outbox-pattern.md is plain-text, not hyperlinked
 - **Severity:** Low (XML doc polish)
@@ -351,7 +351,7 @@
 - **Files:** `Source/DotNetWorkQueue.Transport.RelationalDatabase/IRelationalProducerQueue.cs` (or wherever the interface XML doc lives)
 - **Description:** The XML doc comment on `IRelationalProducerQueue<T>` references `docs/outbox-pattern.md` as a `<c>docs/outbox-pattern.md</c>` plain-code path rather than a `<see href="https://github.com/blehnen/DotNetWorkQueue/blob/master/docs/outbox-pattern.md">` hyperlink. Plain-text path is functional (IDE intellisense and Sandcastle build both render it as a code snippet), but a hyperlinked variant resolves on docs.microsoft.com-style consumers.
 - **Remediation:** After PR-138 merges to `master`, the GitHub raw URL becomes stable. Upgrade the XML doc reference to `<see href="...">` style. Trivial 1-line edit per occurrence; cross-check whether other Phase 2-4 public types reference the doc.
-- **Status:** Open. Non-blocking. Wait for stable master URL post-merge; bundle with next docs touch-up.
+- **Status:** Resolved 2026-05-15 — commit `41e2be94` (PR #139) replaced `<c>docs/outbox-pattern.md</c>` with `<see href="https://github.com/blehnen/DotNetWorkQueue/blob/master/docs/outbox-pattern.md">docs/outbox-pattern.md</see>` on `IRelationalProducerQueue.cs`. Already shipped in 0.9.36; tracked as closed during cleanup PR.
 
 ### ISSUE-042: `SendMessageCommand.ExternalTransaction` is `public init` — future transport author could bypass retry-decorator gate
 - **Severity:** Low (future-proofing / cross-phase coherence)
