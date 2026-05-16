@@ -121,7 +121,7 @@ using (var cmd = sqlConn.CreateCommand())
     await cmd.ExecuteNonQueryAsync();
 }
 
-var result = await outbox.SendAsync(
+var result = await relationalProducer.SendAsync(
     new OrderCreatedEvent { OrderId = 42, Status = "Pending" },
     transaction);
 
@@ -138,7 +138,7 @@ Two notes on the async form:
   the synchronous form, just async-friendly.
 - `BeginTransactionAsync()` returns the abstract `DbTransaction`. SqlServer-specific code that
   needs `SqlTransaction` (like the `cmd.Transaction = ...` line above) requires the cast.
-  `outbox.SendAsync(...)` accepts the abstract `DbTransaction` directly — no cast needed.
+  `relationalProducer.SendAsync(...)` accepts the abstract `DbTransaction` directly — no cast needed.
 
 To enqueue multiple messages atomically inside one transaction, the batch overloads accept an
 `IEnumerable<T>`:
@@ -150,7 +150,7 @@ var batch = new[]
     new OrderCreatedEvent { OrderId = 43, Status = "Pending" }
 };
 
-var results = outbox.Send(batch, transaction);
+var results = relationalProducer.Send(batch, transaction);
 
 if (results.HasErrors)
     throw new InvalidOperationException("One or more batch enqueues failed.");
