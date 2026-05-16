@@ -11,6 +11,7 @@
   - `Source/DotNetWorkQueue.Transport.SqlServer.Tests/Basic/CommandHandler/SendMessageCommandHandlerForkSmokeTests.cs` (Phase 3 sibling)
 - **Description:** `forkBody = content.Substring(forkStart, Math.Min(6000, content.Length - forkStart))` walks past `HandleExternalTx`'s closing brace into `CreateStatusRecord` and `CreateMetaDataRecord`. Today the helpers are clean of `.Commit()/.Rollback()/.Close()/.Dispose()`, but a future modification to either helper would falsely fail the fork's lifecycle test with a misleading message — masking the actual call site.
 - **Remediation:** Scope the slice to the method body only: locate the next `^        }$` after `forkStart` and slice to that index, or use the next `private`/`public` declaration as the end-bound. ~5 lines of additional logic. Apply consistently to both Phase 3 (SqlServer) and Phase 4 (PostgreSQL) test files.
+- **Status:** Resolved 2026-05-16 — replaced the `Math.Min(6000, ...)` window with `content.IndexOf("\n        }\n", forkStart, ...)` to bound the slice at the method's closing brace. Line-ending normalization added (`Replace("\r\n", "\n")`). Applied to both SqlServer and PostgreSQL fork smoke tests; all 6 tests pass.
 
 ### ISSUE-034: Fragile relative source-file path in fork smoke tests
 - **Severity:** Minor (suggestion)
@@ -21,6 +22,7 @@
   - `Source/DotNetWorkQueue.Transport.SqlServer.Tests/Basic/CommandHandler/SendMessageCommandHandlerForkSmokeTests.cs` (Phase 3 sibling)
 - **Description:** The `..\..\..\..\` walk-up assumes a 4-level-deep bin output structure (`bin/Debug/net10.0/`). Brittle to TFM changes, output-path overrides, or test-running tools that copy assemblies to staging directories. Accepted in Phase 3 with the rationale "path resolution failure is itself a useful signal."
 - **Remediation:** Use `[CallerFilePath]` on a helper to anchor to the test's own source file location, then walk to the sibling project's source. Fully robust across TFMs and bin layouts. Apply consistently across all transport fork smoke tests.
+- **Status:** Resolved 2026-05-16 — extracted a `private static string GetHandlerSourcePath([CallerFilePath] string testFilePath = "")` helper in both fork smoke test classes. The helper resolves the test source's compile-time path, walks two directories up to the test project root, strips the `.Tests` suffix to reach the corresponding source project root, and appends `Basic/CommandHandler/SendMessageCommandHandler.cs`. Robust to TFM changes and bin staging. All 6 tests pass.
 
 ### ISSUE-035: Path-resolution block duplicated across smoke tests
 - **Severity:** Minor (suggestion)
@@ -31,6 +33,7 @@
   - `Source/DotNetWorkQueue.Transport.SqlServer.Tests/Basic/CommandHandler/SendMessageCommandHandlerForkSmokeTests.cs` (Phase 3 sibling)
 - **Description:** Identical 7-line path-resolution block copy-pasted across tests 2 and 3 in each fork smoke test file. Minor maintenance cost.
 - **Remediation:** Extract `private static string GetHandlerSourcePath()` helper. ~8 lines saved per test file. Bundle with ISSUE-034 if `[CallerFilePath]` refactor is adopted.
+- **Status:** Resolved 2026-05-16 — bundled with ISSUE-034. Both call sites in each fork smoke test file now call `GetHandlerSourcePath()`; the inline `Path.Combine(...)` blocks are gone.
 
 ## Closed
 
@@ -316,7 +319,7 @@
 - **Files:** `Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/Outbox/SqlServerOutboxAdditionalDataTests.cs`, `Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/Outbox/PostgreSqlOutboxAdditionalDataTests.cs`
 - **Description:** PLAN-1.2 + PLAN-2.2 Task 3 code shapes both called for `data.SetPriority(7)` + direct query of the `priority` column from the MetaData table. Builder simplified to correlation-ID round-trip only (auto-assigned `data.CorrelationId` via `GenerateMessageHeaders.HeaderSetup`, compare against persisted `CorrelationID`). The simplification is sound — the load-bearing `Send(msg, data, tx)` overload is still exercised — but a regression that caused the producer to ignore the caller-supplied `data` parameter would still pass both tests because correlation is auto-assigned on whatever `data` object the producer actually persists. The plan's priority assertion would have caught that specific regression because priority has no auto-assignment fallback. The simplification was applied symmetrically to BOTH transports, so the coverage gap exists on both sides.
 - **Remediation:** Add a single `data.SetPriority(7)` + `EnablePriority = true` queue option + direct SQL read of `priority` column from MetaData table to BOTH `*OutboxAdditionalDataTests` files. Keep the existing correlation-ID assertion. Bundle as one follow-up PR after Phase 6 ships, so both transports stay symmetric.
-- **Status:** Open — deferred to a future strengthening pass (post-Phase-7 ship). Non-blocking for Phase 6 ship gate.
+- **Status:** Resolved 2026-05-16 — both base classes (`SqlServerOutboxIntegrationTestBase`, `PostgreSqlOutboxIntegrationTestBase`) gained a `bool enablePriority = false` parameter on `CreateQueue`. Both `*OutboxAdditionalDataTests` files now call `CreateQueue(qc, enablePriority: true)`, set `data.SetPriority(7)`, and add an `AssertPriorityInMetadata(qc, 7)` helper that reads the `priority` column from the MetaData table. PG variant uses `Convert.ToByte(reader[0])` since Npgsql returns `smallint` as Int16. Runtime verification deferred to Jenkins (SqlServer + PostgreSQL integration stages).
 
 ### ISSUE-038: PG Wave 2 plans authored pre-rename used `tx`; builder followed plan literally
 - **Severity:** Low (process)
