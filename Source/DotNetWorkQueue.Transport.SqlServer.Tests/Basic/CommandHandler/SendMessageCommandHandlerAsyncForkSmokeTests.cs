@@ -19,7 +19,6 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -101,20 +100,29 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
 
         /// <summary>
         /// Returns the absolute path to the SqlServer async handler source file under test.
-        /// Anchored at the test source's COMPILE-TIME location via <see cref="CallerFilePathAttribute"/>,
-        /// then walks two directories up (to the test project root) and strips the
-        /// <c>.Tests</c> suffix to reach the corresponding source project root. Robust to
-        /// TFM changes and bin staging directories that broke the previous
-        /// <c>..\..\..\..\</c> walk-up.
+        /// Walks up from the test assembly's runtime directory until it finds a parent
+        /// whose name ends with <c>.Tests</c>; that's the test project root. Strips the
+        /// <c>.Tests</c> suffix to reach the corresponding source project root, then
+        /// appends the async handler's relative path.
         /// </summary>
-        private static string GetHandlerSourcePath([CallerFilePath] string testFilePath = "")
+        /// <remarks>
+        /// An earlier revision used <c>[CallerFilePath]</c> for compile-time path anchoring,
+        /// but CI builds with <c>ContinuousIntegrationBuild=true</c> (set automatically by
+        /// <c>Directory.Build.props</c> when the <c>CI</c> env var is present) rewrite
+        /// source paths to the deterministic placeholder <c>/_/Source/...</c>, which doesn't
+        /// exist on disk at test runtime. Walking the assembly's <em>runtime</em> directory
+        /// avoids that pitfall while still adapting to any TFM (no hardcoded depth).
+        /// </remarks>
+        private static string GetHandlerSourcePath()
         {
-            var testProjectDir = Path.GetFullPath(Path.Combine(
-                Path.GetDirectoryName(testFilePath)!, "..", ".."));
-            if (!testProjectDir.EndsWith(".Tests", StringComparison.Ordinal))
+            var dir = new DirectoryInfo(
+                Path.GetDirectoryName(typeof(SendMessageCommandHandlerAsyncForkSmokeTests).Assembly.Location)!);
+            while (dir != null && !dir.Name.EndsWith(".Tests", StringComparison.Ordinal))
+                dir = dir.Parent;
+            if (dir == null)
                 throw new InvalidOperationException(
-                    $"Expected test project dir '{testProjectDir}' to end with '.Tests'.");
-            var sourceProjectDir = testProjectDir.Substring(0, testProjectDir.Length - ".Tests".Length);
+                    "Could not find a parent directory ending in '.Tests' from the test assembly's path.");
+            var sourceProjectDir = dir.FullName.Substring(0, dir.FullName.Length - ".Tests".Length);
             return Path.Combine(sourceProjectDir, "Basic", "CommandHandler", "SendMessageCommandHandlerAsync.cs");
         }
     }
