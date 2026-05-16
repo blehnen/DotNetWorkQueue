@@ -1,3 +1,14 @@
+### 0.9.36 — 2026-05-16
+- Feature: transactional outbox pattern on SqlServer and PostgreSQL transports via opt-in `IRelationalProducerQueue<T>` capability cast; the caller supplies a `DbTransaction` and the queue INSERT joins the caller's business transaction (GitHub #138)
+- Memory, Redis, LiteDb, and SQLite are unchanged; callers that don't reach for the new interface see the same `IProducerQueue<T>` they always have
+- Retry decorators are skipped on the external-transaction send path so the caller keeps control of both transaction lifecycle and retry policy
+- `ExternalTransactionValidator` throws on cross-database mismatches before any write
+- `SqlServerExternalDbNameExtractor` and `PostgreSqlExternalDbNameExtractor` compare database names verbatim; neither side does case folding
+- Test: 24 integration tests across both transports (Send/SendAsync × single/batch × commit/rollback, validation paths, retry-bypass, `IAdditionalMessageData` round-trip)
+- CI: `<WarningsNotAsErrors>NU1902</WarningsNotAsErrors>` on `Transport.SQLite.csproj` keeps the OpenTelemetry NU1902 advisory visible without failing the Release build (ISSUE-032)
+- CI: close the net8.0 XML-doc gate on `Transport.RelationalDatabase.csproj`
+- Docs: new `docs/outbox-pattern.md` tutorial + reference page and a README pointer under "High-level features" (GitHub #138 + doc polish in #139)
+
 ### 0.9.35 — 2026-04-23
 - Fix: retry decorators across all transports (SqlServer, PostgreSQL, SQLite, Redis, LiteDb) tolerate a disposed Polly registry during queue shutdown — previously threw `ObjectDisposedException` when a background operation raced the dispose path (GitHub #121)
 - CI: auto-publish dashboard docker image on `v*` tag via GitHub Actions (GitHub #122)
