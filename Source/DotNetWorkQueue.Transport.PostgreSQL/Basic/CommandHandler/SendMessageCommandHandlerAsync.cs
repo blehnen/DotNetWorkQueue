@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                 _messageExpirationEnabled = _options.Value.EnableMessageExpiration;
             }
 
-            if (commandSend.ExternalTransaction != null)
+            if (commandSend is RelationalSendMessageCommand relCommand && relCommand.ExternalTransaction != null)
                 return await HandleExternalTransactionAsync(commandSend).ConfigureAwait(false);
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
@@ -192,19 +192,23 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         /// Reuses the caller's <see cref="NpgsqlTransaction"/> and its
         /// <see cref="NpgsqlConnection"/> for all queue INSERTs; never commits, rolls back,
         /// closes, or disposes the caller's resources. Invoked from <see cref="HandleAsync"/>
-        /// when <see cref="SendMessageCommand.ExternalTransaction"/> is non-null. The producer
+        /// when <see cref="RelationalSendMessageCommand.ExternalTransaction"/> is non-null. The producer
         /// surface (<c>PostgreSqlRelationalProducerQueue&lt;T&gt;</c>) validates the
         /// transaction at the API boundary, so this method performs no validation of its own.
         /// </summary>
         /// <param name="commandSend">The send-message command carrying a non-null
-        /// <see cref="SendMessageCommand.ExternalTransaction"/>.</param>
+        /// <see cref="RelationalSendMessageCommand.ExternalTransaction"/>.</param>
         /// <returns>The newly-inserted message ID.</returns>
         /// <exception cref="DotNetWorkQueueException">Thrown when the INSERT returns a zero
         /// ID or when the job-uniqueness query rejects the command.</exception>
         private async Task<long> HandleExternalTransactionAsync(SendMessageCommand commandSend)
         {
-            // Producer subclass already validated and confirmed NpgsqlTransaction; raw cast OK.
-            var npgsqlTransaction = (NpgsqlTransaction)commandSend.ExternalTransaction;
+            // Cast guard: HandleAsync() only routes here for RelationalSendMessageCommand
+            // (the `commandSend is RelationalSendMessageCommand rel` pattern in the fork
+            // check), so this cast is always safe. The producer subclass also enforces
+            // the DbTransaction subtype via GuardNpgsqlTransaction before construction.
+            var relCommand = (RelationalSendMessageCommand)commandSend;
+            var npgsqlTransaction = (NpgsqlTransaction)relCommand.ExternalTransaction;
             var npgsqlConn = (NpgsqlConnection)npgsqlTransaction.Connection;
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);

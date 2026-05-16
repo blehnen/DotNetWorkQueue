@@ -16,8 +16,10 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -51,18 +53,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
         [TestMethod]
         public void HandleAsync_SourceContainsExternalTransactionEarlyBranch()
         {
-            var sourcePath = Path.Combine(
-                Path.GetDirectoryName(typeof(SendMessageCommandHandlerAsyncForkSmokeTests).Assembly.Location)!,
-                "..", "..", "..", "..",
-                "DotNetWorkQueue.Transport.PostgreSQL",
-                "Basic", "CommandHandler",
-                "SendMessageCommandHandlerAsync.cs");
-            sourcePath = Path.GetFullPath(sourcePath);
+            var sourcePath = GetHandlerSourcePath();
 
             Assert.IsTrue(File.Exists(sourcePath), $"Expected source at {sourcePath} not found.");
             var content = File.ReadAllText(sourcePath);
-            StringAssert.Contains(content, "commandSend.ExternalTransaction != null",
-                "HandleAsync() must contain the early-branch null-check on ExternalTransaction.");
+            StringAssert.Contains(content, "commandSend is RelationalSendMessageCommand",
+                "HandleAsync() must guard the early branch with a type-check on RelationalSendMessageCommand.");
+            StringAssert.Contains(content, "relCommand.ExternalTransaction != null",
+                "HandleAsync() must null-check ExternalTransaction on the cast pattern variable.");
             StringAssert.Contains(content, "HandleExternalTransactionAsync(commandSend)",
                 "HandleAsync() must dispatch to HandleExternalTransactionAsync on the early branch.");
             StringAssert.Contains(content, "private async Task<long> HandleExternalTransactionAsync",
@@ -77,20 +75,21 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
             // CONTEXT-4 Rule B mandates the lifecycle comment uses word forms
             // ("no Commit, Rollback, Close, or Dispose") so plain substring search
             // is safe — no preprocessing needed for either sync or async variants.
-            var sourcePath = Path.Combine(
-                Path.GetDirectoryName(typeof(SendMessageCommandHandlerAsyncForkSmokeTests).Assembly.Location)!,
-                "..", "..", "..", "..",
-                "DotNetWorkQueue.Transport.PostgreSQL",
-                "Basic", "CommandHandler",
-                "SendMessageCommandHandlerAsync.cs");
-            sourcePath = Path.GetFullPath(sourcePath);
+            var sourcePath = GetHandlerSourcePath();
+            var content = File.ReadAllText(sourcePath).Replace("\r\n", "\n");
 
-            var content = File.ReadAllText(sourcePath);
+            // Extract the body of HandleExternalTransactionAsync by anchoring on its
+            // signature and finding the matching closing brace at column 8 (method-body end).
+            // The previous 6500-char window would walk past the closing brace into sibling
+            // helpers, masking the actual call site if a future edit added a lifecycle call
+            // to one of them.
             var forkStart = content.IndexOf("private async Task<long> HandleExternalTransactionAsync",
-                System.StringComparison.Ordinal);
+                StringComparison.Ordinal);
             Assert.IsTrue(forkStart >= 0, "HandleExternalTransactionAsync not found in source.");
-            // Conservative end-bound: 6500 chars forward (fork is ~85 lines, plenty).
-            var forkBody = content.Substring(forkStart, System.Math.Min(6500, content.Length - forkStart));
+            var forkEnd = content.IndexOf("\n        }\n", forkStart, StringComparison.Ordinal);
+            Assert.IsTrue(forkEnd >= 0,
+                "Closing brace of HandleExternalTransactionAsync (column-8 '}' on its own line) not found.");
+            var forkBody = content.Substring(forkStart, forkEnd - forkStart);
 
             Assert.IsFalse(forkBody.Contains(".Commit()"),   "HandleExternalTransactionAsync must not call .Commit() on the caller's transaction.");
             Assert.IsFalse(forkBody.Contains(".Rollback()"), "HandleExternalTransactionAsync must not call .Rollback() on the caller's transaction.");
@@ -101,6 +100,25 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
             Assert.IsFalse(forkBody.Contains(".RollbackAsync"), "HandleExternalTransactionAsync must not call .RollbackAsync on the caller's transaction.");
             Assert.IsFalse(forkBody.Contains(".CloseAsync"),    "HandleExternalTransactionAsync must not call .CloseAsync on the caller's connection.");
             Assert.IsFalse(forkBody.Contains(".DisposeAsync"),  "HandleExternalTransactionAsync must not call .DisposeAsync on the caller's connection or transaction.");
+        }
+
+        /// <summary>
+        /// Returns the absolute path to the PostgreSQL async handler source file under test.
+        /// Anchored at the test source's COMPILE-TIME location via <see cref="CallerFilePathAttribute"/>,
+        /// then walks two directories up (to the test project root) and strips the
+        /// <c>.Tests</c> suffix to reach the corresponding source project root. Robust to
+        /// TFM changes and bin staging directories that broke the previous
+        /// <c>..\..\..\..\</c> walk-up.
+        /// </summary>
+        private static string GetHandlerSourcePath([CallerFilePath] string testFilePath = "")
+        {
+            var testProjectDir = Path.GetFullPath(Path.Combine(
+                Path.GetDirectoryName(testFilePath)!, "..", ".."));
+            if (!testProjectDir.EndsWith(".Tests", StringComparison.Ordinal))
+                throw new InvalidOperationException(
+                    $"Expected test project dir '{testProjectDir}' to end with '.Tests'.");
+            var sourceProjectDir = testProjectDir.Substring(0, testProjectDir.Length - ".Tests".Length);
+            return Path.Combine(sourceProjectDir, "Basic", "CommandHandler", "SendMessageCommandHandlerAsync.cs");
         }
     }
 }

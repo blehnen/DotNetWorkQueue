@@ -58,8 +58,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
 
             Assert.IsTrue(File.Exists(sourcePath), $"Expected source at {sourcePath} not found.");
             var content = File.ReadAllText(sourcePath);
-            StringAssert.Contains(content, "commandSend.ExternalTransaction != null",
-                "Handle() must contain the early-branch null-check on ExternalTransaction.");
+            StringAssert.Contains(content, "commandSend is RelationalSendMessageCommand",
+                "Handle() must guard the early branch with a type-check on RelationalSendMessageCommand.");
+            StringAssert.Contains(content, "relCommand.ExternalTransaction != null",
+                "Handle() must null-check ExternalTransaction on the cast pattern variable.");
             StringAssert.Contains(content, "return HandleExternalTransaction(commandSend);",
                 "Handle() must dispatch to HandleExternalTransaction on the early branch.");
             StringAssert.Contains(content, "private long HandleExternalTransaction",

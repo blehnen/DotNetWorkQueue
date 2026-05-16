@@ -48,6 +48,23 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command
         }
 
         /// <summary>
+        /// Optional caller-supplied transaction for the outbox pattern. When set, the
+        /// relational transport's send-message handler skips its internal connection /
+        /// transaction management and uses this transaction's connection and transaction
+        /// reference instead. When null (the default), the command behaves identically
+        /// to its base <see cref="SendMessageCommand"/> and the transport manages its
+        /// own connection and transaction lifecycle exactly as before.
+        /// </summary>
+        /// <remarks>
+        /// Co-located with <see cref="IRetrySkippable"/> so the retry-decorator bypass
+        /// and the external-transaction property cannot be split: any command carrying
+        /// a caller-supplied transaction is, by construction, a
+        /// <see cref="RelationalSendMessageCommand"/> and therefore reports
+        /// <see cref="SkipRetry"/> = <c>true</c> when the property is non-null.
+        /// </remarks>
+        public DbTransaction ExternalTransaction { get; init; }
+
+        /// <summary>
         /// New: signals the retry decorator to bypass its Polly pipeline whenever the
         /// caller supplied a transaction. The caller owns retry semantics on this path.
         /// </summary>
