@@ -1,8 +1,8 @@
 {
   "schema": 3,
   "phase": 7,
-  "position": "Outbox milestone closed: 0.9.36 published to NuGet 2026-05-16 (PR #140 release prep, tag v0.9.36 on merge SHA 4a332c56, publish.yml SUCCESS). Wiki updated with OutboxPattern page + cross-links.",
+  "position": "Outbox milestone shipped (0.9.36). In-flight: PR #141 cleanup/post-outbox-issues — 3 commits closing 8 follow-up ISSUEs (033-035, 037, 039-042). Awaiting Jenkins + review. Next milestone candidate: inbox pattern (see .shipyard/notes/inbox-pattern-idea.md) — brainstorm only, not planned.",
   "status": "shipped",
-  "updated_at": "2026-05-16T00:00:00Z",
+  "updated_at": "2026-05-16T12:00:00Z",
   "blocker": null
 }
