@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 _messageExpirationEnabled = _options.Value.EnableMessageExpiration;
             }
 
-            if (commandSend.ExternalTransaction != null)
+            if (commandSend is RelationalSendMessageCommand relCommand && relCommand.ExternalTransaction != null)
                 return HandleExternalTransaction(commandSend);
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
@@ -187,24 +187,26 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// Caller-supplied-transaction fork of <see cref="Handle(SendMessageCommand)"/>. Reuses
         /// the caller's <see cref="SqlTransaction"/> and its <see cref="SqlConnection"/> for all
         /// queue INSERTs; never commits, rolls back, closes, or disposes the caller's resources.
-        /// Invoked from <see cref="Handle"/> when <see cref="SendMessageCommand.ExternalTransaction"/>
+        /// Invoked from <see cref="Handle"/> when <see cref="RelationalSendMessageCommand.ExternalTransaction"/>
         /// is non-null. The producer surface (<c>SqlServerRelationalProducerQueue&lt;T&gt;</c>)
         /// guarantees the transaction is a <see cref="SqlTransaction"/> and its connection's
         /// database matches the queue's configured database via the validator at the API boundary,
         /// so this method performs no validation of its own.
         /// </summary>
         /// <param name="commandSend">The send-message command carrying a non-null
-        /// <see cref="SendMessageCommand.ExternalTransaction"/>.</param>
+        /// <see cref="RelationalSendMessageCommand.ExternalTransaction"/>.</param>
         /// <returns>The newly-inserted message ID.</returns>
         /// <exception cref="DotNetWorkQueueException">Thrown when the INSERT returns a zero ID
         /// or when the job-uniqueness query rejects the command.</exception>
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         private long HandleExternalTransaction(SendMessageCommand commandSend)
         {
-            // Cast guard: the producer subclass enforces this via GuardSqlTransaction, but
-            // re-cast here without a check — an invalid type would have failed at the producer
-            // surface with a clean diagnostic message before reaching this method.
-            var sqlTransaction = (SqlTransaction)commandSend.ExternalTransaction;
+            // Cast guard: Handle() only routes here for RelationalSendMessageCommand (the
+            // `commandSend is RelationalSendMessageCommand rel` pattern in the fork check),
+            // so this cast is always safe. The producer subclass also enforces the
+            // DbTransaction subtype via GuardSqlTransaction before construction.
+            var relCommand = (RelationalSendMessageCommand)commandSend;
+            var sqlTransaction = (SqlTransaction)relCommand.ExternalTransaction;
             var sqlConn = (SqlConnection)sqlTransaction.Connection;
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);

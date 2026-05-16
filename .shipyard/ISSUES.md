@@ -11,6 +11,7 @@
   - `Source/DotNetWorkQueue.Transport.SqlServer.Tests/Basic/CommandHandler/SendMessageCommandHandlerForkSmokeTests.cs` (Phase 3 sibling)
 - **Description:** `forkBody = content.Substring(forkStart, Math.Min(6000, content.Length - forkStart))` walks past `HandleExternalTx`'s closing brace into `CreateStatusRecord` and `CreateMetaDataRecord`. Today the helpers are clean of `.Commit()/.Rollback()/.Close()/.Dispose()`, but a future modification to either helper would falsely fail the fork's lifecycle test with a misleading message — masking the actual call site.
 - **Remediation:** Scope the slice to the method body only: locate the next `^        }$` after `forkStart` and slice to that index, or use the next `private`/`public` declaration as the end-bound. ~5 lines of additional logic. Apply consistently to both Phase 3 (SqlServer) and Phase 4 (PostgreSQL) test files.
+- **Status:** Resolved 2026-05-16 — replaced the `Math.Min(6000, ...)` window with `content.IndexOf("\n        }\n", forkStart, ...)` to bound the slice at the method's closing brace. Line-ending normalization added (`Replace("\r\n", "\n")`). Applied to both SqlServer and PostgreSQL fork smoke tests; all 6 tests pass.
 
 ### ISSUE-034: Fragile relative source-file path in fork smoke tests
 - **Severity:** Minor (suggestion)
@@ -21,6 +22,7 @@
   - `Source/DotNetWorkQueue.Transport.SqlServer.Tests/Basic/CommandHandler/SendMessageCommandHandlerForkSmokeTests.cs` (Phase 3 sibling)
 - **Description:** The `..\..\..\..\` walk-up assumes a 4-level-deep bin output structure (`bin/Debug/net10.0/`). Brittle to TFM changes, output-path overrides, or test-running tools that copy assemblies to staging directories. Accepted in Phase 3 with the rationale "path resolution failure is itself a useful signal."
 - **Remediation:** Use `[CallerFilePath]` on a helper to anchor to the test's own source file location, then walk to the sibling project's source. Fully robust across TFMs and bin layouts. Apply consistently across all transport fork smoke tests.
+- **Status:** Resolved 2026-05-16 — extracted a `private static string GetHandlerSourcePath([CallerFilePath] string testFilePath = "")` helper in both fork smoke test classes. The helper resolves the test source's compile-time path, walks two directories up to the test project root, strips the `.Tests` suffix to reach the corresponding source project root, and appends `Basic/CommandHandler/SendMessageCommandHandler.cs`. Robust to TFM changes and bin staging. All 6 tests pass.
 
 ### ISSUE-035: Path-resolution block duplicated across smoke tests
 - **Severity:** Minor (suggestion)
@@ -31,6 +33,7 @@
   - `Source/DotNetWorkQueue.Transport.SqlServer.Tests/Basic/CommandHandler/SendMessageCommandHandlerForkSmokeTests.cs` (Phase 3 sibling)
 - **Description:** Identical 7-line path-resolution block copy-pasted across tests 2 and 3 in each fork smoke test file. Minor maintenance cost.
 - **Remediation:** Extract `private static string GetHandlerSourcePath()` helper. ~8 lines saved per test file. Bundle with ISSUE-034 if `[CallerFilePath]` refactor is adopted.
+- **Status:** Resolved 2026-05-16 — bundled with ISSUE-034. Both call sites in each fork smoke test file now call `GetHandlerSourcePath()`; the inline `Path.Combine(...)` blocks are gone.
 
 ## Closed
 
@@ -316,7 +319,7 @@
 - **Files:** `Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/Outbox/SqlServerOutboxAdditionalDataTests.cs`, `Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/Outbox/PostgreSqlOutboxAdditionalDataTests.cs`
 - **Description:** PLAN-1.2 + PLAN-2.2 Task 3 code shapes both called for `data.SetPriority(7)` + direct query of the `priority` column from the MetaData table. Builder simplified to correlation-ID round-trip only (auto-assigned `data.CorrelationId` via `GenerateMessageHeaders.HeaderSetup`, compare against persisted `CorrelationID`). The simplification is sound — the load-bearing `Send(msg, data, tx)` overload is still exercised — but a regression that caused the producer to ignore the caller-supplied `data` parameter would still pass both tests because correlation is auto-assigned on whatever `data` object the producer actually persists. The plan's priority assertion would have caught that specific regression because priority has no auto-assignment fallback. The simplification was applied symmetrically to BOTH transports, so the coverage gap exists on both sides.
 - **Remediation:** Add a single `data.SetPriority(7)` + `EnablePriority = true` queue option + direct SQL read of `priority` column from MetaData table to BOTH `*OutboxAdditionalDataTests` files. Keep the existing correlation-ID assertion. Bundle as one follow-up PR after Phase 6 ships, so both transports stay symmetric.
-- **Status:** Open — deferred to a future strengthening pass (post-Phase-7 ship). Non-blocking for Phase 6 ship gate.
+- **Status:** Resolved 2026-05-16 — both base classes (`SqlServerOutboxIntegrationTestBase`, `PostgreSqlOutboxIntegrationTestBase`) gained a `bool enablePriority = false` parameter on `CreateQueue`. Both `*OutboxAdditionalDataTests` files now call `CreateQueue(qc, enablePriority: true)`, set `data.SetPriority(7)`, and add an `AssertPriorityInMetadata(qc, 7)` helper that reads the `priority` column from the MetaData table. PG variant uses `Convert.ToByte(reader[0])` since Npgsql returns `smallint` as Int16. Runtime verification deferred to Jenkins (SqlServer + PostgreSQL integration stages).
 
 ### ISSUE-038: PG Wave 2 plans authored pre-rename used `tx`; builder followed plan literally
 - **Severity:** Low (process)
@@ -335,7 +338,7 @@
 - **Files:** `.shipyard/PROJECT.md` §Diagnostics / §Functional Implementation
 - **Description:** PROJECT.md still describes the original (pre-Phase-3-fix) asymmetric design where SqlServer used `OrdinalIgnoreCase` and PostgreSQL used `Ordinal` for the DB-name comparison in `ExternalTransactionValidator`. The Phase 3 extractor pass-through fix (commit `994e1404`) made both transports symmetric: both extractors emit verbatim DB names, and both validators use `StringComparer.Ordinal`. `docs/outbox-pattern.md` correctly reflects the implementation; PROJECT.md does not.
 - **Remediation:** Update PROJECT.md §Diagnostics / §Functional Implementation lines describing the comparator semantics to read "both transports use `StringComparer.Ordinal` (post-Phase-3 pass-through extractor design)." Cross-check the surrounding paragraphs for the same outdated framing.
-- **Status:** Open. Non-blocking for Phase 7 ship gate. Track for next PROJECT.md maintenance pass or bundle with documentation refresh.
+- **Status:** Resolved 2026-05-16 — code half landed in commit `41e2be94` (PR #139, XML doc on `IExternalDbNameExtractor` / `ExternalTransactionValidator` / `SqlServerExternalDbNameExtractor.remarks`). PROJECT.md half landed in this cleanup PR — `.shipyard/PROJECT.md` lines 75-76 collapsed to a single bullet stating both transports use `StringComparer.Ordinal` with verbatim pass-through extractors, with a callout to commit `994e1404` for the historical context.
 
 ### ISSUE-040: `docs/outbox-pattern.md` has no `SendAsync` worked example
 - **Severity:** Low (deferred coverage gap)
@@ -343,7 +346,7 @@
 - **Files:** `docs/outbox-pattern.md`
 - **Description:** Per CONTEXT-7 Decision 2 ("ONE worked example, SqlServer commit path canonical"), the tutorial uses synchronous `Send(msg, transaction)` only. `SendAsync` is mentioned in prose ("SendAsync overloads with the same signatures exist on `IRelationalProducerQueue<T>` for async callers; the sync form is shown here for clarity.") but no async worked code example is provided. Modern .NET callers may need explicit `await using`/`await transaction.CommitAsync()` patterns demonstrated. Same applies to the batch overloads (`Send(IEnumerable<>, transaction)`).
 - **Remediation:** Add a second smaller code block showing the async + batch variants. ~15-20 additional lines. Defer until early-user feedback indicates whether the prose forward-pointer suffices or a full async example is needed.
-- **Status:** Open. Non-blocking. Track for post-ship doc refresh once user feedback arrives.
+- **Status:** Resolved 2026-05-16 — added a new "Async and batch variants" section after the PostgreSQL note. Shows `await using` connection + transaction, `OpenAsync` + `BeginTransactionAsync` + `CommitAsync` flow with the `(SqlTransaction)` cast required by `cmd.Transaction =`, plus a batch overload example demonstrating the all-or-nothing rollback semantics for the whole batch.
 
 ### ISSUE-041: `IRelationalProducerQueue<T>` XML doc link to outbox-pattern.md is plain-text, not hyperlinked
 - **Severity:** Low (XML doc polish)
@@ -351,7 +354,7 @@
 - **Files:** `Source/DotNetWorkQueue.Transport.RelationalDatabase/IRelationalProducerQueue.cs` (or wherever the interface XML doc lives)
 - **Description:** The XML doc comment on `IRelationalProducerQueue<T>` references `docs/outbox-pattern.md` as a `<c>docs/outbox-pattern.md</c>` plain-code path rather than a `<see href="https://github.com/blehnen/DotNetWorkQueue/blob/master/docs/outbox-pattern.md">` hyperlink. Plain-text path is functional (IDE intellisense and Sandcastle build both render it as a code snippet), but a hyperlinked variant resolves on docs.microsoft.com-style consumers.
 - **Remediation:** After PR-138 merges to `master`, the GitHub raw URL becomes stable. Upgrade the XML doc reference to `<see href="...">` style. Trivial 1-line edit per occurrence; cross-check whether other Phase 2-4 public types reference the doc.
-- **Status:** Open. Non-blocking. Wait for stable master URL post-merge; bundle with next docs touch-up.
+- **Status:** Resolved 2026-05-15 — commit `41e2be94` (PR #139) replaced `<c>docs/outbox-pattern.md</c>` with `<see href="https://github.com/blehnen/DotNetWorkQueue/blob/master/docs/outbox-pattern.md">docs/outbox-pattern.md</see>` on `IRelationalProducerQueue.cs`. Already shipped in 0.9.36; tracked as closed during cleanup PR.
 
 ### ISSUE-042: `SendMessageCommand.ExternalTransaction` is `public init` — future transport author could bypass retry-decorator gate
 - **Severity:** Low (future-proofing / cross-phase coherence)
@@ -363,4 +366,4 @@
   1. Narrow visibility to `internal { get; init; }` so only transport-package code can set it.
   2. Move the property entirely to `RelationalSendMessageCommand` (would break the handler fork's `commandSend.ExternalTransaction != null` check without a cast — requires careful refactor).
   Option 1 is simpler and aligns with the principle that the property is an internal implementation detail of the relational handler fork.
-- **Status:** Open. Future-proofing item; not a ship blocker. Track for next maintenance pass.
+- **Status:** Resolved 2026-05-16 — went with option 2 (the structurally cleaner fix). `ExternalTransaction` moved from `SendMessageCommand` (Shared) to `RelationalSendMessageCommand` (RelationalDatabase). Handler forks now use `commandSend is RelationalSendMessageCommand relCommand && relCommand.ExternalTransaction != null` and `HandleExternalTransaction` casts the parameter to the subclass before reading the property. By construction, any command carrying a caller-supplied transaction is now also a `RelationalSendMessageCommand` and therefore reports `SkipRetry = true` — the foot-gun is no longer reachable. Touched 6 production files (2 command classes, 4 handlers) plus 4 fork smoke test files (sync + async per transport, all updated to assert the new `is RelationalSendMessageCommand` pattern + the commit-2 `[CallerFilePath]` / end-bound refactor). All 1425 unit tests pass.

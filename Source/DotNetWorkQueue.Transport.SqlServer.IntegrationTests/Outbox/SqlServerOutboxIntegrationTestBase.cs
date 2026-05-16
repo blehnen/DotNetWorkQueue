@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
             }
         }
 
-        protected QueueScope CreateQueue(QueueConnection queueConnection)
+        protected QueueScope CreateQueue(QueueConnection queueConnection, bool enablePriority = false)
         {
             var queueCreator = new QueueCreationContainer<SqlServerMessageQueueInit>();
             var oCreation = queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection);
@@ -69,7 +69,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
             oCreation.Options.EnableDelayedProcessing = false;
             oCreation.Options.EnableMessageExpiration = false;
             oCreation.Options.EnableHoldTransactionUntilMessageCommitted = false;
-            oCreation.Options.EnablePriority = false;
+            oCreation.Options.EnablePriority = enablePriority;
 
             var result = oCreation.CreateQueue();
             Assert.IsTrue(result.Success, result.ErrorMessage);

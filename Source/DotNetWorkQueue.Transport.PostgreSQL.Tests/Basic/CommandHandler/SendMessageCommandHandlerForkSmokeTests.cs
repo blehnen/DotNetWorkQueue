@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.IO;
 using System.Reflection;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
@@ -63,21 +64,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
         [TestMethod]
         public void Handle_SourceContainsExternalTransactionEarlyBranch()
         {
-            // Resolve the source file relative to the test bin output. dotnet test runs
-            // from the project's bin directory; the source file is 4 levels up + into
-            // the main PG project's Basic/CommandHandler folder.
-            var sourcePath = Path.Combine(
-                Path.GetDirectoryName(typeof(SendMessageCommandHandlerForkSmokeTests).Assembly.Location)!,
-                "..", "..", "..", "..",
-                "DotNetWorkQueue.Transport.PostgreSQL",
-                "Basic", "CommandHandler",
-                "SendMessageCommandHandler.cs");
-            sourcePath = Path.GetFullPath(sourcePath);
+            var sourcePath = GetHandlerSourcePath();
 
             Assert.IsTrue(File.Exists(sourcePath), $"Expected source at {sourcePath} not found.");
             var content = File.ReadAllText(sourcePath);
-            StringAssert.Contains(content, "commandSend.ExternalTransaction != null",
-                "Handle() must contain the early-branch null-check on ExternalTransaction.");
+            StringAssert.Contains(content, "commandSend is RelationalSendMessageCommand",
+                "Handle() must guard the early branch with a type-check on RelationalSendMessageCommand.");
+            StringAssert.Contains(content, "relCommand.ExternalTransaction != null",
+                "Handle() must null-check ExternalTransaction on the cast pattern variable.");
             StringAssert.Contains(content, "return HandleExternalTransaction(commandSend);",
                 "Handle() must dispatch to HandleExternalTransaction on the early branch.");
             StringAssert.Contains(content, "private long HandleExternalTransaction",
@@ -94,27 +88,54 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
         {
             // CONTEXT-4 Rule B mandates the lifecycle comment uses word forms
             // ("no Commit, Rollback, Close, or Dispose") so plain substring search is
-            // safe — no preprocessing needed.
-            var sourcePath = Path.Combine(
-                Path.GetDirectoryName(typeof(SendMessageCommandHandlerForkSmokeTests).Assembly.Location)!,
-                "..", "..", "..", "..",
-                "DotNetWorkQueue.Transport.PostgreSQL",
-                "Basic", "CommandHandler",
-                "SendMessageCommandHandler.cs");
-            sourcePath = Path.GetFullPath(sourcePath);
+            // safe — no comment-stripping needed.
+            var sourcePath = GetHandlerSourcePath();
+            var content = File.ReadAllText(sourcePath).Replace("\r\n", "\n");
 
-            var content = File.ReadAllText(sourcePath);
-            // Extract the body of HandleExternalTransaction by anchoring on its signature.
-            // Conservative end-bound: 6000 chars forward (fork is ~80 lines, plenty).
-            var forkStart = content.IndexOf("private long HandleExternalTransaction",
-                System.StringComparison.Ordinal);
+            // Extract the body of HandleExternalTransaction by anchoring on its signature
+            // and finding the matching closing brace at column 8 (method-body end). The
+            // previous 6000-char window would walk past the closing brace into sibling
+            // helpers, masking the actual call site if a future edit added a Commit /
+            // Rollback / Close / Dispose call to one of them.
+            var forkStart = content.IndexOf("private long HandleExternalTransaction", StringComparison.Ordinal);
             Assert.IsTrue(forkStart >= 0, "HandleExternalTransaction not found in source.");
-            var forkBody = content.Substring(forkStart, System.Math.Min(6000, content.Length - forkStart));
+            var forkEnd = content.IndexOf("\n        }\n", forkStart, StringComparison.Ordinal);
+            Assert.IsTrue(forkEnd >= 0,
+                "Closing brace of HandleExternalTransaction (column-8 '}' on its own line) not found.");
+            var forkBody = content.Substring(forkStart, forkEnd - forkStart);
 
             Assert.IsFalse(forkBody.Contains(".Commit()"), "HandleExternalTransaction must not call .Commit() on the caller's transaction.");
             Assert.IsFalse(forkBody.Contains(".Rollback()"), "HandleExternalTransaction must not call .Rollback() on the caller's transaction.");
             Assert.IsFalse(forkBody.Contains(".Close()"), "HandleExternalTransaction must not call .Close() on the caller's connection.");
             Assert.IsFalse(forkBody.Contains(".Dispose()"), "HandleExternalTransaction must not call .Dispose() on the caller's connection or transaction.");
+        }
+
+        /// <summary>
+        /// Returns the absolute path to the PostgreSQL handler source file under test.
+        /// Walks up from the test assembly's runtime directory until it finds a parent
+        /// whose name ends with <c>.Tests</c>; that's the test project root. Strips the
+        /// <c>.Tests</c> suffix to reach the corresponding source project root, then
+        /// appends the handler's relative path.
+        /// </summary>
+        /// <remarks>
+        /// An earlier revision used <c>[CallerFilePath]</c> for compile-time path anchoring,
+        /// but CI builds with <c>ContinuousIntegrationBuild=true</c> (set automatically by
+        /// <c>Directory.Build.props</c> when the <c>CI</c> env var is present) rewrite
+        /// source paths to the deterministic placeholder <c>/_/Source/...</c>, which doesn't
+        /// exist on disk at test runtime. Walking the assembly's <em>runtime</em> directory
+        /// avoids that pitfall while still adapting to any TFM (no hardcoded depth).
+        /// </remarks>
+        private static string GetHandlerSourcePath()
+        {
+            var dir = new DirectoryInfo(
+                Path.GetDirectoryName(typeof(SendMessageCommandHandlerForkSmokeTests).Assembly.Location)!);
+            while (dir != null && !dir.Name.EndsWith(".Tests", StringComparison.Ordinal))
+                dir = dir.Parent;
+            if (dir == null)
+                throw new InvalidOperationException(
+                    "Could not find a parent directory ending in '.Tests' from the test assembly's path.");
+            var sourceProjectDir = dir.FullName.Substring(0, dir.FullName.Length - ".Tests".Length);
+            return Path.Combine(sourceProjectDir, "Basic", "CommandHandler", "SendMessageCommandHandler.cs");
         }
     }
 }

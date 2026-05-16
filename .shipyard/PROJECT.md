@@ -72,9 +72,7 @@ A single validator runs at the start of every tx-aware `Send`:
 - `transaction.Connection != null` → else `InvalidOperationException` ("transaction disposed or completed").
 - `transaction.Connection.State == ConnectionState.Open` → else `InvalidOperationException`.
 - `transaction.Connection.Database` (canonical form) equals the queue's configured database → else `InvalidOperationException` with both database names in the message.
-- Per-provider `IExternalDbNameExtractor`:
-  - SqlServer: `conn.Database`, compared case-insensitively (`StringComparer.OrdinalIgnoreCase`).
-  - PostgreSQL: `conn.Database`, compared case-sensitively (`StringComparer.Ordinal`).
+- Per-provider `IExternalDbNameExtractor`: both `SqlServer` and `PostgreSQL` return `conn.Database` verbatim (no case folding on either side); the validator compares with `StringComparison.Ordinal`. The SqlServer extractor was originally `OrdinalIgnoreCase`-folded but was changed mid-Phase-6 (commit `994e1404`) to pass-through, matching PostgreSQL's design and removing a symmetry bug between the extractor's normalization and the validator's comparator.
 
 ### Ownership & Threading Contract (documented, not enforced)
 

@@ -21,6 +21,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.SqlServer;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
 using Microsoft.Data.SqlClient;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -39,23 +40,31 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
     ///      by <c>sendResult.SentMessage.CorrelationId.Id.Value</c>. The correlation ID is
     ///      auto-assigned by <c>GenerateMessageHeaders.HeaderSetup</c> when not pre-set,
     ///      and the persisted value must equal what the producer returned to the caller.
-    ///   3. The send result contains no error (confirming the caller-transaction path succeeded).
+    ///   3. The Priority column persists the caller-supplied value. Priority has NO
+    ///      auto-assignment fallback in the producer, so this assertion specifically
+    ///      catches a regression where the producer silently drops the caller-supplied
+    ///      <c>IAdditionalMessageData</c> on the external-transaction path.
+    ///   4. The send result contains no error (confirming the caller-transaction path succeeded).
     /// </summary>
     [TestClass]
     public class SqlServerOutboxAdditionalDataTests : SqlServerOutboxIntegrationTestBase
     {
+        private const byte ExpectedPriority = 7;
+
         [TestMethod]
         public void AdditionalMessageData_RoundTrip_PreservesHeadersAndCorrelation()
         {
             var qc = new QueueConnection(NewQueueName(), ConnectionInfo.ConnectionString);
-            using var queue = CreateQueue(qc);
+            using var queue = CreateQueue(qc, enablePriority: true);
             using var producer = CreateRelationalProducer(qc);
 
             var data = new AdditionalMessageData();
-            // Let GenerateMessageHeaders auto-assign the correlation ID so we avoid
-            // constructing a transport-specific MessageCorrelationId<Guid> here.
-            // The round-trip assertion compares what the producer returned (SentMessage)
-            // against what actually persisted in the MetaData table.
+            // Set priority explicitly. Unlike CorrelationID (auto-assigned by
+            // GenerateMessageHeaders.HeaderSetup), Priority has no fallback in the
+            // producer path — so asserting on its persisted value catches a regression
+            // where the producer drops the caller-supplied AdditionalMessageData on the
+            // external-transaction path. (ISSUE-037)
+            data.SetPriority(ExpectedPriority);
             var msg = GenerateMessage.Create<FakeMessage>();
 
             IQueueOutputMessage sendResult;
@@ -76,6 +85,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
 
             // Query the MetaData table directly and assert the persisted GUID matches.
             AssertCorrelationIdInMetadata(qc, returnedCorrelationGuid);
+
+            // Priority round-trip: the regression guard described above.
+            AssertPriorityInMetadata(qc, ExpectedPriority);
         }
 
         /// <summary>
@@ -96,6 +108,26 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
             var actual = (Guid)reader[0];
             Assert.AreEqual(expected, actual,
                 $"CorrelationID did not round-trip: expected {expected}, persisted {actual}.");
+        }
+
+        /// <summary>
+        /// Queries the queue's MetaData table for the Priority column and asserts the
+        /// single persisted row equals <paramref name="expected"/>. Mirrors the
+        /// pattern in <c>VerifyQueueData.VerifyPriority()</c>.
+        /// </summary>
+        private static void AssertPriorityInMetadata(QueueConnection qc, byte expected)
+        {
+            var info = new SqlConnectionInformation(qc);
+            var helper = new SqlServerTableNameHelper(info);
+            using var conn = new SqlConnection(qc.Connection);
+            conn.Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = $"SELECT priority FROM {helper.MetaDataName}";
+            using var reader = cmd.ExecuteReader();
+            Assert.IsTrue(reader.Read(), "Expected at least one row in MetaData table.");
+            var actual = (byte)reader[0];
+            Assert.AreEqual(expected, actual,
+                $"Priority did not round-trip: expected {expected}, persisted {actual}.");
         }
     }
 }

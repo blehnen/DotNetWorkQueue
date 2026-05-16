@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.IO;
 using System.Reflection;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
@@ -52,21 +53,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
         [TestMethod]
         public void Handle_SourceContainsExternalTransactionEarlyBranch()
         {
-            // Read SendMessageCommandHandler.cs from the source tree relative to the test
-            // bin output. dotnet test runs from the project's bin directory; the source
-            // file is 4 levels up + into the main project's Basic/CommandHandler folder.
-            var sourcePath = Path.Combine(
-                Path.GetDirectoryName(typeof(SendMessageCommandHandlerForkSmokeTests).Assembly.Location)!,
-                "..", "..", "..", "..",
-                "DotNetWorkQueue.Transport.SqlServer",
-                "Basic", "CommandHandler",
-                "SendMessageCommandHandler.cs");
-            sourcePath = Path.GetFullPath(sourcePath);
+            var sourcePath = GetHandlerSourcePath();
 
             Assert.IsTrue(File.Exists(sourcePath), $"Expected source at {sourcePath} not found.");
             var content = File.ReadAllText(sourcePath);
-            StringAssert.Contains(content, "commandSend.ExternalTransaction != null",
-                "Handle() must contain the early-branch null-check on ExternalTransaction.");
+            StringAssert.Contains(content, "commandSend is RelationalSendMessageCommand",
+                "Handle() must guard the early branch with a type-check on RelationalSendMessageCommand.");
+            StringAssert.Contains(content, "relCommand.ExternalTransaction != null",
+                "Handle() must null-check ExternalTransaction on the cast pattern variable.");
             StringAssert.Contains(content, "return HandleExternalTransaction(commandSend);",
                 "Handle() must dispatch to HandleExternalTransaction on the early branch.");
             StringAssert.Contains(content, "private long HandleExternalTransaction",
@@ -79,21 +73,20 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             // Source-level grep guard for the lifecycle-ownership contract from PROJECT.md
             // §Success Criteria #7. The fork must NEVER call Commit/Rollback/Close/Dispose
             // on the caller's transaction or connection.
-            var sourcePath = Path.Combine(
-                Path.GetDirectoryName(typeof(SendMessageCommandHandlerForkSmokeTests).Assembly.Location)!,
-                "..", "..", "..", "..",
-                "DotNetWorkQueue.Transport.SqlServer",
-                "Basic", "CommandHandler",
-                "SendMessageCommandHandler.cs");
-            sourcePath = Path.GetFullPath(sourcePath);
+            var sourcePath = GetHandlerSourcePath();
+            var content = File.ReadAllText(sourcePath).Replace("\r\n", "\n");
 
-            var content = File.ReadAllText(sourcePath);
-            // Extract the body of HandleExternalTransaction by anchoring on its signature and the
-            // closing-brace of the method (the next "        }" at column 8 after its body).
-            var forkStart = content.IndexOf("private long HandleExternalTransaction", System.StringComparison.Ordinal);
+            // Extract the body of HandleExternalTransaction by anchoring on its signature
+            // and finding the matching closing brace at column 8 (method-body end). The
+            // previous 6000-char window would walk past the closing brace into sibling
+            // helpers like CreateStatusRecord, masking the actual call site if a future
+            // edit added a Commit/Rollback/Close/Dispose call to one of them.
+            var forkStart = content.IndexOf("private long HandleExternalTransaction", StringComparison.Ordinal);
             Assert.IsTrue(forkStart >= 0, "HandleExternalTransaction not found in source.");
-            // Conservative end-bound: search 6000 chars forward (the fork is ~80 lines, plenty).
-            var forkBody = content.Substring(forkStart, System.Math.Min(6000, content.Length - forkStart));
+            var forkEnd = content.IndexOf("\n        }\n", forkStart, StringComparison.Ordinal);
+            Assert.IsTrue(forkEnd >= 0,
+                "Closing brace of HandleExternalTransaction (column-8 '}' on its own line) not found.");
+            var forkBody = content.Substring(forkStart, forkEnd - forkStart);
 
             // Strip line-comments before grepping — the fork body intentionally documents the
             // contract with comments like "// Deliberately NO trans.Commit()..." which would
@@ -104,10 +97,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             foreach (var line in lines)
             {
                 var trimmed = line.TrimStart();
-                if (trimmed.StartsWith("//", System.StringComparison.Ordinal))
+                if (trimmed.StartsWith("//", StringComparison.Ordinal))
                     continue;
                 // Strip trailing line-comments from a code line (rough but adequate here).
-                var commentIdx = line.IndexOf("//", System.StringComparison.Ordinal);
+                var commentIdx = line.IndexOf("//", StringComparison.Ordinal);
                 codeOnly.AppendLine(commentIdx >= 0 ? line.Substring(0, commentIdx) : line);
             }
             var forkCode = codeOnly.ToString();
@@ -119,6 +112,34 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             // the fork body has no other Close/Dispose surface.
             Assert.IsFalse(forkCode.Contains(".Close()"),     "HandleExternalTransaction must not call .Close() on the caller's connection.");
             Assert.IsFalse(forkCode.Contains(".Dispose()"),   "HandleExternalTransaction must not call .Dispose() on the caller's connection or transaction.");
+        }
+
+        /// <summary>
+        /// Returns the absolute path to the SqlServer handler source file under test.
+        /// Walks up from the test assembly's runtime directory until it finds a parent
+        /// whose name ends with <c>.Tests</c>; that's the test project root. Strips the
+        /// <c>.Tests</c> suffix to reach the corresponding source project root, then
+        /// appends the handler's relative path.
+        /// </summary>
+        /// <remarks>
+        /// An earlier revision used <c>[CallerFilePath]</c> for compile-time path anchoring,
+        /// but CI builds with <c>ContinuousIntegrationBuild=true</c> (set automatically by
+        /// <c>Directory.Build.props</c> when the <c>CI</c> env var is present) rewrite
+        /// source paths to the deterministic placeholder <c>/_/Source/...</c>, which doesn't
+        /// exist on disk at test runtime. Walking the assembly's <em>runtime</em> directory
+        /// avoids that pitfall while still adapting to any TFM (no hardcoded depth).
+        /// </remarks>
+        private static string GetHandlerSourcePath()
+        {
+            var dir = new DirectoryInfo(
+                Path.GetDirectoryName(typeof(SendMessageCommandHandlerForkSmokeTests).Assembly.Location)!);
+            while (dir != null && !dir.Name.EndsWith(".Tests", StringComparison.Ordinal))
+                dir = dir.Parent;
+            if (dir == null)
+                throw new InvalidOperationException(
+                    "Could not find a parent directory ending in '.Tests' from the test assembly's path.");
+            var sourceProjectDir = dir.FullName.Substring(0, dir.FullName.Length - ".Tests".Length);
+            return Path.Combine(sourceProjectDir, "Basic", "CommandHandler", "SendMessageCommandHandler.cs");
         }
     }
 }

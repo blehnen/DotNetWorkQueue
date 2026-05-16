@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Outbox
             }
         }
 
-        protected QueueScope CreateQueue(QueueConnection queueConnection)
+        protected QueueScope CreateQueue(QueueConnection queueConnection, bool enablePriority = false)
         {
             var queueCreator = new QueueCreationContainer<PostgreSqlMessageQueueInit>();
             var oCreation = queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Outbox
             oCreation.Options.EnableDelayedProcessing = false;
             oCreation.Options.EnableMessageExpiration = false;
             oCreation.Options.EnableHoldTransactionUntilMessageCommitted = false;
-            oCreation.Options.EnablePriority = false;
+            oCreation.Options.EnablePriority = enablePriority;
 
             var result = oCreation.CreateQueue();
             Assert.IsTrue(result.Success, result.ErrorMessage);
