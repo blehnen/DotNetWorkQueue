@@ -1,154 +1,128 @@
-# Project: Outbox Pattern Support for Relational Transports
+# Project: Inbox Pattern Support for Relational Transports (+ SQLite-Outbox Sweep)
 
 ## Description
 
-Add producer-side support for caller-supplied transactions to the SqlServer and PostgreSQL transports, enabling the **transactional outbox pattern**: the caller writes business data and a queue message inside a single transaction so the two commit (or roll back) atomically.
+Add consumer-side support for library-exposed transactions on the SqlServer, PostgreSQL, and SQLite transports, enabling the **transactional inbox pattern**: the user's message handler can write business data inside the same transaction the library uses to dequeue and commit the queue message, so the two commit (or roll back) atomically. This is the dual of the outbox milestone — where the caller owned the transaction and the library used it, here the library owns the transaction and the user joins it.
 
-DotNetWorkQueue's existing producer surface always opens and manages its own connection + transaction internally. This is the right default for fire-and-forget enqueue, but it precludes the outbox pattern because the queue INSERT is not part of the caller's business transaction. This project introduces a parallel, opt-in send surface on relational transports that accepts a `System.Data.Common.DbTransaction` from the caller, reuses its associated connection, performs the queue INSERTs inside that transaction, and never commits, rolls back, or disposes the caller-owned resources. Retry policies are skipped on this path — the caller owns the transaction lifecycle, and therefore also owns retry policy.
+The mechanism is exposed via a derived interface `IRelationalWorkerNotification : IWorkerNotification` (in `DotNetWorkQueue.Transport.RelationalDatabase`) carrying the active `DbTransaction`. Non-relational transports (Memory, Redis, LiteDb) never implement it — capability-cast pattern, mirroring outbox. The feature is gated on the existing option `EnableHoldTransactionUntilMessageCommitted = true`: when the option is off, the relational notification impl simply does NOT implement `IRelationalWorkerNotification`, so the cast cleanly fails and the user gets a single discoverable signal that the feature is or isn't live.
 
-The feature is exposed via a derived interface `IRelationalProducerQueue<T> : IProducerQueue<T>` so non-relational transports (Redis, Memory, LiteDb) are unaffected and the existing public API is preserved.
+This milestone also sweeps in **SQLite-outbox** as a co-feature, extending the producer-side `IRelationalProducerQueue<T>` interface from the outbox milestone to SQLite. The decision is symmetry-driven: shipping inbox on three relational transports while outbox lives on only two would leave a confusing asymmetric public surface ("you can do outbox on SqlServer/PG but only inbox on SQLite — why?"). Doing both directions on all three relational transports in one milestone keeps the relational surface coherent.
 
 ## Goals
 
-1. Enable the transactional outbox pattern on SqlServer and PostgreSQL transports.
-2. Preserve `IProducerQueue<T>` exactly — no breaking changes for existing callers.
-3. Keep transaction-lifecycle ownership boundaries explicit: caller owns the transaction, transport never commits/rolls back/disposes.
-4. Validate at the API boundary (schema co-location, connection state, transaction state) so misconfiguration fails fast at the first `Send` call rather than as silent data drift in production.
-5. Bypass internal retry policies on the caller-transaction path; caller drives retry semantics for the whole business operation.
-6. Avoid landmines for non-relational transports: invisible API surface (capability-cast pattern), no `NotSupportedException` stubs.
+1. Enable atomic "dequeue + business write" via a library-exposed `DbTransaction` on SqlServer, PostgreSQL, and SQLite consumers when `EnableHoldTransactionUntilMessageCommitted = true`.
+2. Extend the existing outbox surface (`IRelationalProducerQueue<T>`) to SQLite producers, closing the asymmetry left by the prior milestone.
+3. Preserve the existing public API for all six current transports — additive only; no breaking changes.
+4. Preserve the existing handler programming model — user code remains `(IReceivedMessage<T>, IWorkerNotification) => ...`; the inbox capability is discovered via a single `is IRelationalWorkerNotification r` cast.
+5. Keep ADO.NET types out of the transport-agnostic root assembly — all new interfaces live in `DotNetWorkQueue.Transport.RelationalDatabase`.
+6. Match outbox-milestone test discipline — method-matrix-driven integration coverage on real DBs; negative-path tests confirming non-relational transports do NOT implement the capability.
 
 ## Non-Goals
 
-- **SQLite outbox support.** Out of scope for this milestone. Design extends cleanly if requested later.
-- **Consumer-side transaction enlistment** (inbox pattern). Existing `HoldTransactionUntilCommited` option on SqlServer/PostgreSQL covers the close-enough case for consumers.
-- **Method producer / LINQ compiled-expression producer outbox support.** Outbox is a DTO-event pattern; deferred-execution producers are a different use case nobody has asked for.
-- **`System.Transactions.TransactionScope` / ambient transaction enlistment.** Requires MSDTC for cross-connection promotion on SqlServer, is unsupported by Npgsql, and is a deprecated pattern.
-- **Polly retries on the caller-transaction path.** The caller owns the transaction; retries are the caller's responsibility (e.g., wrap the entire business operation in their own retry policy and re-call `Send`).
-- **Auto-creation of queue tables on first `Send`.** Caller deploys schema once via the existing `CreateQueue` API against their business database. DDL inside the caller's transaction is the wrong contract for outbox.
-- **Memory, Redis, and LiteDb transports.** Outbox is inherently a single-database-transaction pattern; these transports have no equivalent.
+- LiteDb inbox or outbox — LiteDb does not expose ADO.NET `DbTransaction` semantics; out of scope.
+- Memory / Redis inbox or outbox — not relational; no transaction object to expose or accept.
+- A `notification.AbortTransaction` flag for soft rollback — the contract is "throw to roll back, return to commit," matching DNQ's existing handler semantics. No new lifecycle state.
+- Any change to the existing producer/consumer surface for non-relational transports.
+- Auto-deduplication via the exposed transaction — user remains responsible for whatever inbox-dedupe table or strategy they need. The library exposes the seam; the pattern is user-implemented on top.
+- Heartbeat refactoring — if heartbeats are already disabled in hold-tx mode (the held tx serves as the lease), the inbox milestone confirms this but does NOT redesign the heartbeat system.
+- Any new opt-in flag in `ITransportOptions` — `EnableHoldTransactionUntilMessageCommitted` is already the gate; no second flag like `EnableInboxTransaction`.
 
 ## Requirements
 
 ### Functional — New Public API
 
-- **New interface** `IRelationalProducerQueue<TMessage> : IProducerQueue<TMessage>` in `DotNetWorkQueue.Transport.RelationalDatabase`, with six overloads:
-  - `IQueueOutputMessage Send(TMessage, DbTransaction)`
-  - `IQueueOutputMessage Send(TMessage, IAdditionalMessageData, DbTransaction)`
-  - `Task<IQueueOutputMessage> SendAsync(TMessage, DbTransaction)`
-  - `Task<IQueueOutputMessage> SendAsync(TMessage, IAdditionalMessageData, DbTransaction)`
-  - `IQueueOutputMessages Send(IEnumerable<QueueMessage<TMessage, IAdditionalMessageData>>, DbTransaction)`
-  - `Task<IQueueOutputMessages> SendAsync(IEnumerable<QueueMessage<TMessage, IAdditionalMessageData>>, DbTransaction)`
-- **Capability cast usage pattern:**
-  ```csharp
-  var producer = container.CreateProducer<MyEvent, SqlServerMessageQueueInit>(conn);
-  if (producer is IRelationalProducerQueue<MyEvent> rp)
-  {
-      using var tx = await myConn.BeginTransactionAsync();
-      await businessRepo.SaveAsync(data, tx);
-      await rp.SendAsync(new MyEvent(...), tx);
-      await tx.CommitAsync();
-  }
-  ```
-- The parameter type is `System.Data.Common.DbTransaction` (abstract base), not `IDbTransaction`, so a single overload covers both sync and async ADO.NET paths.
-- The transaction's connection is reached via `tx.Connection`; the caller does not pass a separate connection parameter (ADO.NET binds transactions to the connection they were opened from).
+- `IRelationalWorkerNotification : IWorkerNotification` in `DotNetWorkQueue.Transport.RelationalDatabase` with a single member `DbTransaction Transaction { get; }`. Contract: when the interface is implemented on a notification instance, `Transaction` is non-null. The presence of the interface IS the capability assertion.
+- Per-transport `WorkerNotification` factories on SqlServer, PostgreSQL, and SQLite branch on `EnableHoldTransactionUntilMessageCommitted`:
+  - Option `true` → construct a notification class that implements `IRelationalWorkerNotification` and surfaces the connection-holder's transaction.
+  - Option `false` → construct the existing notification class that does NOT implement `IRelationalWorkerNotification`.
+- The impl class declares only `: IRelationalWorkerNotification` (interface inheritance covers `IWorkerNotification`).
+- For SQLite-outbox sweep:
+  - `SqliteExternalDbNameExtractor : IExternalDbNameExtractor` — extracts `conn.DataSource` (file path). DB-name comparison semantics are a Phase 1 RESEARCH decision (see Risk Inventory §3).
+  - `SqLiteMessageQueueInit` registers `IRelationalProducerQueue<T>` → `RelationalProducerQueue<T>` and the SQLite extractor.
+  - `SendMessageCommandHandler` and `SendMessageCommandHandlerAsync` in `Transport.SQLite` gain the same `HandleExternalTx` fork as SqlServer + PostgreSQL — when `command.ExternalTransaction != null`, route through the caller's connection + tx, never `Commit`/`Rollback`/`Dispose`/`Close`. Batch path same fork.
 
 ### Functional — Internal Implementation
 
-- `SendMessageCommand` (internal) gets an optional `DbTransaction ExternalTransaction { get; }` property. Default null preserves the existing self-managed path.
-- `SendMessageCommandHandler` and `SendMessageCommandHandlerAsync` in **both** the SqlServer and PostgreSQL transports get a forked `HandleExternalTx(...)` path that:
-  - Uses `command.ExternalTransaction.Connection` for all commands.
-  - Sets `cmd.Connection = tx.Connection` and `cmd.Transaction = tx` on every `CreateCommand()` call (three INSERTs: message body, metadata, status — and any others enabled by configuration).
-  - Never calls `tx.Commit`, `tx.Rollback`, `tx.Dispose`, `conn.Close`, or `conn.Dispose`.
-  - Reuses the existing static SQL builders (`SendMessage.BuildMetaCommand`, `BuildStatusCommand`, etc.) — these have no connection-ownership coupling.
-- `IConnectionHolder` / `IConnectionHolderFactory` is **bypassed entirely** on the caller-transaction path. No new "non-owning connection holder" variant is needed.
-- Concrete `RelationalProducerQueue<TMessage>` lives in `Transport.RelationalDatabase` and inherits the existing producer, adding the tx-aware overloads. SqlServer and PostgreSQL DI registers the producer factory to return this concrete type; it still satisfies `IProducerQueue<T>` for non-outbox callers.
-- The caller-transaction path bypasses the Polly retry decorator chain (`BeginTransactionRetryDecorator` and any related wrappers around the queue INSERT). The relational producer resolves the bare handler directly, or via a "no-retry" keyed registration.
+- The new relational notification impl on each transport pulls the `DbTransaction` from the per-message `ConnectionHolder` (the same holder that already owns the dequeue connection + transaction across `Receive → handler dispatch → RemoveMessage`).
+- Wiring touches only the three relational transports' notification factories; `ConnectionHolder` itself does not change its public surface.
+- Sync and async handler paths both receive `(IReceivedMessage<T>, IWorkerNotification)` and the cast works identically on both. No fork in the seam.
 
 ### Functional — Validation
 
-A single validator runs at the start of every tx-aware `Send`:
-
-- `transaction != null` → else `ArgumentNullException`.
-- `transaction.Connection != null` → else `InvalidOperationException` ("transaction disposed or completed").
-- `transaction.Connection.State == ConnectionState.Open` → else `InvalidOperationException`.
-- `transaction.Connection.Database` (canonical form) equals the queue's configured database → else `InvalidOperationException` with both database names in the message.
-- Per-provider `IExternalDbNameExtractor`: both `SqlServer` and `PostgreSQL` return `conn.Database` verbatim (no case folding on either side); the validator compares with `StringComparison.Ordinal`. The SqlServer extractor was originally `OrdinalIgnoreCase`-folded but was changed mid-Phase-6 (commit `994e1404`) to pass-through, matching PostgreSQL's design and removing a symmetry bug between the extractor's normalization and the validator's comparator.
+- Inbox path needs no `ExternalTransactionValidator` analog — the library owns the connection and transaction by construction; no cross-DB or wrong-state risk.
+- SQLite-outbox path uses the existing `ExternalTransactionValidator` plus the new `SqliteExternalDbNameExtractor` — identical to how SqlServer + PostgreSQL use their per-provider extractors.
 
 ### Ownership & Threading Contract (documented, not enforced)
 
-- The producer never commits, rolls back, or disposes the caller's transaction or its connection.
-- ADO.NET transactions are not thread-safe; the caller must not invoke `Send(msg, tx)` concurrently with their own writes on the same transaction from another thread. This matches the standard ADO.NET contract.
-- The caller is responsible for retry policy. DNQ will not retry the queue INSERT on the caller-transaction path. To retry, the caller wraps the entire business operation (their writes + DNQ `Send`) in their own retry policy and re-calls `Send` from scratch.
-- The caller must have run `CreateQueue` once at deployment time against their business database so the queue tables exist before the first `Send` call.
+**Inbox — library owns the transaction:**
+- User MUST NOT call `Commit()`, `Rollback()`, `Dispose()`, or `Close()` on the exposed `DbTransaction` or its `Connection`.
+- User MUST NOT stash the transaction reference past the handler's return — it is released by the library after `RemoveMessage`.
+- User MUST NOT pass the reference to another thread — `DbTransaction` is not thread-safe.
+- Library WILL commit on successful handler return (existing `RemoveMessage` path) and roll back on handler throw (existing rollback-on-throw path). User's business write rides along.
+- User signals rollback by throwing. There is no soft-abort flag.
+
+**Outbox — caller owns the transaction (unchanged from outbox milestone):**
+- Library NEVER calls `Commit`/`Rollback`/`Dispose`/`Close` on the caller's transaction or connection.
+- Caller owns retry policy on the caller-tx path (Polly retry decorator skipped, per outbox Phase 1 resolution).
 
 ## Non-Functional Requirements
 
-- **Backward compatibility:** Zero breaking changes to `IProducerQueue<T>`, `QueueContainer`, or any non-relational transport. Existing callers see no API surface differences.
-- **Performance:** Caller-transaction path must be at least as fast as the owned-transaction path (it skips `BeginTransaction()`, `Commit()`, and the Polly decorator chain).
-- **Diagnostics:** Validation exceptions must include both the offending database name and the queue's expected database name in their message.
-- **Determinism:** Build must pass `-p:CI=true` for Source Link (existing convention).
-- **Multi-targeting:** Compatible with net10.0 and net8.0 (existing TFMs).
-- **Test coverage:** Both unit (handler logic, validation, ownership invariants) and integration (atomic commit/rollback verified against a real database) coverage on both transports. Integration tests must hit **every new public method** on `IRelationalProducerQueue<T>` for each transport — codecov coverage on this repo is driven primarily by integration tests, and `SendMessageCommandHandlerAsync` lives in a separate file from `SendMessageCommandHandler`, so async paths require their own integration coverage and cannot be inferred from sync coverage.
+- **Multi-targeting**: net10.0 + net8.0 across all changed projects (matches the rest of the codebase).
+- **Build cleanliness**: `dotnet build -c Release -p:CI=true` of `DotNetWorkQueueNoTests.sln` produces zero errors, zero new XML-doc warnings (CS1591), zero new analyzer warnings.
+- **No ADO.NET in the root assembly**: `DotNetWorkQueue` (root project) must not gain a reference to `System.Data.Common`, `Microsoft.Data.SqlClient`, `Npgsql`, or `Microsoft.Data.Sqlite` as a result of this work.
+- **`IDbConnection` discipline preserved**: no new sealed-type casts to `NpgsqlConnection` / `SqlConnection` / `SqliteConnection` in handler code. Continue using `IDbConnectionFactory` for test seams.
+- **Async handler mocking pattern**: any new async query/command handlers use `DbConnection` / `DbCommand` / `DbDataReader` abstract bases (not interfaces) for async-method mockability.
+- **Deterministic builds**: Release builds pass `-p:CI=true` for Source Link determinism.
+- **CI**: Jenkins 14-stage parallel matrix continues to pass; no new flake sources introduced. PRs trigger Jenkins via `gh pr create --draft`.
 
 ## Success Criteria
 
-1. `IRelationalProducerQueue<T>` exists in `Transport.RelationalDatabase` and is implemented by the producer factories returned by SqlServer + PostgreSQL transports.
-2. Memory, Redis, LiteDb, and SQLite producer instances do not implement `IRelationalProducerQueue<T>` — the `is` check fails for these.
-3. Capability-cast pattern works: a caller resolving `IProducerQueue<T>` from a SqlServer or PostgreSQL transport can cast to `IRelationalProducerQueue<T>` and call the tx-aware overloads.
-4. Atomic commit verified: an integration test enqueues a message + writes a business row + commits the caller's tx → both rows are present in the database.
-5. Atomic rollback verified: an integration test enqueues a message + writes a business row + rolls back the caller's tx → neither row is present.
-6. Cross-database validation: an integration test passing a transaction whose connection points to a different database than the queue → `InvalidOperationException` thrown before any DB write.
-7. Caller-owned resources are not disposed: a unit test using a mocked `DbTransaction` + `DbConnection` asserts `Commit`, `Rollback`, `Dispose`, `Close` are never invoked by the transport.
-8. Polly retry decorator bypass verified: under a forced transient failure, the caller-tx path throws to the caller after one attempt (not three).
-9. All existing unit and integration tests still pass; no regressions on the owned-tx path.
-10. Documentation page `docs/outbox-pattern.md` drafted in-repo, covering the caller-owned-transaction lifecycle contract, the caller-owned-retry contract, the capability-cast usage pattern, the schema-deployment prerequisite, per-provider DB-name comparison semantics, and the explicit "not supported on Memory/Redis/LiteDb/SQLite" callout.
-11. Jenkins (full 14-stage matrix) passes on the feature branch via a draft PR before merge.
+1. `IRelationalWorkerNotification : IWorkerNotification` is `public` in `DotNetWorkQueue.Transport.RelationalDatabase` and carries a single `DbTransaction Transaction { get; }` member with full XML doc.
+2. Capability cast smoke test for each of the 3 relational transports: with `EnableHoldTransactionUntilMessageCommitted = true`, `container.GetInstance<IConsumerQueue<...>>()` yields a notification that `is IRelationalWorkerNotification` and exposes a non-null `Transaction`. With the option false, the cast fails on the same transport.
+3. Negative-path coverage: Memory, Redis, LiteDb notifications never implement `IRelationalWorkerNotification` (unit tests confirm).
+4. Atomic-commit integration test (per relational transport, both sync and async handlers): handler writes to a business table on `r.Transaction.Connection`; handler returns; verify both rows visible in a separate connection. ≥6 tests.
+5. Atomic-rollback integration test (per relational transport, both sync and async handlers): handler writes to business table; handler throws; verify neither row visible. ≥6 tests.
+6. SQLite-outbox vertical slice: 12 integration tests on SQLite mirroring SqlServer + PG outbox Phase 6 coverage (method × outcome × validation × retry-bypass).
+7. SQLite extractor unit-test coverage: round-trip on path string, plus the DB-name comparison semantics chosen in RESEARCH §1.
+8. Zero `Commit`/`Rollback`/`Dispose`/`Close` calls from the library on a caller-supplied tx in SQLite-outbox path (mocked unit test, matching the SqlServer + PG Phase 3/4 assertions).
+9. `docs/inbox-pattern.md` published, including the lifecycle contract, the "heartbeats disabled in hold-tx mode" explanation, a worked example, and the per-provider DB-name comparison semantics for outbox (now three transports).
+10. README updated with a one-paragraph pointer to the new docs alongside the existing outbox pointer.
+11. Jenkins SqlServer + PostgreSQL + SQLite integration stages green on the milestone PR.
+12. `dotnet build -c Release -p:CI=true` of `DotNetWorkQueueNoTests.sln` clean (0 errors, 0 new CS1591, NU1902 advisory carry-forward via `<WarningsNotAsErrors>` is acceptable per Phase 7 lessons).
 
 ## Constraints
 
 ### Technical
 
-- **API parameter type is `System.Data.Common.DbTransaction`** (abstract base), not `IDbTransaction`. Async ADO.NET methods are defined on the base class; using the interface would force a runtime downcast or doubled API surface.
-- **Transaction–connection binding is hard-wired in ADO.NET.** The caller does not pass a separate connection; `tx.Connection` is the only valid connection for that transaction.
-- **No DTC, no `System.Transactions`.** All commits are single-connection, single-database, single-process.
-- **Existing DNQ conventions hold:**
-  - Handlers operate on `IDbConnection`/`IDbCommand` abstractions (no sealed-type casts inside handlers) — except `tx.Connection` is `DbConnection`, which is fine because we never cast it further.
-  - LGPL-2.1 license headers on all new source files.
-  - Interface prefix `I`, factory suffix `Factory`, configuration suffix `Configuration`.
-  - Thread-safe disposal via `Interlocked` where applicable.
+- The feature must reuse `ConnectionHolder` and its existing connection + transaction ownership — no new connection-lifetime abstraction.
+- ADO.NET types stay out of `DotNetWorkQueue` root assembly. `IRelationalWorkerNotification` and friends live in `Transport.RelationalDatabase`.
+- The relational notification impl class is `internal` per transport (only the interface is `public`).
+- SQLite's `Microsoft.Data.Sqlite` is the supported driver — no support for `System.Data.SQLite`.
+- No new `ITransportOptions` flags. `EnableHoldTransactionUntilMessageCommitted` is the existing gate.
+- SQLite-outbox extractor's DB-name comparison must not be platform-conditional in user-facing behavior; the resolution (case-folding strategy + `Path.GetFullPath()` canonicalization) is decided in RESEARCH §1 and applied uniformly on all OSes.
 
 ### Scope
 
-- **Transports:** SqlServer and PostgreSQL only. SQLite is explicitly deferred.
-- **Producer surface:** POCO `Send` and `SendAsync` only (single + batch + with/without `IAdditionalMessageData`). Method-producer and LINQ-producer Sends are out of scope.
-- **Consumer:** Untouched. Outbox is producer-side only.
+- Three relational transports only: SqlServer, PostgreSQL, SQLite.
+- One milestone covers both directions: inbox (new) on all three, outbox (extending existing) on SQLite. No further deferrals.
+- Heartbeat-disabled-in-hold-tx-mode is **confirmed**, not redesigned. If the audit surfaces a transport where heartbeats fire during a held tx and conflict, scope decision: file an ISSUE and document the limitation; do NOT bundle a heartbeat redesign into this milestone.
 
 ### CI & Process
 
-- Jenkins is PR-triggered. Feature-branch validation must open a draft PR to trigger the 14-stage matrix.
-- Integration tests slot into the existing SqlServer and PostgreSQL Jenkins stages — no Jenkinsfile changes.
-- Release publishing remains the tag-triggered `publish.yml` workflow. Local `dotnet nuget push` is not used.
+- PRs must be draft-opened against master to trigger Jenkins (PR-trigger pattern, per repo CI lesson).
+- Integration tests against SQLite, SqlServer, PostgreSQL run in the existing Jenkins 14-stage parallel matrix; no Jenkinsfile changes expected.
+- Queue names in integration tests use `Guid.NewGuid().ToString("N")` to avoid DNQ's hyphen rejection.
+- Phases follow the established Shipyard workflow: brainstorm → roadmap → plan → build → review → verify → simplify → audit → docs → ship.
 
 ### Risk Inventory
 
-1. **Polly decorator bypass cleanness** (low — closed by Phase 1 spike) — Mechanism confirmed: `IRetrySkippable` marker interface evaluated at the top of `RetryCommandHandlerOutputDecorator.Handle()`. Reuses the same fallthrough pattern as the existing no-pipeline + shutdown-race branches. See `.shipyard/notes/phase-1-polly-bypass-spike.md`.
-2. **PostgreSQL batch `Send` tx binding** (mid) — if the batch path uses `NpgsqlBatch`, verify it correctly inherits the active transaction on the connection.
-3. **PostgreSQL DB-name case semantics** (low) — quoted identifiers create edge cases; covered by focused unit test.
-4. **Documentation discipline** (low, ship-blocking) — caller-owned-retry contract and lifecycle ownership must be published in `docs/outbox-pattern.md` with the release.
+1. **Heartbeats during hold-tx (audit risk).** User stated heartbeats are likely disabled when `EnableHoldTransactionUntilMessageCommitted = true` because the held tx blocks them. Phase 1 spike CONFIRMS this on all three relational transports. If a transport unexpectedly issues heartbeats during a held tx, scope decision required (file ISSUE, document limitation, do not redesign heartbeat in this milestone).
+2. **Library-issued command timeouts during a slow handler.** `RemoveMessage` and any other internal commands that run on the held connection after the handler returns must have timeouts compatible with the latency budget of slow handlers. Audit needed; document any sizing recommendations.
+3. **SQLite DB-name comparison semantics.** "DB names" are file paths — case-insensitive on Windows, case-sensitive on Linux. Candidate resolutions: `Path.GetFullPath()` + `OrdinalIgnoreCase` (matches Windows precedent, somewhat permissive on Linux) vs `Path.GetFullPath()` + `Ordinal` (strict, matches Linux filesystem). Decision in RESEARCH §1.
+4. **SQLite single-writer concurrency under hold-tx.** A held tx in SQLite blocks all other writers. Not a code risk; document in `docs/inbox-pattern.md` as a user-visible characteristic.
+5. **`NpgsqlBatch` transaction binding — already resolved in outbox Phase 4.** Reuse existing learnings; no fresh investigation needed.
+6. **Documentation completeness (ship-blocker).** `docs/inbox-pattern.md` plus the SQLite-outbox additions to `docs/outbox-pattern.md` must land in this milestone — same ship-blocking criterion as outbox Phase 7.
 
 ## Effort Estimate
 
-**46–61 focused work hours** (~2–3 weeks elapsed time on this repo factoring CI cycles and PR review).
-
-| Component | Hours |
-|---|---:|
-| `IRelationalProducerQueue<T>` + `RelationalProducerQueue<T>` | 2–3 |
-| `SendMessageCommand.ExternalTransaction` property | 0.5 |
-| SqlServer handlers (sync + async + batch) | 6–8 |
-| PostgreSQL handlers (sync + async + batch) | 6–8 |
-| Validation + per-provider `IExternalDbNameExtractor` | 2–3 |
-| DI registration changes (RelationalDatabase + SqlServer + PostgreSQL inits) | 2–3 |
-| Unit tests (~12–15) | 6–8 |
-| Integration tests (24 — 12 per transport, method-coverage matrix) | 14–18 |
-| XML doc comments + `docs/outbox-pattern.md` draft | 3–4 |
-| Review iterations | 4–6 |
+Comparable to the outbox milestone with a SQLite-outbox sweep added: ~7 phases, ~36 integration tests (24 inbox + 12 SQLite-outbox), plus unit-test scaffolding and docs. Roughly 30–50% larger surface than outbox by integration-test count, but the inbox half is structurally lighter (no `ExternalTransactionValidator` analog, no Polly bypass design — both are passthrough). SQLite-outbox half is mechanically a duplicate of the SqlServer / PG outbox work, so plan-level risk is low.
