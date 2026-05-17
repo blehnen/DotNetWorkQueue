@@ -83,10 +83,12 @@ grep -q "## §3 Timeout Audit Summary" .shipyard/phases/1/RESEARCH.md
 grep -q "## §4 Implementation Notes for Phases 2" .shipyard/phases/1/RESEARCH.md
 grep -q "## §5 PROJECT.md Risk Inventory" .shipyard/phases/1/RESEARCH.md
 
-# All three risks have an explicit disposition line
-grep -qE "Risk #1.*(Downgraded|Closed|Open)" .shipyard/phases/1/RESEARCH.md
-grep -qE "Risk #2.*(Downgraded|Closed|Open)" .shipyard/phases/1/RESEARCH.md
-grep -qE "Risk #3.*(Downgraded|Closed|Open)" .shipyard/phases/1/RESEARCH.md
+# All three risks have an explicit disposition line in the memo
+# (RESEARCH.md §5 uses table format; authoritative dispositions live in inbox-spike.md)
+# Case-insensitive: memo uses UPPERCASE disposition words (DOWNGRADED, CLOSED) by convention.
+grep -qiE "Risk #1.*(Downgraded|Closed|Open)" .shipyard/notes/inbox-spike.md
+grep -qiE "Risk #2.*(Downgraded|Closed|Open)" .shipyard/notes/inbox-spike.md
+grep -qiE "Risk #3.*(Downgraded|Closed|Open)" .shipyard/notes/inbox-spike.md
 ```
 
 All checks pass at plan-write time (deliverables already on disk). The builder re-runs these in `/shipyard:build 1`.

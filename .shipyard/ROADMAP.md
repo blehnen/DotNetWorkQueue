@@ -6,7 +6,7 @@ This roadmap decomposes the inbox milestone into **eight phases** ordered to fai
 
 ---
 
-## Phase 1 — Discovery Spike (Heartbeat Audit + Timeout Audit + SQLite DB-Name Decision)
+## Phase 1 — Discovery Spike (Heartbeat Audit + Timeout Audit + SQLite DB-Name Decision) ✅ complete
 
 **Description.** Discovery spike, no production code shipped to master. Three independent investigations land as a single `.shipyard/notes/inbox-spike.md` memo on the feature branch:
 

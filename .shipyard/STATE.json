@@ -1,8 +1,8 @@
 {
   "schema": 3,
   "phase": 1,
-  "position": "Phase 1 planned (PLAN-1.1: 3 tasks; deliverables already on disk via main-session spike; verify=PASS, critique=READY); ready for /shipyard:build 1 or skip to /shipyard:plan 2",
-  "status": "planned",
-  "updated_at": "2026-05-17T17:23:04Z",
+  "position": "Phase 1 build complete (1/1 plans PASS; verify=PASS, audit=skipped-no-code, simplify=skipped-no-code, docs=deferred-phase-8); 3 PROJECT.md risks resolved (#1 + #2 downgraded, #3 closed); ready for /shipyard:plan 2",
+  "status": "complete",
+  "updated_at": "2026-05-17T17:35:00Z",
   "blocker": null
 }
