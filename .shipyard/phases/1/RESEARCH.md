@@ -1,178 +1,93 @@
-# Phase 1 Research: Polly Decorator Bypass Spike
+# Phase 1 RESEARCH — Discovery Spike Findings
 
-**Investigation goal:** Catalog every decorator currently wrapping `SendMessageCommandHandler` (sync) and `SendMessageCommandHandlerAsync` (async) on both SqlServer and PostgreSQL transports. Identify viable SimpleInjector seams for resolving the bare (un-decorated) handler in the new caller-supplied-transaction code path.
+**Date:** 2026-05-17
+**Researcher driver:** main session (subagent dispatches stalled mid-investigation, per CLAUDE.md "Agent lockup awareness" lesson — falling back to direct investigation).
+**Source memo:** `.shipyard/notes/inbox-spike.md` (full detail).
 
-**Researcher note.** The Shipyard researcher agent stalled during dispatch (known pattern on this repo per `feedback_agent_lockups.md`). Investigation was conducted directly by the orchestrator. Findings below are from direct file inspection of the init classes, decorator implementations, and policy registrations.
+This RESEARCH doc is the architect's working summary for Phase 2 planning. The three audits closed three of PROJECT.md's risks.
 
 ---
 
-## Section 1: Decorator Inventory
+## §1 SQLite DB-name comparison — RECOMMENDATION + RATIONALE
 
-### SqlServer — `ICommandHandlerWithOutput<SendMessageCommand, long>` (sync)
+**Locked strategy:** `Path.GetFullPath()` + `StringComparer.OrdinalIgnoreCase` for `SqliteExternalDbNameExtractor`.
 
-Registration in `Source/DotNetWorkQueue.Transport.SqlServer/Basic/SQLServerMessageQueueInit.cs`:
+**Key implementation notes for Phase 2 / Phase 5:**
+- Both sides of the comparator (the extractor AND the validator's expected value from `IConnectionInformation.Container`) MUST apply `Path.GetFullPath()` first. Mirror the outbox milestone's `NormalizedConnectionInformation` wrapper pattern (`Source/DotNetWorkQueue.Transport.SqlServer/Basic/NormalizedConnectionInformation.cs`, commit `fb8e7af5`).
+- Short-circuit on the literal string `:memory:` (case-sensitive — SQLite keyword) before calling `GetFullPath()`. Both the extractor and the connection-info wrapper need this guard.
+- Document in XML doc on the extractor class: "Comparison is case-insensitive after path canonicalization, matching SqlServer's `OrdinalIgnoreCase` precedent."
 
-| Order | File:Line | Type | Scope | Behavior |
+**Why not `Ordinal` (PG precedent):**
+- SqlServer also uses `OrdinalIgnoreCase`. SQLite-file-paths and SqlServer-DB-names are both Windows-friendly identifiers; PG database names are Unix-friendly. Aligning SQLite with SqlServer is the better precedent match.
+- `Ordinal` would surprise Windows developers with case-sensitive path matching on a case-insensitive filesystem.
+
+**Why not OS-conditional:**
+- Violates PROJECT.md §Constraints Technical "platform-uniform" rule.
+
+---
+
+## §2 Heartbeat Audit Summary
+
+| Transport | Heartbeat connection | Verdict |
+|---|---|---|
+| SqlServer | Separate (`new SqlConnection(...)` per call) | ✓ No collision with held tx connection. |
+| PostgreSQL | Separate (`_connectionFactory.Create()` per call, shared handler) | ✓ No collision. |
+| SQLite | Separate (`_connectionFactory.Create()` per call, shared handler) | ✓ No collision. |
+
+**Sub-finding (row-lock blocking):** Even on separate connections, the heartbeat UPDATE targets the same queue row the held tx has row-locked. The heartbeat command will block on the row lock and eventually hit a 30-second lock-wait timeout (driver default). Operational guidance: users running `EnableHoldTransactionUntilMessageCommitted=true` should set `EnableHeartBeat=false` — the held tx itself serves as the lease, making heartbeats redundant AND problematic.
+
+**No code change required in this milestone.** Documentation only (Phase 8).
+
+---
+
+## §3 Timeout Audit Summary
+
+`grep -rln "CommandTimeout" Source/` returns **zero matches**. No library code sets `CommandTimeout` anywhere. All commands use ADO.NET driver default (30s for SqlServer / Npgsql / Microsoft.Data.Sqlite).
+
+| Command | Connection | During held tx? | Default | Risk |
 |---|---|---|---|---|
-| Innermost | `Basic/CommandHandler/SendMessageCommandHandler.cs:39` | `SendMessageCommandHandler` (concrete) | n/a | The actual 3-INSERT send path (body, status, meta) |
-| Decorator 1 | `Decorator/RetryCommandHandlerOutputDecorator.cs:28` | `RetryCommandHandlerOutputDecorator<TCommand, TOutput>` | Open generic — registered at line 154 of init via `RegisterDecorator(typeof(ICommandHandlerWithOutput<,>), typeof(RetryCommandHandlerOutputDecorator<,>))` | Wraps `Handle()` in a Polly `ResiliencePipeline` resolved from `IPolicies.Registry` keyed by `TransportPolicyDefinitions.RetryCommandHandler` |
-| Decorator 2 (outermost) | `Trace/Decorator/SendMessageCommandHandlerDecorator.cs` | `SendMessageCommandHandlerDecorator` | Closed type for `SendMessageCommand` only — registered at line 182 | OpenTelemetry `ActivitySource.StartActivity` for the send |
+| `SendHeartBeat` | SEPARATE | Yes — blocks on row lock | 30s | Mitigated by user disabling heartbeats. |
+| `RemoveMessage` (commit) | HELD | After handler | 30s | Low. |
+| Dequeue `SELECT...FOR UPDATE` | HELD | Pre-handler | 30s | None. |
+| `ResetHeartBeat` (stuck records) | SEPARATE | Background | 30s | None. |
 
-**Final resolved chain:** `TraceDecorator → RetryDecorator → SendMessageCommandHandler`
+**Sizing recommendation paragraph (for Phase 8 docs draft):**
 
-### SqlServer — `ICommandHandlerWithOutputAsync<SendMessageCommand, long>` (async)
+> When `EnableHoldTransactionUntilMessageCommitted = true`, set `EnableHeartBeat = false`. The held transaction serves as the message lease — no other worker can dequeue the row while the transaction is open — so heartbeats are redundant. Additionally, heartbeats run on a separate connection and will block on the held tx's row lock; they will throw `lock-wait timeout` errors if the handler runs for more than 30 seconds (the ADO.NET driver default). DNQ does not currently expose a `CommandTimeout` knob; the 30-second default is sufficient for all other library commands during normal operation.
 
-Same shape, async-flavored:
-
-| Order | Type | Source |
-|---|---|---|
-| Innermost | `SendMessageCommandHandlerAsync` (concrete) | `Basic/CommandHandler/SendMessageCommandHandlerAsync.cs:39` |
-| Decorator 1 | `RetryCommandHandlerOutputDecoratorAsync<TCommand, TOutput>` | `Decorator/RetryCommandHandlerOutputDecoratorAsync.cs` — registered at init line 160 |
-| Decorator 2 (outermost) | `SendMessageCommandHandlerAsyncDecorator` (trace) | `Trace/Decorator/SendMessageCommandHandlerAsyncDecorator.cs` — registered at init line 186 |
-
-**Final resolved chain:** `TraceDecorator → RetryDecoratorAsync → SendMessageCommandHandlerAsync`
-
-### PostgreSQL — sync + async
-
-Inspection of `Source/DotNetWorkQueue.Transport.PostgreSQL/Basic/PostgreSQLMessageQueueInit.cs` lines 179–214 shows **bit-for-bit identical decorator registrations** to SqlServer:
-
-- Line 179: `RegisterDecorator(typeof(ICommandHandlerWithOutput<,>), typeof(RetryCommandHandlerOutputDecorator<,>))` — same shape as SqlServer line 154
-- Line 185: `RegisterDecorator(typeof(ICommandHandlerWithOutputAsync<,>), typeof(RetryCommandHandlerOutputDecoratorAsync<,>))` — same shape as SqlServer line 160
-- Line 208: `RegisterDecorator(typeof(ICommandHandlerWithOutput<SendMessageCommand, long>), typeof(...PostgreSQL.Trace.Decorator.SendMessageCommandHandlerDecorator))` — SqlServer line 182 mirrors
-- Line 212: `RegisterDecorator(typeof(ICommandHandlerWithOutputAsync<SendMessageCommand, long>), typeof(...PostgreSQL.Trace.Decorator.SendMessageCommandHandlerAsyncDecorator))` — SqlServer line 186 mirrors
-
-**Resolved chains identical to SqlServer.** The PostgreSQL retry decorators (`Source/DotNetWorkQueue.Transport.PostgreSQL/Decorator/RetryCommandHandlerOutputDecorator.cs` and `RetryCommandHandlerOutputDecoratorAsync.cs`) are namespace-isolated near-copies of the SqlServer versions, using `TransportPolicyDefinitions.RetryCommandHandler` keyed `"PostgreSQLRetryCommandHandler"` instead of `"SqlServerRetryCommandHandler"`.
-
-### Per-transport divergence: NONE
-
-The CONTEXT-1 user decision to "investigate both transports up-front" turned up **zero divergence** in the decorator chain. Both transports use the open-generic retry + closed trace pattern. Anything we do to one, we mirror to the other.
-
-### Polly policy structure (reference)
-
-The retry behavior driven by `RetryCommandHandlerOutputDecorator`:
-
-- `Source/DotNetWorkQueue.Transport.SqlServer/Basic/RetrySqlPolicyCreation.cs:55` adds a Polly `ResiliencePipeline` to `policies.Registry` keyed by `TransportPolicyDefinitions.RetryCommandHandler`.
-- Decorator's `Handle()` resolves the pipeline via `_policies.Registry.TryGetPipeline(...)` and wraps the inner `_decorated.Handle(command)` call in `pipeline.Execute(...)`.
-- When the registry is disposed (shutdown race fixed in PR #121, commits `1d28d8c4` + `48582e6c`), the decorator catches `ObjectDisposedException` and falls through to the bare handler call. **This is a precedent for "decorator gracefully no-ops" pattern** — exactly the seam we want to extend.
+**No ISSUEs filed.** No remediation needed in this milestone. No configurable timeouts to add.
 
 ---
 
-## Section 2: SimpleInjector Seam Inventory
+## §4 Implementation Notes for Phases 2–5
 
-This codebase wraps SimpleInjector behind a custom `IContainer` abstraction. Relevant surface:
+**Heartbeat handler architecture (for the Phase 5 SQLite plan author):**
+- PG and SQLite share `Source/DotNetWorkQueue.Transport.RelationalDatabase/Basic/CommandHandler/SendHeartBeatCommandHandler.cs` (parametrized by `IDbConnectionFactory`).
+- SqlServer has its own `SendHeartBeatCommandHandler` that opens `new SqlConnection(...)` directly — different shape, same separate-connection invariant.
+- No Phase 5 changes needed to any heartbeat code.
 
-| Method | Purpose | Supports caller-tx bypass? |
-|---|---|---|
-| `Register<T, U>(LifeStyles)` | Standard service registration | No |
-| `RegisterDecorator(typeof(Iface), typeof(Decorator), LifeStyles)` | Wraps an interface registration with a decorator | Indirectly (see below) |
-| `RegisterDecorator(typeof(Iface), typeof(Decorator), predicate, LifeStyles)` | **Conditional decorator with `Predicate<DecoratorPredicateContext>`** | No — predicate fires at **container build time**, not resolution time. Cannot see runtime command state. |
-| `Conditional<T>(...)` (SimpleInjector native) | Alternate registration depending on context | Not used in this codebase; not wrapped in `IContainer` |
-| Direct `Container.GetInstance<T>()` | Fully decorated resolution | Always returns the decorated chain — no built-in bypass |
+**`ConnectionHolder` pattern (for Phases 3-5 inbox plan authors):**
+- Each relational transport has its own `ConnectionHolder` class that owns the per-message connection + transaction across `Receive → handler dispatch → RemoveMessage`. The new `IRelationalWorkerNotification` impl pulls the `DbTransaction` from the holder.
+- DO NOT modify the public surface of `ConnectionHolder` — it's an internal type already exposing what we need. Plan authors thread the existing accessor into the new notification factory.
 
-**Key finding:** SimpleInjector does **not** support resolution-time decorator skipping based on runtime command state. The decorator predicate runs at container compile time, not when `Handle(command)` is called.
+**`IDbConnectionFactory` discipline (cross-cutting):**
+- Heartbeat handlers already follow the `IDbConnectionFactory` pattern (PG + SQLite). SqlServer's heartbeat handler is older and uses `new SqlConnection(...)` directly — not a problem for the inbox milestone, but worth noting if a future refactor cleans it up.
+- The new SQLite-outbox handler forks (Phase 5) MUST use `IDbConnectionFactory.Create()` for the dequeue/send-message path (this is the existing pattern from outbox milestone for SqlServer + PG).
 
-**Existing "bare handler" precedent:** None found. Every `ICommandHandlerWithOutput<SendMessageCommand, long>` consumer in the codebase resolves through the full decorator chain.
-
----
-
-## Section 3: Three Bypass Mechanism Candidates — Ranked
-
-Reframing the three candidates from PROJECT.md against what SimpleInjector + this codebase actually support:
-
-### Mechanism A: Runtime-check inside the existing retry decorator — **RECOMMENDED**
-
-**Approach.** Modify `RetryCommandHandlerOutputDecorator<,>` (and `RetryCommandHandlerOutputDecoratorAsync<,>`) on both transports so that `Handle()` inspects the incoming command: if the command implements a marker interface `IRetrySkippable` and `SkipRetry == true`, invoke `_decorated.Handle(command)` directly without Polly. Add the marker to `SendMessageCommand` such that `SkipRetry => ExternalTransaction != null`.
-
-Existing decorator already has a "no pipeline → call handler directly" branch (line 65 of `RetryCommandHandlerOutputDecorator.cs`). The new bypass is a sibling early-return at the top of `Handle()`:
-
-```csharp
-public TOutput Handle(TCommand command)
-{
-    Guard.NotNull(() => command, command);
-    if (command is IRetrySkippable s && s.SkipRetry)
-        return _decorated.Handle(command);
-    // ... existing pipeline lookup + execute
-}
-```
-
-**Feasibility:** Maximum. Zero changes to DI registration. Drops the marker check into a decorator pattern that already has multi-branch fallthrough (shutdown-race branch from PR #121).
-
-**Complexity:** Phase 2 + 3 + 4 touch 4 files for this mechanism — the SqlServer + PostgreSQL sync + async retry decorators. Plus the marker interface (1 file in `Transport.RelationalDatabase`) and the `SendMessageCommand.SkipRetry` property override (1 file in `Transport.Shared` or wherever the command lives).
-
-**Trace decorators preserved:** Yes — the marker check fires inside the retry decorator, which sits *inside* the trace decorator. Trace still wraps everything.
-
-**Risk:** Low. The decorator's existing fallthrough behavior (shutdown-race + no-pipeline branches) demonstrates this exact pattern is safe.
-
-**Test seam quality:** Excellent. Unit-testable with just a `SendMessageCommand` instance (no container needed). Construct decorator with a mocked inner handler that records call count, hand it a command with `ExternalTransaction != null`, assert single invocation.
-
-### Mechanism B: SimpleInjector keyed registration — **NOT RECOMMENDED**
-
-**Approach.** Register a second handler instance keyed as "no-retry": when the relational producer's caller-tx path resolves the handler, it asks for the keyed variant. SimpleInjector supports this via `Container.Collection.Append` or conditional registrations, neither of which is wrapped in this codebase's `IContainer` abstraction.
-
-**Feasibility:** Medium. Requires extending `IContainer` to expose keyed registration. Extension affects every transport's init class.
-
-**Complexity:** Phase 2 + 3 + 4 plus `Transport.RelationalDatabase` AND `DotNetWorkQueue.IoC` — at least 7 files touched, plus the abstraction extension.
-
-**Trace decorators preserved:** Tricky. The keyed registration would bypass both retry AND trace unless trace is re-registered against the keyed variant separately — doubling the trace decorator registration surface.
-
-**Risk:** Mid. Container-abstraction expansion is a cross-cutting change with potential ripple to other transports.
-
-**Verdict:** Heavyweight relative to Mechanism A's 4-file diff. Skip.
-
-### Mechanism C: Producer-side direct construction (bypass DI) — **NOT RECOMMENDED**
-
-**Approach.** `RelationalProducerQueue<T>` takes a direct constructor reference to the bare `SendMessageCommandHandler` (resolved via a service locator escape hatch) and calls it directly for the caller-tx path.
-
-**Feasibility:** Medium. SimpleInjector doesn't expose "give me X without its decorators" — we'd construct the handler manually, which means duplicating the handler's constructor parameters in the producer.
-
-**Complexity:** Producer factory grows by N constructor parameters (the inner handler's deps). DI graph fragmented across two resolution paths.
-
-**Trace decorators preserved:** No — direct construction skips both retry AND trace. We'd lose OpenTelemetry coverage on caller-tx sends.
-
-**Risk:** Mid-high. Loses trace observability. Introduces a "manually wired handler" surface that drifts from the DI-managed one.
-
-**Verdict:** Worst of the three. Skip.
-
-### Ranked recommendation
-
-1. **Mechanism A — `IRetrySkippable` marker + runtime branch in retry decorator.** Adopt.
-2. Mechanism B (keyed registration) — only if A unexpectedly fails the spike PoC.
-3. Mechanism C (direct construction) — only as a last resort.
+**Symmetric normalization (for Phase 5 builder):**
+- The outbox milestone's `NormalizedConnectionInformation` wrapper (`Source/DotNetWorkQueue.Transport.SqlServer/Basic/NormalizedConnectionInformation.cs`, introduced commit `fb8e7af5`) is the template. SQLite needs an analogous wrapper applying `Path.GetFullPath()` (with `:memory:` short-circuit) on the SQLite-side `IConnectionInformation`.
 
 ---
 
-## Section 4: Existing Precedent for Retry-Bypassed Paths
+## §5 PROJECT.md Risk Inventory — Status After Phase 1
 
-**Found:** Yes, two precedents in the same decorator file.
+| # | Risk | Pre-Phase-1 status | Post-Phase-1 status |
+|---|---|---|---|
+| 1 | Heartbeats during hold-tx (audit risk) | Open | **Downgraded** — separate connections confirmed; row-lock blocking documented as user guidance, not a code defect. |
+| 2 | Library-issued command timeouts during a slow handler | Open | **Downgraded** — no library code sets `CommandTimeout`; 30s driver default is acceptable with heartbeat-disable user guidance. |
+| 3 | SQLite DB-name comparison semantics | Open | **Closed** — `Path.GetFullPath()` + `OrdinalIgnoreCase`; `:memory:` short-circuit; symmetric normalization both sides. |
+| 4 | SQLite single-writer concurrency under hold-tx | Open | Unchanged — Phase 7 integration tests will observe behavior; Phase 8 documents the constraint. |
+| 5 | `NpgsqlBatch` transaction binding | Closed (carry-forward) | Unchanged — already resolved in outbox Phase 4. |
+| 6 | Documentation completeness (ship-blocker) | Open | Unchanged — Phase 8 deliverable. |
 
-1. **Shutdown-race bypass (PR #121, commit `1d28d8c4`).** When `_policies.Registry.TryGetPipeline(...)` throws `ObjectDisposedException` (registry shut down before last handler call), the decorator catches and falls through to `_decorated.Handle(command)`. This is **exactly the pattern** Mechanism A extends — a runtime check that selectively bypasses Polly.
-
-2. **No-pipeline bypass (line 63–65).** When the registry doesn't have a pipeline registered for `RetryCommandHandler` (early init, test scenarios), the decorator falls through to the bare handler call. Same pattern.
-
-The retry decorator is **already a "retry-or-passthrough" decorator** — it has two passthrough conditions today. Adding a third (`IRetrySkippable.SkipRetry`) is consistent with its existing design.
-
-**No "RetryConstants.Off" flag, no `Polly.NoOp` policy** — passthrough is implicit via the existing fallthrough branches, not via a configured opt-out.
-
----
-
-## Section 5: Risks & Unknowns the Spike PoC Must Demonstrate
-
-1. **Marker interface placement.** The `IRetrySkippable` marker interface should live somewhere both `Transport.Shared` (where `SendMessageCommand` is defined) and the retry decorators (in each transport's `Decorator/` folder) can reference. Likely `Transport.Shared` itself, since the decorators already reference `DotNetWorkQueue.Transport.Shared` (line 20 of `RetryCommandHandlerOutputDecorator.cs`). **Spike must verify this reference graph holds.**
-
-2. **`SendMessageCommand.SkipRetry` semantics.** The default (when `ExternalTransaction == null`) must be `false` so the existing retry behavior is preserved for the queue-owned-tx path. Spike PoC must confirm property dispatch works as expected.
-
-3. **`RetryCommandHandlerDecorator<>`** (the non-output variant for `ICommandHandler<>`) at SqlServer init line 157 + PostgreSQL init line 182 — does this wrap `SendMessageCommand`? Looking at the type signatures, `SendMessageCommand` is `ICommandHandlerWithOutput<SendMessageCommand, long>` (returns the inserted message ID), not plain `ICommandHandler<>`. So no — only the output variants of the retry decorator are relevant to the bypass. **Spike PoC should sanity-check this by enumerating the resolved decorator chain.**
-
-4. **Verify trace decorator stays wrapped.** The trace decorator is registered AFTER the retry decorator, so it sits OUTSIDE the retry layer. When retry skips its policy and calls the bare handler, the trace decorator is still wrapping everything outside. **Spike PoC should register a fake `ActivityListener` and verify a span is created on a caller-tx send.**
-
-5. **Async vs sync parity.** The bypass logic must be implemented identically in `RetryCommandHandlerOutputDecoratorAsync<,>` — same marker check, same branch. **Spike PoC must cover both** (the user decision in CONTEXT-1 #1 mandates this).
-
----
-
-## Summary
-
-- **Decorator chain is identical on both transports:** `Trace(Retry(Handler))` for sync and async — no per-transport divergence.
-- **Recommended mechanism: `IRetrySkippable` marker** evaluated by a new branch inside the existing retry decorators. Touches 4 retry-decorator files + 1 marker interface + 1 property addition to `SendMessageCommand`. Preserves trace decoration. Mirrors two existing fallthrough patterns in the same decorator file.
-- **Top spike-PoC risk:** the marker interface's reference graph (must live in `Transport.Shared` so both `Transport.RelationalDatabase` and per-transport `Decorator/` folders can see it). PoC must confirm the project-references allow this placement.
-
-The architect should now produce a plan that codifies (a) the memo at `.shipyard/notes/phase-1-polly-bypass-spike.md` capturing these findings, (b) the throwaway PoC test demonstrating the marker mechanism works in a constructed retry decorator with a recording inner handler, and (c) verification commands to confirm the trace decorator stays wrapped.
+**Net effect:** Phase 1 closed 1 risk outright (#3) and downgraded 2 to documentation-only (#1, #2). No new risks discovered. The architect can plan Phase 2 against a fully-known foundation.
