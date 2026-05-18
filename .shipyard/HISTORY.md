@@ -1,5 +1,17 @@
 # Shipyard History
 
+## 2026-05-18 — Phase 7 Planned (Integration Tests, XL)
+
+- **Action:** `/shipyard:plan 7`
+- **Plans:** 4 plans, 12 tasks total, 1 wave (parallel-safe)
+  - PLAN-1.1: SqlServer Inbox (8 tests) — 3 tasks
+  - PLAN-1.2: PostgreSQL Inbox (8 tests) — 3 tasks
+  - PLAN-1.3: SQLite Inbox (8 tests) — 3 tasks
+  - PLAN-1.4: SQLite Outbox (12 tests) — 3 tasks
+- **Total: 36 integration tests** mapping to PROJECT.md §SC #4, #5, #6, #8.
+- **Verifier:** PASS. **Critique:** CAUTION (live-DB requirement; build deferred).
+- **Next:** `/shipyard:build 7` in a fresh session with live SqlServer + PostgreSQL + SQLite + `connectionstring.txt`.
+
 ## 2026-05-18 — Phase 6 Build Complete (Negative-Path Coverage)
 
 - **Action:** `/shipyard:build 6`
