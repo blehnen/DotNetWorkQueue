@@ -73,18 +73,31 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.RegisterConditional(typeof(RelationalProducerQueue<>), typeof(SqlServerRelationalProducerQueue<>), LifeStyles.Singleton);
 
             // Phase 3: inbox-pattern receive wiring (SqlServer side).
-            // Pre-register both concrete notification classes so the factory delegate
-            // below can resolve either. The IWorkerNotification binding then branches on
-            // EnableHoldTransactionUntilMessageCommitted: option=true returns the
-            // relational variant (which implements IRelationalWorkerNotification), option=false
-            // returns the plain WorkerNotification (capability-cast fails on the user side).
+            // Pre-register the relational concrete so the factory delegate below can resolve it.
+            // WorkerNotification is already registered by the core (ComponentRegistration line 217)
+            // and is auto-resolvable as a concrete type without a separate self-registration.
+            // The IWorkerNotification binding branches on EnableHoldTransactionUntilMessageCommitted:
+            // option=true returns the relational variant (implements IRelationalWorkerNotification),
+            // option=false returns the plain WorkerNotification (capability-cast fails on the user side).
+            // The try/catch around options resolution mirrors the IBaseTransportOptions pattern
+            // below (line ~110) — at container.Verify() / early-resolution time options may not
+            // be loadable yet, so fall back to the default option value (false) which is the
+            // safe non-relational path.
             container.Register<SqlServerRelationalWorkerNotification>(LifeStyles.Transient);
-            container.Register<WorkerNotification>(LifeStyles.Transient);
             container.Register<IWorkerNotification>(() =>
             {
-                var optionsFactory = container.GetInstance<ITransportOptionsFactory>();
-                var options = (SqlServerMessageQueueTransportOptions)optionsFactory.Create();
-                return options.EnableHoldTransactionUntilMessageCommitted
+                bool holdTransaction;
+                try
+                {
+                    var optionsFactory = container.GetInstance<ITransportOptionsFactory>();
+                    var options = (SqlServerMessageQueueTransportOptions)optionsFactory.Create();
+                    holdTransaction = options.EnableHoldTransactionUntilMessageCommitted;
+                }
+                catch
+                {
+                    holdTransaction = false;
+                }
+                return holdTransaction
                     ? (IWorkerNotification)container.GetInstance<SqlServerRelationalWorkerNotification>()
                     : container.GetInstance<WorkerNotification>();
             }, LifeStyles.Transient);
