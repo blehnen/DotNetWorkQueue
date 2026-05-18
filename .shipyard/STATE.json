@@ -1,8 +1,8 @@
 {
   "schema": 3,
   "phase": 6,
-  "position": "Phase 6 planned (1 plan, 3 tasks, 1 wave; verifier=PASS, critique=READY)",
-  "status": "planned",
-  "updated_at": "2026-05-18T21:56:07Z",
+  "position": "Phase 6 build complete (6 negative-path tests; 0 production changes)",
+  "status": "complete",
+  "updated_at": "2026-05-18T22:05:15Z",
   "blocker": null
 }

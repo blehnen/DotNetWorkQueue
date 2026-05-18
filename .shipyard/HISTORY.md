@@ -1,5 +1,15 @@
 # Shipyard History
 
+## 2026-05-18 — Phase 6 Build Complete (Negative-Path Coverage)
+
+- **Action:** `/shipyard:build 6`
+- **Plans executed:** 1/1 (PLAN-1.1)
+- **Commits:** 1 source commit (`4875afb6`)
+- **Verification:** 6 new tests (2 per transport × 3) all pass; core regression smoke 905/905
+- **Builder decision (improvement over plan):** Extended existing outbox-milestone `*ProducerDoesNotImplementRelationalTests.cs` files with the new `IRelationalWorkerNotification` assertion rather than creating 3 new test files. Cleaner cohesion; same coverage; less file proliferation.
+- **Auditor:** CLEAN. **Simplifier:** CLEAN. **Documenter:** SUFFICIENT.
+- **Next:** `/shipyard:plan 7` — integration tests (36 tests: 24 inbox + 12 SQLite-outbox).
+
 ## 2026-05-18 — Phase 6 Planned (Negative-Path Coverage)
 
 - **Action:** `/shipyard:plan 6`
@@ -1294,3 +1304,5 @@
 - [2026-05-18T21:26:29Z] Phase 5: Phase 5 build complete (SQLite hold-tx + inbox + outbox sweep; 153 SQLite tests / 905 core tests green; XL+ scope shipped in one session) (complete)
 - [2026-05-18T21:54:11Z] Phase 6: Planning phase 6 (negative-path coverage; S size) (planning)
 - [2026-05-18T21:56:07Z] Phase 6: Phase 6 planned (1 plan, 3 tasks, 1 wave; verifier=PASS, critique=READY) (planned)
+- [2026-05-18T21:59:53Z] Phase 6: Building phase 6 (3 negative-path test files) (building)
+- [2026-05-18T22:05:15Z] Phase 6: Phase 6 build complete (6 negative-path tests; 0 production changes) (complete)

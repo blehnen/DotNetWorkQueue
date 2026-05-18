@@ -1,24 +1,34 @@
-# Phase 6 Plan Verification (Coverage)
+# Phase 6 Verification (Post-Build)
 
-**Phase:** 6 — Negative-Path Coverage: Non-Relational Transports
-**Verdict:** PASS
+**Phase:** 6 — Negative-Path Coverage on Non-Relational Transports
+**Date:** 2026-05-18
+**Type:** post-build
+**Worktree:** `phase-2-inbox-foundation`
+**Commits:** 1 source commit (`4875afb6`)
+**Verdict:** COMPLETE
 
-## Coverage
-- All 4 ROADMAP success criteria mapped to PLAN-1.1:
-  1. 3 negative-path unit tests → Tasks 1, 2, 3.
-  2. Build still green → Gate 1 + Gate 4.
-  3. PROJECT.md §SC #3 satisfied → 2-test pattern (type-system check + assembly scan) per transport.
-  4. Grep check → Gate 3.
+## Coverage (ROADMAP.md Phase 6 success criteria, lines 146-150)
 
-## Plan structure
-- 1 plan, 3 tasks, 1 wave. ≤3 tasks/plan satisfied.
-- No dependencies between transport tests (parallel-safe within the single plan).
+| # | Criterion | Status |
+|---|---|---|
+| 1 | 3 negative-path unit tests pass | PASS — 2 assertions per transport × 3 transports = 6 new tests, all green |
+| 2 | Build green on net10.0 + net8.0 across all transports | PASS |
+| 3 | PROJECT.md §SC #3 satisfied (cast cleanly fails on non-relational transports) | PASS — type-system check + assembly scan, both directions |
+| 4 | Grep check: no `IRelationalWorkerNotification` refs in Memory/Redis/LiteDb assemblies | PASS — zero matches |
 
-## Scope guards
-- No production code change expected. All edits are new test files.
-- No `Tx` token requirement enforced via standard convention.
-- LGPL headers + MSTest 3.x assertions specified.
+## Re-run gate evidence
+- Memory tests: 2/2 pass
+- Redis tests: 2/2 pass
+- LiteDb tests: 2/2 pass
+- Core regression smoke: 905/905 pass
+- Source grep guard: zero matches in transport source dirs
 
-## Findings
-- None critical or minor blocking.
-- Note: research already confirmed `grep` returns zero matches in the 3 transport source dirs today — the invariant holds; tests are locking-it-in coverage rather than discovering anything new.
+## Phase-6-specific lessons
+- **Extend existing test files when they cover the same invariant family.** Phase 6 found `*ProducerDoesNotImplementRelationalTests.cs` from the outbox milestone covering the same "transport doesn't implement relational interface" shape. Bundling the inbox assertion into those existing files (vs creating 3 new files) is cleaner and was caught at build time, not in planning.
+
+## Gaps identified
+None.
+
+## Recommendations
+- Mark Phase 6 complete in ROADMAP.
+- Phase 7 (integration tests) is the remaining work before Phase 8 (docs). Phase 6 and Phase 7 are parallel-safe per ROADMAP — Phase 7 can proceed in parallel.

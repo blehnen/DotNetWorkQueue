@@ -135,7 +135,7 @@ Output is a single memo committed to `.shipyard/notes/inbox-spike.md`; a throwaw
 
 ---
 
-## Phase 6 — Negative-Path Coverage: Non-Relational Transports
+## Phase 6 — Negative-Path Coverage: Non-Relational Transports ✅ complete
 
 **Description.** Defensive phase: confirm the capability-cast pattern correctly **fails** on transports that should not implement `IRelationalWorkerNotification`. Mirrors the outbox milestone's Phase 5 in shape. No production code change expected — pure verification that Phase 2's design didn't accidentally leak into Memory/Redis/LiteDb.
 
