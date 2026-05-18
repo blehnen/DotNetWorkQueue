@@ -23,6 +23,7 @@ using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Logging;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Policies;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandPrepareHandler;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic.Factory;
@@ -72,6 +73,36 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.RegisterConditional(typeof(IProducerQueue<>), typeof(PostgreSqlRelationalProducerQueue<>), LifeStyles.Singleton);
             container.RegisterConditional(typeof(IRelationalProducerQueue<>), typeof(PostgreSqlRelationalProducerQueue<>), LifeStyles.Singleton);
             container.RegisterConditional(typeof(RelationalProducerQueue<>), typeof(PostgreSqlRelationalProducerQueue<>), LifeStyles.Singleton);
+
+            // Phase 4: inbox-pattern receive wiring (PostgreSQL side).
+            // Pre-register the relational concrete so the factory delegate below can resolve it.
+            // WorkerNotification is already registered by the core (ComponentRegistration line 217)
+            // and is auto-resolvable as a concrete type without a separate self-registration.
+            // The IWorkerNotification binding branches on EnableHoldTransactionUntilMessageCommitted:
+            // option=true returns the relational variant (implements IRelationalWorkerNotification),
+            // option=false returns the plain WorkerNotification (capability-cast fails on the user side).
+            // The try/catch around options resolution mirrors the IBaseTransportOptions pattern
+            // below (line ~99) — at container.Verify() / early-resolution time options may not
+            // be loadable yet, so fall back to the default option value (false) which is the
+            // safe non-relational path.
+            container.Register<PostgreSqlRelationalWorkerNotification>(LifeStyles.Transient);
+            container.Register<IWorkerNotification>(() =>
+            {
+                bool holdTransaction;
+                try
+                {
+                    var optionsFactory = container.GetInstance<ITransportOptionsFactory>();
+                    var options = (PostgreSqlMessageQueueTransportOptions)optionsFactory.Create();
+                    holdTransaction = options.EnableHoldTransactionUntilMessageCommitted;
+                }
+                catch
+                {
+                    holdTransaction = false;
+                }
+                return holdTransaction
+                    ? (IWorkerNotification)container.GetInstance<PostgreSqlRelationalWorkerNotification>()
+                    : container.GetInstance<WorkerNotification>();
+            }, LifeStyles.Transient);
 
             //**all
             container.Register<IDbConnectionFactory, DbConnectionFactory>(LifeStyles.Singleton);
