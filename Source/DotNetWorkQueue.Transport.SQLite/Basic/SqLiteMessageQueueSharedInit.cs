@@ -22,6 +22,7 @@ using System.Data;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
+using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -116,6 +117,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container
                 .Register<IConnectionHeader<IDbConnection, IDbTransaction, IDbCommand>,
                     ConnectionHeader<IDbConnection, IDbTransaction, IDbCommand>>(LifeStyles.Singleton);
+
+            // Phase 5: SQLite hold-transaction state header (carries the per-message dequeue
+            // connection + transaction across the receive-path / user-handler boundary when
+            // EnableHoldTransactionUntilMessageCommitted = true). Set in ReceiveMessage.GetMessage;
+            // read by SqLiteMessageQueueReceive commit / rollback / cleanup delegates and by the
+            // inbox SqLiteRelationalWorkerNotification.Transaction getter.
+            container.Register<SqLiteHeaders>(LifeStyles.Singleton);
+
             container.Register<ISQLiteTransactionWrapper, SqLiteTransactionWrapper>(LifeStyles.Transient);
             //**all
 
