@@ -1,52 +1,109 @@
-# Verification Report: Phase 2 Plan Review
+# Phase 2 Verification (Post-Build)
 
-**Phase:** 2 — Foundation Layer (`IRelationalWorkerNotification`)  
-**Date:** 2026-05-18  
-**Type:** plan-review  
-**Plan:** PLAN-1.1.md
+**Phase:** 2 — Foundation Layer (`IRelationalWorkerNotification`)
+**Date:** 2026-05-18
+**Type:** post-build
+**Worktree:** `/mnt/f/git/dotnetworkqueue/.worktrees/phase-2-inbox-foundation`
+**Branch:** `phase-2-inbox-foundation`
+**Commit range:** `1391b393..f2d5c678` (2 commits)
+**Verdict:** COMPLETE
 
 ---
 
-## Results
+## Coverage (ROADMAP.md Phase 2 success criteria)
 
 | # | Criterion | Status | Evidence |
-|---|-----------|--------|----------|
-| 1 | Roadmap §Transport.RelationalDatabase clean build coverage | PASS | Task 3, Gate 1: `dotnet build ... -c Release -p:CI=true` on net10.0 and net8.0. Task 1 AC line 129 enforces gate success. |
-| 2 | Roadmap §`IRelationalWorkerNotification` public + XML doc coverage | PASS | Task 1: interface declared `public` (line 93), full XML doc (lines 67–109: `<summary>`, `<remarks>` on interface; `<summary>`, `<value>`, `<remarks>` on member). Task 3 Gate 1 treats missing docs as build failure. |
-| 3 | Roadmap §no extractor in Phase 2 (CONTEXT-2 decision 1) | PASS | Task 1 creates interface only in `Transport.RelationalDatabase`. Task 2 creates contract test. Zero extractor code. CONTEXT-2 explicitly defers `SqliteExternalDbNameExtractor` to Phase 5. |
-| 4 | Roadmap §no new ADO.NET provider reference coverage | PASS | Task 1 AC line 128: `using System.Data.Common;` only. Task 3 Gate 3: grep checks csproj for zero matches on `Microsoft.Data.SqlClient|Npgsql|Microsoft.Data.Sqlite`. |
-| 5 | Roadmap §existing tests unmodified coverage | PASS | Task 2 AC line 253: "Existing test suite remains green — no regressions." Task 3 Gate 2 runs full suite. |
-| 6 | Plan structure: file naming `PLAN-{W}.{P}.md` | PASS | File is `PLAN-1.1.md` — wave 1, plan 1 format correct. |
-| 7 | Plan structure: ≤3 tasks per plan | PASS | Exactly 3 tasks: (1) author interface, (2) author test, (3) verification gates. |
-| 8 | Plan structure: dependencies graph valid (no circular, ordered by wave) | PASS | Line 5: `dependencies: []`. Single plan in wave 1 → no dependency graph. Trivially satisfied. |
-| 9 | Scope guard: plan omits `SqliteExternalDbNameExtractor` | PASS | Tasks 1–2 touch only `Transport.RelationalDatabase` and test project. Zero SQLite extractor code per CONTEXT-2 decision 1. |
-| 10 | Scope guard: plan omits `NormalizedConnectionInformation` wrapper | PASS | No mention of normalization or wrapper in any task. CONTEXT-2 decision 2 defers to Phase 5. |
-| 11 | Scope guard: plan omits `Transport.SQLite` file edits | PASS | Files touched (lines 15–17): both in `Transport.RelationalDatabase` and `Transport.RelationalDatabase.Tests`. Zero SQLite refs. |
-| 12 | Scope guard: plan preserves `ConnectionHolder` + `TransactionWrapper` | PASS | Task 1 uses `DbTransaction` interface contract; no internal mutations. Task 2 AC verifies existing tests green (no changes to holder/wrapper). |
-| 13 | Naming guard: no `Tx` abbreviation in plan or code | PASS | Grep scan of plan prose (lines 22–119) and both task code blocks (lines 63–111, 164–234): zero `Tx` or `TX` tokens. Task 1 notes line 119 reinforce full-word discipline. |
-| 14 | Naming guard: interface shape matches PROJECT.md exactly | PASS | PROJECT.md §Functional New Public API specifies `public interface IRelationalWorkerNotification : IWorkerNotification` with `DbTransaction Transaction { get; }`. Plan Task 1 lines 93–109 match verbatim. |
-| 15 | Naming guard: `DbTransaction` (not `IDbTransaction`) used | PASS | Task 1 line 109: member type is `System.Data.Common.DbTransaction`. Task 1 notes line 117 explicitly exclude `using System.Data;` to prevent `IDbTransaction` confusion. |
-| 16 | Acceptance criteria: Task 1 (interface) testable + mapped | PASS | 7 criteria (lines 121–129): all binary (file exists, header matches, member shape, XML doc, usage, build clean). Map to Roadmap §public interface + §clean build. |
-| 17 | Acceptance criteria: Task 2 (test) testable + mapped | PASS | 5 criteria (lines 244–253): test methods exist, existing suite green. All testable: reflection + MSTest assertions are deterministic. |
-| 18 | Acceptance criteria: Task 3 (verification) testable + mapped | PASS | 4 gates (lines 268–272): explicit runnable commands, expected outputs documented (build success, test pass, grep zero matches ×2). All deterministic. |
+|---|---|---|---|
+| 1 | `Transport.RelationalDatabase` builds clean (net10.0 + net8.0) with `TreatWarningsAsErrors` + `-p:CI=true` | PASS | Gate 1 below: `Build succeeded.  11 Warning(s) [all NU1902 pre-existing OpenTelemetry advisory carry-forward]  0 Error(s)`. No `CS1591` (missing XML doc). |
+| 2 | `IRelationalWorkerNotification` is `public` with full XML doc | PASS | `Source/DotNetWorkQueue.Transport.RelationalDatabase/IRelationalWorkerNotification.cs:49` — interface declaration; XML doc on interface (lines 23–48) and member (lines 51–64). REVIEW-1.1 Stage 1 PASS. |
+| 3 | Extractor unit-test coverage | N/A | `SqliteExternalDbNameExtractor` deferred to Phase 5 per CONTEXT-2 Decision 1 (SQLite-specific semantics → per-transport placement). |
+| 4 | No reference to `Microsoft.Data.SqlClient`, `Npgsql`, or `Microsoft.Data.Sqlite` introduced in `Transport.RelationalDatabase` | PASS | `grep -nE "Microsoft\.Data\.SqlClient\|Npgsql\|Microsoft\.Data\.Sqlite" "Source/DotNetWorkQueue.Transport.RelationalDatabase/DotNetWorkQueue.Transport.RelationalDatabase.csproj"` → exit 1, zero matches. Only `using System.Data.Common;` introduced (BCL). |
+| 5 | Existing SqlServer/PostgreSQL/SQLite/LiteDb/Memory/Redis unit tests pass unmodified | PASS | Gate 3 below: core unit tests (`DotNetWorkQueue.Tests` 905) green. Phase 2 is additive — only 2 new files. Diff scope confirmed (Section "Scope confirmation"). |
 
 ---
 
-## Gaps
+## Re-run gate evidence (executed in worktree)
 
-None identified. PLAN-1.1.md satisfies all roadmap coverage, plan structure, acceptance criteria, scope guard, and naming guard requirements.
+### Gate 1 — Release build (`dotnet build … -c Release -p:CI=true`)
+```
+Build succeeded.
+   11 Warning(s)  [all NU1902 pre-existing OpenTelemetry advisory carry-forward]
+    0 Error(s)
+Time Elapsed 00:00:09.87
+```
+Both `net10.0` and `net8.0` targets built clean.
+
+### Gate 2 — `Transport.RelationalDatabase.Tests` (`dotnet test`)
+```
+Passed!  - Failed:     0, Passed:   226, Skipped:     0, Total:   226, Duration: 415 ms
+  - DotNetWorkQueue.Transport.RelationalDatabase.Tests.dll (net10.0)
+```
+Baseline 221 + 5 new contract tests = 226. Zero failures.
+
+### Gate 3 — Core unit-test regression smoke (`DotNetWorkQueue.Tests`)
+```
+Passed!  - Failed:     0, Passed:   905, Skipped:     0, Total:   905, Duration: 1 m 4 s
+  - DotNetWorkQueue.Tests.dll (net10.0)
+```
+Zero regressions in the core library tests downstream of `IWorkerNotification`.
+
+### Gate 4 — `Tx`-abbreviation grep guard
+```
+$ grep -nE "\b(Tx|TX)\b" \
+    Source/DotNetWorkQueue.Transport.RelationalDatabase/IRelationalWorkerNotification.cs \
+    Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/IRelationalWorkerNotificationContractTests.cs
+$ echo $?
+1
+```
+Zero matches. Only the full word `Transaction`/`transaction` appears.
+
+---
+
+## Integration soundness
+
+- REVIEW-1.1.md verdict: **PASS** (Stage 1 correctness + Stage 2 integration both clean).
+- No unresolved critical findings.
+- Single plan, single wave — no inter-plan conflicts to assess.
+
+---
+
+## CLAUDE.md compliance
+
+| Lesson | Verification | Status |
+|---|---|---|
+| "No `Tx` abbreviation for transaction" | Gate 4 grep | PASS |
+| "Async-handler abstract-base mocking" — `DbTransaction` not `IDbTransaction` | Interface member type at file:65 is `System.Data.Common.DbTransaction` | PASS |
+| "ADO.NET types out of root assembly" | Interface lives in `Transport.RelationalDatabase`, not root `DotNetWorkQueue` | PASS |
+| "LGPL-2.1 license headers" | Both new files carry the standard 18-line header byte-identical to `IConnectionHolder.cs` | PASS |
+| "`IDbConnection` discipline / no sealed-type casts" | N/A — Phase 2 is interface-only, no handler code | PASS (vacuous) |
+
+---
+
+## Infrastructure validation
+
+**N/A.** Phase 2 changes no Terraform, Ansible, Docker, Kubernetes, GitHub Actions, Jenkinsfile, or other infrastructure-as-code files. `iac_validation: auto` skips when no IaC files are touched.
+
+---
+
+## Scope confirmation
+
+`git diff --name-only 1391b393..HEAD -- Source/` output:
+```
+Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/IRelationalWorkerNotificationContractTests.cs
+Source/DotNetWorkQueue.Transport.RelationalDatabase/IRelationalWorkerNotification.cs
+```
+Exactly 2 files, both additions, both within the planned directories. No drift into `Transport.SQLite`, `Transport.SqlServer`, `Transport.PostgreSQL`, or `ConnectionHolder`/`TransactionWrapper` per CONTEXT-2 scope lock.
+
+---
+
+## Gaps identified
+
+**None.** All Phase 2 ROADMAP success criteria satisfied. The two CONTEXT-2-deferred items (`SqliteExternalDbNameExtractor`, `NormalizedConnectionInformation` wrapper) carry forward to Phase 5 as planned.
 
 ---
 
 ## Recommendations
 
-None. Plan is ready for execution. Builder should:
-1. Execute Task 1 (create interface file with exact license header and XML doc from plan).
-2. Execute Task 2 (create contract test file with exact license header and 5 test methods).
-3. Execute Task 3 (run 4 verification gates; capture results).
-
----
-
-## Verdict
-
-**PASS** — PLAN-1.1.md is complete, internally consistent, fully addresses Phase 2 roadmap success criteria, respects scope guards from CONTEXT-2, enforces naming discipline from CLAUDE.md/ROADMAP, and proposes concrete testable acceptance criteria. Ready for build execution.
+- Proceed to **Step 5a** (security audit), **Step 5b** (simplification review), and **Step 5c** (documentation generation) per build workflow.
+- After those gates: mark Phase 2 complete in `ROADMAP.md`, commit artifacts, tag `post-build-phase-2-inbox`.
+- Next phase: **Phase 3 — SqlServer Inbox Wiring + Unit Tests** (depends only on Phase 2; ready to plan immediately).

@@ -1,5 +1,22 @@
 # Shipyard History
 
+## 2026-05-18 — Phase 2 Build Complete (Foundation Layer)
+
+- **Action:** `/shipyard:build 2` (on worktree `phase-2-inbox-foundation`)
+- **Plans executed:** 1/1 (PLAN-1.1)
+- **Commits:** 2
+  - `3e0cd9ce` — add IRelationalWorkerNotification interface
+  - `f2d5c678` — add IRelationalWorkerNotification contract tests
+- **Verification:** all 4 plan gates green + 3 re-validation gates green
+  - Release build (Transport.RelationalDatabase, net10.0 + net8.0, `-p:CI=true`): 0 errors, 11 NU1902 pre-existing warnings
+  - `Transport.RelationalDatabase.Tests`: 226/226 pass (baseline 221 + 5 new contract tests)
+  - `DotNetWorkQueue.Tests` (core regression smoke): 905/905 pass
+- **Reviewer:** PASS (no critical, no minor blocking).
+- **Auditor:** CLEAN (no exploitable surface; interface-only additive change; informational findings only).
+- **Simplifier:** CLEAN (no AI-bloat patterns triggered; XML doc verbosity justified by ownership contract documentation).
+- **Documenter:** SUFFICIENT (XML doc complete on public surface; user-facing tutorial correctly deferred to Phase 8).
+- **Next:** `/shipyard:plan 3` — SqlServer inbox wiring + unit tests.
+
 ## 2026-05-18 — Phase 2 Planned (Foundation Layer)
 
 - **Action:** `/shipyard:plan 2`
@@ -1111,3 +1128,8 @@
 - [2026-05-17T17:35:00Z] Phase 1: Phase 1 build complete (1/1 plans PASS; SUMMARY-1.1 + REVIEW-1.1 + VERIFICATION + AUDIT-1 [skipped, no code] + SIMPLIFICATION-1 [skipped, no code] + DOCUMENTATION-1 [deferred to phase 8]; 17/17 verify checks pass after fixing 2 regex defects in PLAN-1.1: file target [RESEARCH.md→inbox-spike.md] + case-sensitivity [-i flag for UPPERCASE disposition words]). Phase 1 disposition: complete; ready for /shipyard:plan 2 (foundation layer). [builder:opus, verdict:PASS, retries:0, domain:research]
 - [2026-05-18T12:19:28Z] Phase 2: Planning phase 2 (foundation — interface-only scope per CONTEXT-2) (planning)
 - [2026-05-18T12:32:22Z] Phase 2: Phase 2 planned (1 plan, 3 tasks, 1 wave; interface-only scope; verifier=PASS, critique=READY) (planned)
+- [2026-05-18T13:34:11Z] Phase 2: Building phase 2 (foundation, wave 1) (building)
+- [2026-05-18T13:40:47Z] Phase 2: Phase 2 wave 1 built (PLAN-1.1 PASS, 226 tests green) (building)
+- [2026-05-18T13:59:53Z] Session ended during build (may need /shipyard:resume)
+- [2026-05-18T14:00:00Z] Session ended during build (may need /shipyard:resume)
+- [2026-05-18T14:01:32Z] Phase 2: Phase 2 build complete (foundation interface shipped, deferred SQLite items to Phase 5) (complete)

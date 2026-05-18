@@ -29,7 +29,7 @@ Output is a single memo committed to `.shipyard/notes/inbox-spike.md`; a throwaw
 
 ---
 
-## Phase 2 — Foundation Layer (`IRelationalWorkerNotification` + `SqliteExternalDbNameExtractor`)
+## Phase 2 — Foundation Layer (`IRelationalWorkerNotification` + `SqliteExternalDbNameExtractor`) ✅ complete (extractor deferred to Phase 5)
 
 **Description.** Pure additive plumbing in `Transport.RelationalDatabase` with no transport-specific behavior. Introduces:
 
