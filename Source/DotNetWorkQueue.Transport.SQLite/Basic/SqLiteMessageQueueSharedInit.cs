@@ -157,8 +157,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 try
                 {
                     var optionsFactory = container.GetInstance<ITransportOptionsFactory>();
-                    var options = (SqLiteMessageQueueTransportOptions)optionsFactory.Create();
-                    holdTransaction = options.EnableHoldTransactionUntilMessageCommitted;
+                    var rawOptions = optionsFactory.Create();
+                    holdTransaction = rawOptions is SqLiteMessageQueueTransportOptions typed
+                        && typed.EnableHoldTransactionUntilMessageCommitted;
                 }
                 catch
                 {
