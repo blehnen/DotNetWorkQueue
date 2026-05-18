@@ -64,5 +64,22 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
                 $"'{transportAssembly.GetName().Name}' must NOT contain any type " +
                 "implementing IRelationalProducerQueue<T>.");
         }
+
+        [TestMethod]
+        public void Redis_WorkerNotification_DoesNotImplement_IRelationalWorkerNotification()
+        {
+            // Phase 6 negative-path coverage for the inbox capability-cast pattern.
+            Assert.IsFalse(
+                typeof(IRelationalWorkerNotification).IsAssignableFrom(typeof(WorkerNotification)),
+                "Redis transport invariant violated: core WorkerNotification must NOT implement " +
+                "IRelationalWorkerNotification (PROJECT.md §Success Criteria #3).");
+
+            var transportAssembly = typeof(RedisQueueInit).Assembly;
+            var anyImplementsRelational = transportAssembly.GetTypes()
+                .Any(t => typeof(IRelationalWorkerNotification).IsAssignableFrom(t));
+            Assert.IsFalse(anyImplementsRelational,
+                $"Redis transport assembly '{transportAssembly.GetName().Name}' must NOT " +
+                "contain any type implementing IRelationalWorkerNotification.");
+        }
     }
 }

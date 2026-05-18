@@ -64,5 +64,27 @@ namespace DotNetWorkQueue.Transport.Memory.Tests.Basic
                 $"'{transportAssembly.GetName().Name}' must NOT contain any type " +
                 "implementing IRelationalProducerQueue<T>.");
         }
+
+        [TestMethod]
+        public void Memory_WorkerNotification_DoesNotImplement_IRelationalWorkerNotification()
+        {
+            // Phase 6 negative-path coverage for the inbox capability-cast pattern: the Memory
+            // transport's IWorkerNotification resolves to the core WorkerNotification, which
+            // must NOT implement IRelationalWorkerNotification (PROJECT.md §Success Criteria #3).
+            Assert.IsFalse(
+                typeof(IRelationalWorkerNotification).IsAssignableFrom(typeof(WorkerNotification)),
+                "Memory transport invariant violated: core WorkerNotification must NOT implement " +
+                "IRelationalWorkerNotification. The inbox capability cast is intended to cleanly " +
+                "fail on non-relational transports.");
+
+            // Assembly scan: no type in the Memory transport assembly should implement
+            // IRelationalWorkerNotification.
+            var transportAssembly = typeof(MemoryDashboardInit).Assembly;
+            var anyImplementsRelational = transportAssembly.GetTypes()
+                .Any(t => typeof(IRelationalWorkerNotification).IsAssignableFrom(t));
+            Assert.IsFalse(anyImplementsRelational,
+                $"Memory transport assembly '{transportAssembly.GetName().Name}' must NOT " +
+                "contain any type implementing IRelationalWorkerNotification.");
+        }
     }
 }
