@@ -1,5 +1,21 @@
 # Shipyard History
 
+## 2026-05-18 — Phase 5 Planned (SQLite Inbox + Outbox Sweep, EXPANDED scope)
+
+- **Action:** `/shipyard:plan 5` (on worktree `phase-2-inbox-foundation`)
+- **Major finding:** SQLite has `EnableHoldTransactionUntilMessageCommitted` declared at `SQLiteMessageQueueTransportOptions.cs:278` but **never read anywhere** in the transport. Dequeue tx is created+disposed inside `ReceiveMessageQueryHandler.Handle()` using-blocks; library carries no tx state across the user-handler boundary. SQLite inbox is NOT feasible without first implementing hold-tx semantics.
+- **User decision (CONTEXT-5 §3a):** Expand Phase 5 scope to include hold-tx implementation + inbox wiring + original outbox sweep. Phase 5 grows from L (10-14h) to XL+ (20-30h estimated).
+- **Plans:** 5 plans, ~13 tasks, 3 waves
+  - **Wave 1 — PLAN-1.1** (3 tasks): SQLite hold-tx implementation. New `SqLiteConnectionState` + `SqLiteHeaders` typed key; modify `ReceiveMessageQueryHandler.Handle` to branch on caller-supplied connection/tx vs self-create; modify `SqLiteMessageQueueReceive` + `Message/ReceiveMessage` to create connection+tx in hold-tx path, store state on `IMessageContext`, wire Commit/Rollback/Cleanup delegates to honor the held lifecycle. **Approach B (context-state-based)** chosen over Approach A (typed `ConnectionHolder<,,>`) — lower file-edit surface; extends existing context-based pattern.
+  - **Wave 2 — PLAN-2.1** (3 tasks, depends on 1.1): Inbox notification class + factory-delegate DI + receive-path wire-up (mirrors Phase 3/4 with SQLite types).
+  - **Wave 2 — PLAN-2.2** (3 tasks, depends on 1.1; parallel-safe with 2.1): Outbox wiring — `SqLiteExternalDbNameExtractor` + `SqliteNormalizedConnectionInformation` wrapper + `SqLiteRelationalProducerQueue<T>` + 3 `RegisterConditional` + `HandleExternalTransaction` forks in 3 send handlers.
+  - **Wave 3 — PLAN-3.1** (2 tasks, depends on 2.1): Inbox tests (6 contract + 2 option-driven smoke).
+  - **Wave 3 — PLAN-3.2** (2 tasks, depends on 2.2): Outbox tests (extractor + fork + zero-mutation-on-caller-tx invariant).
+- **Verifier:** PASS. **Critique:** CAUTION (PLAN-1.1 size is architectural novelty risk; Wave 2 init-file overlap requires sequential vs parallel execution if concern arises).
+- **Authoring posture:** all artifacts (CONTEXT-5, RESEARCH.md, 5 plans, VERIFICATION.md, CRITIQUE.md) written inline by orchestrator. Architect and researcher agents stalled twice each on this phase — Phase 5's structural novelty + scope made dispatched agents particularly unreliable.
+- **Phase 4 lessons baked in:** all 5 Phase 3 lessons + Phase 4 carry-over (`using DotNetWorkQueue.Queue;` gap) addressed in PLAN-1.1 / PLAN-2.1 task descriptions from outset.
+- **Next:** `/shipyard:build 5` (expect higher iteration than Phase 3/4; PLAN-1.1 may require 1-2 retry cycles).
+
 ## 2026-05-18 — Phase 4 Build Complete (PostgreSQL Inbox Wiring)
 
 - **Action:** `/shipyard:build 4` (on worktree `phase-2-inbox-foundation`)
@@ -1229,3 +1245,5 @@
 - [2026-05-18T17:49:42Z] Phase 4: Phase 4 planned (3 plans, 5 tasks, 2 waves; verifier=PASS, critique=READY; all 5 Phase 3 lessons pre-baked) (planned)
 - [2026-05-18T17:53:14Z] Phase 4: Building phase 4 wave 1 (PG inbox class + factory-delegate DI) (building)
 - [2026-05-18T18:04:21Z] Phase 4: Phase 4 build complete (PG inbox wiring; 5 Phase 3 lessons applied first try) (complete)
+- [2026-05-18T18:40:34Z] Phase 5: Planning phase 5 (SQLite inbox + outbox sweep — researcher proving inbox seam first) (planning)
+- [2026-05-18T19:01:50Z] Phase 5: Phase 5 planned (EXPANDED scope: 5 plans, ~13 tasks, 3 waves; verifier=PASS, critique=CAUTION on PLAN-1.1 architectural size) (planned)

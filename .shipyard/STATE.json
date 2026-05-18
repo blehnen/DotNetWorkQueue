@@ -1,8 +1,8 @@
 {
   "schema": 3,
-  "phase": 4,
-  "position": "Phase 4 build complete (PG inbox wiring; 5 Phase 3 lessons applied first try)",
-  "status": "complete",
-  "updated_at": "2026-05-18T18:04:21Z",
+  "phase": 5,
+  "position": "Phase 5 planned (EXPANDED scope: 5 plans, ~13 tasks, 3 waves; verifier=PASS, critique=CAUTION on PLAN-1.1 architectural size)",
+  "status": "planned",
+  "updated_at": "2026-05-18T19:01:50Z",
   "blocker": null
 }
