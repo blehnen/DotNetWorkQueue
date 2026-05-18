@@ -1,5 +1,19 @@
 # Shipyard History
 
+## 2026-05-18 — Phase 6 Planned (Negative-Path Coverage)
+
+- **Action:** `/shipyard:plan 6`
+- **Plans:** 1 plan, 3 tasks (one per non-relational transport: Memory, Redis, LiteDb).
+- **CONTEXT-6:** mechanical scope; no ambiguous decisions to capture.
+- **RESEARCH:** confirmed all 3 transport assemblies have ZERO source references to `IRelationalWorkerNotification` or `IRelationalProducerQueue` today — Phase 6's job is locking the invariant with runtime tests + assembly scans, not discovering anything new.
+- **Anchor types** confirmed:
+  - Memory: `MemoryMessageQueueInit` (lives in CORE `DotNetWorkQueue` assembly)
+  - Redis: `RedisQueueInit`
+  - LiteDb: `LiteDbMessageQueueInit`
+- **Pattern:** 2 `[TestMethod]`s per transport — type-system check (`IsAssignableFrom`) + assembly scan (no type implements `IRelationalWorkerNotification`).
+- **Verifier:** PASS. **Critique:** READY.
+- **Next:** `/shipyard:build 6`.
+
 ## 2026-05-18 — Phase 5 Build Complete (SQLite Inbox + Outbox Sweep, EXPANDED scope)
 
 - **Action:** `/shipyard:build 5` (on worktree `phase-2-inbox-foundation`)
@@ -1278,3 +1292,5 @@
 - [2026-05-18T19:04:35Z] Phase 5: Building phase 5 PLAN-1.1 (hold-tx implementation; XL+ scope) (building)
 - [2026-05-18T19:54:12Z] Phase 5: Phase 5 PLAN-1.1 complete (hold-tx implementation; 142 tests green; 3 commits) (building)
 - [2026-05-18T21:26:29Z] Phase 5: Phase 5 build complete (SQLite hold-tx + inbox + outbox sweep; 153 SQLite tests / 905 core tests green; XL+ scope shipped in one session) (complete)
+- [2026-05-18T21:54:11Z] Phase 6: Planning phase 6 (negative-path coverage; S size) (planning)
+- [2026-05-18T21:56:07Z] Phase 6: Phase 6 planned (1 plan, 3 tasks, 1 wave; verifier=PASS, critique=READY) (planned)
