@@ -98,7 +98,7 @@ Output is a single memo committed to `.shipyard/notes/inbox-spike.md`; a throwaw
 
 ---
 
-## Phase 5 — SQLite Inbox Wiring + SQLite-Outbox Sweep + Unit Tests (Combined)
+## Phase 5 — SQLite Inbox Wiring + SQLite-Outbox Sweep + Unit Tests (Combined) ✅ complete (EXPANDED scope: included hold-tx implementation; fork unit tests deferred to Phase 7)
 
 **Description.** SQLite vertical slice combining BOTH directions in one phase. Rationale for combining: both halves touch the same `SqLiteMessageQueueInit` registration block; splitting them across two phases would cause the second phase to immediately re-edit files the first phase just landed, with little testability win. Inbox path adds the notification impl; outbox path adds `IRelationalProducerQueue<T>` registration + per-handler `HandleExternalTx` forks.
 

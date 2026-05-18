@@ -1,5 +1,33 @@
 # Shipyard History
 
+## 2026-05-18 — Phase 5 Build Complete (SQLite Inbox + Outbox Sweep, EXPANDED scope)
+
+- **Action:** `/shipyard:build 5` (on worktree `phase-2-inbox-foundation`)
+- **Plans executed:** 5/5 (PLAN-1.1, PLAN-2.1, PLAN-2.2, PLAN-3.1, PLAN-3.2)
+- **Commits:** 7 atomic source commits
+  - `fbc6f037` — SqLiteConnectionState + SqLiteHeaders for hold-tx state
+  - `6b701632` — ReceiveMessageQueryHandler branching on caller-supplied connection/tx
+  - `31879446` — hold-tx state lifecycle wired through receive path
+  - `ebf70c96` — SqLiteRelationalWorkerNotification + factory-delegate DI
+  - `2d9c7b94` — outbox sweep (extractor + wrapper + producer queue + 2 send-handler forks)
+  - `f547d442` — PLAN-3.1 inbox tests + critical EnableHoldTransactionUntilMessageCommitted option-backing fix
+  - `112a0d60` — PLAN-3.2 outbox extractor tests + empty-string guard
+- **Verification:** all 5 ROADMAP success criteria green; PROJECT.md §SC #2 directly satisfied for SQLite
+  - Release build (Transport.SQLite, both TFMs, `-p:CI=true`): 0 errors, 14 NU1902 pre-existing
+  - `Transport.SQLite.Tests`: 153/153 (baseline 142 + 12 new − 1 deprecated negative-path)
+  - `DotNetWorkQueue.Tests` (core regression smoke): 905/905
+- **Reviewer:** PASS ×5 (some with minor noted; Plan 2.1 had mid-build settable-property refactor; Plan 3.1 surfaced the option-backing bug).
+- **Auditor:** LOW_RISK.
+- **Simplifier:** CLEAN.
+- **Documenter:** SUFFICIENT.
+- **Phase 5 specifics (additive to Phase 3/4 lessons):**
+  - 🔑 **Declared-but-unbacked options are real bugs.** `EnableHoldTransactionUntilMessageCommitted` had hardcoded `false` getter + no-op setter; Phase 5 surfaced this and fixed it. Without the fix, all Phase 5 inbox wiring would have been functionally dead.
+  - 🔑 Per-message scoped `IMessageContext` is NOT ctor-resolvable at container.Verify time. Settable-property pattern (Phase 3/4 model) is the correct approach.
+  - 🔑 `Path.GetFullPath("")` throws ArgumentException — empty-string guard required in extractor + wrapper for symmetric normalization to handle null DataSource.
+  - 🔑 SQLite outbox handlers can fork at IDbConnection/IDbTransaction interface level — no transport-specific connection-type guard needed.
+  - 🔑 Inline-build posture scales to XL+ (7 atomic commits in one session) when test gates run after each commit.
+- **Next:** `/shipyard:plan 6` — negative-path coverage on Memory/Redis/LiteDb (or `/shipyard:plan 7` integration tests; Phase 6 + Phase 7 are parallel-safe per ROADMAP).
+
 ## 2026-05-18 — Phase 5 Planned (SQLite Inbox + Outbox Sweep, EXPANDED scope)
 
 - **Action:** `/shipyard:plan 5` (on worktree `phase-2-inbox-foundation`)
@@ -1247,3 +1275,6 @@
 - [2026-05-18T18:04:21Z] Phase 4: Phase 4 build complete (PG inbox wiring; 5 Phase 3 lessons applied first try) (complete)
 - [2026-05-18T18:40:34Z] Phase 5: Planning phase 5 (SQLite inbox + outbox sweep — researcher proving inbox seam first) (planning)
 - [2026-05-18T19:01:50Z] Phase 5: Phase 5 planned (EXPANDED scope: 5 plans, ~13 tasks, 3 waves; verifier=PASS, critique=CAUTION on PLAN-1.1 architectural size) (planned)
+- [2026-05-18T19:04:35Z] Phase 5: Building phase 5 PLAN-1.1 (hold-tx implementation; XL+ scope) (building)
+- [2026-05-18T19:54:12Z] Phase 5: Phase 5 PLAN-1.1 complete (hold-tx implementation; 142 tests green; 3 commits) (building)
+- [2026-05-18T21:26:29Z] Phase 5: Phase 5 build complete (SQLite hold-tx + inbox + outbox sweep; 153 SQLite tests / 905 core tests green; XL+ scope shipped in one session) (complete)
