@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -17,9 +17,11 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
+using System;
 using System.Data;
 using System.Linq;
 
@@ -33,6 +35,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
         private readonly QueueConsumerConfiguration _configuration;
         private readonly IQueryHandler<ReceiveMessageQuery<IDbConnection, IDbTransaction>, IReceivedMessageInternal> _receiveMessage;
         private readonly ICancelWork _cancelToken;
+        private readonly IDbFactory _dbFactory;
+        private readonly IConnectionInformation _connectionInformation;
+        private readonly Lazy<SqLiteMessageQueueTransportOptions> _options;
+        private readonly SqLiteHeaders _sqLiteHeaders;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceiveMessage" /> class.
@@ -40,17 +46,33 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
         /// <param name="configuration">The configuration.</param>
         /// <param name="receiveMessage">The receive message.</param>
         /// <param name="cancelToken">The cancel token.</param>
+        /// <param name="dbFactory">The db factory used to create connections + transactions in hold-tx mode.</param>
+        /// <param name="connectionInformation">Connection info for hold-tx mode connection creation.</param>
+        /// <param name="optionsFactory">Options factory; consulted to detect hold-tx mode.</param>
+        /// <param name="sqLiteHeaders">Typed key for storing per-message connection state on the context in hold-tx mode.</param>
         public ReceiveMessage(QueueConsumerConfiguration configuration,
             IQueryHandler<ReceiveMessageQuery<IDbConnection, IDbTransaction>, IReceivedMessageInternal> receiveMessage,
-            IQueueCancelWork cancelToken)
+            IQueueCancelWork cancelToken,
+            IDbFactory dbFactory,
+            IConnectionInformation connectionInformation,
+            ISqLiteMessageQueueTransportOptionsFactory optionsFactory,
+            SqLiteHeaders sqLiteHeaders)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => receiveMessage, receiveMessage);
             Guard.NotNull(() => cancelToken, cancelToken);
+            Guard.NotNull(() => dbFactory, dbFactory);
+            Guard.NotNull(() => connectionInformation, connectionInformation);
+            Guard.NotNull(() => optionsFactory, optionsFactory);
+            Guard.NotNull(() => sqLiteHeaders, sqLiteHeaders);
 
             _configuration = configuration;
             _receiveMessage = receiveMessage;
             _cancelToken = cancelToken;
+            _dbFactory = dbFactory;
+            _connectionInformation = connectionInformation;
+            _options = new Lazy<SqLiteMessageQueueTransportOptions>(optionsFactory.Create);
+            _sqLiteHeaders = sqLiteHeaders;
         }
 
         /// <summary>
@@ -68,18 +90,64 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
                 return null;
             }
 
-            //ask for the next message
-            var receivedTransportMessage =
-                _receiveMessage.Handle(new ReceiveMessageQuery<IDbConnection, IDbTransaction>(null, null, _configuration.Routes, _configuration.GetUserParameters(), _configuration.GetUserClause()));
+            // Phase 5: when EnableHoldTransactionUntilMessageCommitted = true, create the
+            // connection + transaction HERE so they outlive the query handler call. The
+            // receive-path commit/rollback/cleanup delegates (in SqLiteMessageQueueReceive)
+            // will read the state from context and complete the lifecycle after the user
+            // handler returns.
+            IDbConnection heldConnection = null;
+            IDbTransaction heldTransaction = null;
+            if (_options.Value.EnableHoldTransactionUntilMessageCommitted)
+            {
+                heldConnection = _dbFactory.CreateConnection(_connectionInformation.ConnectionString, false);
+                try
+                {
+                    heldConnection.Open();
+                    heldTransaction = _dbFactory.CreateTransaction(heldConnection).BeginTransaction();
+                }
+                catch
+                {
+                    heldConnection.Dispose();
+                    throw;
+                }
+            }
+
+            IReceivedMessageInternal receivedTransportMessage;
+            try
+            {
+                receivedTransportMessage = _receiveMessage.Handle(
+                    new ReceiveMessageQuery<IDbConnection, IDbTransaction>(
+                        heldConnection, heldTransaction,
+                        _configuration.Routes,
+                        _configuration.GetUserParameters(),
+                        _configuration.GetUserClause()));
+            }
+            catch
+            {
+                // hold-tx path: ensure we don't leak the connection/tx on Handle failure
+                heldTransaction?.Dispose();
+                heldConnection?.Dispose();
+                throw;
+            }
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)
             {
+                // hold-tx path with no message: nothing to commit; release resources now
+                heldTransaction?.Dispose();
+                heldConnection?.Dispose();
                 return null;
             }
 
             //set the message ID on the context for later usage
             context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.CorrelationId, receivedTransportMessage.Headers);
+
+            // hold-tx path with a message: store the state on context so the receive-class
+            // commit/rollback/cleanup delegates can finish the lifecycle after the user handler.
+            if (heldConnection != null && heldTransaction != null)
+            {
+                context.Set(_sqLiteHeaders.ConnectionState, new SqLiteConnectionState(heldConnection, heldTransaction));
+            }
 
             return receivedTransportMessage;
         }
