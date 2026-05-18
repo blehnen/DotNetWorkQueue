@@ -125,6 +125,36 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             // inbox SqLiteRelationalWorkerNotification.Transaction getter.
             container.Register<SqLiteHeaders>(LifeStyles.Singleton);
 
+            // Phase 5: inbox-pattern receive wiring (SQLite side).
+            // Pre-register the relational concrete; WorkerNotification is already registered by
+            // the core (ComponentRegistration line 217) and auto-resolvable as a concrete type.
+            // The IWorkerNotification binding branches on EnableHoldTransactionUntilMessageCommitted:
+            // option=true returns SqLiteRelationalWorkerNotification (which implements
+            // IRelationalWorkerNotification, exposing the held DbTransaction via the
+            // capability-cast pattern); option=false returns plain WorkerNotification (cast
+            // cleanly fails).
+            // The try/catch around options resolution mirrors the IBaseTransportOptions pattern
+            // (Phase 3 lesson 1) — at container.Verify() / early-resolution time options may not
+            // be loadable yet, so fall back to the default option value (false).
+            container.Register<SqLiteRelationalWorkerNotification>(LifeStyles.Transient);
+            container.Register<IWorkerNotification>(() =>
+            {
+                bool holdTransaction;
+                try
+                {
+                    var optionsFactory = container.GetInstance<ITransportOptionsFactory>();
+                    var options = (SqLiteMessageQueueTransportOptions)optionsFactory.Create();
+                    holdTransaction = options.EnableHoldTransactionUntilMessageCommitted;
+                }
+                catch
+                {
+                    holdTransaction = false;
+                }
+                return holdTransaction
+                    ? (IWorkerNotification)container.GetInstance<SqLiteRelationalWorkerNotification>()
+                    : container.GetInstance<WorkerNotification>();
+            }, LifeStyles.Transient);
+
             container.Register<ISQLiteTransactionWrapper, SqLiteTransactionWrapper>(LifeStyles.Transient);
             //**all
 
