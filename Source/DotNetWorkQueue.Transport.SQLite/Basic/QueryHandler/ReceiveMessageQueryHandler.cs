@@ -91,24 +91,48 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                 return null;
             }
 
-            using (var connection = _dbFactory.CreateConnection(_connectionInformation.ConnectionString, false))
-            {
-                connection.Open();
-                using (var transaction = _dbFactory.CreateTransaction(connection).BeginTransaction())
-                {
-                    using (var selectCommand = connection.CreateCommand())
-                    {
-                        selectCommand.Transaction = transaction;
-                        CommandString commandString =
-                                  GetDeQueueCommand(_tableNameHelper.MetaDataName, _tableNameHelper.QueueName,
-                                    _tableNameHelper.StatusName, query.Routes, out var userParameters);
+            // Phase 5: branch on caller-supplied connection + transaction (hold-tx path) vs
+            // self-create (existing behavior). When the caller passes both, ownership stays
+            // with the caller — do NOT dispose. When either is null, fall back to the
+            // existing self-managed lifecycle.
+            var callerSuppliedLifecycle = query.Connection != null && query.Transaction != null;
 
-                        _buildDequeueCommand.BuildCommand(selectCommand, commandString, _options.Value, query.Routes, userParameters);
-                        using (var reader = selectCommand.ExecuteReader())
-                        {
-                            return _messageDeQueue.HandleMessage(connection, transaction, reader, commandString);
-                        }
+            IDbConnection connection = null;
+            IDbTransaction transaction = null;
+            try
+            {
+                if (callerSuppliedLifecycle)
+                {
+                    connection = query.Connection;
+                    transaction = query.Transaction;
+                }
+                else
+                {
+                    connection = _dbFactory.CreateConnection(_connectionInformation.ConnectionString, false);
+                    connection.Open();
+                    transaction = _dbFactory.CreateTransaction(connection).BeginTransaction();
+                }
+
+                using (var selectCommand = connection.CreateCommand())
+                {
+                    selectCommand.Transaction = transaction;
+                    CommandString commandString =
+                              GetDeQueueCommand(_tableNameHelper.MetaDataName, _tableNameHelper.QueueName,
+                                _tableNameHelper.StatusName, query.Routes, out var userParameters);
+
+                    _buildDequeueCommand.BuildCommand(selectCommand, commandString, _options.Value, query.Routes, userParameters);
+                    using (var reader = selectCommand.ExecuteReader())
+                    {
+                        return _messageDeQueue.HandleMessage(connection, transaction, reader, commandString);
                     }
+                }
+            }
+            finally
+            {
+                if (!callerSuppliedLifecycle)
+                {
+                    transaction?.Dispose();
+                    connection?.Dispose();
                 }
             }
         }
