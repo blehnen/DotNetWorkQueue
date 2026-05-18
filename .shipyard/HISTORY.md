@@ -1,5 +1,22 @@
 # Shipyard History
 
+## 2026-05-18 — Phase 4 Planned (PostgreSQL Inbox Wiring)
+
+- **Action:** `/shipyard:plan 4` (on worktree `phase-2-inbox-foundation`)
+- **Plans:** 3 plans, 5 tasks, 2 waves
+  - PLAN-1.1 (Wave 1): author `PostgreSqlRelationalWorkerNotification` + factory-delegate registration in `PostgreSQLMessageQueueInit` (2 tasks)
+  - PLAN-2.1 (Wave 2): wire `ConnectionHolder` setter into `PostgreSQLMessageQueueReceive` via pattern-match (1 task)
+  - PLAN-2.2 (Wave 2, parallel-safe with 2.1): 6 contract tests + 2 option-driven SimpleInjector smoke tests (2 tasks)
+- **CONTEXT-4 locks:** Mirror Phase 3 exactly. Class name `PostgreSqlRelationalWorkerNotification` (lowercase "q" per existing PG convention). All 5 Phase 3 lessons pre-baked into the plans so the builder doesn't re-discover mid-build.
+- **Researcher + architect + verifier + critique:** all written inline by the orchestrator (faster + more reliable than the stalling agents during Phase 3). Verifier PASS. Critique READY first pass — no revisions needed.
+- **Phase 3 lessons applied:**
+  1. Factory-delegate try/catch fallback to `false` baked into PLAN-1.1 Task 2 from the outset.
+  2. No `Register<WorkerNotification>` self-registration in PLAN-1.1 Task 2.
+  3. Receive-path pattern-match (not cast) in PLAN-2.1 Task 1.
+  4. Contract Test 4 named `ConnectionHolder_PropertySet_Does_Not_Throw` (not the misleading Phase-3-original name).
+  5. Smoke-test seam = `QueueContainer<PostgreSQLMessageQueueInit>(registerService, setOptions)` with mocked `ITransportOptionsFactory`.
+- **Next:** `/shipyard:build 4`.
+
 ## 2026-05-18 — Phase 3 Build Complete (SqlServer Inbox Wiring)
 
 - **Action:** `/shipyard:build 3` (on worktree `phase-2-inbox-foundation`)
@@ -1183,3 +1200,5 @@
 - [2026-05-18T16:35:06Z] Phase 3: Phase 3 wave 2 built (PLAN-2.1 + PLAN-2.2 PASS, 164 SqlServer tests green) (building)
 - [2026-05-18T16:40:43Z] Session ended during build (may need /shipyard:resume)
 - [2026-05-18T16:43:32Z] Phase 3: Phase 3 build complete (SqlServer inbox wiring shipped; 5 lessons captured for PG/SQLite reuse) (complete)
+- [2026-05-18T17:41:19Z] Phase 4: Planning phase 4 (PostgreSQL inbox wiring — mirrors Phase 3) (planning)
+- [2026-05-18T17:49:42Z] Phase 4: Phase 4 planned (3 plans, 5 tasks, 2 waves; verifier=PASS, critique=READY; all 5 Phase 3 lessons pre-baked) (planned)

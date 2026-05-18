@@ -1,8 +1,8 @@
 {
   "schema": 3,
-  "phase": 3,
-  "position": "Phase 3 build complete (SqlServer inbox wiring shipped; 5 lessons captured for PG/SQLite reuse)",
-  "status": "complete",
-  "updated_at": "2026-05-18T16:43:32Z",
+  "phase": 4,
+  "position": "Phase 4 planned (3 plans, 5 tasks, 2 waves; verifier=PASS, critique=READY; all 5 Phase 3 lessons pre-baked)",
+  "status": "planned",
+  "updated_at": "2026-05-18T17:49:42Z",
   "blocker": null
 }
