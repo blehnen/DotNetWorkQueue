@@ -1,5 +1,30 @@
 # Shipyard History
 
+## 2026-05-18 — Phase 4 Build Complete (PostgreSQL Inbox Wiring)
+
+- **Action:** `/shipyard:build 4` (on worktree `phase-2-inbox-foundation`)
+- **Plans executed:** 3/3 (PLAN-1.1, PLAN-2.1, PLAN-2.2)
+- **Commits:** 5
+  - `a38aebac` — add PostgreSqlRelationalWorkerNotification class
+  - `61ff56c1` — register IWorkerNotification via factory delegate on hold-transaction option (PG)
+  - `1b4dddbe` — wire ConnectionHolder into IRelationalWorkerNotification from receive path (PG)
+  - `deb41e8c` — add PostgreSqlRelationalWorkerNotification contract tests
+  - `9f254fa3` — add option-driven SimpleInjector smoke tests for relational notification (PG)
+- **Verification:** all 4 phase success criteria green; PROJECT.md §SC #2 directly satisfied for PG
+  - Release build (Transport.PostgreSQL, net10.0 + net8.0, `-p:CI=true`): 0 errors, 14 NU1902 pre-existing
+  - `Transport.PostgreSQL.Tests`: 151/151 (baseline 143 + 6 contract + 2 smoke)
+  - `DotNetWorkQueue.Tests` (core regression smoke): 905/905
+- **Reviewer:** PASS x3.
+- **Auditor:** LOW_RISK (same posture as Phase 3 — informational only).
+- **Simplifier:** CLEAN. Cleaner than Phase 3 — no L1-style rename needed because Test 4 was named correctly from the outset.
+- **Documenter:** SUFFICIENT.
+- **Phase 4 specifics (additive to Phase 3 lessons):**
+  - All 5 Phase 3 lessons applied first try — zero mid-build self-fixes needed.
+  - PG-specific naming-convention surprise: filename `PostgreSQLMessageQueueInit.cs` (all-caps) but type `PostgreSqlMessageQueueInit` (lowercase q). Caught at first compile in PLAN-2.2; 30-second fix.
+  - PG init was missing `using DotNetWorkQueue.Queue;` (SqlServer init had it). Added in PLAN-1.1 Task 2. Phase 5 SQLite init should be checked for the same gap.
+- **Pattern validation:** The "bake Phase 3 lessons into the plan" approach is proven. Phase 5 should use the same posture (plus its own additional outbox-sweep work).
+- **Next:** `/shipyard:plan 5` — SQLite Inbox + SQLite-Outbox Sweep (combined; largest phase in the milestone).
+
 ## 2026-05-18 — Phase 4 Planned (PostgreSQL Inbox Wiring)
 
 - **Action:** `/shipyard:plan 4` (on worktree `phase-2-inbox-foundation`)
@@ -1202,3 +1227,5 @@
 - [2026-05-18T16:43:32Z] Phase 3: Phase 3 build complete (SqlServer inbox wiring shipped; 5 lessons captured for PG/SQLite reuse) (complete)
 - [2026-05-18T17:41:19Z] Phase 4: Planning phase 4 (PostgreSQL inbox wiring — mirrors Phase 3) (planning)
 - [2026-05-18T17:49:42Z] Phase 4: Phase 4 planned (3 plans, 5 tasks, 2 waves; verifier=PASS, critique=READY; all 5 Phase 3 lessons pre-baked) (planned)
+- [2026-05-18T17:53:14Z] Phase 4: Building phase 4 wave 1 (PG inbox class + factory-delegate DI) (building)
+- [2026-05-18T18:04:21Z] Phase 4: Phase 4 build complete (PG inbox wiring; 5 Phase 3 lessons applied first try) (complete)

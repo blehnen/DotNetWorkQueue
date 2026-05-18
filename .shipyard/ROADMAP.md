@@ -77,7 +77,7 @@ Output is a single memo committed to `.shipyard/notes/inbox-spike.md`; a throwaw
 
 ---
 
-## Phase 4 — PostgreSQL Inbox Wiring + Unit Tests
+## Phase 4 — PostgreSQL Inbox Wiring + Unit Tests ✅ complete
 
 **Description.** Mirrors Phase 3 for PostgreSQL. Mechanically a copy with `NpgsqlConnection`/`NpgsqlTransaction` substituted (but, per CLAUDE.md hard rule, no sealed-type casts in handler code — operate on `IDbConnection` / `DbTransaction` only).
 
