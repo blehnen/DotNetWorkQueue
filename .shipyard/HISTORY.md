@@ -1,5 +1,17 @@
 # Shipyard History
 
+## 2026-05-18 — Phase 3 Planned (SqlServer Inbox Wiring)
+
+- **Action:** `/shipyard:plan 3` (on worktree `phase-2-inbox-foundation`)
+- **Plans:** 3 plans, 5 tasks, 2 waves
+  - PLAN-1.1 (Wave 1): author `SqlServerRelationalWorkerNotification` + DI registration via factory delegate (2 tasks)
+  - PLAN-2.1 (Wave 2): wire `ConnectionHolder` setter into `SQLServerMessageQueueReceive` (1 task)
+  - PLAN-2.2 (Wave 2): unit tests + two option-driven SimpleInjector smoke tests (2 tasks)
+- **CONTEXT-3 locks:** class name = `SqlServerRelationalWorkerNotification`; subclass `WorkerNotification`; unit tests + container smoke (no live DB).
+- **Critique cycle:** initial critique = REVISE — PLAN-1.1's unconditional `Register<IWorkerNotification, SqlServerRelationalWorkerNotification>` violated PROJECT.md §Functional New Public API lines 35-38 (option-driven branch required) and Success Criterion #2 (cast must fail when option=false). Architect revised to factory-delegate pattern (Pattern 1 from `SQLServerMessageQueueInit.cs:110-114` precedent); two option-driven smoke tests added to PLAN-2.2; receive-path setter gated on `is SqlServerRelationalWorkerNotification` in PLAN-2.1. Post-revision critique = READY.
+- **Verifier (coverage):** PASS.
+- **Next:** `/shipyard:build 3`.
+
 ## 2026-05-18 — Phase 2 Build Complete (Foundation Layer)
 
 - **Action:** `/shipyard:build 2` (on worktree `phase-2-inbox-foundation`)
@@ -1133,3 +1145,5 @@
 - [2026-05-18T13:59:53Z] Session ended during build (may need /shipyard:resume)
 - [2026-05-18T14:00:00Z] Session ended during build (may need /shipyard:resume)
 - [2026-05-18T14:01:32Z] Phase 2: Phase 2 build complete (foundation interface shipped, deferred SQLite items to Phase 5) (complete)
+- [2026-05-18T14:09:17Z] Phase 3: Planning phase 3 (SqlServer inbox wiring + unit tests) (planning)
+- [2026-05-18T14:45:58Z] Phase 3: Phase 3 planned (3 plans, 5 tasks, 2 waves; verifier=PASS, critique=READY after factory-delegate revision) (planned)
