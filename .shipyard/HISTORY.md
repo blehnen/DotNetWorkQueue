@@ -1,5 +1,15 @@
 # Shipyard History
 
+## 2026-05-18 — Phase 2 Planned (Foundation Layer)
+
+- **Action:** `/shipyard:plan 2`
+- **Milestone:** Inbox Pattern Support for Relational Transports (+ SQLite-Outbox Sweep)
+- **Scope decision (CONTEXT-2):** Interface-only — `SqliteExternalDbNameExtractor` and `NormalizedConnectionInformation` wrapper deferred to Phase 5 because spike chose SQLite-specific path-normalization semantics (`:memory:` short-circuit + `Path.GetFullPath()` + `OrdinalIgnoreCase`).
+- **Plans:** 1 plan, 3 tasks, 1 wave (PLAN-1.1: interface authoring + contract test + verification gates)
+- **Deliverable:** `public interface IRelationalWorkerNotification : IWorkerNotification` with single `DbTransaction Transaction { get; }` member in `Transport.RelationalDatabase`.
+- **Verifier:** PASS. **Critique:** READY.
+- **Next:** `/shipyard:build 2`
+
 ## 2026-04-16 — Phase 2 Build Complete (Polish & Cleanup)
 
 - **Action:** `/shipyard:build 2`
@@ -1099,3 +1109,5 @@
 - [2026-05-17T17:23:04Z] Phase 1: Phase 1 planned (1 plan, 3 tasks; spike deliverables already on disk — inbox-spike.md + RESEARCH.md). Risk #3 closed (SQLite uses Path.GetFullPath + OrdinalIgnoreCase + :memory: short-circuit + symmetric normalization); Risks #1 (heartbeats use separate connection on all 3 transports — row-lock blocking documented as user guidance) and #2 (no library code sets CommandTimeout; 30s driver defaults acceptable with heartbeat-disable guidance) downgraded to documentation-only. Verifier=PASS, critique=READY. Subagent dispatches stalled twice mid-investigation per CLAUDE.md "Agent lockup awareness" lesson; main-session investigation completed the audits directly. (planned)
 - [2026-05-17T17:30:00Z] Phase 1: Building phase 1 (Discovery Spike); fast-pass since spike deliverables already on disk from planning session (building)
 - [2026-05-17T17:35:00Z] Phase 1: Phase 1 build complete (1/1 plans PASS; SUMMARY-1.1 + REVIEW-1.1 + VERIFICATION + AUDIT-1 [skipped, no code] + SIMPLIFICATION-1 [skipped, no code] + DOCUMENTATION-1 [deferred to phase 8]; 17/17 verify checks pass after fixing 2 regex defects in PLAN-1.1: file target [RESEARCH.md→inbox-spike.md] + case-sensitivity [-i flag for UPPERCASE disposition words]). Phase 1 disposition: complete; ready for /shipyard:plan 2 (foundation layer). [builder:opus, verdict:PASS, retries:0, domain:research]
+- [2026-05-18T12:19:28Z] Phase 2: Planning phase 2 (foundation — interface-only scope per CONTEXT-2) (planning)
+- [2026-05-18T12:32:22Z] Phase 2: Phase 2 planned (1 plan, 3 tasks, 1 wave; interface-only scope; verifier=PASS, critique=READY) (planned)
