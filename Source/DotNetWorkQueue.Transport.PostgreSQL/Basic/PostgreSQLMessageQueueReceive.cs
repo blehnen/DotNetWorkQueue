@@ -167,6 +167,18 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 context.Rollback += ContextOnRollbackTransaction;
             }
             context.Cleanup += Context_Cleanup;
+
+            // Phase 4 inbox: if the resolved IWorkerNotification is the relational variant (selected
+            // by PostgreSQLMessageQueueInit's factory delegate when EnableHoldTransactionUntilMessageCommitted
+            // is true), inject the per-message ConnectionHolder so the user handler can read
+            // the active dequeue transaction via the IRelationalWorkerNotification capability cast.
+            // When the option is false, context.WorkerNotification is a plain WorkerNotification and the
+            // pattern-match fails — no-op, no harm.
+            if (context.WorkerNotification is PostgreSqlRelationalWorkerNotification relationalNotification)
+            {
+                relationalNotification.ConnectionHolder = connection;
+            }
+
             return connection;
         }
 
