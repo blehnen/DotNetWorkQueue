@@ -92,23 +92,22 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
         }
 
         [TestMethod]
-        public void Transaction_Returns_Underlying_Transaction_When_Set()
+        public void ConnectionHolder_PropertySet_Does_Not_Throw()
         {
+            // SqlTransaction is sealed → NSubstitute cannot proxy it, so the non-null-return path of
+            // Transaction => ConnectionHolder?.Transaction cannot be unit-tested at this level. The
+            // delegation contract ("getter forwards ConnectionHolder.Transaction with no transformation")
+            // is proven by Transaction_Returns_Null_When_ConnectionHolder_Transaction_Is_Null. This
+            // test only confirms that assigning a non-null IConnectionHolder does not throw and the
+            // property round-trips. Full non-null-return coverage lands in Phase 7 SqlServer
+            // integration tests where a real SqlTransaction is available.
             var subject = CreateSubject(out _, out _, out _, out _, out _, out _);
             var holder = Substitute.For<IConnectionHolder<SqlConnection, SqlTransaction, SqlCommand>>();
-            var transaction = Substitute.For<DbTransaction>();
-            // NSubstitute can't proxy SqlTransaction (sealed). Treat the holder.Transaction call as
-            // returning DbTransaction via the abstract base — interface-level return type is
-            // SqlTransaction but the upcast in the subject's getter is to DbTransaction, which the
-            // mock satisfies via Returns(...) on the typed interface.
-            holder.Transaction.Returns(transaction as SqlTransaction);
+
             subject.ConnectionHolder = holder;
 
-            // When holder.Transaction returns null (mock can't proxy SqlTransaction), the getter returns null.
-            // The contract under test is "the getter delegates to ConnectionHolder.Transaction with no transformation",
-            // which is proven by Transaction_Returns_Null_When_ConnectionHolder_Transaction_Is_Null +
-            // this test confirming the delegation path runs without throwing when a non-null holder is set.
             Assert.IsNotNull(subject.ConnectionHolder);
+            Assert.AreSame(holder, subject.ConnectionHolder);
         }
 
         [TestMethod]
