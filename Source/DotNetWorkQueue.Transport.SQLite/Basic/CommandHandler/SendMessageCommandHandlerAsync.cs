@@ -126,6 +126,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                 _messageExpirationEnabled = _options.Value.EnableMessageExpiration;
             }
 
+            // Outbox-pattern fork: when the caller supplied an IDbTransaction, reuse it.
+            // See SendMessageCommandHandler.Handle for the rationale.
+            if (commandSend is RelationalSendMessageCommand relCommand && relCommand.ExternalTransaction != null)
+            {
+                return await HandleExternalTransactionAsync(commandSend).ConfigureAwait(false);
+            }
+
             using (var connection = _dbFactory.CreateConnection(_configurationSend.ConnectionInfo.ConnectionString, false))
             {
                 connection.Open();
@@ -240,6 +247,99 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             var command = connection.CreateCommand();
             SendMessage.BuildStatusCommand(command, _tableNameHelper, _headers, data, message, 0, _options.Value, _getTime.GetCurrentUtcDate());
             return command;
+        }
+
+        /// <summary>
+        /// Caller-supplied-transaction fork of <see cref="HandleAsync(SendMessageCommand)"/>.
+        /// Reuses the caller's <see cref="IDbTransaction"/> and its <see cref="IDbConnection"/>;
+        /// never Commits, Rolls Back, Closes, or Disposes the caller's resources.
+        /// </summary>
+        /// <param name="commandSend">Send-message command carrying a non-null
+        /// <see cref="RelationalSendMessageCommand.ExternalTransaction"/>.</param>
+        /// <returns>The newly-inserted message ID.</returns>
+        private async Task<long> HandleExternalTransactionAsync(SendMessageCommand commandSend)
+        {
+            var relCommand = (RelationalSendMessageCommand)commandSend;
+            var trans = (IDbTransaction)relCommand.ExternalTransaction;
+            var connection = trans.Connection;
+
+            var expiration = TimeSpan.Zero;
+            if (_messageExpirationEnabled.Value)
+            {
+                expiration = MessageExpiration.GetExpiration(commandSend, data => data.GetExpiration());
+            }
+
+            var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
+            var scheduledTime = DateTimeOffset.MinValue;
+            var eventTime = DateTimeOffset.MinValue;
+            if (!string.IsNullOrWhiteSpace(jobName))
+            {
+                scheduledTime = _jobSchedulerMetaData.GetScheduledTime(commandSend.MessageData);
+                eventTime = _jobSchedulerMetaData.GetEventTime(commandSend.MessageData);
+            }
+
+            if (!(string.IsNullOrWhiteSpace(jobName) ||
+                  _jobExistsHandler.Handle(new DoesJobExistQuery<IDbConnection, IDbTransaction>(
+                      jobName, scheduledTime, connection, trans)) == QueueStatuses.NotQueued))
+            {
+                throw new DotNetWorkQueueException(
+                    "Failed to insert record - the job has already been queued or processed");
+            }
+
+            long id;
+            using (var command = SendMessage.GetMainCommand(commandSend, connection, _commandCache, _headers, _serializer))
+            {
+                command.Transaction = trans;
+                await _readerAsync.ExecuteNonQueryAsync(command).ConfigureAwait(false);
+                using (var commandId = connection.CreateCommand())
+                {
+                    commandId.Transaction = trans;
+                    commandId.CommandText = "SELECT last_insert_rowid();";
+                    id = Convert.ToInt64(await _readerAsync.ExecuteScalarAsync(commandId).ConfigureAwait(false));
+                }
+            }
+
+            if (id <= 0)
+            {
+                throw new DotNetWorkQueueException(
+                    "Failed to insert record - the ID of the new record returned by SQLite was 0");
+            }
+
+            using (var commandMeta = SendMessage.CreateMetaDataRecord(commandSend.MessageData.GetDelay(), expiration,
+                connection, commandSend.MessageToSend, commandSend.MessageData, _tableNameHelper, _headers,
+                _options.Value, _getTime))
+            {
+                commandMeta.Transaction = trans;
+                var param = commandMeta.CreateParameter();
+                param.ParameterName = "@QueueID";
+                param.DbType = DbType.Int64;
+                param.Value = id;
+                commandMeta.Parameters.Add(param);
+                await _readerAsync.ExecuteNonQueryAsync(commandMeta).ConfigureAwait(false);
+            }
+
+            if (_options.Value.EnableStatusTable)
+            {
+                using (var commandStatus = CreateStatusRecord(connection, commandSend.MessageToSend, commandSend.MessageData))
+                {
+                    commandStatus.Transaction = trans;
+                    var param = commandStatus.CreateParameter();
+                    param.ParameterName = "@QueueID";
+                    param.DbType = DbType.Int64;
+                    param.Value = id;
+                    commandStatus.Parameters.Add(param);
+                    await _readerAsync.ExecuteNonQueryAsync(commandStatus).ConfigureAwait(false);
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(jobName))
+            {
+                _sendJobStatus.Handle(new SetJobLastKnownEventCommand<IDbConnection, IDbTransaction>(jobName, eventTime,
+                    scheduledTime, connection, trans));
+            }
+
+            // No trans.Commit() / connection.Dispose() — caller owns lifecycle.
+            return id;
         }
     }
 }
