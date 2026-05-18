@@ -176,6 +176,18 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 context.Rollback += ContextOnRollbackTransaction;
             }
             context.Cleanup += Context_Cleanup;
+
+            // Phase 3 inbox: if the resolved IWorkerNotification is the relational variant (selected
+            // by SQLServerMessageQueueInit's factory delegate when EnableHoldTransactionUntilMessageCommitted
+            // is true), inject the per-message ConnectionHolder so the user handler can read
+            // the active dequeue transaction via the IRelationalWorkerNotification capability cast.
+            // When the option is false, context.WorkerNotification is a plain WorkerNotification and the
+            // pattern-match fails — no-op, no harm.
+            if (context.WorkerNotification is SqlServerRelationalWorkerNotification relationalNotification)
+            {
+                relationalNotification.ConnectionHolder = connection;
+            }
+
             return connection;
         }
 
