@@ -1306,3 +1306,5 @@
 - [2026-05-18T21:56:07Z] Phase 6: Phase 6 planned (1 plan, 3 tasks, 1 wave; verifier=PASS, critique=READY) (planned)
 - [2026-05-18T21:59:53Z] Phase 6: Building phase 6 (3 negative-path test files) (building)
 - [2026-05-18T22:05:15Z] Phase 6: Phase 6 build complete (6 negative-path tests; 0 production changes) (complete)
+- [2026-05-18T22:15:26Z] Phase 7: Planning phase 7 (integration tests, XL/16-22h) (planning)
+- [2026-05-18T22:18:56Z] Phase 7: Phase 7 planned (4 plans, 36 tests, XL/16-22h; build deferred to live-DB session) (planned)
