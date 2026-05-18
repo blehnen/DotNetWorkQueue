@@ -105,8 +105,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             container.Register<IDbCommandStringCache>(LifeStyles.Singleton);
 
+            // Phase 5: use the symmetric-normalization wrapper so the validator
+            // (ExternalTransactionValidator) compares both sides under identical
+            // canonicalization. Wrapper applies Path.GetFullPath + ToUpperInvariant
+            // with a :memory: short-circuit, matching SqLiteExternalDbNameExtractor.
             container.Register<IConnectionInformation>(
-                () => new SqliteConnectionInformation(queueConnection, container.GetInstance<IDbDataSource>()),
+                () => new SqliteNormalizedConnectionInformation(queueConnection, container.GetInstance<IDbDataSource>()),
                 LifeStyles.Singleton);
 
             container.Register<BuildDequeueCommand>(LifeStyles.Singleton);
@@ -117,6 +121,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container
                 .Register<IConnectionHeader<IDbConnection, IDbTransaction, IDbCommand>,
                     ConnectionHeader<IDbConnection, IDbTransaction, IDbCommand>>(LifeStyles.Singleton);
+
+            // Phase 5: outbox-pattern producer wiring (SQLite side — sweep). Mirrors the
+            // SqlServer / PostgreSQL outbox-milestone init blocks. ExternalTransactionValidator
+            // verifies the caller's tx is on the same DB as the queue; SqLiteExternalDbNameExtractor
+            // provides the symmetric-normalized DB-name comparison input.
+            container.Register<IExternalDbNameExtractor, SqLiteExternalDbNameExtractor>(LifeStyles.Singleton);
+            container.Register<ExternalTransactionValidator>(LifeStyles.Singleton);
+            container.RegisterConditional(typeof(IProducerQueue<>), typeof(SqLiteRelationalProducerQueue<>), LifeStyles.Singleton);
+            container.RegisterConditional(typeof(IRelationalProducerQueue<>), typeof(SqLiteRelationalProducerQueue<>), LifeStyles.Singleton);
+            container.RegisterConditional(typeof(RelationalProducerQueue<>), typeof(SqLiteRelationalProducerQueue<>), LifeStyles.Singleton);
 
             // Phase 5: SQLite hold-transaction state header (carries the per-message dequeue
             // connection + transaction across the receive-path / user-handler boundary when
