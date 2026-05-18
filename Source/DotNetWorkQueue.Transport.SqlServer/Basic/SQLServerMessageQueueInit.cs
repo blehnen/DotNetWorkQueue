@@ -72,6 +72,23 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.RegisterConditional(typeof(IRelationalProducerQueue<>), typeof(SqlServerRelationalProducerQueue<>), LifeStyles.Singleton);
             container.RegisterConditional(typeof(RelationalProducerQueue<>), typeof(SqlServerRelationalProducerQueue<>), LifeStyles.Singleton);
 
+            // Phase 3: inbox-pattern receive wiring (SqlServer side).
+            // Pre-register both concrete notification classes so the factory delegate
+            // below can resolve either. The IWorkerNotification binding then branches on
+            // EnableHoldTransactionUntilMessageCommitted: option=true returns the
+            // relational variant (which implements IRelationalWorkerNotification), option=false
+            // returns the plain WorkerNotification (capability-cast fails on the user side).
+            container.Register<SqlServerRelationalWorkerNotification>(LifeStyles.Transient);
+            container.Register<WorkerNotification>(LifeStyles.Transient);
+            container.Register<IWorkerNotification>(() =>
+            {
+                var optionsFactory = container.GetInstance<ITransportOptionsFactory>();
+                var options = (SqlServerMessageQueueTransportOptions)optionsFactory.Create();
+                return options.EnableHoldTransactionUntilMessageCommitted
+                    ? (IWorkerNotification)container.GetInstance<SqlServerRelationalWorkerNotification>()
+                    : container.GetInstance<WorkerNotification>();
+            }, LifeStyles.Transient);
+
             //override so that we can use schema as needed
             container.Register<ITableNameHelper, SqlServerTableNameHelper>(LifeStyles.Singleton);
 
