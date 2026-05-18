@@ -1,5 +1,34 @@
 # Shipyard History
 
+## 2026-05-18 — Phase 3 Build Complete (SqlServer Inbox Wiring)
+
+- **Action:** `/shipyard:build 3` (on worktree `phase-2-inbox-foundation`)
+- **Plans executed:** 3/3 (PLAN-1.1, PLAN-2.1, PLAN-2.2)
+- **Commits:** 7
+  - `d446f6fd` — add SqlServerRelationalWorkerNotification class
+  - `a3e18c20` — register IWorkerNotification via factory delegate on hold-transaction option
+  - `ce6c79c3` — guard inbox notification factory delegate against options load failure (self-fix from initial test failure)
+  - `c146a554` — wire ConnectionHolder into IRelationalWorkerNotification from receive path
+  - `427244a6` — add SqlServerRelationalWorkerNotification contract tests
+  - `151fbda8` — add option-driven SimpleInjector smoke tests for relational notification
+  - `b56878ba` — rename misleading test (sealed-type NSubstitute limitation) — SIMPLIFICATION L1 fix
+- **Verification:** all 5 phase success criteria green
+  - Release build (Transport.SqlServer, net10.0 + net8.0, `-p:CI=true`): 0 errors, 14 NU1902 pre-existing warnings
+  - `Transport.SqlServer.Tests`: 164/164 pass (baseline 156 + 6 contract + 2 smoke)
+  - `DotNetWorkQueue.Tests` (core regression smoke): 905/905 pass
+  - PROJECT.md §Success Criteria #2 directly satisfied by `Resolves_Relational_When_HoldTransaction_Enabled` + `Resolves_NonRelational_When_HoldTransaction_Disabled` smoke tests
+- **Reviewer:** PASS (PLAN-1.1, 2.1, 2.2); two minor non-blocking findings (bare catch + null-when-unset comment + Test 4 weak — Test 4 fixed via SIMPLIFICATION L1).
+- **Auditor:** LOW_RISK (no exploitable surface; informational findings only).
+- **Simplifier:** CLEAN (no AI-bloat; L1 trivial-rename applied; verbose XML doc + DI comments justified).
+- **Documenter:** SUFFICIENT (XML doc complete; user-facing tutorial correctly deferred to Phase 8).
+- **Lessons captured for Phase 4/5 (see VERIFICATION.md):**
+  1. Factory-delegate registrations require try/catch fallback against options-load failures.
+  2. `Register<WorkerNotification>` self-registration is redundant when core already binds it.
+  3. Receive-path setter via pattern-match (not cast) handles option-true/false cleanly.
+  4. NSubstitute cannot proxy sealed `SqlTransaction` — reference-equality coverage belongs in Phase 7 integration.
+  5. Test seam for option-driven smokes: `QueueContainer<T>(registerService, setOptions)` with mocked `ITransportOptionsFactory`.
+- **Next:** `/shipyard:plan 4` — PostgreSQL inbox wiring (apply Phase 3 lessons verbatim).
+
 ## 2026-05-18 — Phase 3 Planned (SqlServer Inbox Wiring)
 
 - **Action:** `/shipyard:plan 3` (on worktree `phase-2-inbox-foundation`)
@@ -1147,3 +1176,10 @@
 - [2026-05-18T14:01:32Z] Phase 2: Phase 2 build complete (foundation interface shipped, deferred SQLite items to Phase 5) (complete)
 - [2026-05-18T14:09:17Z] Phase 3: Planning phase 3 (SqlServer inbox wiring + unit tests) (planning)
 - [2026-05-18T14:45:58Z] Phase 3: Phase 3 planned (3 plans, 5 tasks, 2 waves; verifier=PASS, critique=READY after factory-delegate revision) (planned)
+- [2026-05-18T15:00:03Z] Phase 3: Building phase 3 wave 1 (SqlServer inbox class + factory-delegate DI) (building)
+- [2026-05-18T16:21:09Z] Phase 3: Phase 3 wave 1 built (PLAN-1.1 PASS, 156 SqlServer tests green) (building)
+- [2026-05-18T16:26:12Z] Session ended during build (may need /shipyard:resume)
+- [2026-05-18T16:28:42Z] Session ended during build (may need /shipyard:resume)
+- [2026-05-18T16:35:06Z] Phase 3: Phase 3 wave 2 built (PLAN-2.1 + PLAN-2.2 PASS, 164 SqlServer tests green) (building)
+- [2026-05-18T16:40:43Z] Session ended during build (may need /shipyard:resume)
+- [2026-05-18T16:43:32Z] Phase 3: Phase 3 build complete (SqlServer inbox wiring shipped; 5 lessons captured for PG/SQLite reuse) (complete)

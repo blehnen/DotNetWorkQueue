@@ -54,7 +54,7 @@ Output is a single memo committed to `.shipyard/notes/inbox-spike.md`; a throwaw
 
 ---
 
-## Phase 3 — SqlServer Inbox Wiring + Unit Tests
+## Phase 3 — SqlServer Inbox Wiring + Unit Tests ✅ complete
 
 **Description.** Implements the SqlServer half of the inbox feature end-to-end. Full vertical slice: per-transport relational notification impl, factory branch, DI wiring, unit tests in the same phase.
 
