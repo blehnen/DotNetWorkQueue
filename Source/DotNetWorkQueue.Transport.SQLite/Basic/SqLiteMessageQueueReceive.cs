@@ -58,6 +58,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="log">The log.</param>
         /// <param name="getFileNameFromConnection">The get file name from connection.</param>
         /// <param name="databaseExists">The database exists.</param>
+        /// <param name="sqLiteHeaders">Typed key resolver for reading hold-tx connection state off the context (Phase 5).</param>
         public SqLiteMessageQueueReceive(QueueConsumerConfiguration configuration,
             IQueueCancelWork cancelWork,
             ITransportHandleMessage handleMessage,
