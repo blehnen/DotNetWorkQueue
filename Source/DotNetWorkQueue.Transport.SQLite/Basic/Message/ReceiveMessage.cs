@@ -144,9 +144,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
 
             // hold-tx path with a message: store the state on context so the receive-class
             // commit/rollback/cleanup delegates can finish the lifecycle after the user handler.
+            // Also inject the state into the resolved IWorkerNotification if it is the
+            // relational variant (Phase 5 PLAN-2.1 capability-cast pattern; mirrors Phase 3/4).
             if (heldConnection != null && heldTransaction != null)
             {
-                context.Set(_sqLiteHeaders.ConnectionState, new SqLiteConnectionState(heldConnection, heldTransaction));
+                var state = new SqLiteConnectionState(heldConnection, heldTransaction);
+                context.Set(_sqLiteHeaders.ConnectionState, state);
+                if (context.WorkerNotification is SqLiteRelationalWorkerNotification relationalNotification)
+                {
+                    relationalNotification.ConnectionState = state;
+                }
             }
 
             return receivedTransportMessage;
