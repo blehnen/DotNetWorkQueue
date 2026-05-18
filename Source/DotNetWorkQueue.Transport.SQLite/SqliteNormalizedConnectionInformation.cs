@@ -66,6 +66,10 @@ namespace DotNetWorkQueue.Transport.SQLite
                 {
                     return ":memory:";
                 }
+                if (string.IsNullOrEmpty(raw))
+                {
+                    return string.Empty;
+                }
                 return Path.GetFullPath(raw).ToUpperInvariant();
             }
         }
