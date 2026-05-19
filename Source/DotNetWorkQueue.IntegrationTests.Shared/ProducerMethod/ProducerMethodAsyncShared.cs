@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                                     runTime, id, scope).ConfigureAwait(false);
                         }
 
-                        VerifyMetrics.VerifyProducedAsyncCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                        VerifyMetrics.VerifyProducedAsyncCount(queueConnection.Queue, metrics,
                             messageCount);
                     }
                 }

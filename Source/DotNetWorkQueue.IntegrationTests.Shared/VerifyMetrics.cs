@@ -160,6 +160,25 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             }
         }
 
+        public static void VerifyProducedAsyncCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 15000)
+        {
+            const string name = "SendMessagesMeter";
+            PollUntil(
+                metrics,
+                data =>
+                {
+                    foreach (var meter in data.Meters.Where(
+                        m => m.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        return meter.Value;
+                    }
+                    return null;
+                },
+                messageCount,
+                timeoutMs,
+                data => VerifyProducedAsyncCount(queueName, data, messageCount));
+        }
+
         public static void VerifyProducedCount(string queueName, MetricsSnapshot data, long messageCount)
         {
             var found = false;
@@ -175,6 +194,25 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             {
                 throw new DotNetWorkQueueException($"Failed to find meter {name}");
             }
+        }
+
+        public static void VerifyProducedCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 15000)
+        {
+            const string name = "SendMessagesMeter";
+            PollUntil(
+                metrics,
+                data =>
+                {
+                    foreach (var meter in data.Meters.Where(
+                        m => m.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        return meter.Value;
+                    }
+                    return null;
+                },
+                messageCount,
+                timeoutMs,
+                data => VerifyProducedCount(queueName, data, messageCount));
         }
 
         public static void VerifyProcessedCount(string queueName, MetricsSnapshot data, long messageCount)

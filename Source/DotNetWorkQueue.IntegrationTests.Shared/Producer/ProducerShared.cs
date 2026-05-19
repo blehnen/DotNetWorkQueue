@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer
 
                         if (validateMetricCounts)
                         {
-                            VerifyMetrics.VerifyProducedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                            VerifyMetrics.VerifyProducedCount(queueConnection.Queue, metrics,
                                 messageCount);
 
                             var admin = creator.CreateAdminFunctions(queueConnection);
