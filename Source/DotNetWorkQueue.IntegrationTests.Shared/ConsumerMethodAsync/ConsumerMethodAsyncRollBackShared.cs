@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                             Assert.AreEqual(messageCount, MethodIncrementWrapper.Count(id));
                             VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics,
                                 messageCount);
-                            VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                            VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics,
                                 messageCount, 1, 0);
                         }
                     }

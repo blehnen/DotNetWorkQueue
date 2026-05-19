@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                         }
 
                         if (rollBacks)
-                            VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                            VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics,
                                 messageCount, 2, 2);
                     }
                 }

@@ -118,6 +118,31 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             }
         }
 
+        /// <summary>
+        /// Polls live metrics until <c>RollbackMessage.RollbackCounter</c> reaches
+        /// <paramref name="messageCount"/> * <paramref name="rollbackCount"/> or times out,
+        /// then asserts the full rollback + retry-meter invariants in one pass via the snapshot overload.
+        /// </summary>
+        public static void VerifyRollBackCount(string queueName, IMetrics metrics, long messageCount, int rollbackCount, int failedCount, int timeoutMs = 15000)
+        {
+            const string name = "RollbackMessage.RollbackCounter";
+            var expected = messageCount * rollbackCount;
+            PollUntil(
+                metrics,
+                data =>
+                {
+                    foreach (var counter in data.Counters.Where(
+                        c => c.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        return counter.Value;
+                    }
+                    return null;
+                },
+                expected,
+                timeoutMs,
+                data => VerifyRollBackCount(queueName, data, messageCount, rollbackCount, failedCount));
+        }
+
         public static void VerifyProducedAsyncCount(string queueName, MetricsSnapshot data, long messageCount)
         {
             var found = false;
