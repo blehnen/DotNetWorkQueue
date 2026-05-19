@@ -65,10 +65,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
 
                                 Thread.Sleep(1000);
                             }
-                        }
 
-                        VerifyMetrics.VerifyPoisonMessageCount(queueConnection.Queue, metrics,
-                            messageCount);
+                            // Verify INSIDE the using(queue) block so workers stay alive while
+                            // the PollUntil overload waits for the poison meter to settle.
+                            // Disposing the queue first kills the workers — any message still
+                            // mid-retry would never reach the poison terminal state.
+                            VerifyMetrics.VerifyPoisonMessageCount(queueConnection.Queue, metrics,
+                                messageCount, timeOut * 1000);
+                        }
                     }
                 }
             }
