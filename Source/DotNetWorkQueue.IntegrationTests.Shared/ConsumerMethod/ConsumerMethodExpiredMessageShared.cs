@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 
                         Assert.AreEqual(0, MethodIncrementWrapper.Count(id));
                         VerifyMetrics.VerifyProcessedCount(queueConnection.Queue, metrics, 0);
-                        VerifyMetrics.VerifyExpiredMessageCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                        VerifyMetrics.VerifyExpiredMessageCount(queueConnection.Queue, metrics,
                             messageCount);
                         LoggerShared.CheckForErrors(queueConnection.Queue);
                     }

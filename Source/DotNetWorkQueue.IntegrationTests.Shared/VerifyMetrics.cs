@@ -70,6 +70,20 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             Assert.AreEqual(messageCount, count);
         }
 
+        /// <summary>
+        /// Polls live metrics until the combined expired-message counters reach the expected value or times out.
+        /// Mirrors the GetExpiredMessageCount logic (sums ClearMessages.ResetCounter + HandleAsync.Expired).
+        /// </summary>
+        public static void VerifyExpiredMessageCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 15000)
+        {
+            PollUntil(
+                metrics,
+                data => (long?)GetExpiredMessageCount(data),
+                messageCount,
+                timeoutMs,
+                data => VerifyExpiredMessageCount(queueName, data, messageCount));
+        }
+
         public static void VerifyRollBackCount(string queueName, MetricsSnapshot data, long messageCount, int rollbackCount, int failedCount)
         {
             var found = false;
