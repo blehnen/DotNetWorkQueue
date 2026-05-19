@@ -464,3 +464,10 @@ deploy/
 Source/DotNetWorkQueue.Transport.*/DotNetWorkQueue.Transport.*.xml
 .playwright-mcp/
 skills-lock.json
+
+# Shipyard runtime state — process artifacts, not project deliverables.
+# Plans, lessons, and roadmaps live in CLAUDE.md and docs/ when they need
+# to be shared. Shipyard's STATE.json / HISTORY.md / phase directories are
+# per-machine and would only bloat PRs (and trip CodeRabbit's free-tier
+# size threshold) if tracked.
+.shipyard/
