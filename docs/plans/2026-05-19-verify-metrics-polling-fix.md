@@ -496,7 +496,7 @@ git commit -m "test(verify-metrics): poll send-messages meter for producer-side 
 **Files:**
 - Modify: `CLAUDE.md` (the "Lessons Learned" section, around the existing snapshot-race lesson)
 
-**Step 1: Replace the existing race lesson with the broadened version**
+**Step 1a: Replace the existing race lesson with the broadened version**
 
 Find the existing bullet:
 
@@ -505,6 +505,15 @@ Find the existing bullet:
 Replace with:
 
 > Integration test metrics assertions can race in **any** of the `VerifyMetrics.Verify*` methods — the handler callback signals completion before the underlying counter/meter is incremented. As of 2026-05-19 the polling pattern is applied uniformly to `VerifyProcessedCount`, `VerifyPoisonMessageCount`, `VerifyExpiredMessageCount`, `VerifyRollBackCount`, `VerifyProducedCount`, and `VerifyProducedAsyncCount` via a shared `PollUntil` helper. Default polling timeout is 15s (bumped from 5s after a `processed=99/100` chaos+hold-transaction flake on SqlServer). When adding a NEW `Verify*` helper, route it through `PollUntil` and accept `IMetrics` (not just `MetricsSnapshot`) — taking a one-shot snapshot is the wrong pattern.
+
+**Step 1b: Update the two stale "(draft) PR" mentions to reflect the no-draft policy**
+
+The CI Conventions section and the Jenkins Multibranch lesson both currently recommend draft PRs for Jenkins triggering. That predates the CodeRabbit constraint — CodeRabbit's free plan cannot review drafts, and the project's current preference is regular PRs so CodeRabbit reviews alongside Jenkins. Update both:
+
+- **CI Conventions bullet** (around CLAUDE.md line 122): change "MUST open a (draft) PR" to "MUST open a regular (non-draft) PR" and add a clarifying sentence explaining the CodeRabbit constraint.
+- **Jenkins Multibranch lesson** (in Lessons Learned): change `gh pr create --draft --base master --head <branch>` to `gh pr create --base master --head <branch>`, and add a note that draft PRs are explicitly NOT used.
+
+Both edits are part of this PR (see CLAUDE.md diff). They keep the document's CI policy internally consistent with the polling-fix's no-draft commit-and-push workflow.
 
 **Step 2: Commit the CLAUDE.md update**
 
