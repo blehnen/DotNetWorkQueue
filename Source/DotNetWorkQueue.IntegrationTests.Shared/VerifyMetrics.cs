@@ -133,37 +133,63 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         }
 
         /// <summary>
-        /// Polls the live metrics until CommitCounter reaches the expected value or times out.
-        /// Fixes a race where the handler callback signals completion before the commit metric is incremented.
+        /// Polls live metrics on a 100ms interval until <paramref name="getValue"/> reaches
+        /// <paramref name="expected"/> or <paramref name="timeoutMs"/> elapses, then re-issues
+        /// <paramref name="finalAssert"/> against the latest snapshot for a clean error message.
+        /// Fixes a class of race where the handler callback signals completion before a
+        /// metric counter/meter is incremented.
         /// </summary>
-        public static void VerifyProcessedCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 5000)
+        private static void PollUntil(
+            IMetrics metrics,
+            Func<MetricsSnapshot, long?> getValue,
+            long expected,
+            int timeoutMs,
+            Action<MetricsSnapshot> finalAssert)
         {
-            if (messageCount == 0)
+            if (expected == 0)
             {
-                VerifyProcessedCount(queueName, metrics.GetCollectedMetrics(), messageCount);
+                finalAssert(metrics.GetCollectedMetrics());
                 return;
             }
 
-            const string name = "CommitMessage.CommitCounter";
             var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
-
             while (DateTime.UtcNow < deadline)
             {
                 var data = metrics.GetCollectedMetrics();
-                foreach (var counter in data.Counters.Where(
-                    c => c.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+                var value = getValue(data);
+                if (value.HasValue && value.Value >= expected)
                 {
-                    if (counter.Value >= messageCount)
-                    {
-                        Assert.AreEqual(messageCount, counter.Value);
-                        return;
-                    }
+                    finalAssert(data);
+                    return;
                 }
                 Thread.Sleep(100);
             }
 
-            // Final assertion for clear error message on timeout
-            VerifyProcessedCount(queueName, metrics.GetCollectedMetrics(), messageCount);
+            finalAssert(metrics.GetCollectedMetrics());
+        }
+
+        /// <summary>
+        /// Polls the live metrics until CommitCounter reaches the expected value or times out.
+        /// Fixes a race where the handler callback signals completion before the commit metric is incremented.
+        /// Default timeout is generous enough to survive chaos + hold-transaction scenarios under CI load.
+        /// </summary>
+        public static void VerifyProcessedCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 15000)
+        {
+            const string name = "CommitMessage.CommitCounter";
+            PollUntil(
+                metrics,
+                data =>
+                {
+                    foreach (var counter in data.Counters.Where(
+                        c => c.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        return counter.Value;
+                    }
+                    return null;
+                },
+                messageCount,
+                timeoutMs,
+                data => VerifyProcessedCount(queueName, data, messageCount));
         }
     }
 }
