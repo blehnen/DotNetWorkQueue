@@ -76,7 +76,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Inbox
         {
             var queueCreator = new QueueCreationContainer<SqLiteMessageQueueInit>();
             var oCreation = queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection);
-            oCreation.Options.EnableStatus = true;
+            // EnableStatus must be false when EnableHoldTransactionUntilMessageCommitted is true
+            // (queue validation rejects the combination). Status tracking is not required for
+            // any inbox-test assertion, so we leave it off in both modes for consistency.
+            oCreation.Options.EnableStatus = false;
             oCreation.Options.EnableStatusTable = false;
             oCreation.Options.EnableHeartBeat = false;
             oCreation.Options.EnableDelayedProcessing = false;
