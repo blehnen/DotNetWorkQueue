@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
                                 }
                             }
 
-                            VerifyMetrics.VerifyPoisonMessageCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                            VerifyMetrics.VerifyPoisonMessageCount(queueConnection.Queue, metrics,
                                 messageCount);
                         }
                     }

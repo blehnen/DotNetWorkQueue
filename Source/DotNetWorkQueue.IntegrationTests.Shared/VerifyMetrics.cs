@@ -25,6 +25,29 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             Assert.AreEqual(messageCount, count);
         }
 
+        /// <summary>
+        /// Polls live metrics until <c>PoisonHandleMeter</c> reaches the expected value or times out.
+        /// Fixes a race where the handler callback signals completion before the poison meter is incremented.
+        /// </summary>
+        public static void VerifyPoisonMessageCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 15000)
+        {
+            const string name = "PoisonHandleMeter";
+            PollUntil(
+                metrics,
+                data =>
+                {
+                    foreach (var meter in data.Meters.Where(
+                        m => m.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        return meter.Value;
+                    }
+                    return null;
+                },
+                messageCount,
+                timeoutMs,
+                data => VerifyPoisonMessageCount(queueName, data, messageCount));
+        }
+
         public static long GetExpiredMessageCount(MetricsSnapshot data)
         {
             var names = new[] { ".ClearMessages.ResetCounter", ".HandleAsync.Expired" };
