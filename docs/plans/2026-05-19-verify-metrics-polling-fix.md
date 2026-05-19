@@ -506,9 +506,18 @@ Replace with:
 
 > Integration test metrics assertions can race in **any** of the `VerifyMetrics.Verify*` methods — the handler callback signals completion before the underlying counter/meter is incremented. As of 2026-05-19 the polling pattern is applied uniformly to `VerifyProcessedCount`, `VerifyPoisonMessageCount`, `VerifyExpiredMessageCount`, `VerifyRollBackCount`, `VerifyProducedCount`, and `VerifyProducedAsyncCount` via a shared `PollUntil` helper. Default polling timeout is 15s (bumped from 5s after a `processed=99/100` chaos+hold-transaction flake on SqlServer). When adding a NEW `Verify*` helper, route it through `PollUntil` and accept `IMetrics` (not just `MetricsSnapshot`) — taking a one-shot snapshot is the wrong pattern.
 
-**Step 2: Push branch + open PR**
+**Step 2: Commit the CLAUDE.md update**
 
-The repo policy in CLAUDE.md is "do not use draft PRs". Open a regular PR:
+Commit BEFORE pushing — otherwise the pushed branch / opened PR is missing one of its own required updates.
+
+```bash
+git add CLAUDE.md
+git commit -m "docs(claude-md): broaden snapshot-race lesson to cover all Verify* helpers"
+```
+
+**Step 3: Push branch + open PR**
+
+Open a regular (non-draft) PR. The repo's current policy is to skip draft PRs because CodeRabbit's free plan cannot review drafts — opening as a regular PR is what triggers CodeRabbit review alongside Jenkins. (Earlier CLAUDE.md guidance recommending draft PRs for Jenkins triggering predates the CodeRabbit constraint and should not be followed.)
 
 ```bash
 git push -u origin <branch-name>
@@ -530,13 +539,6 @@ gh pr create --title "test(verify-metrics): poll all counters to eliminate snaps
 
 EOF
 )"
-```
-
-**Step 3: Commit the CLAUDE.md update**
-
-```bash
-git add CLAUDE.md
-git commit -m "docs(claude-md): broaden snapshot-race lesson to cover all Verify* helpers"
 ```
 
 ---

@@ -120,27 +120,61 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
         /// <summary>
         /// Polls live metrics until <c>RollbackMessage.RollbackCounter</c> reaches
-        /// <paramref name="messageCount"/> * <paramref name="rollbackCount"/> or times out,
-        /// then asserts the full rollback + retry-meter invariants in one pass via the snapshot overload.
+        /// <paramref name="messageCount"/> * <paramref name="rollbackCount"/> AND
+        /// (when <paramref name="failedCount"/> &gt; 0) <c>MessageFailedProcessingRetryMeter</c>
+        /// reaches <paramref name="messageCount"/> * <paramref name="failedCount"/>, then
+        /// asserts the full rollback + retry-meter invariants via the snapshot overload.
+        /// Polling both metrics closes the residual race: rollback can tick before retry,
+        /// and the snapshot finalAssert checks both — so polling on rollback alone would
+        /// still leave a window where finalAssert fails on the retry-meter lag.
         /// </summary>
         public static void VerifyRollBackCount(string queueName, IMetrics metrics, long messageCount, int rollbackCount, int failedCount, int timeoutMs = 15000)
         {
-            const string name = "RollbackMessage.RollbackCounter";
-            var expected = messageCount * rollbackCount;
-            PollUntil(
-                metrics,
-                data =>
+            const string rollbackName = "RollbackMessage.RollbackCounter";
+            const string retryName = "MessageFailedProcessingRetryMeter";
+            var expectedRollback = messageCount * rollbackCount;
+            var expectedRetry = messageCount * failedCount;
+
+            if (expectedRollback == 0 && expectedRetry == 0)
+            {
+                VerifyRollBackCount(queueName, metrics.GetCollectedMetrics(), messageCount, rollbackCount, failedCount);
+                return;
+            }
+
+            var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
+            while (DateTime.UtcNow < deadline)
+            {
+                var data = metrics.GetCollectedMetrics();
+
+                long? rollbackValue = null;
+                foreach (var counter in data.Counters.Where(
+                    c => c.Key.EndsWith(rollbackName, StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    foreach (var counter in data.Counters.Where(
-                        c => c.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+                    rollbackValue = counter.Value;
+                    break;
+                }
+                var rollbackReady = rollbackValue.HasValue && rollbackValue.Value >= expectedRollback;
+
+                var retryReady = failedCount == 0;
+                if (failedCount > 0)
+                {
+                    foreach (var meter in data.Meters.Where(
+                        m => m.Key.EndsWith(retryName, StringComparison.InvariantCultureIgnoreCase)))
                     {
-                        return counter.Value;
+                        retryReady = meter.Value >= expectedRetry;
+                        break;
                     }
-                    return null;
-                },
-                expected,
-                timeoutMs,
-                data => VerifyRollBackCount(queueName, data, messageCount, rollbackCount, failedCount));
+                }
+
+                if (rollbackReady && retryReady)
+                {
+                    VerifyRollBackCount(queueName, data, messageCount, rollbackCount, failedCount);
+                    return;
+                }
+                Thread.Sleep(100);
+            }
+
+            VerifyRollBackCount(queueName, metrics.GetCollectedMetrics(), messageCount, rollbackCount, failedCount);
         }
 
         public static void VerifyProducedAsyncCount(string queueName, MetricsSnapshot data, long messageCount)
