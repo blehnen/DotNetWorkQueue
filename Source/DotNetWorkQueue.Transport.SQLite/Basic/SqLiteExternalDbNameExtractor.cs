@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.Data.Common;
 using System.IO;
 using DotNetWorkQueue.Transport.RelationalDatabase;
@@ -54,6 +55,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <returns>The canonicalized path (or <c>:memory:</c>) upper-cased.</returns>
         public string Extract(DbConnection connection)
         {
+            if (connection == null) throw new ArgumentNullException(nameof(connection));
             var raw = connection.DataSource ?? string.Empty;
             if (raw == ":memory:")
             {

@@ -63,8 +63,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Inbox
             public SqLiteMessageQueueCreation OCreation { get; init; }
             public ICreationScope Scope { get; init; }
 
+            private int _disposed;
+
             public void Dispose()
             {
+                if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
                 try { OCreation?.RemoveQueue(); } catch { /* swallow — teardown */ }
                 OCreation?.Dispose();
                 Scope?.Dispose();

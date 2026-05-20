@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics;
+using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Messages;
@@ -66,8 +67,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Outbox
             public SqLiteMessageQueueCreation OCreation { get; init; }
             public ICreationScope Scope { get; init; }
 
+            private int _disposed;
+
             public void Dispose()
             {
+                if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
                 try { OCreation?.RemoveQueue(); } catch { /* swallow */ }
                 OCreation?.Dispose();
                 Scope?.Dispose();
@@ -104,8 +108,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Outbox
             public IProducerQueue<FakeMessage> Producer { get; init; }
             public IRelationalProducerQueue<FakeMessage> RelationalProducer { get; init; }
 
+            private int _disposed;
+
             public void Dispose()
             {
+                if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
                 Producer?.Dispose();
                 Creator?.Dispose();
             }

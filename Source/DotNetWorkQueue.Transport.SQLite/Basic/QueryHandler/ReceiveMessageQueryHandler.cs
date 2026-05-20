@@ -91,7 +91,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                 return null;
             }
 
-            // Phase 5: branch on caller-supplied connection + transaction (hold-tx path) vs
+            // Phase 5: branch on caller-supplied connection + transaction (hold-transaction path) vs
             // self-create (existing behavior). When the caller passes both, ownership stays
             // with the caller — do NOT dispose. When either is null, fall back to the
             // existing self-managed lifecycle.

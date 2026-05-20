@@ -46,10 +46,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
         /// <param name="configuration">The configuration.</param>
         /// <param name="receiveMessage">The receive message.</param>
         /// <param name="cancelToken">The cancel token.</param>
-        /// <param name="dbFactory">The db factory used to create connections + transactions in hold-tx mode.</param>
-        /// <param name="connectionInformation">Connection info for hold-tx mode connection creation.</param>
-        /// <param name="optionsFactory">Options factory; consulted to detect hold-tx mode.</param>
-        /// <param name="sqLiteHeaders">Typed key for storing per-message connection state on the context in hold-tx mode.</param>
+        /// <param name="dbFactory">The db factory used to create connections + transactions in hold-transaction mode.</param>
+        /// <param name="connectionInformation">Connection info for hold-transaction mode connection creation.</param>
+        /// <param name="optionsFactory">Options factory; consulted to detect hold-transaction mode.</param>
+        /// <param name="sqLiteHeaders">Typed key for storing per-message connection state on the context in hold-transaction mode.</param>
         public ReceiveMessage(QueueConsumerConfiguration configuration,
             IQueryHandler<ReceiveMessageQuery<IDbConnection, IDbTransaction>, IReceivedMessageInternal> receiveMessage,
             IQueueCancelWork cancelToken,
@@ -124,7 +124,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
             }
             catch
             {
-                // hold-tx path: ensure we don't leak the connection/tx on Handle failure
+                // hold-transaction path: ensure we don't leak the connection/transaction on Handle failure
                 heldTransaction?.Dispose();
                 heldConnection?.Dispose();
                 throw;
@@ -133,27 +133,39 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)
             {
-                // hold-tx path with no message: nothing to commit; release resources now
+                // hold-transaction path with no message: nothing to commit; release resources now
                 heldTransaction?.Dispose();
                 heldConnection?.Dispose();
                 return null;
             }
 
-            //set the message ID on the context for later usage
-            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.CorrelationId, receivedTransportMessage.Headers);
-
-            // hold-tx path with a message: store the state on context so the receive-class
-            // commit/rollback/cleanup delegates can finish the lifecycle after the user handler.
-            // Also inject the state into the resolved IWorkerNotification if it is the
-            // relational variant (Phase 5 PLAN-2.1 capability-cast pattern; mirrors Phase 3/4).
-            if (heldConnection != null && heldTransaction != null)
+            try
             {
-                var state = new SqLiteConnectionState(heldConnection, heldTransaction);
-                context.Set(_sqLiteHeaders.ConnectionState, state);
-                if (context.WorkerNotification is SqLiteRelationalWorkerNotification relationalNotification)
+                //set the message ID on the context for later usage
+                context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.CorrelationId, receivedTransportMessage.Headers);
+
+                // hold-transaction path with a message: store the state on context so the receive-class
+                // commit/rollback/cleanup delegates can finish the lifecycle after the user handler.
+                // Also inject the state into the resolved IWorkerNotification if it is the
+                // relational variant (Phase 5 PLAN-2.1 capability-cast pattern; mirrors Phase 3/4).
+                if (heldConnection != null && heldTransaction != null)
                 {
-                    relationalNotification.ConnectionState = state;
+                    var state = new SqLiteConnectionState(heldConnection, heldTransaction);
+                    context.Set(_sqLiteHeaders.ConnectionState, state);
+                    if (context.WorkerNotification is SqLiteRelationalWorkerNotification relationalNotification)
+                    {
+                        relationalNotification.ConnectionState = state;
+                    }
                 }
+            }
+            catch
+            {
+                // hold-transaction path: SetMessageAndHeaders / context.Set / notification injection threw.
+                // The cleanup delegates won't fire (context state never installed), so release the
+                // held connection + transaction here to avoid a resource leak.
+                heldTransaction?.Dispose();
+                heldConnection?.Dispose();
+                throw;
             }
 
             return receivedTransportMessage;

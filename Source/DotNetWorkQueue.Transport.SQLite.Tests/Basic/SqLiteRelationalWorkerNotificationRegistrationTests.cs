@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Transport.RelationalDatabase;
@@ -62,7 +63,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
                     notification = container.GetInstance<IWorkerNotification>();
                 }))
             {
-                try { qc.CreateConsumer(new QueueConnection("ADMIN", FakeConnection)); }
+                try { qc.CreateConsumer(new QueueConnection("q" + Guid.NewGuid().ToString("N"), FakeConnection)); }
                 catch { /* downstream resolution may throw; smoke only needs the IWorkerNotification cast above */ }
             }
 
@@ -90,7 +91,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
                     notification = container.GetInstance<IWorkerNotification>();
                 }))
             {
-                try { qc.CreateConsumer(new QueueConnection("ADMIN", FakeConnection)); }
+                try { qc.CreateConsumer(new QueueConnection("q" + Guid.NewGuid().ToString("N"), FakeConnection)); }
                 catch { /* downstream resolution may throw; smoke only needs the cast above */ }
             }
 

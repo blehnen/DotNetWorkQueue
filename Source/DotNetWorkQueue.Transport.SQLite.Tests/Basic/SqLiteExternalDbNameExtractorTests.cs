@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.Data.Common;
 using System.IO;
 using DotNetWorkQueue.Transport.SQLite.Basic;
@@ -76,9 +77,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             conn.DataSource.Returns((string)null);
             var sut = new SqLiteExternalDbNameExtractor();
 
-            // null DataSource becomes empty string → canonicalized
+            // null DataSource short-circuits to empty string before Path.GetFullPath
             var result = sut.Extract(conn);
-            Assert.IsNotNull(result);
+            Assert.AreEqual(string.Empty, result);
+        }
+
+        [TestMethod]
+        public void Extract_Throws_ArgumentNullException_For_Null_Connection()
+        {
+            var sut = new SqLiteExternalDbNameExtractor();
+            Assert.ThrowsExactly<ArgumentNullException>(() => sut.Extract(null));
         }
     }
 }

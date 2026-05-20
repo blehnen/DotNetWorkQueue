@@ -82,9 +82,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             // option=true returns the relational variant (implements IRelationalWorkerNotification),
             // option=false returns the plain WorkerNotification (capability-cast fails on the user side).
             // The try/catch around options resolution mirrors the IBaseTransportOptions pattern
-            // below (line ~99) — at container.Verify() / early-resolution time options may not
-            // be loadable yet, so fall back to the default option value (false) which is the
-            // safe non-relational path.
+            // below (line ~99). The catch is intentionally broad: at container.Verify() /
+            // early-resolution time, optionsFactory.Create() can throw a wide range of
+            // exceptions (SimpleInjector.ActivationException when the factory itself isn't
+            // wired yet, InvalidOperationException when user options code touches a not-yet-
+            // reachable connection, etc.). The fallback path here is safe — we route to the
+            // plain WorkerNotification, and any genuine misconfiguration will resurface
+            // when downstream code tries to actually use the connection. See companion
+            // comment in SqlServerMessageQueueInit.cs for the unit-test contract reasoning.
             container.Register<PostgreSqlRelationalWorkerNotification>(LifeStyles.Transient);
             container.Register<IWorkerNotification>(() =>
             {

@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Threading;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
@@ -54,12 +55,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </summary>
         public IDbTransaction Transaction { get; }
 
+        private int _completed;
+
         /// <summary>
         /// Gets a value indicating whether the transaction has been committed or rolled
         /// back. Used to guard against double-commit / double-rollback in the cleanup
-        /// path.
+        /// path. Backed by an <see cref="Interlocked"/>-managed flag so the commit and
+        /// cleanup paths cannot race on a non-atomic <c>bool</c>.
         /// </summary>
-        public bool Completed { get; private set; }
+        public bool Completed => Volatile.Read(ref _completed) != 0;
 
         /// <summary>
         /// Initializes a new instance of <see cref="SqLiteConnectionState"/>.
@@ -76,8 +80,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
         /// <summary>
         /// Marks the held transaction as completed (committed or rolled back). Subsequent
-        /// commit / rollback attempts in the cleanup path become no-ops.
+        /// commit / rollback attempts in the cleanup path become no-ops. Returns
+        /// <see langword="true"/> on the first call and <see langword="false"/> on any
+        /// subsequent call, so callers can detect the race and skip a duplicate commit /
+        /// rollback.
         /// </summary>
-        public void MarkCompleted() => Completed = true;
+        public bool MarkCompleted() => Interlocked.Exchange(ref _completed, 1) == 0;
     }
 }

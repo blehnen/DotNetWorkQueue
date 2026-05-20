@@ -62,8 +62,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Inbox
             public PostgreSqlMessageQueueCreation OCreation { get; init; }
             public ICreationScope Scope { get; init; }
 
+            private int _disposed;
+
             public void Dispose()
             {
+                if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
                 try { OCreation?.RemoveQueue(); } catch { /* swallow */ }
                 OCreation?.Dispose();
                 Scope?.Dispose();

@@ -71,8 +71,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Inbox
             public QueueCreationContainer<SqlServerMessageQueueInit> QueueCreator { get; init; }
             public SqlServerMessageQueueCreation OCreation { get; init; }
 
+            private int _disposed;
+
             public void Dispose()
             {
+                if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
                 try { OCreation?.RemoveQueue(); } catch { /* swallow — teardown */ }
                 OCreation?.Dispose();
                 QueueCreator?.Dispose();
@@ -105,7 +108,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Inbox
             };
         }
 
-        // ---- Business table lifecycle (separate connection — not the consumer's tx) ----
+        // ---- Business table lifecycle (separate connection — not the consumer's transaction) ----
         protected static void CreateBusinessTable(string connectionString, string tableName)
         {
             using var conn = new SqlConnection(connectionString);
@@ -135,7 +138,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Inbox
 
         /// <summary>
         /// Polls the business table from a fresh connection until the count reaches <paramref name="expected"/>
-        /// or the timeout elapses. Polling instead of snapshot — the inbox tx commits asynchronously
+        /// or the timeout elapses. Polling instead of snapshot — the inbox transaction commits asynchronously
         /// relative to the test thread (CLAUDE.md polling lesson).
         /// </summary>
         protected static void AssertBusinessRowCountFromSeparateConnection(

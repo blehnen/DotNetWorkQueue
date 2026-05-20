@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="log">The log.</param>
         /// <param name="getFileNameFromConnection">The get file name from connection.</param>
         /// <param name="databaseExists">The database exists.</param>
-        /// <param name="sqLiteHeaders">Typed key resolver for reading hold-tx connection state off the context (Phase 5).</param>
+        /// <param name="sqLiteHeaders">Typed key resolver for reading hold-transaction connection state off the context (Phase 5).</param>
         public SqLiteMessageQueueReceive(QueueConsumerConfiguration configuration,
             IQueueCancelWork cancelWork,
             ITransportHandleMessage handleMessage,
@@ -202,12 +202,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             // Phase 5: when EnableHoldTransactionUntilMessageCommitted = true, the dequeue
             // transaction was created in ReceiveMessage.GetMessage and stored on the
             // context via SqLiteHeaders.ConnectionState. Roll it back here; Context_Cleanup
-            // disposes the resources.
+            // disposes the resources. MarkCompleted's atomic CAS is the race-free gate;
+            // a non-zero check-then-act would leave a window where commit and rollback
+            // could both fire.
             var state = context.Get(_sqLiteHeaders.ConnectionState);
-            if (state != null && !state.Completed)
+            if (state != null && state.MarkCompleted())
             {
                 state.Transaction.Rollback();
-                state.MarkCompleted();
             }
         }
 
@@ -221,15 +222,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             var context = (IMessageContext)sender;
             _handleMessage.CommitMessage.Commit(context);
 
-            // Phase 5: commit the held dequeue transaction (hold-tx path) after the
+            // Phase 5: commit the held dequeue transaction (hold-transaction path) after the
             // library-side commit-message bookkeeping completes successfully. The user
             // handler's business writes (via the inbox SqLiteRelationalWorkerNotification.Transaction
-            // capability) commit atomically with the dequeue here.
+            // capability) commit atomically with the dequeue here. MarkCompleted's atomic
+            // CAS is the race-free gate (see ContextOnRollback for the symmetric note).
             var state = context.Get(_sqLiteHeaders.ConnectionState);
-            if (state != null && !state.Completed)
+            if (state != null && state.MarkCompleted())
             {
                 state.Transaction.Commit();
-                state.MarkCompleted();
             }
         }
 
@@ -239,19 +240,26 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="context">The context.</param>
         private void ContextCleanup(IMessageContext context)
         {
-            // Phase 5: release the held dequeue resources (hold-tx path). Commit/rollback
+            // Phase 5: release the held dequeue resources (hold-transaction path). Commit/rollback
             // already happened in ContextOnCommit / ContextOnRollback if applicable; this
             // just disposes. Safe to call even if the state was never set (option=false).
-            var state = context.Get(_sqLiteHeaders.ConnectionState);
-            if (state != null)
+            // Unsubscribe in a finally so a Dispose() throw can't leak handler subscriptions
+            // and re-fire on future receives.
+            try
             {
-                state.Transaction.Dispose();
-                state.Connection.Dispose();
+                var state = context.Get(_sqLiteHeaders.ConnectionState);
+                if (state != null)
+                {
+                    state.Transaction.Dispose();
+                    state.Connection.Dispose();
+                }
             }
-
-            context.Commit -= ContextOnCommit;
-            context.Rollback -= ContextOnRollback;
-            context.Cleanup -= Context_Cleanup;
+            finally
+            {
+                context.Commit -= ContextOnCommit;
+                context.Rollback -= ContextOnRollback;
+                context.Cleanup -= Context_Cleanup;
+            }
         }
 
         #endregion

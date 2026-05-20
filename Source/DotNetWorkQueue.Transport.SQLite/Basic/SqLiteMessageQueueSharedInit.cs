@@ -124,7 +124,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             // Phase 5: outbox-pattern producer wiring (SQLite side — sweep). Mirrors the
             // SqlServer / PostgreSQL outbox-milestone init blocks. ExternalTransactionValidator
-            // verifies the caller's tx is on the same DB as the queue; SqLiteExternalDbNameExtractor
+            // verifies the caller's transaction is on the same DB as the queue; SqLiteExternalDbNameExtractor
             // provides the symmetric-normalized DB-name comparison input.
             container.Register<IExternalDbNameExtractor, SqLiteExternalDbNameExtractor>(LifeStyles.Singleton);
             container.Register<ExternalTransactionValidator>(LifeStyles.Singleton);
@@ -148,8 +148,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             // capability-cast pattern); option=false returns plain WorkerNotification (cast
             // cleanly fails).
             // The try/catch around options resolution mirrors the IBaseTransportOptions pattern
-            // (Phase 3 lesson 1) — at container.Verify() / early-resolution time options may not
-            // be loadable yet, so fall back to the default option value (false).
+            // (Phase 3 lesson 1). The catch is intentionally broad: at container.Verify() /
+            // early-resolution time, optionsFactory.Create() can throw a wide range of
+            // exceptions (SimpleInjector.ActivationException when the factory itself isn't
+            // wired yet, InvalidOperationException when user options code touches a not-yet-
+            // reachable connection, etc.). The fallback path here is safe — we route to the
+            // plain WorkerNotification, and any genuine misconfiguration will resurface
+            // when downstream code tries to actually use the connection. See companion
+            // comment in SqlServerMessageQueueInit.cs for the unit-test contract reasoning.
             container.Register<SqLiteRelationalWorkerNotification>(LifeStyles.Transient);
             container.Register<IWorkerNotification>(() =>
             {
