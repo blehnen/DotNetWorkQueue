@@ -57,6 +57,7 @@
     <PackageVersion Include="Microsoft.Playwright" Version="1.54.0" />
     <PackageVersion Include="Microsoft.Playwright.MSTest" Version="1.54.0" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
+    <PackageVersion Include="JunitXml.TestLogger" Version="8.0.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.2" />
     <PackageVersion Include="Tynamix.ObjectFiller" Version="1.5.9" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />

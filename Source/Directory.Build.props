@@ -13,4 +13,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
   </ItemGroup>
+
+  <!-- Test-project-only: JUnit XML logger so Jenkins can publish test results.
+       Scoped via project-name suffix so non-test projects don't pick up the dep. -->
+  <ItemGroup Condition="$(MSBuildProjectName.EndsWith('Tests'))">
+    <PackageReference Include="JunitXml.TestLogger" PrivateAssets="All" />
+  </ItemGroup>
 </Project>
