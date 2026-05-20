@@ -25,6 +25,29 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             Assert.AreEqual(messageCount, count);
         }
 
+        /// <summary>
+        /// Polls live metrics until <c>PoisonHandleMeter</c> reaches the expected value or times out.
+        /// Fixes a race where the handler callback signals completion before the poison meter is incremented.
+        /// </summary>
+        public static void VerifyPoisonMessageCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 15000)
+        {
+            const string name = "PoisonHandleMeter";
+            PollUntil(
+                metrics,
+                data =>
+                {
+                    foreach (var meter in data.Meters.Where(
+                        m => m.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        return meter.Value;
+                    }
+                    return null;
+                },
+                messageCount,
+                timeoutMs,
+                data => VerifyPoisonMessageCount(queueName, data, messageCount));
+        }
+
         public static long GetExpiredMessageCount(MetricsSnapshot data)
         {
             var names = new[] { ".ClearMessages.ResetCounter", ".HandleAsync.Expired" };
@@ -45,6 +68,20 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         {
             var count = GetExpiredMessageCount(data);
             Assert.AreEqual(messageCount, count);
+        }
+
+        /// <summary>
+        /// Polls live metrics until the combined expired-message counters reach the expected value or times out.
+        /// Mirrors the GetExpiredMessageCount logic (sums ClearMessages.ResetCounter + HandleAsync.Expired).
+        /// </summary>
+        public static void VerifyExpiredMessageCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 15000)
+        {
+            PollUntil(
+                metrics,
+                data => (long?)GetExpiredMessageCount(data),
+                messageCount,
+                timeoutMs,
+                data => VerifyExpiredMessageCount(queueName, data, messageCount));
         }
 
         public static void VerifyRollBackCount(string queueName, MetricsSnapshot data, long messageCount, int rollbackCount, int failedCount)
@@ -81,6 +118,65 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             }
         }
 
+        /// <summary>
+        /// Polls live metrics until <c>RollbackMessage.RollbackCounter</c> reaches
+        /// <paramref name="messageCount"/> * <paramref name="rollbackCount"/> AND
+        /// (when <paramref name="failedCount"/> &gt; 0) <c>MessageFailedProcessingRetryMeter</c>
+        /// reaches <paramref name="messageCount"/> * <paramref name="failedCount"/>, then
+        /// asserts the full rollback + retry-meter invariants via the snapshot overload.
+        /// Polling both metrics closes the residual race: rollback can tick before retry,
+        /// and the snapshot finalAssert checks both — so polling on rollback alone would
+        /// still leave a window where finalAssert fails on the retry-meter lag.
+        /// </summary>
+        public static void VerifyRollBackCount(string queueName, IMetrics metrics, long messageCount, int rollbackCount, int failedCount, int timeoutMs = 15000)
+        {
+            const string rollbackName = "RollbackMessage.RollbackCounter";
+            const string retryName = "MessageFailedProcessingRetryMeter";
+            var expectedRollback = messageCount * rollbackCount;
+            var expectedRetry = messageCount * failedCount;
+
+            if (expectedRollback == 0 && expectedRetry == 0)
+            {
+                VerifyRollBackCount(queueName, metrics.GetCollectedMetrics(), messageCount, rollbackCount, failedCount);
+                return;
+            }
+
+            var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
+            while (DateTime.UtcNow < deadline)
+            {
+                var data = metrics.GetCollectedMetrics();
+
+                long? rollbackValue = null;
+                foreach (var counter in data.Counters.Where(
+                    c => c.Key.EndsWith(rollbackName, StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    rollbackValue = counter.Value;
+                    break;
+                }
+                var rollbackReady = rollbackValue.HasValue && rollbackValue.Value >= expectedRollback;
+
+                var retryReady = failedCount == 0;
+                if (failedCount > 0)
+                {
+                    foreach (var meter in data.Meters.Where(
+                        m => m.Key.EndsWith(retryName, StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        retryReady = meter.Value >= expectedRetry;
+                        break;
+                    }
+                }
+
+                if (rollbackReady && retryReady)
+                {
+                    VerifyRollBackCount(queueName, data, messageCount, rollbackCount, failedCount);
+                    return;
+                }
+                Thread.Sleep(100);
+            }
+
+            VerifyRollBackCount(queueName, metrics.GetCollectedMetrics(), messageCount, rollbackCount, failedCount);
+        }
+
         public static void VerifyProducedAsyncCount(string queueName, MetricsSnapshot data, long messageCount)
         {
             var found = false;
@@ -98,6 +194,25 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             }
         }
 
+        public static void VerifyProducedAsyncCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 15000)
+        {
+            const string name = "SendMessagesMeter";
+            PollUntil(
+                metrics,
+                data =>
+                {
+                    foreach (var meter in data.Meters.Where(
+                        m => m.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        return meter.Value;
+                    }
+                    return null;
+                },
+                messageCount,
+                timeoutMs,
+                data => VerifyProducedAsyncCount(queueName, data, messageCount));
+        }
+
         public static void VerifyProducedCount(string queueName, MetricsSnapshot data, long messageCount)
         {
             var found = false;
@@ -113,6 +228,25 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             {
                 throw new DotNetWorkQueueException($"Failed to find meter {name}");
             }
+        }
+
+        public static void VerifyProducedCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 15000)
+        {
+            const string name = "SendMessagesMeter";
+            PollUntil(
+                metrics,
+                data =>
+                {
+                    foreach (var meter in data.Meters.Where(
+                        m => m.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        return meter.Value;
+                    }
+                    return null;
+                },
+                messageCount,
+                timeoutMs,
+                data => VerifyProducedCount(queueName, data, messageCount));
         }
 
         public static void VerifyProcessedCount(string queueName, MetricsSnapshot data, long messageCount)
@@ -133,37 +267,63 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         }
 
         /// <summary>
-        /// Polls the live metrics until CommitCounter reaches the expected value or times out.
-        /// Fixes a race where the handler callback signals completion before the commit metric is incremented.
+        /// Polls live metrics on a 100ms interval until <paramref name="getValue"/> reaches
+        /// <paramref name="expected"/> or <paramref name="timeoutMs"/> elapses, then re-issues
+        /// <paramref name="finalAssert"/> against the latest snapshot for a clean error message.
+        /// Fixes a class of race where the handler callback signals completion before a
+        /// metric counter/meter is incremented.
         /// </summary>
-        public static void VerifyProcessedCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 5000)
+        private static void PollUntil(
+            IMetrics metrics,
+            Func<MetricsSnapshot, long?> getValue,
+            long expected,
+            int timeoutMs,
+            Action<MetricsSnapshot> finalAssert)
         {
-            if (messageCount == 0)
+            if (expected == 0)
             {
-                VerifyProcessedCount(queueName, metrics.GetCollectedMetrics(), messageCount);
+                finalAssert(metrics.GetCollectedMetrics());
                 return;
             }
 
-            const string name = "CommitMessage.CommitCounter";
             var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
-
             while (DateTime.UtcNow < deadline)
             {
                 var data = metrics.GetCollectedMetrics();
-                foreach (var counter in data.Counters.Where(
-                    c => c.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+                var value = getValue(data);
+                if (value.HasValue && value.Value >= expected)
                 {
-                    if (counter.Value >= messageCount)
-                    {
-                        Assert.AreEqual(messageCount, counter.Value);
-                        return;
-                    }
+                    finalAssert(data);
+                    return;
                 }
                 Thread.Sleep(100);
             }
 
-            // Final assertion for clear error message on timeout
-            VerifyProcessedCount(queueName, metrics.GetCollectedMetrics(), messageCount);
+            finalAssert(metrics.GetCollectedMetrics());
+        }
+
+        /// <summary>
+        /// Polls the live metrics until CommitCounter reaches the expected value or times out.
+        /// Fixes a race where the handler callback signals completion before the commit metric is incremented.
+        /// Default timeout is generous enough to survive chaos + hold-transaction scenarios under CI load.
+        /// </summary>
+        public static void VerifyProcessedCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 15000)
+        {
+            const string name = "CommitMessage.CommitCounter";
+            PollUntil(
+                metrics,
+                data =>
+                {
+                    foreach (var counter in data.Counters.Where(
+                        c => c.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        return counter.Value;
+                    }
+                    return null;
+                },
+                messageCount,
+                timeoutMs,
+                data => VerifyProcessedCount(queueName, data, messageCount));
         }
     }
 }

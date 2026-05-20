@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ProducerMethod
                         }
 
                         if (validateMetricCounts)
-                            VerifyMetrics.VerifyProducedCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                            VerifyMetrics.VerifyProducedCount(queueConnection.Queue, metrics,
                                 messageCount);
                     }
                 }

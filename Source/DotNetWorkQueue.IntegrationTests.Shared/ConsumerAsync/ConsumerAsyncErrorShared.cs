@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                             }
 
                             if (rollBacks)
-                                VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics.GetCurrentMetrics(),
+                                VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics,
                                     messageCount, 2, 2);
                         }
                     }
