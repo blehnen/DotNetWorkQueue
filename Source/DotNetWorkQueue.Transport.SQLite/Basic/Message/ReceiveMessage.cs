@@ -37,7 +37,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
         private readonly ICancelWork _cancelToken;
         private readonly IDbFactory _dbFactory;
         private readonly IConnectionInformation _connectionInformation;
-        private readonly Lazy<SqLiteMessageQueueTransportOptions> _options;
+        // Hold a direct reference to the options factory instead of caching its result in a
+        // Lazy<T>: the factory itself caches the persisted options after the first DB read
+        // (SqLiteMessageQueueTransportOptionsFactory._options field), but its first call may
+        // resolve before the queue's options have been persisted, leaving a Lazy stuck on a
+        // default options instance for the lifetime of this ReceiveMessage. Calling the
+        // factory each receive is cheap (cached after first hit) and guarantees the receive
+        // path observes the same option value as the IWorkerNotification registration lambda.
+        private readonly ISqLiteMessageQueueTransportOptionsFactory _optionsFactory;
         private readonly SqLiteHeaders _sqLiteHeaders;
 
         /// <summary>
@@ -71,7 +78,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
             _cancelToken = cancelToken;
             _dbFactory = dbFactory;
             _connectionInformation = connectionInformation;
-            _options = new Lazy<SqLiteMessageQueueTransportOptions>(optionsFactory.Create);
+            _optionsFactory = optionsFactory;
             _sqLiteHeaders = sqLiteHeaders;
         }
 
@@ -97,7 +104,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
             // handler returns.
             IDbConnection heldConnection = null;
             IDbTransaction heldTransaction = null;
-            if (_options.Value.EnableHoldTransactionUntilMessageCommitted)
+            var options = _optionsFactory.Create();
+            if (options.EnableHoldTransactionUntilMessageCommitted)
             {
                 heldConnection = _dbFactory.CreateConnection(_connectionInformation.ConnectionString, false);
                 try
