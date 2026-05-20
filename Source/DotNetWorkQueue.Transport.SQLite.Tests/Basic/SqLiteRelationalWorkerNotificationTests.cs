@@ -36,6 +36,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
     [TestClass]
     public class SqLiteRelationalWorkerNotificationTests
     {
+        // SqLiteRelationalWorkerNotification stores state in a static AsyncLocal so the
+        // receive path can inject state visible to a different transient instance the
+        // user handler observes. Clear it before AND after each test so the order of
+        // test execution does not leak state between [TestMethod]s on the same thread.
+        [TestInitialize]
+        public void ClearAsyncLocalBefore() => SqLiteRelationalWorkerNotification.ClearCurrent();
+
+        [TestCleanup]
+        public void ClearAsyncLocalAfter() => SqLiteRelationalWorkerNotification.ClearCurrent();
+
         private static SqLiteRelationalWorkerNotification CreateSubject()
         {
             var configuration = new TransportConfigurationReceive(

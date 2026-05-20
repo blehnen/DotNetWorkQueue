@@ -244,7 +244,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             // already happened in ContextOnCommit / ContextOnRollback if applicable; this
             // just disposes. Safe to call even if the state was never set (option=false).
             // Unsubscribe in a finally so a Dispose() throw can't leak handler subscriptions
-            // and re-fire on future receives.
+            // and re-fire on future receives. ALSO clear the SqLiteRelationalWorkerNotification
+            // AsyncLocal so the next message picked up by this worker thread does not observe
+            // stale connection-state from this iteration.
             try
             {
                 var state = context.Get(_sqLiteHeaders.ConnectionState);
@@ -256,6 +258,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             }
             finally
             {
+                SqLiteRelationalWorkerNotification.ClearCurrent();
                 context.Commit -= ContextOnCommit;
                 context.Rollback -= ContextOnRollback;
                 context.Cleanup -= Context_Cleanup;

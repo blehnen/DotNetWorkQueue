@@ -146,23 +146,29 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
 
                 // hold-transaction path with a message: store the state on context so the receive-class
                 // commit/rollback/cleanup delegates can finish the lifecycle after the user handler.
-                // Also inject the state into the resolved IWorkerNotification if it is the
-                // relational variant (Phase 5 PLAN-2.1 capability-cast pattern; mirrors Phase 3/4).
+                // ALSO install the state on the SqLiteRelationalWorkerNotification AsyncLocal — the
+                // resolved IWorkerNotification may be a DIFFERENT transient instance than what the
+                // handler observes (IWorkerNotification is registered LifeStyles.Transient and the
+                // factory delegate resolves a fresh SqLiteRelationalWorkerNotification per call),
+                // so a pattern-match-and-set on context.WorkerNotification is not a reliable
+                // injection point. The AsyncLocal is shared across all instances on the current
+                // async flow, so every SqLiteRelationalWorkerNotification.Transaction read sees
+                // the right state regardless of identity. Cleared in Context_Cleanup so the
+                // next message handled by this worker thread does not observe stale state.
                 if (heldConnection != null && heldTransaction != null)
                 {
                     var state = new SqLiteConnectionState(heldConnection, heldTransaction);
                     context.Set(_sqLiteHeaders.ConnectionState, state);
-                    if (context.WorkerNotification is SqLiteRelationalWorkerNotification relationalNotification)
-                    {
-                        relationalNotification.ConnectionState = state;
-                    }
+                    SqLiteRelationalWorkerNotification.SetCurrent(state);
                 }
             }
             catch
             {
-                // hold-transaction path: SetMessageAndHeaders / context.Set / notification injection threw.
+                // hold-transaction path: SetMessageAndHeaders / context.Set / SetCurrent threw.
                 // The cleanup delegates won't fire (context state never installed), so release the
-                // held connection + transaction here to avoid a resource leak.
+                // held connection + transaction here AND clear the AsyncLocal in case SetCurrent
+                // partially succeeded.
+                SqLiteRelationalWorkerNotification.ClearCurrent();
                 heldTransaction?.Dispose();
                 heldConnection?.Dispose();
                 throw;
