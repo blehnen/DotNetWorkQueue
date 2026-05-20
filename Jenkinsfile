@@ -1,6 +1,17 @@
 pipeline {
     agent none
 
+    // Serialize all Jenkinsfile runs across the entire repository — only one
+    // pipeline (PR, master, or any branch) executes at a time. The 14-stage
+    // parallel matrix consumes a large slice of the agent pool per run; without
+    // this lock, two concurrent PRs can saturate it. Queued runs wait their
+    // turn rather than starve agents from each other. Lockable Resources plugin
+    // provides this — the named resource doesn't need to be pre-defined; it's
+    // created on first use.
+    options {
+        lock(resource: 'dotnetworkqueue-ci')
+    }
+
     environment {
         DOTNET_CLI_TELEMETRY_OPTOUT = '1'
         DOTNET_NOLOGO = '1'
