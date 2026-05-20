@@ -53,7 +53,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var sut = new SqLiteExternalDbNameExtractor();
 
             var result = sut.Extract(conn);
-            Assert.AreEqual(Path.GetFullPath("./test.db").ToUpperInvariant(), result);
+            // Extension is stripped on both sides of the validator: System.Data.SQLite's
+            // SQLiteConnection.DataSource returns the bare name without extension on
+            // Linux, so the extractor (and SqliteNormalizedConnectionInformation.Container)
+            // strip the extension symmetrically to keep the comparator consistent.
+            var full = Path.GetFullPath("./test.db");
+            var expected = Path.Combine(Path.GetDirectoryName(full) ?? string.Empty,
+                Path.GetFileNameWithoutExtension(full)).ToUpperInvariant();
+            Assert.AreEqual(expected, result);
         }
 
         [TestMethod]
@@ -67,7 +74,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
 
             var result = sut.Extract(conn);
             Assert.AreNotEqual(":memory:", result);
-            Assert.AreEqual(Path.GetFullPath(":Memory:").ToUpperInvariant(), result);
+            var full = Path.GetFullPath(":Memory:");
+            var expected = Path.Combine(Path.GetDirectoryName(full) ?? string.Empty,
+                Path.GetFileNameWithoutExtension(full)).ToUpperInvariant();
+            Assert.AreEqual(expected, result);
         }
 
         [TestMethod]

@@ -70,7 +70,19 @@ namespace DotNetWorkQueue.Transport.SQLite
                 {
                     return string.Empty;
                 }
-                return Path.GetFullPath(raw).ToUpperInvariant();
+                // Strip the file extension before canonicalizing: System.Data.SQLite's
+                // SQLiteConnection.DataSource property returns the bare file name without
+                // its extension after Open() on Linux. The extractor side (which reads from
+                // conn.DataSource) therefore canonicalizes to e.g. "/path/Ixxx" while a
+                // raw Path.GetFullPath on the connection-string Data Source value
+                // canonicalizes to "/path/Ixxx.db3" — the symmetric-normalization comparator
+                // would fail despite both sides pointing at the same physical file. Drop
+                // the extension on the queue side to match the System.Data.SQLite behavior.
+                var full = Path.GetFullPath(raw);
+                var dir = Path.GetDirectoryName(full);
+                var nameNoExt = Path.GetFileNameWithoutExtension(full);
+                var combined = string.IsNullOrEmpty(dir) ? nameNoExt : Path.Combine(dir, nameNoExt);
+                return combined.ToUpperInvariant();
             }
         }
     }

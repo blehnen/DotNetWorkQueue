@@ -65,7 +65,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             {
                 return string.Empty;
             }
-            return Path.GetFullPath(raw).ToUpperInvariant();
+            // Strip the file extension before canonicalizing. System.Data.SQLite's
+            // SQLiteConnection.DataSource property returns the bare file name without
+            // its extension after Open() on Linux but may include it on Windows;
+            // dropping the extension on BOTH sides (here and in
+            // SqliteNormalizedConnectionInformation.Container) keeps the validator's
+            // symmetric-normalization comparator consistent across platforms.
+            var full = Path.GetFullPath(raw);
+            var dir = Path.GetDirectoryName(full);
+            var nameNoExt = Path.GetFileNameWithoutExtension(full);
+            var combined = string.IsNullOrEmpty(dir) ? nameNoExt : Path.Combine(dir, nameNoExt);
+            return combined.ToUpperInvariant();
         }
     }
 }
