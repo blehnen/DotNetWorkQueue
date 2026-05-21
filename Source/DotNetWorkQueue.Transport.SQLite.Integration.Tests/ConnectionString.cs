@@ -22,12 +22,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
             {
                 //setup connection string
                 var localPath = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
-                // Use Path.Combine so the separator matches the OS — literal "\\" worked on
-                // Windows but produces a non-separator character on Linux, breaking the
-                // outbox-pattern ExternalTransactionValidator's path comparison (the caller
-                // side's conn.DataSource canonicalizes one way, the queue side's parsed
-                // Server value canonicalizes another).
-                _fileName = Path.Combine(localPath, GenerateQueueName.CreateFileName());
+                _fileName = localPath + "\\" + GenerateQueueName.CreateFileName();
                 ConnectionString = $"Data Source={_fileName};Version=3;";
 
                 using (var connection = new SQLiteConnection(ConnectionString))

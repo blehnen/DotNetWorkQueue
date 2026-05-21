@@ -22,7 +22,6 @@ using System.Data;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
-using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -105,12 +104,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             container.Register<IDbCommandStringCache>(LifeStyles.Singleton);
 
-            // Phase 5: use the symmetric-normalization wrapper so the validator
-            // (ExternalTransactionValidator) compares both sides under identical
-            // canonicalization. Wrapper applies Path.GetFullPath + ToUpperInvariant
-            // with a :memory: short-circuit, matching SqLiteExternalDbNameExtractor.
             container.Register<IConnectionInformation>(
-                () => new SqliteNormalizedConnectionInformation(queueConnection, container.GetInstance<IDbDataSource>()),
+                () => new SqliteConnectionInformation(queueConnection, container.GetInstance<IDbDataSource>()),
                 LifeStyles.Singleton);
 
             container.Register<BuildDequeueCommand>(LifeStyles.Singleton);
@@ -121,61 +116,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container
                 .Register<IConnectionHeader<IDbConnection, IDbTransaction, IDbCommand>,
                     ConnectionHeader<IDbConnection, IDbTransaction, IDbCommand>>(LifeStyles.Singleton);
-
-            // Phase 5: outbox-pattern producer wiring (SQLite side — sweep). Mirrors the
-            // SqlServer / PostgreSQL outbox-milestone init blocks. ExternalTransactionValidator
-            // verifies the caller's transaction is on the same DB as the queue; SqLiteExternalDbNameExtractor
-            // provides the symmetric-normalized DB-name comparison input.
-            container.Register<IExternalDbNameExtractor, SqLiteExternalDbNameExtractor>(LifeStyles.Singleton);
-            container.Register<ExternalTransactionValidator>(LifeStyles.Singleton);
-            container.RegisterConditional(typeof(IProducerQueue<>), typeof(SqLiteRelationalProducerQueue<>), LifeStyles.Singleton);
-            container.RegisterConditional(typeof(IRelationalProducerQueue<>), typeof(SqLiteRelationalProducerQueue<>), LifeStyles.Singleton);
-            container.RegisterConditional(typeof(RelationalProducerQueue<>), typeof(SqLiteRelationalProducerQueue<>), LifeStyles.Singleton);
-
-            // Phase 5: SQLite hold-transaction state header (carries the per-message dequeue
-            // connection + transaction across the receive-path / user-handler boundary when
-            // EnableHoldTransactionUntilMessageCommitted = true). Set in ReceiveMessage.GetMessage;
-            // read by SqLiteMessageQueueReceive commit / rollback / cleanup delegates and by the
-            // inbox SqLiteRelationalWorkerNotification.Transaction getter.
-            container.Register<SqLiteHeaders>(LifeStyles.Singleton);
-
-            // Phase 5: inbox-pattern receive wiring (SQLite side).
-            // Pre-register the relational concrete; WorkerNotification is already registered by
-            // the core (ComponentRegistration line 217) and auto-resolvable as a concrete type.
-            // The IWorkerNotification binding branches on EnableHoldTransactionUntilMessageCommitted:
-            // option=true returns SqLiteRelationalWorkerNotification (which implements
-            // IRelationalWorkerNotification, exposing the held DbTransaction via the
-            // capability-cast pattern); option=false returns plain WorkerNotification (cast
-            // cleanly fails).
-            // The try/catch around options resolution mirrors the IBaseTransportOptions pattern
-            // (Phase 3 lesson 1). The catch is intentionally broad: at container.Verify() /
-            // early-resolution time, optionsFactory.Create() can throw a wide range of
-            // exceptions (SimpleInjector.ActivationException when the factory itself isn't
-            // wired yet, InvalidOperationException when user options code touches a not-yet-
-            // reachable connection, etc.). The fallback path here is safe — we route to the
-            // plain WorkerNotification, and any genuine misconfiguration will resurface
-            // when downstream code tries to actually use the connection. See companion
-            // comment in SqlServerMessageQueueInit.cs for the unit-test contract reasoning.
-            container.Register<SqLiteRelationalWorkerNotification>(LifeStyles.Transient);
-            container.Register<IWorkerNotification>(() =>
-            {
-                bool holdTransaction;
-                try
-                {
-                    var optionsFactory = container.GetInstance<ITransportOptionsFactory>();
-                    var rawOptions = optionsFactory.Create();
-                    holdTransaction = rawOptions is SqLiteMessageQueueTransportOptions typed
-                        && typed.EnableHoldTransactionUntilMessageCommitted;
-                }
-                catch
-                {
-                    holdTransaction = false;
-                }
-                return holdTransaction
-                    ? (IWorkerNotification)container.GetInstance<SqLiteRelationalWorkerNotification>()
-                    : container.GetInstance<WorkerNotification>();
-            }, LifeStyles.Transient);
-
             container.Register<ISQLiteTransactionWrapper, SqLiteTransactionWrapper>(LifeStyles.Transient);
             //**all
 

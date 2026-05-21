@@ -277,14 +277,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </value>
         public bool EnableHoldTransactionUntilMessageCommitted
         {
-            get => _enableHoldTransactionUntilMessageCommitted;
-            set
-            {
-                FailIfReadOnly();
-                _enableHoldTransactionUntilMessageCommitted = value;
-            }
+            get => false;
+            // ReSharper disable once ValueParameterNotUsed
+            set => FailIfReadOnly();
         }
-        private bool _enableHoldTransactionUntilMessageCommitted;
 
         #endregion
 

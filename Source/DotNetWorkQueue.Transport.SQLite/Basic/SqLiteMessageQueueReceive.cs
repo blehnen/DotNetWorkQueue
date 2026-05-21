@@ -41,7 +41,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         private readonly DatabaseExists _databaseExists;
         private readonly ITransportHandleMessage _handleMessage;
         private readonly ILogger _log;
-        private readonly SqLiteHeaders _sqLiteHeaders;
         private static bool _loggedMissingDb;
         private static readonly object LoggedMissingDbLock = new object();
 
@@ -58,15 +57,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="log">The log.</param>
         /// <param name="getFileNameFromConnection">The get file name from connection.</param>
         /// <param name="databaseExists">The database exists.</param>
-        /// <param name="sqLiteHeaders">Typed key resolver for reading hold-transaction connection state off the context (Phase 5).</param>
         public SqLiteMessageQueueReceive(QueueConsumerConfiguration configuration,
             IQueueCancelWork cancelWork,
             ITransportHandleMessage handleMessage,
             ReceiveMessage receiveMessages,
             ILogger log,
             IGetFileNameFromConnectionString getFileNameFromConnection,
-            DatabaseExists databaseExists,
-            SqLiteHeaders sqLiteHeaders)
+            DatabaseExists databaseExists)
         {
             Guard.NotNull(() => configuration, configuration);
             Guard.NotNull(() => cancelWork, cancelWork);
@@ -75,7 +72,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             Guard.NotNull(() => log, log);
             Guard.NotNull(() => getFileNameFromConnection, getFileNameFromConnection);
             Guard.NotNull(() => databaseExists, databaseExists);
-            Guard.NotNull(() => sqLiteHeaders, sqLiteHeaders);
 
             _log = log;
             _configuration = configuration;
@@ -84,7 +80,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             _receiveMessages = receiveMessages;
             _getFileNameFromConnection = getFileNameFromConnection;
             _databaseExists = databaseExists;
-            _sqLiteHeaders = sqLiteHeaders;
         }
         #endregion
 
@@ -196,20 +191,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="eventArgs">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void ContextOnRollback(object sender, EventArgs eventArgs)
         {
-            var context = (IMessageContext)sender;
-            _handleMessage.RollbackMessage.Rollback(context);
-
-            // Phase 5: when EnableHoldTransactionUntilMessageCommitted = true, the dequeue
-            // transaction was created in ReceiveMessage.GetMessage and stored on the
-            // context via SqLiteHeaders.ConnectionState. Roll it back here; Context_Cleanup
-            // disposes the resources. MarkCompleted's atomic CAS is the race-free gate;
-            // a non-zero check-then-act would leave a window where commit and rollback
-            // could both fire.
-            var state = context.Get(_sqLiteHeaders.ConnectionState);
-            if (state != null && state.MarkCompleted())
-            {
-                state.Transaction.Rollback();
-            }
+            _handleMessage.RollbackMessage.Rollback((IMessageContext)sender);
         }
 
         /// <summary>
@@ -219,19 +201,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="eventArgs">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void ContextOnCommit(object sender, EventArgs eventArgs)
         {
-            var context = (IMessageContext)sender;
-            _handleMessage.CommitMessage.Commit(context);
-
-            // Phase 5: commit the held dequeue transaction (hold-transaction path) after the
-            // library-side commit-message bookkeeping completes successfully. The user
-            // handler's business writes (via the inbox SqLiteRelationalWorkerNotification.Transaction
-            // capability) commit atomically with the dequeue here. MarkCompleted's atomic
-            // CAS is the race-free gate (see ContextOnRollback for the symmetric note).
-            var state = context.Get(_sqLiteHeaders.ConnectionState);
-            if (state != null && state.MarkCompleted())
-            {
-                state.Transaction.Commit();
-            }
+            _handleMessage.CommitMessage.Commit((IMessageContext)sender);
         }
 
         /// <summary>
@@ -240,26 +210,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="context">The context.</param>
         private void ContextCleanup(IMessageContext context)
         {
-            // Phase 5: release the held dequeue resources (hold-transaction path). Commit/rollback
-            // already happened in ContextOnCommit / ContextOnRollback if applicable; this
-            // just disposes. Safe to call even if the state was never set (option=false).
-            // Unsubscribe in a finally so a Dispose() throw can't leak handler subscriptions
-            // and re-fire on future receives.
-            try
-            {
-                var state = context.Get(_sqLiteHeaders.ConnectionState);
-                if (state != null)
-                {
-                    state.Transaction.Dispose();
-                    state.Connection.Dispose();
-                }
-            }
-            finally
-            {
-                context.Commit -= ContextOnCommit;
-                context.Rollback -= ContextOnRollback;
-                context.Cleanup -= Context_Cleanup;
-            }
+            context.Commit -= ContextOnCommit;
+            context.Rollback -= ContextOnRollback;
+            context.Cleanup -= Context_Cleanup;
         }
 
         #endregion
