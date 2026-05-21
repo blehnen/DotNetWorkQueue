@@ -72,6 +72,43 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.RegisterConditional(typeof(IRelationalProducerQueue<>), typeof(SqlServerRelationalProducerQueue<>), LifeStyles.Singleton);
             container.RegisterConditional(typeof(RelationalProducerQueue<>), typeof(SqlServerRelationalProducerQueue<>), LifeStyles.Singleton);
 
+            // Phase 3: inbox-pattern receive wiring (SqlServer side).
+            // Pre-register the relational concrete so the factory delegate below can resolve it.
+            // WorkerNotification is already registered by the core (ComponentRegistration line 217)
+            // and is auto-resolvable as a concrete type without a separate self-registration.
+            // The IWorkerNotification binding branches on EnableHoldTransactionUntilMessageCommitted:
+            // option=true returns the relational variant (implements IRelationalWorkerNotification),
+            // option=false returns the plain WorkerNotification (capability-cast fails on the user side).
+            // The try/catch around options resolution mirrors the IBaseTransportOptions pattern
+            // below (line ~110). The catch is intentionally broad: at container.Verify() /
+            // early-resolution time, optionsFactory.Create() can throw a wide range of
+            // exceptions (SimpleInjector.ActivationException when the factory itself isn't
+            // wired yet, InvalidOperationException when user options code touches a not-yet-
+            // reachable connection, etc.). The fallback path here is safe — we route to the
+            // plain WorkerNotification, and any genuine misconfiguration will resurface
+            // when downstream code tries to actually use the connection. Narrowing this
+            // catch breaks the unit-test contract for QueueCreatorTests, which depends on
+            // the downstream SqlException being the visible failure, not a wrapped
+            // resolution exception from this lambda.
+            container.Register<SqlServerRelationalWorkerNotification>(LifeStyles.Transient);
+            container.Register<IWorkerNotification>(() =>
+            {
+                bool holdTransaction;
+                try
+                {
+                    var optionsFactory = container.GetInstance<ITransportOptionsFactory>();
+                    var options = (SqlServerMessageQueueTransportOptions)optionsFactory.Create();
+                    holdTransaction = options.EnableHoldTransactionUntilMessageCommitted;
+                }
+                catch
+                {
+                    holdTransaction = false;
+                }
+                return holdTransaction
+                    ? (IWorkerNotification)container.GetInstance<SqlServerRelationalWorkerNotification>()
+                    : container.GetInstance<WorkerNotification>();
+            }, LifeStyles.Transient);
+
             //override so that we can use schema as needed
             container.Register<ITableNameHelper, SqlServerTableNameHelper>(LifeStyles.Singleton);
 
