@@ -269,17 +269,23 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <inheritdoc />
         IHistoryTransportOptions IBaseTransportOptions.HistoryOptions => HistoryOptions;
 
-        /// <summary>
-        /// If true, a transaction will be held until the message is finished processing.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if [enable hold transaction until message committed]; otherwise, <c>false</c>.
-        /// </value>
-        public bool EnableHoldTransactionUntilMessageCommitted
+        // The hold-transaction inbox pattern is structurally non-viable on SQLite due to
+        // single-writer / BEGIN EXCLUSIVE-on-write semantics: holding the dequeue transaction
+        // for the duration of a user handler blocks every other writer on the queue table,
+        // including the worker's own next dequeue attempt → deadlock. The property was once
+        // user-settable (and silently a no-op on the read path); it is now hidden from the
+        // SQLite-typed concrete options class so a SqLiteMessageQueueTransportOptions-typed
+        // variable cannot accidentally set it. The shared ITransportOptions interface still
+        // declares the member, so we satisfy it via an explicit interface implementation:
+        // the getter is hard-wired to false, the setter is discarded. Code that holds an
+        // ITransportOptions reference still compiles. Code that holds the concrete SQLite
+        // options type gets a compile error on access — which is honest, since the property
+        // never did anything useful on SQLite. See issue #149 for the SQLite outbox follow-up
+        // (which is viable because the caller chooses when to commit).
+        bool ITransportOptions.EnableHoldTransactionUntilMessageCommitted
         {
             get => false;
-            // ReSharper disable once ValueParameterNotUsed
-            set => FailIfReadOnly();
+            set { /* discarded — see comment above */ }
         }
 
         #endregion
