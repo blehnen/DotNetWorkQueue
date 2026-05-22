@@ -18,8 +18,9 @@ caller's resources.
 
 ### Prerequisites
 
-- Your queue transport must be **SqlServer or PostgreSQL**. Memory, Redis, LiteDb, and SQLite do
-  not implement `IRelationalProducerQueue<T>`. See [Supported Transports](#supported-transports).
+- Your queue transport must be **SqlServer, PostgreSQL, or SQLite** (SQLite with caveats; see
+  [SQLite Concurrency Caveat](#sqlite-concurrency-caveat)). Memory, Redis, and LiteDb do not
+  implement `IRelationalProducerQueue<T>`. See [Supported Transports](#supported-transports).
 - Queue tables must exist before the first `Send` call. Run `CreateQueue()` once at deployment
   time. See [Schema Deployment Prerequisite](#schema-deployment-prerequisite).
 
@@ -101,6 +102,15 @@ The same pattern works with `NpgsqlConnection`, `NpgsqlTransaction`, and
 identically. The only behavioral difference is in how the DB-name validator compares the
 connection's reported database against the queue's configured catalog. That difference is covered
 in [Database-Name Comparison Semantics](#database-name-comparison-semantics).
+
+#### SQLite note
+
+The same pattern works with `SqliteConnection`, `SqliteTransaction`, and
+`SqLiteMessageQueueInit` as the transport initializer. The capability cast succeeds identically.
+SQLite serializes all writers at the database-file level (`BEGIN EXCLUSIVE`-on-write semantics),
+so concurrent producer transactions against the same queue file will contend. See
+[SQLite Concurrency Caveat](#sqlite-concurrency-caveat) for caller patterns. Retry semantics
+match SqlServer/PostgreSQL per [Retry Contract](#retry-contract).
 
 ### Async and batch variants
 
