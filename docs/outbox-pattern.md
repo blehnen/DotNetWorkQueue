@@ -59,7 +59,7 @@ var conn = new QueueConnection(
 using var producerContainer = new QueueContainer<SqlServerMessageQueueInit>();
 using var producer = producerContainer.CreateProducer<OrderCreatedEvent>(conn);
 
-// Capability-cast: succeeds for SqlServer and PostgreSQL transports.
+// Capability-cast: succeeds for SqlServer, PostgreSQL, and SQLite transports.
 if (producer is not IRelationalProducerQueue<OrderCreatedEvent> relationalProducer)
     throw new InvalidOperationException("Transport does not support the outbox pattern.");
 
@@ -105,7 +105,8 @@ in [Database-Name Comparison Semantics](#database-name-comparison-semantics).
 
 #### SQLite note
 
-The same pattern works with `SqliteConnection`, `SqliteTransaction`, and
+The same pattern works with `SQLiteConnection`, `SQLiteTransaction` (from the
+`System.Data.SQLite` provider — **not** `Microsoft.Data.Sqlite`), and
 `SqLiteMessageQueueInit` as the transport initializer. The capability cast succeeds identically.
 SQLite serializes all writers at the database-file level (`BEGIN EXCLUSIVE`-on-write semantics),
 so concurrent producer transactions against the same queue file will contend. See
@@ -283,10 +284,10 @@ works correctly — atomicity is preserved — but callers must design around th
 - **Keep `Send` short.** Open the caller's transaction immediately before the business write and
   the `Send` call, then commit as soon as both succeed. A long-running transaction prolongs the
   exclusive lock window.
-- **Set `busy_timeout`.** Configure a pragmatic wait before SQLite returns `SQLITE_BUSY`. In
-  `IntegrationConnectionInfo`, execute `PRAGMA busy_timeout = 5000;` (5 seconds) on the
-  connection before opening the transaction. This converts most transient contention into a wait
-  rather than an immediate failure.
+- **Set `busy_timeout`.** Configure a pragmatic wait before SQLite returns `SQLITE_BUSY`. On the
+  open `SQLiteConnection` before calling `BeginTransaction()`, execute `PRAGMA busy_timeout = 5000;`
+  (5 seconds). This converts most transient contention into a wait rather than an immediate
+  failure.
 - **Low-concurrency designs are the right fit.** SQLite's outbox support is best suited for
   single-process producers or strictly sequential enqueue pipelines. High-throughput,
   multi-thread producer workloads are better served by SqlServer or PostgreSQL.
