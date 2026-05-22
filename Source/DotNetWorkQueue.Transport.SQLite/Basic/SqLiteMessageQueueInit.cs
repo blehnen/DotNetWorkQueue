@@ -47,6 +47,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<IReaderAsync, ReaderAsync>(LifeStyles.Singleton);
             container.Register<DatabaseExists>(LifeStyles.Singleton);
 
+            // outbox-pattern producer wiring (Send variant only; inbox is structurally non-viable on SQLite — see issue #149)
+            container.Register<IExternalDbNameExtractor, SqLiteExternalDbNameExtractor>(LifeStyles.Singleton);
+            container.Register<ExternalTransactionValidator, SqLiteExternalTransactionValidator>(LifeStyles.Singleton);
+            container.RegisterConditional(typeof(IProducerQueue<>), typeof(SqliteRelationalProducerQueue<>), LifeStyles.Singleton);
+            container.RegisterConditional(typeof(IRelationalProducerQueue<>), typeof(SqliteRelationalProducerQueue<>), LifeStyles.Singleton);
+            container.RegisterConditional(typeof(RelationalProducerQueue<>), typeof(SqliteRelationalProducerQueue<>), LifeStyles.Singleton);
+
             container.Register<IWriteMessageHistory, WriteMessageHistoryHandler>(LifeStyles.Singleton);
             container.Register<IQueryMessageHistory, QueryMessageHistoryHandler>(LifeStyles.Singleton);
             container.Register<IPurgeMessageHistory, PurgeMessageHistoryHandler>(LifeStyles.Singleton);
