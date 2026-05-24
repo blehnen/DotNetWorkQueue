@@ -37,6 +37,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Outbox
     [TestClass]
     public class SqliteOutboxRetryBypassTests : SqliteOutboxIntegrationTestBase
     {
+        [ClassInitialize]
+        public static void Init(TestContext _) => EnsureActivityListenerRegistered();
+
         /// <summary>
         /// Verifies that sending with a completed (already-committed) transaction throws on the
         /// first attempt and does not engage the Polly retry chain.
@@ -64,16 +67,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Outbox
             var completedTransaction = conn.BeginTransaction();
             completedTransaction.Commit();
 
-            Exception thrown = null;
             var stopwatch = Stopwatch.StartNew();
-            try
-            {
-                producer.RelationalProducer.Send(new FakeMessage(), new AdditionalMessageData(), completedTransaction);
-            }
-            catch (Exception ex)
-            {
-                thrown = ex;
-            }
+            // The validator's #2 check (null Connection on completed transaction) throws
+            // InvalidOperationException; SkipRetry=true short-circuits Polly before any retry.
+            var thrown = Assert.ThrowsExactly<InvalidOperationException>(() =>
+                producer.RelationalProducer.Send(new FakeMessage(), new AdditionalMessageData(), completedTransaction));
             stopwatch.Stop();
 
             // WHY: Polly's default 3-attempt retry chain with exponential back-off adds seconds. A

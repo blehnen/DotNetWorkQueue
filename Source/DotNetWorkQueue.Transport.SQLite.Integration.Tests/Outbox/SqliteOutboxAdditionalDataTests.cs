@@ -46,6 +46,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Outbox
     [TestClass]
     public class SqliteOutboxAdditionalDataTests : SqliteOutboxIntegrationTestBase
     {
+        [ClassInitialize]
+        public static void Init(TestContext _) => EnsureActivityListenerRegistered();
+
         private const byte ExpectedPriority = 7;
 
         /// <summary>

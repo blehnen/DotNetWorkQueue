@@ -234,11 +234,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 
         /// <summary>
         /// Async caller-supplied-transaction fork of <see cref="HandleAsync(SendMessageCommand)"/>.
-        /// Reuses the caller's <see cref="SQLiteTransaction"/> and its
-        /// <see cref="SQLiteConnection"/> for all queue INSERTs; never commits, rolls back,
-        /// closes, or disposes the caller's resources. Invoked from <see cref="HandleAsync"/>
-        /// when <see cref="RelationalSendMessageCommand.ExternalTransaction"/> is non-null.
+        /// Reuses the caller's transaction and its connection for all queue INSERTs; never
+        /// commits, rolls back, closes, or disposes the caller's resources. Invoked from
+        /// <see cref="HandleAsync"/> when <see cref="RelationalSendMessageCommand.ExternalTransaction"/>
+        /// is non-null.
         /// </summary>
+        /// <remarks>
+        /// The handler operates on <see cref="IDbTransaction"/> / <see cref="IDbConnection"/>
+        /// abstractions only — no downcast to the sealed <c>System.Data.SQLite</c> provider
+        /// types. Same discipline applied across the PG/SS transports (CLAUDE.md sealed-cast
+        /// lesson) so the method remains unit-testable with NSubstitute on the interfaces.
+        /// </remarks>
         /// <param name="commandSend">The send-message command carrying a non-null
         /// <see cref="RelationalSendMessageCommand.ExternalTransaction"/>.</param>
         /// <returns>The newly-inserted message ID.</returns>
@@ -250,10 +256,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             // Cast guard: HandleAsync() only routes here for RelationalSendMessageCommand
             // (the `commandSend is RelationalSendMessageCommand` pattern in the fork check),
             // so this cast is always safe. The producer subclass also enforces the
-            // DbTransaction subtype via GuardSQLiteTransaction before construction.
+            // SQLiteTransaction subtype via GuardSQLiteTransaction before construction.
             var relCommand = (RelationalSendMessageCommand)commandSend;
-            var sqliteTransaction = (SQLiteTransaction)relCommand.ExternalTransaction;
-            var sqliteConn = (SQLiteConnection)sqliteTransaction.Connection;
+            IDbTransaction transaction = relCommand.ExternalTransaction;
+            IDbConnection connection = transaction.Connection;
 
             var expiration = TimeSpan.Zero;
             if (_messageExpirationEnabled.Value)
@@ -272,20 +278,20 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 
             if (!(string.IsNullOrWhiteSpace(jobName) ||
                   _jobExistsHandler.Handle(new DoesJobExistQuery<IDbConnection, IDbTransaction>(
-                      jobName, scheduledTime, sqliteConn, sqliteTransaction)) == QueueStatuses.NotQueued))
+                      jobName, scheduledTime, connection, transaction)) == QueueStatuses.NotQueued))
             {
                 throw new DotNetWorkQueueException(
                     "Failed to insert record - the job has already been queued or processed");
             }
 
             long id;
-            using (var command = SendMessage.GetMainCommand(commandSend, sqliteConn, _commandCache, _headers, _serializer))
+            using (var command = SendMessage.GetMainCommand(commandSend, connection, _commandCache, _headers, _serializer))
             {
-                command.Transaction = sqliteTransaction;
+                command.Transaction = transaction;
                 await _readerAsync.ExecuteNonQueryAsync(command).ConfigureAwait(false);
-                using (var commandId = sqliteConn.CreateCommand())
+                using (var commandId = connection.CreateCommand())
                 {
-                    commandId.Transaction = sqliteTransaction;
+                    commandId.Transaction = transaction;
                     commandId.CommandText = "SELECT last_insert_rowid();";
                     id = Convert.ToInt64(await _readerAsync.ExecuteScalarAsync(commandId).ConfigureAwait(false));
                 }
@@ -298,10 +304,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             }
 
             using (var commandMeta = SendMessage.CreateMetaDataRecord(commandSend.MessageData.GetDelay(), expiration,
-                sqliteConn, commandSend.MessageToSend, commandSend.MessageData, _tableNameHelper, _headers,
+                connection, commandSend.MessageToSend, commandSend.MessageData, _tableNameHelper, _headers,
                 _options.Value, _getTime))
             {
-                commandMeta.Transaction = sqliteTransaction;
+                commandMeta.Transaction = transaction;
                 var param = commandMeta.CreateParameter();
                 param.ParameterName = "@QueueID";
                 param.DbType = DbType.Int64;
@@ -312,9 +318,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 
             if (_options.Value.EnableStatusTable)
             {
-                using (var commandStatus = CreateStatusRecord(sqliteConn, commandSend.MessageToSend, commandSend.MessageData))
+                using (var commandStatus = CreateStatusRecord(connection, commandSend.MessageToSend, commandSend.MessageData))
                 {
-                    commandStatus.Transaction = sqliteTransaction;
+                    commandStatus.Transaction = transaction;
                     var param = commandStatus.CreateParameter();
                     param.ParameterName = "@QueueID";
                     param.DbType = DbType.Int64;
@@ -327,7 +333,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             if (!string.IsNullOrWhiteSpace(jobName))
             {
                 _sendJobStatus.Handle(new SetJobLastKnownEventCommand<IDbConnection, IDbTransaction>(
-                    jobName, eventTime, scheduledTime, sqliteConn, sqliteTransaction));
+                    jobName, eventTime, scheduledTime, connection, transaction));
             }
 
             // Caller owns lifecycle: no Commit, Rollback, Close, or Dispose performed here.

@@ -36,6 +36,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Outbox
     [TestClass]
     public class SqliteOutboxValidationTests : SqliteOutboxIntegrationTestBase
     {
+        [ClassInitialize]
+        public static void Init(TestContext _) => EnsureActivityListenerRegistered();
+
         /// <summary>
         /// Guard: cross-database mismatch — transaction belongs to a DIFFERENT SQLite file/URI
         /// than the queue's database. Must throw before any INSERT lands in the queue table.
@@ -131,8 +134,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Outbox
             conn.Open();
             using var transaction = conn.BeginTransaction();
 
-            // Assert no throw — happy path.
-            producer.RelationalProducer.Send(new FakeMessage(), new AdditionalMessageData(), transaction);
+            // Assert no throw AND no send error — happy path.
+            var result = producer.RelationalProducer.Send(new FakeMessage(), new AdditionalMessageData(), transaction);
+            Assert.IsFalse(result.HasError, result.SendingException?.ToString());
 
             transaction.Commit();
 

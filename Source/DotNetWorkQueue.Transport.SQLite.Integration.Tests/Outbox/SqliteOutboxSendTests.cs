@@ -27,6 +27,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Outbox
     [TestClass]
     public class SqliteOutboxSendTests : SqliteOutboxIntegrationTestBase
     {
+        [ClassInitialize]
+        public static void Init(TestContext _) => EnsureActivityListenerRegistered();
+
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]

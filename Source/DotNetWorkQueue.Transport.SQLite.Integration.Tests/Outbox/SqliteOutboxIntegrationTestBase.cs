@@ -19,6 +19,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Diagnostics;
+using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Messages;
@@ -53,6 +55,27 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Outbox
     /// </remarks>
     public abstract class SqliteOutboxIntegrationTestBase
     {
+        // ---- ActivityListener (mandatory per CLAUDE.md trace-decorator lesson) ----
+        // Without an ActivityListener registered against the DotNetWorkQueue ActivitySource,
+        // ActivitySource.StartActivity() returns null and trace decorators short-circuit
+        // silently, leaving them at 0% coverage. Mirrors the PG/SS inbox base pattern.
+        private static readonly object ListenerLock = new();
+        private static ActivityListener _listener;
+
+        protected static void EnsureActivityListenerRegistered()
+        {
+            lock (ListenerLock)
+            {
+                if (_listener != null) return;
+                _listener = new ActivityListener
+                {
+                    ShouldListenTo = src => src.Name.StartsWith("DotNetWorkQueue", StringComparison.Ordinal),
+                    Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData
+                };
+                ActivitySource.AddActivityListener(_listener);
+            }
+        }
+
         /// <summary>
         /// Generates a fresh queue name that satisfies DNQ's alphanumeric/underscore/dot constraint
         /// (no hyphens — <see cref="Guid.ToString(string)"/> with "N" strips them).
@@ -76,8 +99,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Outbox
             public SqLiteMessageQueueCreation OCreation { get; init; }
             public ICreationScope Scope { get; init; }
 
+            private int _disposed;
             public void Dispose()
             {
+                if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
                 try { OCreation?.RemoveQueue(); } catch { /* swallow — best-effort cleanup */ }
                 OCreation?.Dispose();
                 Scope?.Dispose();
@@ -106,7 +131,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Outbox
             oCreation.Options.EnableMessageExpiration = false;
             // EnableHoldTransactionUntilMessageCommitted is not set here — it is an explicit
             // ITransportOptions implementation on SqLiteMessageQueueTransportOptions, hardwired
-            // to false with a discarded setter (SQLite BEGIN EXCLUSIVE semantics make hold-tx
+            // to false with a discarded setter (SQLite BEGIN EXCLUSIVE semantics make hold-transaction
             // structurally non-viable; see issue #149 and the class XML doc above).
             oCreation.Options.EnablePriority = enablePriority;
 
@@ -132,8 +157,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Outbox
             public IProducerQueue<FakeMessage> Producer { get; init; }
             public IRelationalProducerQueue<FakeMessage> RelationalProducer { get; init; }
 
+            private int _disposed;
             public void Dispose()
             {
+                if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
                 Producer?.Dispose();
                 Creator?.Dispose();
             }
