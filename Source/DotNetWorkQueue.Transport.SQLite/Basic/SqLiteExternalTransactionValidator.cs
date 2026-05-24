@@ -26,24 +26,28 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
     /// <summary>
-    /// SQLite-specific subclass of <see cref="ExternalTransactionValidator"/> that applies
-    /// <see cref="Path.GetFileNameWithoutExtension"/> symmetrically to both sides of the
-    /// database-name check before the <see cref="StringComparison.Ordinal"/> compare.
+    /// SQLite-specific subclass of <see cref="ExternalTransactionValidator"/> that canonicalizes
+    /// both sides of the database-name check by parsing each connection string through
+    /// <c>SQLiteConnectionStringBuilder</c> (taking <c>FullUri</c> when set, otherwise
+    /// <c>DataSource</c>) and applying <see cref="Path.GetFileNameWithoutExtension"/> before the
+    /// <see cref="StringComparison.Ordinal"/> compare.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// SQLite requires this normalization because <see cref="IConnectionInformation.Container"/>
-    /// returns the full file path including the <c>.db3</c> extension (e.g.
-    /// <c>/data/myqueue.db3</c>), while the underlying connection's
-    /// <c>DataSource</c> property returns the extension-stripped stem on Linux
-    /// (e.g. <c>myqueue</c>). A raw <see cref="StringComparison.Ordinal"/> compare against the
-    /// full path would always fail even when the caller's transaction targets the correct file.
+    /// SQLite requires this normalization because the underlying connection's reported
+    /// <c>DataSource</c> diverges from the queue's <see cref="IConnectionInformation.Container"/>
+    /// in two ways: (1) Linux strips <c>.db3</c> extensions after <c>Open()</c> while Windows
+    /// preserves them; (2) <c>FullUri=file:NAME?...</c> connection strings cause
+    /// <c>SQLiteConnectionStringBuilder.DataSource</c> to be empty while the opened connection
+    /// reports the URI as <c>DataSource</c>. The base implementation's raw container compare
+    /// would always fail for FullUri form.
     /// </para>
     /// <para>
-    /// <see cref="Path.GetFileNameWithoutExtension"/> is applied to both sides so:
+    /// Both sides are canonicalized by <c>SqLiteExternalDbNameExtractor.Canonicalize</c> so:
     /// <list type="bullet">
-    ///   <item><description>Full-path Container values lose their directory prefix and extension.</description></item>
-    ///   <item><description>The <c>:memory:</c> special value passes through unchanged (no extension to strip).</description></item>
+    ///   <item><description>Full-path <c>Data Source=</c> values lose their directory prefix and extension.</description></item>
+    ///   <item><description><c>FullUri=file:NAME?...</c> values yield the file portion of the URI.</description></item>
+    ///   <item><description>The <c>:memory:</c> special value passes through unchanged.</description></item>
     ///   <item><description>The comparison remains <see cref="StringComparison.Ordinal"/>, matching
     ///       the PostgreSQL and SQL Server transports per CONTEXT-1 D1.</description></item>
     /// </list>
@@ -70,9 +74,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
         /// <inheritdoc />
         /// <remarks>
-        /// Applies <see cref="Path.GetFileNameWithoutExtension"/> to both the extracted
-        /// database name and the configured container before the Ordinal comparison.
-        /// Checks #1–#3 are byte-equivalent to the base implementation.
+        /// Canonicalizes both sides via <c>SqLiteExternalDbNameExtractor.Canonicalize</c>
+        /// before the Ordinal comparison. Checks #1 and #2 (null transaction, null/closed
+        /// connection) are byte-equivalent to the base implementation.
         /// </remarks>
         public override void Validate(DbTransaction transaction)
         {
@@ -91,10 +95,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                     $"(state = {connection.State}). The connection must be open before " +
                     $"the producer can enlist its commands in the caller's transaction.");
 
-            var actualRaw = _extractor.Extract(connection);
-            var expectedRaw = _connectionInfo.Container;
-            var actual = string.IsNullOrEmpty(actualRaw) ? actualRaw : Path.GetFileNameWithoutExtension(actualRaw);
-            var expected = string.IsNullOrEmpty(expectedRaw) ? expectedRaw : Path.GetFileNameWithoutExtension(expectedRaw);
+            var actual = _extractor.Extract(connection);
+            var expected = SqLiteExternalDbNameExtractor.Canonicalize(_connectionInfo.ConnectionString);
             if (!string.Equals(actual, expected, StringComparison.Ordinal))
                 throw new InvalidOperationException(
                     $"Caller-supplied transaction's connection points to database " +

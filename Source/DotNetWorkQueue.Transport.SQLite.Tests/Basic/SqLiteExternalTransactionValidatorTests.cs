@@ -29,11 +29,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
     [TestClass]
     public class SqLiteExternalTransactionValidatorTests
     {
-        // Builds the SUT wired to NSubstitute stubs for all injected interfaces/abstract types.
-        // extractorResult: what IExternalDbNameExtractor.Extract returns (the raw datasource stem).
-        // containerValue:  what IConnectionInformation.Container returns (the raw configured path).
+        // Builds the SUT wired to NSubstitute stubs.
+        // extractorResult:  what IExternalDbNameExtractor.Extract returns on the connection side.
+        // queueConnectionString: queue's IConnectionInformation.ConnectionString — the validator
+        //                        canonicalizes this via SqLiteExternalDbNameExtractor.Canonicalize
+        //                        to compute the expected stem.
         private static (SqLiteExternalTransactionValidator sut, DbTransaction transaction, DbConnection conn)
-            BuildSut(string extractorResult, string containerValue,
+            BuildSut(string extractorResult, string queueConnectionString,
                      ConnectionState connState = ConnectionState.Open,
                      bool nullConnectionOnTx = false)
         {
@@ -41,13 +43,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             extractor.Extract(Arg.Any<DbConnection>()).Returns(extractorResult);
 
             var connInfo = Substitute.For<IConnectionInformation>();
-            connInfo.Container.Returns(containerValue);
+            connInfo.ConnectionString.Returns(queueConnectionString);
 
             var conn = Substitute.For<DbConnection>();
             conn.State.Returns(connState);
 
             var transaction = Substitute.For<DbTransaction>();
-            // DbTransaction.Connection getter — NSubstitute on abstract base class (not sealed type).
             transaction.Connection.Returns(nullConnectionOnTx ? null : conn);
 
             return (new SqLiteExternalTransactionValidator(extractor, connInfo), transaction, conn);
@@ -58,16 +59,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         [TestMethod]
         public void Validate_NullTransaction_ThrowsArgumentNullException()
         {
-            // Base check #1 must survive the override.
-            var (sut, _, _) = BuildSut("queue", "queue");
+            var (sut, _, _) = BuildSut("queue", "Data Source=queue;Version=3;");
             Assert.ThrowsExactly<ArgumentNullException>(() => sut.Validate(null));
         }
 
         [TestMethod]
         public void Validate_NullConnection_ThrowsInvalidOperationExceptionWithNullConnectionInMessage()
         {
-            // Base check #2: disposed/completed transaction has no Connection.
-            var (sut, transaction, _) = BuildSut("queue", "queue", nullConnectionOnTx: true);
+            var (sut, transaction, _) = BuildSut("queue", "Data Source=queue;Version=3;", nullConnectionOnTx: true);
             var ex = Assert.ThrowsExactly<InvalidOperationException>(() => sut.Validate(transaction));
             StringAssert.Contains(ex.Message, "null Connection");
         }
@@ -75,8 +74,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         [TestMethod]
         public void Validate_ConnectionNotOpen_ThrowsInvalidOperationExceptionWithStateInMessage()
         {
-            // Base check #3: connection must be Open.
-            var (sut, transaction, _) = BuildSut("queue", "queue", connState: ConnectionState.Closed);
+            var (sut, transaction, _) = BuildSut("queue", "Data Source=queue;Version=3;", connState: ConnectionState.Closed);
             var ex = Assert.ThrowsExactly<InvalidOperationException>(() => sut.Validate(transaction));
             StringAssert.Contains(ex.Message, "Closed");
         }
@@ -86,38 +84,65 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         [TestMethod]
         public void Validate_Db3RoundTrip_NormalizesAndMatches_DoesNotThrow()
         {
-            // Primary landmine from PR #143: Container is a full path with .db3 extension;
-            // the connection DataSource returns only the stem. Path.GetFileNameWithoutExtension
-            // on both sides must produce equal stems so no exception is raised.
-            var (sut, transaction, _) = BuildSut(extractorResult: "myqueue",
-                                                  containerValue: "/data/myqueue.db3");
+            // Linux runtime: System.Data.SQLite strips .db3 from the opened connection's
+            // DataSource, so the extractor returns "myqueue"; the queue's connection string
+            // has the full path, which Canonicalize reduces to the same stem.
+            var (sut, transaction, _) = BuildSut(
+                extractorResult: "myqueue",
+                queueConnectionString: "Data Source=/data/myqueue.db3;Version=3;");
             sut.Validate(transaction); // must not throw
         }
 
         [TestMethod]
         public void Validate_MemoryMode_NormalizesAndMatches_DoesNotThrow()
         {
-            // :memory: has no extension, so GetFileNameWithoutExtension returns ":memory:" on
-            // both sides; Ordinal comparison succeeds.
-            var (sut, transaction, _) = BuildSut(extractorResult: ":memory:",
-                                                  containerValue: ":memory:");
-            sut.Validate(transaction); // must not throw
+            var (sut, transaction, _) = BuildSut(
+                extractorResult: ":memory:",
+                queueConnectionString: "Data Source=:memory:;Version=3;");
+            sut.Validate(transaction);
+        }
+
+        [TestMethod]
+        public void Validate_FullUriSharedMemory_NormalizesAndMatches_DoesNotThrow()
+        {
+            // FullUri=file:NAME?mode=memory&cache=shared is the shared-in-memory form used by
+            // the SQLite integration test suite (IntegrationConnectionInfo(inMemory:true)).
+            // Both sides go through Canonicalize → SQLiteConnectionStringBuilder, which picks
+            // FullUri (not DataSource — DataSource is empty for this form).
+            const string fullUri = "file:Iabc?mode=memory&cache=shared";
+            var (sut, transaction, _) = BuildSut(
+                extractorResult: fullUri,
+                queueConnectionString: $"FullUri={fullUri};Version=3;");
+            sut.Validate(transaction);
         }
 
         [TestMethod]
         public void Validate_DbNameMismatch_ThrowsInvalidOperationExceptionWithNormalizedValues()
         {
-            // Mismatch error must contain normalized stems, not the raw Container path.
-            // "queueA" vs "/data/queueB.db3" → normalized to "queueA" vs "queueB".
-            // Message must contain both stems and must NOT contain the raw ".db3" path.
-            var (sut, transaction, _) = BuildSut(extractorResult: "queueA",
-                                                  containerValue: "/data/queueB.db3");
+            var (sut, transaction, _) = BuildSut(
+                extractorResult: "queueA",
+                queueConnectionString: "Data Source=/data/queueB.db3;Version=3;");
             var ex = Assert.ThrowsExactly<InvalidOperationException>(() => sut.Validate(transaction));
             StringAssert.Contains(ex.Message, "queueA");
             StringAssert.Contains(ex.Message, "queueB");
-            // Prove normalized values are used, not raw paths:
             StringAssert.DoesNotMatch(ex.Message,
                 new System.Text.RegularExpressions.Regex(@"queueB\.db3"));
+        }
+
+        [TestMethod]
+        public void Validate_FullUriMismatch_ThrowsAndReportsBothUris()
+        {
+            // The pre-fix bug: extractor returned the raw URI while the queue side returned
+            // empty (SQLiteConnectionStringBuilder("FullUri=...").DataSource is empty), so
+            // every FullUri test exploded with `'' != 'file:...'`. After the fix both sides
+            // canonicalize via FullUri, so genuine FullUri-name mismatches still throw with
+            // both URIs visible in the message.
+            var (sut, transaction, _) = BuildSut(
+                extractorResult: "file:Iabc?mode=memory&cache=shared",
+                queueConnectionString: "FullUri=file:Ixyz?mode=memory&cache=shared;Version=3;");
+            var ex = Assert.ThrowsExactly<InvalidOperationException>(() => sut.Validate(transaction));
+            StringAssert.Contains(ex.Message, "file:Iabc");
+            StringAssert.Contains(ex.Message, "file:Ixyz");
         }
     }
 }
