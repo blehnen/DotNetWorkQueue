@@ -40,8 +40,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
     ///       <see cref="InvalidOperationException"/> with both database names in the
     ///       message.</description></item>
     /// </list>
+    /// Derived classes may extend this type to apply transport-specific normalization
+    /// (for example, path-stem extraction for file-based databases) before the
+    /// database-name check without altering the behavior of the PostgreSQL or
+    /// SQL Server transports that use the base class directly.
     /// </summary>
-    public sealed class ExternalTransactionValidator
+    public class ExternalTransactionValidator
     {
         private readonly IExternalDbNameExtractor _extractor;
         private readonly IConnectionInformation _connectionInfo;
@@ -70,7 +74,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <exception cref="ArgumentNullException">Transaction is null.</exception>
         /// <exception cref="InvalidOperationException">Connection is null, not open, or
         /// points to a different database than the queue's configured container.</exception>
-        public void Validate(DbTransaction transaction)
+        /// <remarks>Derived classes may override this method to apply transport-specific
+        /// normalization (such as path-stem stripping) before the database-name check.</remarks>
+        public virtual void Validate(DbTransaction transaction)
         {
             if (transaction == null)
                 throw new ArgumentNullException(nameof(transaction));

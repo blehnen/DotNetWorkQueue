@@ -18,8 +18,9 @@ caller's resources.
 
 ### Prerequisites
 
-- Your queue transport must be **SqlServer or PostgreSQL**. Memory, Redis, LiteDb, and SQLite do
-  not implement `IRelationalProducerQueue<T>`. See [Supported Transports](#supported-transports).
+- Your queue transport must be **SqlServer, PostgreSQL, or SQLite** (SQLite with caveats; see
+  [SQLite Concurrency Caveat](#sqlite-concurrency-caveat)). Memory, Redis, and LiteDb do not
+  implement `IRelationalProducerQueue<T>`. See [Supported Transports](#supported-transports).
 - Queue tables must exist before the first `Send` call. Run `CreateQueue()` once at deployment
   time. See [Schema Deployment Prerequisite](#schema-deployment-prerequisite).
 
@@ -58,7 +59,7 @@ var conn = new QueueConnection(
 using var producerContainer = new QueueContainer<SqlServerMessageQueueInit>();
 using var producer = producerContainer.CreateProducer<OrderCreatedEvent>(conn);
 
-// Capability-cast: succeeds for SqlServer and PostgreSQL transports.
+// Capability-cast: succeeds for SqlServer, PostgreSQL, and SQLite transports.
 if (producer is not IRelationalProducerQueue<OrderCreatedEvent> relationalProducer)
     throw new InvalidOperationException("Transport does not support the outbox pattern.");
 
@@ -101,6 +102,16 @@ The same pattern works with `NpgsqlConnection`, `NpgsqlTransaction`, and
 identically. The only behavioral difference is in how the DB-name validator compares the
 connection's reported database against the queue's configured catalog. That difference is covered
 in [Database-Name Comparison Semantics](#database-name-comparison-semantics).
+
+#### SQLite note
+
+The same pattern works with `SQLiteConnection`, `SQLiteTransaction` (from the
+`System.Data.SQLite` provider — **not** `Microsoft.Data.Sqlite`), and
+`SqLiteMessageQueueInit` as the transport initializer. The capability cast succeeds identically.
+SQLite serializes all writers at the database-file level (`BEGIN EXCLUSIVE`-on-write semantics),
+so concurrent producer transactions against the same queue file will contend. See
+[SQLite Concurrency Caveat](#sqlite-concurrency-caveat) for caller patterns. Retry semantics
+match SqlServer/PostgreSQL per [Retry Contract](#retry-contract).
 
 ### Async and batch variants
 
@@ -233,6 +244,7 @@ that retrieves the name from the open connection:
 |------------|-------------------------------------|----------------|
 | SqlServer  | `SqlServerExternalDbNameExtractor`  | `Ordinal`      |
 | PostgreSQL | `PostgreSqlExternalDbNameExtractor` | `Ordinal`      |
+| SQLite     | `SqLiteExternalDbNameExtractor`     | `Ordinal`      |
 
 Both extractors return `connection.Database` verbatim, with no `ToUpperInvariant` or other
 normalization. The comparison is `StringComparison.Ordinal` (byte-for-byte). Configure the
@@ -243,15 +255,64 @@ For SqlServer, `SqlConnection.Database` after open returns the canonical name fr
 For PostgreSQL, `NpgsqlConnection.Database` reflects the value from the connection string
 (PostgreSQL identifiers are case-sensitive unless unquoted).
 
+For SQLite, `SqLiteExternalDbNameExtractor` returns `Path.GetFileNameWithoutExtension(DataSource)`
+— the bare file stem with no directory and no extension. `SqLiteExternalTransactionValidator`
+applies the same `Path.GetFileNameWithoutExtension` to `IConnectionInformation.Container` before
+the `Ordinal` compare, so both sides are normalized symmetrically. Configure the `Container` key
+in your connection string with the file stem (e.g., `myqueue`) or the full path including the
+`.db3` extension (e.g., `/data/myqueue.db3`) — the extractor strips both forms to the same stem.
+For in-memory databases, `Container` should be `:memory:` and `GetFileNameWithoutExtension`
+returns `:memory:` unchanged.
+
 If the names do not match, `Send` throws `InvalidOperationException` before writing any data.
 The exception message includes both the connection's reported name and the queue's expected name.
+
+### SQLite Concurrency Caveat
+
+SQLite serializes all writers at the database-file level via `BEGIN EXCLUSIVE` semantics. When
+a caller-supplied transaction is open and `Send` is executing inside it, an exclusive write lock
+is held on the queue's database file for the duration of that transaction. No other writer
+— including any concurrent producer thread or consumer worker thread writing to the same queue
+tables — can acquire a write lock until the caller commits or rolls back.
+
+This is not a code defect; it is SQLite's single-writer architecture. The outbox pattern still
+works correctly — atomicity is preserved — but callers must design around the serialization:
+
+- **Serialize producers.** Avoid opening concurrent outbox transactions across threads or
+  processes against the same SQLite database file. Concurrent transactions will contend on the
+  write lock, producing `SQLITE_BUSY` errors on the losing side.
+- **Keep `Send` short.** Open the caller's transaction immediately before the business write and
+  the `Send` call, then commit as soon as both succeed. A long-running transaction prolongs the
+  exclusive lock window.
+- **Set `busy_timeout`.** Configure a pragmatic wait before SQLite returns `SQLITE_BUSY`. On the
+  open `SQLiteConnection` before calling `BeginTransaction()`, execute `PRAGMA busy_timeout = 5000;`
+  (5 seconds). This converts most transient contention into a wait rather than an immediate
+  failure.
+- **Low-concurrency designs are the right fit.** SQLite's outbox support is best suited for
+  single-process producers or strictly sequential enqueue pipelines. High-throughput,
+  multi-thread producer workloads are better served by SqlServer or PostgreSQL.
+
+**In-memory vs on-disk.** Both modes support the outbox pattern. In-memory shared-cache
+(`?mode=memory&cache=shared`) follows the same serialization rules. On-disk databases benefit
+from WAL mode (configure via `PRAGMA journal_mode=WAL;` on the connection before use), which
+improves read concurrency but does not change the single-writer constraint.
+
+**Inbox pattern.** `IRelationalWorkerNotification` (the inbox / hold-transaction-until-committed
+pattern) is permanently out of scope for SQLite. The same `BEGIN EXCLUSIVE` semantics that
+require care on the producer side make the inbox pattern structurally non-viable: holding the
+dequeue transaction for the duration of a user handler blocks the consumer worker's own next
+dequeue attempt, producing a deadlock. See [issue #149](https://github.com/blehnen/DotNetWorkQueue/issues/149).
 
 ### Supported Transports
 
 - **Supported:** SqlServer, PostgreSQL. The `IProducerQueue<T>` instance returned by these
   transports implements `IRelationalProducerQueue<T>` and the `is` capability cast succeeds.
 
-- **Not supported:** Memory, Redis, LiteDb, SQLite. The producer instances returned by these
-  transports do not implement `IRelationalProducerQueue<T>`. The `is` cast returns false; no
+- **Supported with caveats:** SQLite. The capability cast succeeds. SQLite serializes all writers
+  at the database-file level; see [SQLite Concurrency Caveat](#sqlite-concurrency-caveat) before
+  using this transport in a concurrent producer scenario.
+
+- **Not supported:** Memory, Redis, LiteDb. The producer instances returned by these transports
+  do not implement `IRelationalProducerQueue<T>`. The `is` cast returns false; no
   `NotSupportedException` is thrown. The interface is simply absent, so a misconfigured caller
   fails at the cast rather than at the first `Send`.
