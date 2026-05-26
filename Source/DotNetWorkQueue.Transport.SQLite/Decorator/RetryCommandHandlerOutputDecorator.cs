@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 
 using System;
-using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Validation;
@@ -51,9 +50,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         public TOutput Handle(TCommand command)
         {
             Guard.NotNull(() => command, command);
-
-            if (command is IRetrySkippable skippable && skippable.SkipRetry)
-                return _decorated.Handle(command);
 
             ResiliencePipeline pipeline = null;
             try
