@@ -1,3 +1,11 @@
+### 0.9.37 — 2026-05-28
+- CVE fix: `OpenTelemetry` 1.15.2 → 1.15.3 — clears the transitive `OpenTelemetry.Api` advisory CVE-2026-40894 / GHSA-g94r-2vxg-569j (NU1902, moderate: excessive memory allocation when parsing OpenTelemetry propagation headers)
+- Removed the now-obsolete `<WarningsNotAsErrors>NU1902</WarningsNotAsErrors>` from `Transport.SQLite.csproj` (added in 0.9.36 / ISSUE-032 solely to keep that advisory visible without failing the Release build)
+- Dependency refresh across `Directory.Packages.props` — shipping: `Microsoft.Data.SqlClient` 7.0.1, `Npgsql` 10.0.3, `SimpleInjector` 5.5.2, `StackExchange.Redis` 2.13.17, `MudBlazor` 9.5.0, `CronExpressionDescriptor` 2.48.0, `Cronos` 0.13.0, `Microsoft.SourceLink.GitHub` 10.0.300, and `Microsoft.Extensions.Caching.Memory` / `Microsoft.Extensions.Configuration.Binder` / `Microsoft.Extensions.Http` / `System.Diagnostics.DiagnosticSource` / `System.Security.Cryptography.Xml` → 10.0.8
+- Test tooling: `coverlet.collector` 8.0.1 → 10.0.1 (2-major), `MSTest.TestAdapter` / `MSTest.TestFramework` 4.2.3, `Microsoft.NET.Test.Sdk` 18.6.0, `Microsoft.Testing.Extensions.Retry` 2.2.3, `bunit` 2.7.2, `Microsoft.Playwright` / `Microsoft.Playwright.MSTest` 1.60.0, `Microsoft.AspNetCore.TestHost` (net10) 10.0.8
+- `FluentAssertions` intentionally held at 6.12.2 (last MIT-licensed release); `Microsoft.AspNetCore.TestHost` net8 target held on the 8.0.x line
+- No API surface changes
+
 ### 0.9.36 — 2026-05-16
 - Feature: transactional outbox pattern on SqlServer and PostgreSQL transports via opt-in `IRelationalProducerQueue<T>` capability cast; the caller supplies a `DbTransaction` and the queue INSERT joins the caller's business transaction (GitHub #138)
 - Memory, Redis, LiteDb, and SQLite are unchanged; callers that don't reach for the new interface see the same `IProducerQueue<T>` they always have
