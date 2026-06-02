@@ -15,6 +15,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             CommandCache[CommandStringTypes.GetDashboardStatusCounts] = "SELECT status counts";
             CommandCache[CommandStringTypes.GetDashboardMessages] = "SELECT messages{0} ORDER BY QueuedDateTime DESC";
             CommandCache[CommandStringTypes.GetDashboardMessageCount] = "SELECT COUNT(*) FROM meta";
+            CommandCache[CommandStringTypes.GetQueueCountAll] = "SELECT COUNT(*) FROM meta";
+            CommandCache[CommandStringTypes.GetQueueCountStatus] = "SELECT COUNT(*) FROM meta WHERE Status = @Status";
             CommandCache[CommandStringTypes.GetDashboardMessageDetail] = "SELECT detail{0} WHERE QueueID = @QueueId";
             CommandCache[CommandStringTypes.GetDashboardStaleMessages] = "SELECT stale{0}";
             CommandCache[CommandStringTypes.GetDashboardErrorMessages] = "SELECT errors";
