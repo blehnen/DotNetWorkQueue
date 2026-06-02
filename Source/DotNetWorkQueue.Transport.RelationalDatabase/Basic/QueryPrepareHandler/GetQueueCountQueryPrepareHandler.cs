@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
                 var status = dbCommand.CreateParameter();
                 status.ParameterName = "@Status";
                 status.DbType = DbType.Int32;
-                status.Value = query.Status.Value;
+                status.Value = (int)query.Status.Value;
                 dbCommand.Parameters.Add(status);
             }
             else
