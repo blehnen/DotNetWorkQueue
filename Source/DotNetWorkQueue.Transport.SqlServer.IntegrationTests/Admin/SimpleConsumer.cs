@@ -21,7 +21,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Integration.Tests.Admin
                     false, !useTransactions, useTransactions,
                     false,
                     false, !useTransactions, true, false),
-                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
+                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount,
+                enableStatus: !useTransactions);
         }
     }
 }

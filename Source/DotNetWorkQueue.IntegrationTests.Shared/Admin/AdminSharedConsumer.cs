@@ -14,7 +14,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Admin
             int runTime, int messageCount,
             int workerCount, int timeOut,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, bool enableChaos,
-            ICreationScope scope)
+            ICreationScope scope, bool enableStatus = false)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -50,6 +50,17 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Admin
                             var count = admin.Count(null);
                             Assert.AreEqual(messageCount, count);
 
+                            //Deterministic status-filtered count check. Reproduces issue #155: under Npgsql 10.x
+                            //the QueueStatusAdmin enum was bound to an integer parameter without a cast, throwing
+                            //InvalidCastException before the fix. All messages are produced and waiting before the
+                            //consumer starts, so these counts are timing-independent. Only valid when the status
+                            //table is enabled (otherwise the count query ignores the filter and returns the total).
+                            if (enableStatus)
+                            {
+                                Assert.AreEqual(messageCount, admin.Count(QueueStatusAdmin.Waiting));
+                                Assert.AreEqual(0, admin.Count(QueueStatusAdmin.Processing));
+                            }
+
                             //start looking for work
                             queue.Start<TMessage>((message, notifications) =>
                             {
@@ -57,7 +68,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Admin
                                     waitForFinish);
                             }, CreateNotifications.Create(logProvider));
 
-                            if (messageCount <= workerCount && runTime > 10)
+                            if (enableStatus && messageCount <= workerCount && runTime > 10)
                             {
                                 Thread.Sleep(runTime / 2);
                                 var working = admin.Count(QueueStatusAdmin.Processing);
@@ -65,7 +76,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Admin
                                 Assert.AreEqual(0, waiting);
                                 Assert.AreEqual(messageCount, working);
                             }
-                            else if (runTime > 10)
+                            else if (enableStatus && runTime > 10)
                             {
                                 Thread.Sleep(runTime / 2);
                                 var working = admin.Count(QueueStatusAdmin.Processing);
