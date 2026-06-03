@@ -1,3 +1,9 @@
+### 0.9.38 — 2026-06-03
+- Fix: `IAdminApi.Count(connId, QueueStatusAdmin.*)` on the PostgreSQL transport threw `InvalidCastException` under Npgsql 10.x — the shared relational `GetQueueCountQueryPrepareHandler` bound the raw `QueueStatusAdmin` enum to an `Int32` parameter, which Npgsql 10.x's stricter writer rejects (pre-10.x silently coerced it). Now casts the enum to `int` (GitHub #155)
+- Fix: the same status-filtered admin `Count` path threw `SQLiteException: unknown error — Insufficient parameters supplied to the command` on the SQLite transport — the parameter was bound as `@Status` while the SQL placeholder is lowercase `@status`, and System.Data.SQLite binds parameter names case-sensitively (Npgsql and Microsoft.Data.SqlClient fold case, so PG and SQL Server were unaffected). Parameter name now matches the SQL casing (GitHub #155)
+- Test: deterministic status-filtered `Count` coverage across PostgreSQL, SQL Server, and SQLite (the path was previously dead behind a `runTime > 10` guard that never ran, which is why both bugs shipped) plus a unit guard on `GetQueueCountQueryPrepareHandler`
+- No API surface changes
+
 ### 0.9.37 — 2026-05-28
 - CVE fix: `OpenTelemetry` 1.15.2 → 1.15.3 — clears the transitive `OpenTelemetry.Api` advisory CVE-2026-40894 / GHSA-g94r-2vxg-569j (NU1902, moderate: excessive memory allocation when parsing OpenTelemetry propagation headers)
 - Removed the now-obsolete `<WarningsNotAsErrors>NU1902</WarningsNotAsErrors>` from `Transport.SQLite.csproj` (added in 0.9.36 / ISSUE-032 solely to keep that advisory visible without failing the Release build)
