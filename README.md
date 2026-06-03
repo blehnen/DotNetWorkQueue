@@ -43,7 +43,7 @@ See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for in-depth doc
 
 **Docker**
 
-A pre-built Docker image runs both the Dashboard UI and API in a single container — no separate API container needed:
+A pre-built Docker image runs both the Dashboard UI and API in one container, so you don't have to run the API separately:
 
 ```bash
 docker pull blehnen74/dotnetworkqueue-dashboard:latest
