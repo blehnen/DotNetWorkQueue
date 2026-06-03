@@ -42,9 +42,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             handler.Handle(new GetQueueCountQuery("conn", QueueStatusAdmin.Waiting), command, CommandStringTypes.GetQueueCountStatus);
 
             var parameters = (DataParameterCollection)command.Parameters;
-            var status = parameters.First(p => p.ParameterName == "@Status");
+            // Parameter name must match the SQL placeholder casing exactly. System.Data.SQLite binds
+            // parameters case-sensitively, so "@Status" against a "@status" placeholder throws
+            // "Insufficient parameters supplied to the command" (issue #155 follow-up).
+            Assert.AreEqual(1, parameters.Count);
+            var status = parameters.First();
+            Assert.AreEqual("@status", status.ParameterName);
             Assert.AreEqual(DbType.Int32, status.DbType);
-            Assert.IsInstanceOfType(status.Value, typeof(int), "@Status must be bound as an int, not the QueueStatusAdmin enum");
+            Assert.IsInstanceOfType(status.Value, typeof(int), "@status must be bound as an int, not the QueueStatusAdmin enum");
             Assert.AreEqual((int)QueueStatusAdmin.Waiting, status.Value);
         }
 
@@ -56,7 +61,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
 
             handler.Handle(new GetQueueCountQuery("conn", QueueStatusAdmin.Processing), command, CommandStringTypes.GetQueueCountStatus);
 
-            StringAssert.Contains(command.CommandText, "@Status");
+            StringAssert.Contains(command.CommandText, "@status");
         }
 
         [TestMethod]
