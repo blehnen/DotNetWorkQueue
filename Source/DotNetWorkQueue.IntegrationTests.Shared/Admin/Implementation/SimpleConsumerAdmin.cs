@@ -19,7 +19,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Admin.Implementation
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
-            Action<QueueConnection, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount)
+            Action<QueueConnection, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount,
+            bool enableStatus = false)
             where TTransportInit : ITransportInit, new()
             where TMessage : class
             where TTransportCreate : class, IQueueCreation
@@ -63,7 +64,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Admin.Implementation
                         logProvider,
                         runtime, messageCount,
                         workerCount, timeOut,
-                        TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "*/10 * * * * *", enableChaos, scope);
+                        TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), "*/10 * * * * *", enableChaos, scope,
+                        enableStatus);
 
                     verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, 0, false,
                         false);

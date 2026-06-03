@@ -21,7 +21,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Admin
                     messageCount, runtime, timeOut, workerCount, false, x => Helpers.SetOptions(x,
                         true, true, false,
                         false, true, true, false),
-                    Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
+                    Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount,
+                    enableStatus: true);
             }
         }
     }

@@ -48,9 +48,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
             {
                 dbCommand.CommandText = _commandCache.GetCommand(CommandStringTypes.GetQueueCountStatus);
                 var status = dbCommand.CreateParameter();
-                status.ParameterName = "@Status";
+                status.ParameterName = "@status";
                 status.DbType = DbType.Int32;
-                status.Value = query.Status.Value;
+                status.Value = (int)query.Status.Value;
                 dbCommand.Parameters.Add(status);
             }
             else

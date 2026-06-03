@@ -22,7 +22,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Admin
                 messageCount, runtime, timeOut, workerCount, false, x => Helpers.SetOptions(x,
                     true, !useTransactions, useTransactions, false,
                     false, !useTransactions, true, false),
-                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount);
+                Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount,
+                enableStatus: !useTransactions);
         }
     }
 }
