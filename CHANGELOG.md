@@ -1,3 +1,6 @@
+### 0.9.39 — 2026-06-23
+- Dependency refresh across `Directory.Packages.props` (OpenTelemetry, Polly.Core, Swashbuckle.AspNetCore, Microsoft.Extensions.*, test tooling). `StackExchange.Redis` held at 2.13.17 and `FluentAssertions` at 6.12.2 (last MIT-licensed release). No API surface changes
+
 ### 0.9.38 — 2026-06-03
 - Fix: `IAdminApi.Count(connId, QueueStatusAdmin.*)` on the PostgreSQL transport threw `InvalidCastException` under Npgsql 10.x — the shared relational `GetQueueCountQueryPrepareHandler` bound the raw `QueueStatusAdmin` enum to an `Int32` parameter, which Npgsql 10.x's stricter writer rejects (pre-10.x silently coerced it). Now casts the enum to `int` (GitHub #155)
 - Fix: the same status-filtered admin `Count` path threw `SQLiteException: unknown error — Insufficient parameters supplied to the command` on the SQLite transport — the parameter was bound as `@Status` while the SQL placeholder is lowercase `@status`, and System.Data.SQLite binds parameter names case-sensitively (Npgsql and Microsoft.Data.SqlClient fold case, so PG and SQL Server were unaffected). Parameter name now matches the SQL casing (GitHub #155)
