@@ -1,5 +1,5 @@
 ### 0.9.39 — 2026-06-23
-- Dependency refresh across `Directory.Packages.props` (notably `StackExchange.Redis` 2.13.17 → 3.0.0); `FluentAssertions` held at 6.12.2 (last MIT-licensed release). No API surface changes
+- Dependency refresh across `Directory.Packages.props` (OpenTelemetry, Polly.Core, Swashbuckle.AspNetCore, Microsoft.Extensions.*, test tooling). `StackExchange.Redis` held at 2.13.17 and `FluentAssertions` at 6.12.2 (last MIT-licensed release). No API surface changes
 
 ### 0.9.38 — 2026-06-03
 - Fix: `IAdminApi.Count(connId, QueueStatusAdmin.*)` on the PostgreSQL transport threw `InvalidCastException` under Npgsql 10.x — the shared relational `GetQueueCountQueryPrepareHandler` bound the raw `QueueStatusAdmin` enum to an `Int32` parameter, which Npgsql 10.x's stricter writer rejects (pre-10.x silently coerced it). Now casts the enum to `int` (GitHub #155)
