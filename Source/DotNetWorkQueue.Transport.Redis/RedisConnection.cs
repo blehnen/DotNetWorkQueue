@@ -115,7 +115,10 @@ namespace DotNetWorkQueue.Transport.Redis
             lock (_connectionLock)
             {
                 if (_connection != null) return;
-                _connection = ConnectionMultiplexer.Connect(_connectionInformation.ConnectionString);
+                // TODO Phase 5: TEMPORARY RESP2 isolation pin (#161) — finalize protocol default
+                var options = ConfigurationOptions.Parse(_connectionInformation.ConnectionString);
+                options.Protocol = RedisProtocol.Resp2;
+                _connection = ConnectionMultiplexer.Connect(options);
             }
         }
     }
