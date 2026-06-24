@@ -38,7 +38,7 @@
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.9" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
     <PackageVersion Include="MsgPack.Cli" Version="1.0.1" />
-    <PackageVersion Include="StackExchange.Redis" Version="2.13.17" />
+    <PackageVersion Include="StackExchange.Redis" Version="3.0.7" />
 
     <!-- Transport: LiteDB -->
     <PackageVersion Include="LiteDB" Version="5.0.21" />
