@@ -162,8 +162,13 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Concurrency
             finally
             {
                 // --- ALWAYS restore original thread-pool settings ---
-                ThreadPool.SetMinThreads(origMinWorker, origMinIocp);
+                // Order matters: max must be restored BEFORE min. At this point the pool is
+                // capped at min=max=WorkerCap; calling SetMinThreads(origMin) first would fail
+                // silently (returns false) because origMin > current max=WorkerCap, leaving the
+                // process pinned at the low worker count and corrupting every later test in the
+                // same process. Raise max back first, then restore min.
                 ThreadPool.SetMaxThreads(origMaxWorker, origMaxIocp);
+                ThreadPool.SetMinThreads(origMinWorker, origMinIocp);
             }
         }
     }
