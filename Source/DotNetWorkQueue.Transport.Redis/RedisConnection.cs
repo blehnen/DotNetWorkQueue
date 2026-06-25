@@ -115,7 +115,8 @@ namespace DotNetWorkQueue.Transport.Redis
             lock (_connectionLock)
             {
                 if (_connection != null) return;
-                // TODO Phase 5: TEMPORARY RESP2 isolation pin (#161) — finalize protocol default
+                // Pin RESP2 as the deliberate default: it matches the 2.x wire protocol and prevents
+                // SE.Redis 3.x from negotiating RESP3 (a behavioral change). RESP3 remains a future opt-in. (#161)
                 var options = ConfigurationOptions.Parse(_connectionInformation.ConnectionString);
                 options.Protocol = RedisProtocol.Resp2;
                 // Queue-aware client name surfaces the queue identity in SE.Redis timeout diagnostics
