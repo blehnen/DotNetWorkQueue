@@ -118,6 +118,9 @@ namespace DotNetWorkQueue.Transport.Redis
                 // TODO Phase 5: TEMPORARY RESP2 isolation pin (#161) — finalize protocol default
                 var options = ConfigurationOptions.Parse(_connectionInformation.ConnectionString);
                 options.Protocol = RedisProtocol.Resp2;
+                // Queue-aware client name surfaces the queue identity in SE.Redis timeout diagnostics
+                // and Redis CLIENT LIST, aiding triage (#161). Additive/non-breaking.
+                options.ClientName = $"dnwq-{_connectionInformation.QueueName}";
                 _connection = ConnectionMultiplexer.Connect(options);
             }
         }
