@@ -121,7 +121,8 @@ namespace DotNetWorkQueue.Transport.Redis
                 options.Protocol = RedisProtocol.Resp2;
                 // Queue-aware client name surfaces the queue identity in SE.Redis timeout diagnostics
                 // and Redis CLIENT LIST, aiding triage (#161). Additive/non-breaking.
-                options.ClientName = $"dnwq-{_connectionInformation.QueueName}";
+                if (string.IsNullOrEmpty(options.ClientName))
+                    options.ClientName = $"dnwq-{_connectionInformation.QueueName}";
                 _connection = ConnectionMultiplexer.Connect(options);
             }
         }

@@ -18,8 +18,10 @@ namespace DotNetWorkQueue.Transport.Redis.Integration.Tests
             // library bug — see ROADMAP #161). Redis transport only: each Jenkins stage is its own process,
             // and only the Redis sync-EVAL path needs this headroom. IOCP min is passed back unchanged; the
             // SetMinThreads return value is intentionally ignored (matches StarvationBaselineTests' pattern).
-            ThreadPool.GetMinThreads(out _, out var currentMinIocp);
-            ThreadPool.SetMinThreads(Math.Max(Environment.ProcessorCount * 4, 200), currentMinIocp);
+            ThreadPool.GetMinThreads(out var currentMinWorker, out var currentMinIocp);
+            var targetMinWorker = Math.Max(Environment.ProcessorCount * 4, 200);
+            if (currentMinWorker < targetMinWorker)
+                ThreadPool.SetMinThreads(targetMinWorker, currentMinIocp);
         }
     }
 }
