@@ -115,7 +115,15 @@ namespace DotNetWorkQueue.Transport.Redis
             lock (_connectionLock)
             {
                 if (_connection != null) return;
-                _connection = ConnectionMultiplexer.Connect(_connectionInformation.ConnectionString);
+                // Pin RESP2 as the deliberate default: it matches the 2.x wire protocol and prevents
+                // SE.Redis 3.x from negotiating RESP3 (a behavioral change). RESP3 remains a future opt-in. (#161)
+                var options = ConfigurationOptions.Parse(_connectionInformation.ConnectionString);
+                options.Protocol = RedisProtocol.Resp2;
+                // Queue-aware client name surfaces the queue identity in SE.Redis timeout diagnostics
+                // and Redis CLIENT LIST, aiding triage (#161). Additive/non-breaking.
+                if (string.IsNullOrEmpty(options.ClientName))
+                    options.ClientName = $"dnwq-{_connectionInformation.QueueName}";
+                _connection = ConnectionMultiplexer.Connect(options);
             }
         }
     }

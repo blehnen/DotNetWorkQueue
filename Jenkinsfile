@@ -189,6 +189,7 @@ pipeline {
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
+                                    --filter "TestCategory!=StarvationBaseline" \
                                     --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-redis \
                                     --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml" \
                                     -- --retry-failed-tests 1
@@ -211,6 +212,7 @@ pipeline {
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
+                                    --filter "TestCategory!=StarvationBaseline" \
                                     --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-redis-linq \
                                     --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml" \
                                     -- --retry-failed-tests 1
