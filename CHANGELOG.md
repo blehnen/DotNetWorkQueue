@@ -1,3 +1,12 @@
+### 0.9.40 — 2026-06-25
+- Redis transport: migrated `StackExchange.Redis` 2.13.17 → 3.0.7 (the latest stable 3.x release). The 3.0 bump was previously reverted (0.9.39) due to intermittent `Timeout performing SCRIPT/EVAL` under load; root-caused to .NET thread-pool / reply-completion pressure on synchronous Redis paths after SE.Redis 3.0 removed its dedicated socket/completion pool
+- Behavior: Redis connections now pin `Protocol = RESP2` (matches the 2.x wire protocol; SE.Redis 3.x would otherwise negotiate RESP3, a behavioral change). RESP3 remains a possible future opt-in
+- Diagnostics: Redis connections set a queue-aware `ClientName` (`dnwq-{QueueName}`), surfaced in SE.Redis timeout messages and Redis `CLIENT LIST`
+- Known limitation (SE.Redis 3.x): high-concurrency **synchronous** producers may time out under load — the 2.x dedicated reply-completion pool is gone, so many concurrent sync `EVAL`s contend on completion. Prefer the **async** API (`SendAsync`) for concurrent/high-volume producers
+- Tests: raised the worker thread-pool floor in the Redis integration-test bootstrap (defensive against pool-injection-lag starvation) and reclassified the deterministic thread-pool-starvation test as a permanent diagnostic (excluded from the default CI run)
+- Follow-ups tracked separately: an async receive path (`IReceiveMessagesAsync` across core + transports) and deprecation of the synchronous API both remain future work
+- No public API surface changes
+
 ### 0.9.39 — 2026-06-23
 - Dependency refresh across `Directory.Packages.props` (OpenTelemetry, Polly.Core, Swashbuckle.AspNetCore, Microsoft.Extensions.*, test tooling). `StackExchange.Redis` held at 2.13.17 and `FluentAssertions` at 6.12.2 (last MIT-licensed release). No API surface changes
 
