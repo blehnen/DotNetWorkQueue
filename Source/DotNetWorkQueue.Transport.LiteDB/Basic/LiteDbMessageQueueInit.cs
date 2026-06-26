@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
+using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.LiteDb.Basic.Admin;
 using DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler;
@@ -95,6 +96,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
 
             //**send
             container.Register<ISendMessages, SendMessages<int>>(LifeStyles.Singleton);
+            // Batch-send fallback: LiteDb has no bulk-insert path, so the no-op handler routes
+            // SendMessages<int> batch sends through the per-message loop.
+            container.Register<ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages>,
+                NoOpSendMessageCommandBatchHandler>(LifeStyles.Singleton);
+            container.Register<ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages>,
+                NoOpSendMessageCommandBatchHandler>(LifeStyles.Singleton);
 
             container.Register<ITransportRollbackMessage, LiteDbRollbackMessage>(LifeStyles.Singleton);
             //**send

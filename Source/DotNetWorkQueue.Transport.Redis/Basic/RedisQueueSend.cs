@@ -25,6 +25,9 @@ using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
+// Redis predates the shared batch command and keeps its own MessagePack-based one; pin the
+// unqualified name to the Redis type now that Transport.Shared also defines SendMessageCommandBatch.
+using SendMessageCommandBatch = DotNetWorkQueue.Transport.Redis.Basic.Command.SendMessageCommandBatch;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {

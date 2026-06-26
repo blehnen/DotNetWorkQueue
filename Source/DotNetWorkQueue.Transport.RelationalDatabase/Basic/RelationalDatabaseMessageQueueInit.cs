@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Admin;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
@@ -75,6 +76,13 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 
             //**send
             container.Register<ISendMessages, SendMessages<TQueueId>>(LifeStyles.Singleton);
+            // Batch-send fallback: the no-op handler carries ISendMessageBatchNotSupported so
+            // SendMessages<T> uses the per-message loop. A transport with a true bulk insert
+            // (e.g. SQL Server) overrides these registrations with a real handler.
+            container.Register<ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages>,
+                NoOpSendMessageCommandBatchHandler>(LifeStyles.Singleton);
+            container.Register<ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages>,
+                NoOpSendMessageCommandBatchHandler>(LifeStyles.Singleton);
             //**send
 
 
