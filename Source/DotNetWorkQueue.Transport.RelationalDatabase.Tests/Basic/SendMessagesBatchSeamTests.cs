@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             var expected = new QueueOutputMessages(new List<IQueueOutputMessage>());
             batch.Handle(Arg.Any<SendMessageCommandBatch>()).Returns(expected);
 
-            var sut = new SendMessages<long>(sentFactory, single, singleAsync, batch, batchAsync);
+            var sut = new SendMessages<long>(sentFactory, single, singleAsync, batch, batchAsync, new SendMessageBatchSupport(true));
             var result = sut.Send(BuildMessages(3));
 
             Assert.AreSame(expected, result);
@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             var (sentFactory, single, singleAsync) = BuildSingleHandlers();
             var noop = new NoOpSendMessageCommandBatchHandler();
 
-            var sut = new SendMessages<long>(sentFactory, single, singleAsync, noop, noop);
+            var sut = new SendMessages<long>(sentFactory, single, singleAsync, noop, noop, new SendMessageBatchSupport(false));
             var messages = BuildMessages(3);
             sut.Send(messages);
 
@@ -98,7 +98,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             var expected = new QueueOutputMessages(new List<IQueueOutputMessage>());
             batchAsync.HandleAsync(Arg.Any<SendMessageCommandBatch>()).Returns(Task.FromResult(expected));
 
-            var sut = new SendMessages<long>(sentFactory, single, singleAsync, batch, batchAsync);
+            var sut = new SendMessages<long>(sentFactory, single, singleAsync, batch, batchAsync, new SendMessageBatchSupport(true));
             var result = await sut.SendAsync(BuildMessages(3));
 
             Assert.AreSame(expected, result);
@@ -112,7 +112,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             var (sentFactory, single, singleAsync) = BuildSingleHandlers();
             var noop = new NoOpSendMessageCommandBatchHandler();
 
-            var sut = new SendMessages<long>(sentFactory, single, singleAsync, noop, noop);
+            var sut = new SendMessages<long>(sentFactory, single, singleAsync, noop, noop, new SendMessageBatchSupport(false));
             var messages = BuildMessages(3);
             await sut.SendAsync(messages);
 

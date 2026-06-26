@@ -76,9 +76,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 
             //**send
             container.Register<ISendMessages, SendMessages<TQueueId>>(LifeStyles.Singleton);
-            // Batch-send fallback: the no-op handler carries ISendMessageBatchNotSupported so
-            // SendMessages<T> uses the per-message loop. A transport with a true bulk insert
-            // (e.g. SQL Server) overrides these registrations with a real handler.
+            // Batch-send fallback: no batch support by default (SendMessages<T> uses the per-message
+            // loop). The no-op handler only satisfies the constructor dependency and is never invoked.
+            // A transport with a true bulk insert (e.g. SQL Server) overrides both registrations.
+            container.Register<ISendMessageBatchSupport>(() => new SendMessageBatchSupport(false), LifeStyles.Singleton);
             container.Register<ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages>,
                 NoOpSendMessageCommandBatchHandler>(LifeStyles.Singleton);
             container.Register<ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages>,

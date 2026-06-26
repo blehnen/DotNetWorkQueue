@@ -19,17 +19,22 @@
 namespace DotNetWorkQueue.Transport.Shared.Basic
 {
     /// <summary>
-    /// Marker implemented by the no-op batch-send handler that is registered as a fallback
-    /// for transports that do not provide a true bulk-insert path. <c>SendMessages&lt;T&gt;</c>
-    /// checks for this marker to decide whether to dispatch a batch send or fall back to the
-    /// per-message loop.
+    /// Indicates whether the current transport provides a true batch-send (bulk insert) handler.
+    /// <c>SendMessages&lt;T&gt;</c> uses this to decide whether to dispatch a batch send or fall
+    /// back to the per-message loop.
     /// </summary>
     /// <remarks>
-    /// Using a marker rather than a null return keeps the per-message fallback decision
-    /// explicit and total: a real batch handler never carries this marker, so its presence
-    /// unambiguously means "no batch handler was registered for this transport."
+    /// This is a plain capability flag rather than a type check on the injected batch handler:
+    /// command handlers are wrapped by open-generic decorators (retry, trace, metrics), so the
+    /// injected handler reference is a decorator that hides any marker on the underlying no-op.
+    /// A dedicated, non-decorated service makes the decision reliable.
     /// </remarks>
-    public interface ISendMessageBatchNotSupported
+    public interface ISendMessageBatchSupport
     {
+        /// <summary>
+        /// <c>true</c> when the transport registered a real batch handler; <c>false</c> when batch
+        /// sends must use the per-message loop.
+        /// </summary>
+        bool IsSupported { get; }
     }
 }

@@ -96,8 +96,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
 
             //**send
             container.Register<ISendMessages, SendMessages<int>>(LifeStyles.Singleton);
-            // Batch-send fallback: LiteDb has no bulk-insert path, so the no-op handler routes
-            // SendMessages<int> batch sends through the per-message loop.
+            // Batch-send fallback: LiteDb has no bulk-insert path, so batch sends use the per-message
+            // loop. The no-op handler only satisfies the SendMessages<int> constructor dependency.
+            container.Register<ISendMessageBatchSupport>(() => new SendMessageBatchSupport(false), LifeStyles.Singleton);
             container.Register<ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages>,
                 NoOpSendMessageCommandBatchHandler>(LifeStyles.Singleton);
             container.Register<ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages>,

@@ -49,30 +49,33 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
         /// <param name="sentMessageFactory">The sent message factory.</param>
         /// <param name="sendMessage">The send message.</param>
         /// <param name="sendMessageAsync">The send message asynchronous.</param>
-        /// <param name="sendMessageBatch">The batch send handler. Transports that provide a
-        /// true bulk insert register a real handler here; transports that do not register the
-        /// no-op fallback (carrying <see cref="ISendMessageBatchNotSupported"/>), in which case
-        /// batch sends use the per-message loop.</param>
+        /// <param name="sendMessageBatch">The batch send handler. Transports that provide a true
+        /// bulk insert register a real handler here; transports that do not register a no-op
+        /// placeholder that is never invoked.</param>
         /// <param name="sendMessageBatchAsync">The asynchronous batch send handler.</param>
+        /// <param name="batchSupport">Capability flag indicating whether the transport provides a
+        /// real batch handler. A dedicated, non-decorated service is used rather than a type check
+        /// on <paramref name="sendMessageBatch"/>, because the injected handler is wrapped by
+        /// command-handler decorators that would hide a marker on the underlying no-op.</param>
         public SendMessages(ISentMessageFactory sentMessageFactory,
             ICommandHandlerWithOutput<SendMessageCommand, T> sendMessage,
             ICommandHandlerWithOutputAsync<SendMessageCommand, T> sendMessageAsync,
             ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages> sendMessageBatch,
-            ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages> sendMessageBatchAsync)
+            ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages> sendMessageBatchAsync,
+            ISendMessageBatchSupport batchSupport)
         {
             Guard.NotNull(() => sentMessageFactory, sentMessageFactory);
             Guard.NotNull(() => sendMessage, sendMessage);
             Guard.NotNull(() => sendMessageAsync, sendMessageAsync);
             Guard.NotNull(() => sendMessageBatch, sendMessageBatch);
             Guard.NotNull(() => sendMessageBatchAsync, sendMessageBatchAsync);
+            Guard.NotNull(() => batchSupport, batchSupport);
             _sentMessageFactory = sentMessageFactory;
             _sendMessage = sendMessage;
             _sendMessageAsync = sendMessageAsync;
             _sendMessageBatch = sendMessageBatch;
             _sendMessageBatchAsync = sendMessageBatchAsync;
-            // A real batch handler does not carry the not-supported marker. The sync and async
-            // handlers are registered as a pair, so the sync flag governs both paths.
-            _batchSupported = sendMessageBatch is not ISendMessageBatchNotSupported;
+            _batchSupported = batchSupport.IsSupported;
         }
         #endregion
 

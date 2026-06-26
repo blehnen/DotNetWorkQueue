@@ -24,22 +24,19 @@ using DotNetWorkQueue.Transport.Shared.Basic.Command;
 namespace DotNetWorkQueue.Transport.Shared.Basic
 {
     /// <summary>
-    /// Fallback batch-send handler registered for transports that do not implement a true
-    /// bulk insert. Carries <see cref="ISendMessageBatchNotSupported"/> so
-    /// <c>SendMessages&lt;T&gt;</c> routes batch sends through the per-message loop instead
-    /// of dispatching to a real handler.
+    /// Placeholder batch-send handler registered for transports that do not implement a true
+    /// bulk insert, purely to satisfy the <c>SendMessages&lt;T&gt;</c> constructor dependency.
     /// </summary>
     /// <remarks>
-    /// Its <see cref="Handle"/> / <see cref="HandleAsync"/> methods are never invoked in
-    /// normal operation: <c>SendMessages&lt;T&gt;</c> checks the marker first and only
-    /// dispatches when a real (non-marker) handler is registered. They throw rather than
-    /// return an empty result so that an accidental wiring change fails loudly instead of
-    /// silently dropping messages.
+    /// Its <see cref="Handle"/> / <see cref="HandleAsync"/> methods are never invoked in normal
+    /// operation: such transports report <see cref="ISendMessageBatchSupport.IsSupported"/> =
+    /// <c>false</c>, so <c>SendMessages&lt;T&gt;</c> uses the per-message loop and never dispatches
+    /// here. They throw rather than return an empty result so that an accidental wiring change
+    /// fails loudly instead of silently dropping messages.
     /// </remarks>
     public class NoOpSendMessageCommandBatchHandler :
         ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages>,
-        ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages>,
-        ISendMessageBatchNotSupported
+        ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages>
     {
         /// <inheritdoc />
         public QueueOutputMessages Handle(SendMessageCommandBatch command)
