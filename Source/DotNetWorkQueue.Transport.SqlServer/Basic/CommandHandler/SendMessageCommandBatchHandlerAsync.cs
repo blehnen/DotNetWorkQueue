@@ -109,7 +109,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                     }
                     catch (Exception error)
                     {
-                        trans.Rollback();
+                        try
+                        {
+                            trans.Rollback();
+                        }
+                        catch (Exception)
+                        {
+                            // Preserve the original failure as the reported error; a rollback
+                            // failure (e.g. a dropped connection) must not mask it. The using
+                            // block disposes the transaction regardless.
+                        }
                         // Whole-batch atomic: every message reports the failure.
                         return new QueueOutputMessages(messages
                             .Select(m => (IQueueOutputMessage)new QueueOutputMessage(
