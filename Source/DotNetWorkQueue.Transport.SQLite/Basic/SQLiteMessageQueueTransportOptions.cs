@@ -271,9 +271,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// may be set smaller to bound write-lock duration. Values below 0 are ignored.
         /// </summary>
         /// <remarks>A larger batch holds the single write transaction until it commits. The
-        /// default WAL journal mode (see <see cref="EnableWalMode"/>) keeps readers and other
-        /// writers from blocking for that duration; databases that disabled WAL may see longer
-        /// writer-blocking on large batches.</remarks>
+        /// default WAL journal mode (see <see cref="EnableWalMode"/>) lets readers continue
+        /// during that transaction, but SQLite still serializes writers, so other writers can
+        /// wait behind a large batch until it commits.</remarks>
         public int BatchSize
         {
             get => _batchSize;

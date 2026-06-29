@@ -83,11 +83,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
                             Assert.AreEqual(count, ids.Distinct().Count(), "generated ids are not unique");
 
                             // Definitive id-order check: the OrderID stored for result[i].id must equal i,
-                            // i.e. each returned id maps to the input message at that position.
+                            // i.e. each returned id maps to the input message at that position. Load the
+                            // whole QueueID -> OrderID map in one query rather than one connection per row.
+                            var orderById = LoadIntMap(connectionInfo.ConnectionString,
+                                $"select QueueID, OrderID from {nameHelper.MetaDataName}");
                             for (var i = 0; i < count; i++)
                             {
-                                var orderId = ScalarInt(connectionInfo.ConnectionString,
-                                    $"select OrderID from {nameHelper.MetaDataName} where QueueID = {ids[i]}");
+                                Assert.IsTrue(orderById.TryGetValue(ids[i], out var orderId),
+                                    $"no meta row for id at result position {i}");
                                 Assert.AreEqual(i, orderId, $"id at result position {i} maps to the wrong input message");
                             }
                         }
@@ -199,6 +202,26 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
                     command.ExecuteNonQuery();
                 }
             }
+        }
+
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Table names from configuration; values are literal ints from the test")]
+        private static Dictionary<long, int> LoadIntMap(string connectionString, string sql)
+        {
+            var map = new Dictionary<long, int>();
+            using (var conn = new SQLiteConnection(connectionString))
+            {
+                conn.Open();
+                using (var command = conn.CreateCommand())
+                {
+                    command.CommandText = sql;
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                            map[reader.GetInt64(0)] = Convert.ToInt32(reader.GetValue(1));
+                    }
+                }
+            }
+            return map;
         }
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Table names from configuration; values are literal ints from the test")]
