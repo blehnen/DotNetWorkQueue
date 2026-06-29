@@ -132,3 +132,7 @@ Historical engineering notes have been moved to [`docs/lessons-learned.md`](docs
 - If something I asked for requires error handling or validation to work reliably, include it without asking.
 - New and changed features should be covered by either unit or integration Tests
 - Features that might vary by the transport implementation should have integration Tests; This has caused issues before with Redis History for example
+
+## Changelog.md
+
+- Prefer consise entries instead of verbose; too much detail just makes the log harder to read

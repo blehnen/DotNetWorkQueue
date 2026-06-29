@@ -1,3 +1,11 @@
+### 0.9.41 — Unreleased
+- SQL Server transport: `IProducerQueue.Send(List<...>)` now performs a true bulk insert instead of looping the single-message handler. The batch runs in one connection and one transaction spanning all chunks: a multi-row body insert via `MERGE … OUTPUT` (generated ids recovered in caller input order), then per-message meta/status rows. Measured ~21× throughput improvement for a 500-message batch (loop 6402 ms → batch 305 ms). See [ADR 0001](docs/adr/0001-true-bulk-insert-batch-send.md) (GitHub #162)
+- Behavior change: the batch send path is now whole-batch atomic (all-or-nothing) — any failure rolls back every message in the batch and each returned `IQueueOutputMessage` reports the failure. This differs from the previous per-message isolation (one bad message failed alone, the rest committed). Callers who need per-message isolation should call `Send(message)` in a loop. Scheduled-job messages are not supported on the batch path and are rejected with a clear error
+- `Send(List<...>)` now returns generated ids in caller input order (`ProducerQueue` message preparation is order-preserving; previously a `ConcurrentBag`/`Parallel.ForEach` discarded order). This affects all transports
+- New `SqlServerMessageQueueTransportOptions.BatchSize` — optional ceiling for the batch chunk size, clamped down to a safe maximum derived from the SQL Server parameter limit (0 = use the safe maximum)
+- Transports without a bulk-insert path (Memory, LiteDb, and — until their own phases — SQLite/PostgreSQL) fall back to the previous per-message loop with no change. Redis keeps its existing batch path
+- No public API surface changes
+
 ### 0.9.40 — 2026-06-25
 - Redis transport: migrated `StackExchange.Redis` 2.13.17 → 3.0.7 (the latest stable 3.x release). The 3.0 bump was previously reverted (0.9.39) due to intermittent `Timeout performing SCRIPT/EVAL` under load; root-caused to .NET thread-pool / reply-completion pressure on synchronous Redis paths after SE.Redis 3.0 removed its dedicated socket/completion pool
 - Behavior: Redis connections now pin `Protocol = RESP2` (matches the 2.x wire protocol; SE.Redis 3.x would otherwise negotiate RESP3, a behavioral change). RESP3 remains a possible future opt-in

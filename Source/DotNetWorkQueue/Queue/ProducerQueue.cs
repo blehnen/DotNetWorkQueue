@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -340,19 +339,22 @@ The queue uses dynamic instances to run the user delegate and the queue cannot c
         /// </summary>
         /// <param name="messages">The messages.</param>
         /// <returns></returns>
-        private ConcurrentBag<QueueMessage<IMessage, IAdditionalMessageData>> InternalSendPrepare(List<QueueMessage<T, IAdditionalMessageData>> messages)
+        private QueueMessage<IMessage, IAdditionalMessageData>[] InternalSendPrepare(List<QueueMessage<T, IAdditionalMessageData>> messages)
         {
             if (!Configuration.IsReadOnly)
                 Configuration.SetReadOnly();
 
-            var newMessages = new ConcurrentBag<QueueMessage<IMessage, IAdditionalMessageData>>();
-            Parallel.ForEach(messages, t =>
+            // Prepare in parallel but preserve caller order: each iteration writes its own slot, so a
+            // transport with a true batch insert can return generated ids in the caller's input order.
+            var newMessages = new QueueMessage<IMessage, IAdditionalMessageData>[messages.Count];
+            Parallel.For(0, messages.Count, i =>
             {
+                var t = messages[i];
                 var data = t.MessageData ?? new AdditionalMessageData();
                 var additionalHeaders = _generateMessageHeaders.HeaderSetup(data);
                 var newMessage = _messageFactory.Create(t.Message, additionalHeaders);
                 _addStandardMessageHeaders.AddHeaders(newMessage, data);
-                newMessages.Add(new QueueMessage<IMessage, IAdditionalMessageData>(newMessage, data));
+                newMessages[i] = new QueueMessage<IMessage, IAdditionalMessageData>(newMessage, data);
             });
             return newMessages;
         }
