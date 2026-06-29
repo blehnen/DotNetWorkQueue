@@ -41,6 +41,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         private bool _additionalColumnsOnMetaData;
         private bool _enableWalMode;
         private bool _enableHistory;
+        private int _batchSize;
 
         #region Constructor
         /// <summary>
@@ -258,6 +259,28 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             {
                 FailIfReadOnly();
                 _enableHistory = value;
+            }
+        }
+
+        /// <summary>
+        /// Optional ceiling for the number of messages placed in a single batched multi-row
+        /// insert when using the <c>Send(List&lt;...&gt;)</c> producer overloads. A value of 0
+        /// (the default) uses the transport-computed safe maximum derived from the SQLite
+        /// command parameter limit. A configured value is treated as a ceiling only: it is
+        /// clamped down to the safe maximum so it can never overflow the parameter budget, but
+        /// may be set smaller to bound write-lock duration. Values below 0 are ignored.
+        /// </summary>
+        /// <remarks>A larger batch holds the single write transaction until it commits. The
+        /// default WAL journal mode (see <see cref="EnableWalMode"/>) keeps readers and other
+        /// writers from blocking for that duration; databases that disabled WAL may see longer
+        /// writer-blocking on large batches.</remarks>
+        public int BatchSize
+        {
+            get => _batchSize;
+            set
+            {
+                FailIfReadOnly();
+                _batchSize = value;
             }
         }
 

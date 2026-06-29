@@ -23,8 +23,12 @@ using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
+using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
+using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
+using DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.SQLite.Decorator;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
@@ -91,6 +95,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.RegisterDecorator(
                 typeof(IQueryHandler<FindExpiredMessagesToDeleteQuery<long>, IEnumerable<long>>),
                 typeof(FindExpiredRecordsToDeleteQueryHandlerErrorDecorator), LifeStyles.Singleton);
+
+            //true bulk-insert batch send handlers; override the relational no-op fallback so
+            //SendMessages<long> dispatches batches to a real handler for SQLite
+            container.Register<ISendMessageBatchSupport>(() => new SendMessageBatchSupport(true), LifeStyles.Singleton);
+            container.Register<ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages>,
+                SendMessageCommandBatchHandler>(LifeStyles.Singleton);
+            container.Register<ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages>,
+                SendMessageCommandBatchHandlerAsync>(LifeStyles.Singleton);
         }
 
         /// <inheritdoc />
