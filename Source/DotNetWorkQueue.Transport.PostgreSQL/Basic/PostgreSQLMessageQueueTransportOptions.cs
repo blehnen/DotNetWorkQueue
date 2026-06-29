@@ -40,6 +40,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         private bool _enableRoute;
         private bool _additionalColumnsOnMetaData;
         private bool _enableHistory;
+        private int _batchSize;
 
         #region Constructor
         /// <summary>
@@ -208,6 +209,26 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             {
                 FailIfReadOnly();
                 _enableHistory = value;
+            }
+        }
+
+        /// <summary>
+        /// Optional ceiling for the number of messages placed in a single batched insert when
+        /// using the <c>Send(List&lt;...&gt;)</c> producer overloads. A value of 0 (the default)
+        /// uses the transport-computed safe maximum. A configured value is treated as a ceiling
+        /// only: it is clamped down to the safe maximum, but may be set smaller to bound the size
+        /// and lock duration of the batch transaction. Values below 0 are ignored.
+        /// </summary>
+        /// <remarks>The batch body insert uses array parameters (<c>unnest</c>), so it is not
+        /// constrained by the bound-parameter limit; the safe maximum is a transaction-size bound,
+        /// not a parameter bound.</remarks>
+        public int BatchSize
+        {
+            get => _batchSize;
+            set
+            {
+                FailIfReadOnly();
+                _batchSize = value;
             }
         }
 
