@@ -19,3 +19,4 @@
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("DotNetWorkQueue.Transport.PostgreSQL.Tests")]
+[assembly: InternalsVisibleTo("DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests")]

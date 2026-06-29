@@ -24,6 +24,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+using DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.PostgreSQL.Schema;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using Npgsql;
@@ -44,8 +45,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
         [TestMethod]
         public void BatchSend_ReturnsIdsMappedToInputOrder_AcrossChunks()
         {
-            // > SafeMaxBatchSize (5000) so the batch spans multiple chunks in one transaction.
-            const int count = 6000;
+            // Derived from the transport safe-max so the batch always spans multiple chunks in one
+            // transaction, even if SafeMaxBatchSize changes (one full chunk + a small second chunk).
+            const int count = SendMessageBatch.SafeMaxBatchSize + 100;
             var queueName = GenerateQueueName.Create();
             var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
 
