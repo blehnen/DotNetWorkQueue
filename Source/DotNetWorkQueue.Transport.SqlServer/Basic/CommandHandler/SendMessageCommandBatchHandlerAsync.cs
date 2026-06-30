@@ -27,6 +27,7 @@ using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
@@ -87,6 +88,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 
             BatchSendValidation.GuardNoScheduledJobs(messages, _jobSchedulerMetaData);
 
+            // Inbox (held-transaction) batch path: when the caller supplied a transaction, reuse
+            // its connection/transaction instead of opening our own (and never commit it).
+            if (command is RelationalSendMessageCommandBatch rel && rel.ExternalTransaction != null)
+                return await HandleExternalTransactionAsync(rel).ConfigureAwait(false);
+
             var options = _options.Value;
             var batchSizer = new SendBatchSize(SendMessageBatch.SafeMaxBatchSize,
                 options.BatchSize > 0 ? options.BatchSize : (int?)null);
@@ -127,6 +133,35 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                     }
                 }
             }
+            return new QueueOutputMessages(results.ToList());
+        }
+
+        /// <summary>
+        /// Inbox (held-transaction) batch path. Runs the same multi-row body insert and per-message
+        /// meta/status rows as <see cref="HandleAsync"/>, but on the caller-supplied connection and
+        /// transaction. The caller owns the commit/rollback, so this method opens nothing, commits
+        /// nothing, and wraps nothing — any failure propagates so the caller can roll back.
+        /// </summary>
+        private async Task<QueueOutputMessages> HandleExternalTransactionAsync(RelationalSendMessageCommandBatch rel)
+        {
+            var sqlTransaction = (SqlTransaction)rel.ExternalTransaction;
+            var sqlConn = (SqlConnection)sqlTransaction.Connection;
+
+            var messages = rel.Messages;
+            var options = _options.Value;
+            var batchSizer = new SendBatchSize(SendMessageBatch.SafeMaxBatchSize,
+                options.BatchSize > 0 ? options.BatchSize : (int?)null);
+
+            var results = new IQueueOutputMessage[messages.Count];
+            var globalIndex = 0;
+            foreach (var chunk in messages.Partition(batchSizer.BatchSize(messages.Count)))
+            {
+                globalIndex = await ProcessChunkAsync(sqlConn, sqlTransaction, chunk, options, results, globalIndex)
+                    .ConfigureAwait(false);
+            }
+
+            // Caller owns the transaction lifecycle — deliberately no Commit/Rollback/Dispose/Close
+            // and no try/catch wrapper (failures propagate so the caller can roll back).
             return new QueueOutputMessages(results.ToList());
         }
 
