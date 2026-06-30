@@ -150,18 +150,32 @@ var batch = new[]
     new OrderCreatedEvent { OrderId = 43, Status = "Pending" }
 };
 
-var results = relationalProducer.Send(batch, transaction);
-
-if (results.HasErrors)
-    throw new InvalidOperationException("One or more batch enqueues failed.");
-
-transaction.Commit();
+try
+{
+    relationalProducer.Send(batch, transaction);
+    transaction.Commit();
+}
+catch
+{
+    transaction.Rollback();
+    throw;
+}
 ```
 
-The batch path runs each enqueue inside the supplied transaction. A rollback after a partially
-successful batch rolls back every queue row written so far, including the successful ones — the
-all-or-nothing guarantee holds for the whole batch, not per message. `SendAsync(batch, transaction)`
-is the async equivalent.
+The batch path performs a true multi-row insert inside the supplied transaction (one insert per
+chunk, not one round trip per message). Because the caller owns the transaction, the path is
+fail-fast: on any failure it **throws** so you can roll back — it does not report per-message
+errors. (Catch the exception and call `transaction.Rollback()`, as above.) The all-or-nothing
+guarantee holds for the whole batch. `SendAsync(batch, transaction)` is the async equivalent.
+
+> The caller-supplied-transaction batch overload is implemented for **SQL Server** and
+> **PostgreSQL**. Other transports throw `InvalidOperationException` (SQLite is single-writer, so
+> holding a transaction open across a batch is non-viable — use the standalone `Send(List<T>)`
+> outbox path there instead).
+>
+> Note: this throw-on-failure behavior is specific to the caller-transaction batch path
+> (since 0.9.42). The standalone `Send(List<T>)` path still reports per-message results via
+> `IQueueOutputMessages.HasErrors`.
 
 ## Reference
 
