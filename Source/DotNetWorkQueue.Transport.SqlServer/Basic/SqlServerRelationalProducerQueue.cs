@@ -138,6 +138,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             Guard.NotNull(() => messages, messages);
             _validator.Validate(transaction);  // ONCE, at the boundary (CONTEXT-3 Decision 3)
             GuardSqlTransaction(transaction);
+            if (messages.Count == 0)
+                return new QueueOutputMessages(new List<IQueueOutputMessage>());
             // True multi-row insert inside the caller's transaction: one batch command, not a
             // SendOne loop. Exceptions propagate — the caller owns the rollback (PROJECT goal 3).
             return DispatchBatch(messages, transaction);
@@ -150,6 +152,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             Guard.NotNull(() => messages, messages);
             _validator.Validate(transaction);
             GuardSqlTransaction(transaction);
+            if (messages.Count == 0)
+                return new QueueOutputMessages(new List<IQueueOutputMessage>());
             return await DispatchBatchAsync(messages, transaction).ConfigureAwait(false);
         }
 

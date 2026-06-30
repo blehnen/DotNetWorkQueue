@@ -96,6 +96,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Inbox
                 }
 
                 // Nothing was committed: neither the queue rows nor the business rows are visible.
+                // Rollback is synchronous, so the first poll already observes 0 (no lag to wait out).
                 AssertQueueRowCount(qc, 0);
                 AssertBusinessRowCountStaysAt(ConnectionInfo.ConnectionString, businessTable, 0);
             }
@@ -157,13 +158,21 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Inbox
             {
                 try
                 {
+                    // The multi-row body insert succeeds; the per-message meta insert then hits the
+                    // dropped MetaData table and the batch handler throws. The held-transaction path
+                    // performs no table-existence pre-check, so the throw originates at the insert and
+                    // propagates out of Send (no swallow into per-message results).
                     producer.RelationalProducer.Send(BuildBatch(3), transaction);
                 }
                 catch
                 {
                     threw = true;
                 }
-                transaction.Rollback();
+                finally
+                {
+                    // Roll back defensively; never let a rollback error mask the assertion below.
+                    try { transaction.Rollback(); } catch { /* already in the error path */ }
+                }
             }
 
             Assert.IsTrue(threw, "Held-transaction batch send must throw on a DB failure, not swallow it.");
