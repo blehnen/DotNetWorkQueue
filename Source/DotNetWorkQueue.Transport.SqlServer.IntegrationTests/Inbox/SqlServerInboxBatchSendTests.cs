@@ -214,12 +214,15 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Inbox
         // ----- Producer resolution + capability cast (mirrors the outbox base) -----
         private sealed class ProducerScope : System.IDisposable
         {
+            private int _disposed;
+
             public QueueContainer<SqlServerMessageQueueInit> Creator { get; init; }
             public IProducerQueue<FakeMessage> Producer { get; init; }
             public IRelationalProducerQueue<FakeMessage> RelationalProducer { get; init; }
 
             public void Dispose()
             {
+                if (System.Threading.Interlocked.Exchange(ref _disposed, 1) != 0) return;
                 Producer?.Dispose();
                 Creator?.Dispose();
             }
