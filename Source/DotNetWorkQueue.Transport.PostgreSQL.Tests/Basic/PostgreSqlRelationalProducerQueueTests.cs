@@ -27,6 +27,7 @@ using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using Microsoft.Extensions.Logging;
@@ -51,12 +52,21 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             ICommandHandlerWithOutputAsync<SendMessageCommand, long> asyncHandler = null,
             ExternalTransactionValidator validator = null,
             ISentMessageFactory sentFactory = null,
-            IMessageFactory messageFactory = null)
+            IMessageFactory messageFactory = null,
+            ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages> syncBatchHandler = null,
+            ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages> asyncBatchHandler = null)
         {
             syncHandler ??= Substitute.For<ICommandHandlerWithOutput<SendMessageCommand, long>>();
             syncHandler.Handle(Arg.Any<SendMessageCommand>()).Returns(42L);
             asyncHandler ??= Substitute.For<ICommandHandlerWithOutputAsync<SendMessageCommand, long>>();
             asyncHandler.HandleAsync(Arg.Any<SendMessageCommand>()).Returns(Task.FromResult(42L));
+
+            syncBatchHandler ??= Substitute.For<ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages>>();
+            syncBatchHandler.Handle(Arg.Any<SendMessageCommandBatch>())
+                .Returns(new QueueOutputMessages(new List<IQueueOutputMessage>()));
+            asyncBatchHandler ??= Substitute.For<ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages>>();
+            asyncBatchHandler.HandleAsync(Arg.Any<SendMessageCommandBatch>())
+                .Returns(Task.FromResult(new QueueOutputMessages(new List<IQueueOutputMessage>())));
 
             if (validator == null)
             {
@@ -95,7 +105,16 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
                 Substitute.For<ILogger>(),
                 generateHeaders,
                 addStandardHeaders,
-                syncHandler, asyncHandler, validator, sentFactory, messageFactory);
+                syncHandler, asyncHandler, syncBatchHandler, asyncBatchHandler,
+                validator, sentFactory, messageFactory);
+        }
+
+        private static List<QueueMessage<TestMessage, IAdditionalMessageData>> BuildBatch(int count)
+        {
+            var list = new List<QueueMessage<TestMessage, IAdditionalMessageData>>(count);
+            for (var i = 0; i < count; i++)
+                list.Add(new QueueMessage<TestMessage, IAdditionalMessageData>(new TestMessage(), null));
+            return list;
         }
 
         // Helper: build a non-NpgsqlTransaction DbTransaction for guard/validator tests.
@@ -203,6 +222,95 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             // Cast guard throws for the non-NpgsqlTransaction; validator already fired once.
             try { sut.Send(msgs, transaction); } catch (InvalidOperationException) { /* expected */ }
             extractor.Received(1).Extract(Arg.Any<DbConnection>());
+        }
+
+        // ----- Held-transaction batch dispatch (#167) -----
+        //
+        // GuardNpgsqlTransaction requires a concrete NpgsqlTransaction (cannot be substituted without
+        // a live connection), so the full public override cannot be driven past the guard in a unit
+        // test. The build-and-dispatch seam (DispatchBatch/DispatchBatchAsync, internal via
+        // InternalsVisibleTo) is exercised directly with a substitute DbTransaction. The handler-side
+        // "reuse caller connection, attach Transaction, never commit/rollback" guarantees need a real
+        // transaction and are covered by the PostgreSQL inbox integration tests (PLAN-3.2).
+
+        [TestMethod]
+        public void SendBatch_DispatchesBatchCommand_NotPerMessageSend()
+        {
+            var batch = Substitute.For<ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages>>();
+            batch.Handle(Arg.Any<SendMessageCommandBatch>())
+                .Returns(new QueueOutputMessages(new List<IQueueOutputMessage>()));
+            var single = Substitute.For<ICommandHandlerWithOutput<SendMessageCommand, long>>();
+
+            var sut = BuildSut(syncHandler: single, syncBatchHandler: batch);
+            sut.DispatchBatch(BuildBatch(3), BuildNonNpgsqlTransaction());
+
+            batch.Received(1).Handle(Arg.Any<SendMessageCommandBatch>());
+            single.DidNotReceive().Handle(Arg.Any<SendMessageCommand>()); // not a SendOne loop
+        }
+
+        [TestMethod]
+        public void SendBatch_BatchHandlerReceivesExternalTransaction()
+        {
+            SendMessageCommandBatch captured = null;
+            var batch = Substitute.For<ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages>>();
+            batch.Handle(Arg.Do<SendMessageCommandBatch>(c => captured = c))
+                .Returns(new QueueOutputMessages(new List<IQueueOutputMessage>()));
+
+            var sut = BuildSut(syncBatchHandler: batch);
+            var transaction = BuildNonNpgsqlTransaction();
+            sut.DispatchBatch(BuildBatch(2), transaction);
+
+            Assert.IsInstanceOfType(captured, typeof(RelationalSendMessageCommandBatch));
+            Assert.AreSame(transaction, ((RelationalSendMessageCommandBatch)captured).ExternalTransaction);
+            Assert.AreEqual(2, captured.Messages.Count);
+        }
+
+        [TestMethod]
+        public void SendBatch_NeverCallsCommitRollbackOnCallerTransaction()
+        {
+            var sut = BuildSut();
+            var transaction = BuildNonNpgsqlTransaction();
+            sut.DispatchBatch(BuildBatch(2), transaction);
+
+            transaction.DidNotReceive().Commit();
+            transaction.DidNotReceive().Rollback();
+        }
+
+        [TestMethod]
+        public async Task SendBatchAsync_DispatchesBatchCommandAsync()
+        {
+            var batch = Substitute.For<ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages>>();
+            batch.HandleAsync(Arg.Any<SendMessageCommandBatch>())
+                .Returns(Task.FromResult(new QueueOutputMessages(new List<IQueueOutputMessage>())));
+
+            var sut = BuildSut(asyncBatchHandler: batch);
+            await sut.DispatchBatchAsync(BuildBatch(3), BuildNonNpgsqlTransaction());
+
+            await batch.Received(1).HandleAsync(Arg.Any<SendMessageCommandBatch>());
+        }
+
+        [TestMethod]
+        public void SendBatch_ForwardsBatchHandlerException()
+        {
+            var batch = Substitute.For<ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages>>();
+            batch.When(b => b.Handle(Arg.Any<SendMessageCommandBatch>()))
+                .Do(_ => throw new InvalidOperationException("boom"));
+
+            var sut = BuildSut(syncBatchHandler: batch);
+            var ex = Assert.ThrowsExactly<InvalidOperationException>(
+                () => sut.DispatchBatch(BuildBatch(2), BuildNonNpgsqlTransaction()));
+            StringAssert.Contains(ex.Message, "boom"); // propagated, not swallowed into per-message results
+        }
+
+        [TestMethod]
+        public void SendBatch_NonNpgsqlTransaction_ThrowsAndDoesNotDispatch()
+        {
+            var batch = Substitute.For<ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages>>();
+            var sut = BuildSut(syncBatchHandler: batch);
+
+            Assert.ThrowsExactly<InvalidOperationException>(
+                () => sut.Send(BuildBatch(2), BuildNonNpgsqlTransaction()));
+            batch.DidNotReceive().Handle(Arg.Any<SendMessageCommandBatch>());
         }
 
         // ----- DI smoke test (PROJECT.md §Success Criteria #3) -----
