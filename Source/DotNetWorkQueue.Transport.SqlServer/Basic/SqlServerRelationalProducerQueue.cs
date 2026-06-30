@@ -51,6 +51,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     {
         private readonly ICommandHandlerWithOutput<SendMessageCommand, long> _sendHandler;
         private readonly ICommandHandlerWithOutputAsync<SendMessageCommand, long> _sendHandlerAsync;
+        private readonly ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages> _sendBatchHandler;
+        private readonly ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages> _sendBatchHandlerAsync;
         private readonly ExternalTransactionValidator _validator;
         private readonly ISentMessageFactory _sentMessageFactory;
         private readonly IMessageFactory _messageFactory;
@@ -67,6 +69,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="addStandardMessageHeaders">Standard header populator.</param>
         /// <param name="sendHandler">Registered sync handler for <see cref="SendMessageCommand"/>.</param>
         /// <param name="sendHandlerAsync">Registered async handler for <see cref="SendMessageCommand"/>.</param>
+        /// <param name="sendBatchHandler">Registered sync handler for <see cref="SendMessageCommandBatch"/>
+        /// (used by the held-transaction batch path; the decorated handler is correct because
+        /// <see cref="RelationalSendMessageCommandBatch.SkipRetry"/> keeps the retry decorator out of
+        /// the caller's transaction).</param>
+        /// <param name="sendBatchHandlerAsync">Registered async handler for <see cref="SendMessageCommandBatch"/>.</param>
         /// <param name="validator">External-transaction validator (runs at the API boundary).</param>
         /// <param name="sentMessageFactory">Factory for the <see cref="ISentMessage"/> returned to callers.</param>
         /// <param name="ownMessageFactory">Same <see cref="IMessageFactory"/> instance retained for the
@@ -80,6 +87,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             AddStandardMessageHeaders addStandardMessageHeaders,
             ICommandHandlerWithOutput<SendMessageCommand, long> sendHandler,
             ICommandHandlerWithOutputAsync<SendMessageCommand, long> sendHandlerAsync,
+            ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages> sendBatchHandler,
+            ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages> sendBatchHandlerAsync,
             ExternalTransactionValidator validator,
             ISentMessageFactory sentMessageFactory,
             IMessageFactory ownMessageFactory)
@@ -88,11 +97,15 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             Guard.NotNull(() => sendHandler, sendHandler);
             Guard.NotNull(() => sendHandlerAsync, sendHandlerAsync);
+            Guard.NotNull(() => sendBatchHandler, sendBatchHandler);
+            Guard.NotNull(() => sendBatchHandlerAsync, sendBatchHandlerAsync);
             Guard.NotNull(() => validator, validator);
             Guard.NotNull(() => sentMessageFactory, sentMessageFactory);
             Guard.NotNull(() => ownMessageFactory, ownMessageFactory);
             _sendHandler = sendHandler;
             _sendHandlerAsync = sendHandlerAsync;
+            _sendBatchHandler = sendBatchHandler;
+            _sendBatchHandlerAsync = sendBatchHandlerAsync;
             _validator = validator;
             _sentMessageFactory = sentMessageFactory;
             _messageFactory = ownMessageFactory;
@@ -123,24 +136,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             List<QueueMessage<TMessage, IAdditionalMessageData>> messages, DbTransaction transaction)
         {
             Guard.NotNull(() => messages, messages);
-            _validator.Validate(transaction);  // ONCE, before the loop (CONTEXT-3 Decision 3)
+            _validator.Validate(transaction);  // ONCE, at the boundary (CONTEXT-3 Decision 3)
             GuardSqlTransaction(transaction);
-
-            var rc = new List<IQueueOutputMessage>(messages.Count);
-            foreach (var m in messages)  // sequential — DbTransaction is not thread-safe
-            {
-                try
-                {
-                    rc.Add(SendOne(m.Message, m.MessageData ?? new AdditionalMessageData(), transaction));
-                }
-                catch (Exception error)
-                {
-                    rc.Add(new QueueOutputMessage(
-                        _sentMessageFactory.Create(null, (m.MessageData ?? new AdditionalMessageData()).CorrelationId),
-                        error));
-                }
-            }
-            return new QueueOutputMessages(rc);
+            // True multi-row insert inside the caller's transaction: one batch command, not a
+            // SendOne loop. Exceptions propagate — the caller owns the rollback (PROJECT goal 3).
+            return DispatchBatch(messages, transaction);
         }
 
         /// <inheritdoc />
@@ -150,26 +150,48 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             Guard.NotNull(() => messages, messages);
             _validator.Validate(transaction);
             GuardSqlTransaction(transaction);
-
-            var rc = new List<IQueueOutputMessage>(messages.Count);
-            foreach (var m in messages)
-            {
-                try
-                {
-                    rc.Add(await SendOneAsync(m.Message,
-                        m.MessageData ?? new AdditionalMessageData(), transaction).ConfigureAwait(false));
-                }
-                catch (Exception error)
-                {
-                    rc.Add(new QueueOutputMessage(
-                        _sentMessageFactory.Create(null, (m.MessageData ?? new AdditionalMessageData()).CorrelationId),
-                        error));
-                }
-            }
-            return new QueueOutputMessages(rc);
+            return await DispatchBatchAsync(messages, transaction).ConfigureAwait(false);
         }
 
         // ----- private dispatch helpers -----
+
+        /// <summary>
+        /// Builds a single <see cref="RelationalSendMessageCommandBatch"/> carrying the caller's
+        /// transaction and dispatches it to the batch handler. Internal (not private) so the
+        /// build-and-dispatch behavior is unit-testable with a substitute <see cref="DbTransaction"/>;
+        /// the <see cref="GuardSqlTransaction"/> cast guard is covered separately because
+        /// <see cref="Microsoft.Data.SqlClient.SqlTransaction"/> is sealed and cannot be substituted.
+        /// </summary>
+        internal IQueueOutputMessages DispatchBatch(
+            List<QueueMessage<TMessage, IAdditionalMessageData>> messages, DbTransaction transaction)
+        {
+            var cmd = new RelationalSendMessageCommandBatch(BuildBatchMessages(messages), transaction);
+            return _sendBatchHandler.Handle(cmd);
+        }
+
+        /// <summary>
+        /// Async counterpart to <see cref="DispatchBatch"/>.
+        /// </summary>
+        internal async Task<IQueueOutputMessages> DispatchBatchAsync(
+            List<QueueMessage<TMessage, IAdditionalMessageData>> messages, DbTransaction transaction)
+        {
+            var cmd = new RelationalSendMessageCommandBatch(BuildBatchMessages(messages), transaction);
+            return await _sendBatchHandlerAsync.HandleAsync(cmd).ConfigureAwait(false);
+        }
+
+        private List<QueueMessage<IMessage, IAdditionalMessageData>> BuildBatchMessages(
+            List<QueueMessage<TMessage, IAdditionalMessageData>> messages)
+        {
+            var imsgs = new List<QueueMessage<IMessage, IAdditionalMessageData>>(messages.Count);
+            foreach (var m in messages)
+            {
+                var data = m.MessageData ?? new AdditionalMessageData();
+                var additionalHeaders = _generateMessageHeaders.HeaderSetup(data);
+                var imsg = _messageFactory.Create(m.Message, additionalHeaders);
+                imsgs.Add(new QueueMessage<IMessage, IAdditionalMessageData>(imsg, data));
+            }
+            return imsgs;
+        }
 
         private IQueueOutputMessage SendOne(TMessage message, IAdditionalMessageData data, DbTransaction transaction)
         {
