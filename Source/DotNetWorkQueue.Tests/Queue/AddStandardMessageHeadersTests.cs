@@ -21,7 +21,6 @@ using System.Collections.Generic;
 using DotNetWorkQueue.Factory;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Queue;
-using FluentAssertions;
 using NSubstitute;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -37,9 +36,9 @@ namespace DotNetWorkQueue.Tests.Queue
 
             sut.AddHeaders(message, Substitute.For<IAdditionalMessageData>());
 
-            message.Headers.Should().ContainKey("Queue-MessageBodyType");
+            Assert.IsTrue(message.Headers.ContainsKey("Queue-MessageBodyType"));
             var stamped = (string)message.Headers["Queue-MessageBodyType"];
-            stamped.Should().Be($"{typeof(SimpleTestBody).FullName}, {typeof(SimpleTestBody).Assembly.GetName().Name}");
+            Assert.AreEqual($"{typeof(SimpleTestBody).FullName}, {typeof(SimpleTestBody).Assembly.GetName().Name}", stamped);
         }
 
         [TestMethod]
@@ -50,9 +49,9 @@ namespace DotNetWorkQueue.Tests.Queue
             sut.AddHeaders(message, Substitute.For<IAdditionalMessageData>());
 
             var stamped = (string)message.Headers["Queue-MessageBodyType"];
-            stamped.Should().NotContain("Version=");
-            stamped.Should().NotContain("Culture=");
-            stamped.Should().NotContain("PublicKeyToken=");
+            Assert.IsFalse(stamped.Contains("Version="));
+            Assert.IsFalse(stamped.Contains("Culture="));
+            Assert.IsFalse(stamped.Contains("PublicKeyToken="));
         }
 
         [TestMethod]
@@ -63,7 +62,7 @@ namespace DotNetWorkQueue.Tests.Queue
 
             sut.AddHeaders(message, Substitute.For<IAdditionalMessageData>());
 
-            message.Headers.Should().NotContainKey("Queue-MessageBodyType");
+            Assert.IsFalse(message.Headers.ContainsKey("Queue-MessageBodyType"));
         }
 
         [TestMethod]
@@ -73,7 +72,7 @@ namespace DotNetWorkQueue.Tests.Queue
 
             sut.AddHeaders(message, Substitute.For<IAdditionalMessageData>());
 
-            message.Headers.Should().ContainKey("Queue-FirstPossibleDeliveryDate");
+            Assert.IsTrue(message.Headers.ContainsKey("Queue-FirstPossibleDeliveryDate"));
         }
 
         private static (AddStandardMessageHeaders sut, IMessage message) CreateSut(dynamic body)
