@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 using System.Threading;
 using DotNetWorkQueue.Queue;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
@@ -31,7 +30,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var tracker = new MessageCancellationTracker();
             var token = tracker.Register("test-register-1");
-            token.CanBeCanceled.Should().BeTrue();
+            Assert.IsTrue(token.CanBeCanceled);
             tracker.Unregister("test-register-1");
         }
 
@@ -43,7 +42,7 @@ namespace DotNetWorkQueue.Tests.Queue
             var token = tracker.Register("test-link-1", workerCts.Token);
 
             workerCts.Cancel();
-            token.IsCancellationRequested.Should().BeTrue();
+            Assert.IsTrue(token.IsCancellationRequested);
             tracker.Unregister("test-link-1");
             workerCts.Dispose();
         }
@@ -55,8 +54,8 @@ namespace DotNetWorkQueue.Tests.Queue
             var token = tracker.Register("test-cancel-1");
 
             var result = tracker.Cancel("test-cancel-1");
-            result.Should().BeTrue();
-            token.IsCancellationRequested.Should().BeTrue();
+            Assert.IsTrue(result);
+            Assert.IsTrue(token.IsCancellationRequested);
             tracker.Unregister("test-cancel-1");
         }
 
@@ -64,7 +63,7 @@ namespace DotNetWorkQueue.Tests.Queue
         public void Cancel_Returns_False_For_Unknown_Id()
         {
             var tracker = new MessageCancellationTracker();
-            tracker.Cancel("nonexistent").Should().BeFalse();
+            Assert.IsFalse(tracker.Cancel("nonexistent"));
         }
 
         [TestMethod]
@@ -73,8 +72,8 @@ namespace DotNetWorkQueue.Tests.Queue
             var tracker = new MessageCancellationTracker();
             tracker.Register("test-double-cancel-1");
 
-            tracker.Cancel("test-double-cancel-1").Should().BeTrue();
-            tracker.Cancel("test-double-cancel-1").Should().BeFalse();
+            Assert.IsTrue(tracker.Cancel("test-double-cancel-1"));
+            Assert.IsFalse(tracker.Cancel("test-double-cancel-1"));
             tracker.Unregister("test-double-cancel-1");
         }
 
@@ -85,7 +84,7 @@ namespace DotNetWorkQueue.Tests.Queue
             tracker.Register("test-unregister-1");
             tracker.Unregister("test-unregister-1");
 
-            tracker.Cancel("test-unregister-1").Should().BeFalse();
+            Assert.IsFalse(tracker.Cancel("test-unregister-1"));
         }
 
         [TestMethod]
@@ -101,9 +100,9 @@ namespace DotNetWorkQueue.Tests.Queue
             var tracker = new MessageCancellationTracker();
             tracker.Register("test-processing-1");
 
-            MessageCancellationTracker.IsProcessing("test-processing-1").Should().BeTrue();
+            Assert.IsTrue(MessageCancellationTracker.IsProcessing("test-processing-1"));
             tracker.Unregister("test-processing-1");
-            MessageCancellationTracker.IsProcessing("test-processing-1").Should().BeFalse();
+            Assert.IsFalse(MessageCancellationTracker.IsProcessing("test-processing-1"));
         }
     }
 }
