@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.IoC;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SimpleInjector;
 
@@ -32,7 +31,7 @@ namespace DotNetWorkQueue.Tests.IoC
         {
             using (var wrapper = new ContainerWrapper(new Container()))
             {
-                wrapper.IsDisposed.Should().BeFalse();
+                Assert.IsFalse(wrapper.IsDisposed);
             }
         }
 
@@ -41,7 +40,7 @@ namespace DotNetWorkQueue.Tests.IoC
         {
             var wrapper = new ContainerWrapper(new Container());
             wrapper.Dispose();
-            wrapper.IsDisposed.Should().BeTrue();
+            Assert.IsTrue(wrapper.IsDisposed);
         }
 
         [TestMethod]
@@ -50,7 +49,7 @@ namespace DotNetWorkQueue.Tests.IoC
             var wrapper = new ContainerWrapper(new Container());
             wrapper.Dispose();
             wrapper.Dispose(); // Second call should not throw
-            wrapper.IsDisposed.Should().BeTrue();
+            Assert.IsTrue(wrapper.IsDisposed);
         }
 
         [TestMethod]
@@ -60,7 +59,7 @@ namespace DotNetWorkQueue.Tests.IoC
             using (var wrapper = new ContainerWrapper(container))
             {
                 object inner = wrapper.Container;
-                inner.Should().BeSameAs(container);
+                Assert.AreSame(container, inner);
             }
         }
 
@@ -69,7 +68,7 @@ namespace DotNetWorkQueue.Tests.IoC
         {
             using (var wrapper = new ContainerWrapper(new Container()))
             {
-                wrapper.IsVerifying.Should().BeFalse();
+                Assert.IsFalse(wrapper.IsVerifying);
             }
         }
 
@@ -78,7 +77,7 @@ namespace DotNetWorkQueue.Tests.IoC
         {
             using (var wrapper = new ContainerWrapper(new Container()))
             {
-                wrapper.TypesThatCanBeSuppressed.Should().BeEmpty();
+                Assert.AreEqual(0, wrapper.TypesThatCanBeSuppressed.Count);
             }
         }
 
@@ -90,7 +89,7 @@ namespace DotNetWorkQueue.Tests.IoC
             using (var wrapper = new ContainerWrapper(new Container()))
             {
                 var result = wrapper.Register<ITestService, TestServiceImpl>(LifeStyles.Transient);
-                result.Should().BeSameAs(wrapper);
+                Assert.AreSame(wrapper, result);
             }
         }
 
@@ -101,7 +100,7 @@ namespace DotNetWorkQueue.Tests.IoC
             {
                 wrapper.Register<ITestService, TestServiceImpl>(LifeStyles.Transient);
                 var instance = wrapper.GetInstance<ITestService>();
-                instance.Should().BeOfType<TestServiceImpl>();
+                Assert.AreEqual(typeof(TestServiceImpl), instance.GetType());
             }
         }
 
@@ -111,7 +110,7 @@ namespace DotNetWorkQueue.Tests.IoC
             using (var wrapper = new ContainerWrapper(new Container()))
             {
                 var result = wrapper.Register<TestServiceImpl>(LifeStyles.Transient);
-                result.Should().BeSameAs(wrapper);
+                Assert.AreSame(wrapper, result);
             }
         }
 
@@ -121,7 +120,7 @@ namespace DotNetWorkQueue.Tests.IoC
             using (var wrapper = new ContainerWrapper(new Container()))
             {
                 var result = wrapper.Register<ITestService>(() => new TestServiceImpl(), LifeStyles.Transient);
-                result.Should().BeSameAs(wrapper);
+                Assert.AreSame(wrapper, result);
             }
         }
 
@@ -132,7 +131,7 @@ namespace DotNetWorkQueue.Tests.IoC
             {
                 wrapper.Register<ITestService>(() => new TestServiceImpl(), LifeStyles.Transient);
                 var instance = wrapper.GetInstance<ITestService>();
-                instance.Should().BeOfType<TestServiceImpl>();
+                Assert.AreEqual(typeof(TestServiceImpl), instance.GetType());
             }
         }
 
@@ -142,7 +141,7 @@ namespace DotNetWorkQueue.Tests.IoC
             using (var wrapper = new ContainerWrapper(new Container()))
             {
                 var result = wrapper.Register(typeof(ITestService), () => new TestServiceImpl(), LifeStyles.Transient);
-                result.Should().BeSameAs(wrapper);
+                Assert.AreSame(wrapper, result);
             }
         }
 
@@ -152,7 +151,7 @@ namespace DotNetWorkQueue.Tests.IoC
             using (var wrapper = new ContainerWrapper(new Container()))
             {
                 var result = wrapper.Register(typeof(ITestService), typeof(TestServiceImpl), LifeStyles.Transient);
-                result.Should().BeSameAs(wrapper);
+                Assert.AreSame(wrapper, result);
             }
         }
 
@@ -163,7 +162,7 @@ namespace DotNetWorkQueue.Tests.IoC
             {
                 wrapper.Register(typeof(ITestService), typeof(TestServiceImpl), LifeStyles.Transient);
                 var instance = wrapper.GetInstance(typeof(ITestService));
-                instance.Should().BeOfType<TestServiceImpl>();
+                Assert.AreEqual(typeof(TestServiceImpl), instance.GetType());
             }
         }
 
@@ -174,7 +173,7 @@ namespace DotNetWorkQueue.Tests.IoC
             {
                 var result = wrapper.Register(typeof(IGenericService<>),
                     new[] { typeof(StringServiceImpl) }, LifeStyles.Transient);
-                result.Should().BeSameAs(wrapper);
+                Assert.AreSame(wrapper, result);
             }
         }
 
@@ -185,7 +184,7 @@ namespace DotNetWorkQueue.Tests.IoC
             {
                 var result = wrapper.RegisterConditional(typeof(ITestService), typeof(TestServiceImpl),
                     LifeStyles.Transient);
-                result.Should().BeSameAs(wrapper);
+                Assert.AreSame(wrapper, result);
             }
         }
 
@@ -195,7 +194,7 @@ namespace DotNetWorkQueue.Tests.IoC
             using (var wrapper = new ContainerWrapper(new Container()))
             {
                 var result = wrapper.RegisterConditional<ITestService, TestServiceImpl>(LifeStyles.Transient);
-                result.Should().BeSameAs(wrapper);
+                Assert.AreSame(wrapper, result);
             }
         }
 
@@ -206,7 +205,7 @@ namespace DotNetWorkQueue.Tests.IoC
             {
                 var instance = new TestServiceImpl();
                 var result = wrapper.RegisterNonScopedSingleton(instance);
-                result.Should().BeSameAs(wrapper);
+                Assert.AreSame(wrapper, result);
             }
         }
 
@@ -218,7 +217,7 @@ namespace DotNetWorkQueue.Tests.IoC
                 var instance = new TestServiceImpl();
                 wrapper.RegisterNonScopedSingleton(instance);
                 var resolved = wrapper.GetInstance<TestServiceImpl>();
-                resolved.Should().BeSameAs(instance);
+                Assert.AreSame(instance, resolved);
             }
         }
 
@@ -228,7 +227,7 @@ namespace DotNetWorkQueue.Tests.IoC
             using (var wrapper = new ContainerWrapper(new Container()))
             {
                 var result = wrapper.RegisterCollection<ITestService>(new[] { typeof(TestServiceImpl) });
-                result.Should().BeSameAs(wrapper);
+                Assert.AreSame(wrapper, result);
             }
         }
 
@@ -242,7 +241,7 @@ namespace DotNetWorkQueue.Tests.IoC
                 wrapper.Register<ITestService, TestServiceImpl>(LifeStyles.Singleton);
                 var instance1 = wrapper.GetInstance<ITestService>();
                 var instance2 = wrapper.GetInstance<ITestService>();
-                instance1.Should().BeSameAs(instance2);
+                Assert.AreSame(instance2, instance1);
             }
         }
 
@@ -254,7 +253,7 @@ namespace DotNetWorkQueue.Tests.IoC
                 wrapper.Register<ITestService, TestServiceImpl>(LifeStyles.Transient);
                 var instance1 = wrapper.GetInstance<ITestService>();
                 var instance2 = wrapper.GetInstance<ITestService>();
-                instance1.Should().NotBeSameAs(instance2);
+                Assert.AreNotSame(instance2, instance1);
             }
         }
 
@@ -266,7 +265,7 @@ namespace DotNetWorkQueue.Tests.IoC
             using (var wrapper = new ContainerWrapper(new Container()))
             {
                 Action act = () => wrapper.Register<ITestService, TestServiceImpl>((LifeStyles)99);
-                act.Should().Throw<DotNetWorkQueueException>();
+                Assert.Throws<DotNetWorkQueueException>(act);
             }
         }
 
@@ -279,7 +278,7 @@ namespace DotNetWorkQueue.Tests.IoC
             {
                 Action act = () => wrapper.SuppressDiagnosticWarning(null,
                     DiagnosticTypes.DisposableTransientComponent, "test");
-                act.Should().Throw<ArgumentNullException>();
+                Assert.Throws<ArgumentNullException>(act);
             }
         }
 
@@ -290,7 +289,7 @@ namespace DotNetWorkQueue.Tests.IoC
             {
                 var result = wrapper.SuppressDiagnosticWarning(typeof(ITestService),
                     DiagnosticTypes.DisposableTransientComponent, "test");
-                result.Should().BeSameAs(wrapper);
+                Assert.AreSame(wrapper, result);
             }
         }
 
@@ -302,7 +301,7 @@ namespace DotNetWorkQueue.Tests.IoC
                 wrapper.AddTypeThatNeedsWarningSuppression(typeof(ITestService));
                 var result = wrapper.SuppressDiagnosticWarning(typeof(ITestService),
                     DiagnosticTypes.DisposableTransientComponent, "test");
-                result.Should().BeSameAs(wrapper);
+                Assert.AreSame(wrapper, result);
             }
         }
 
@@ -316,7 +315,7 @@ namespace DotNetWorkQueue.Tests.IoC
 
                 Action act = () => wrapper.SuppressDiagnosticWarning(typeof(ITestService),
                     DiagnosticTypes.DisposableTransientComponent, "test reason");
-                act.Should().NotThrow();
+                act();
             }
         }
 
@@ -328,7 +327,7 @@ namespace DotNetWorkQueue.Tests.IoC
             using (var wrapper = new ContainerWrapper(new Container()))
             {
                 wrapper.AddTypeThatNeedsWarningSuppression(typeof(ITestService));
-                wrapper.TypesThatCanBeSuppressed.Should().Contain(typeof(ITestService));
+                Assert.IsTrue(wrapper.TypesThatCanBeSuppressed.Contains(typeof(ITestService)));
             }
         }
 
@@ -339,7 +338,7 @@ namespace DotNetWorkQueue.Tests.IoC
             {
                 wrapper.AddTypeThatNeedsWarningSuppression(typeof(ITestService));
                 wrapper.AddTypeThatNeedsWarningSuppression(typeof(ITestService));
-                wrapper.TypesThatCanBeSuppressed.Should().HaveCount(1);
+                Assert.AreEqual(1, wrapper.TypesThatCanBeSuppressed.Count);
             }
         }
 
@@ -353,7 +352,7 @@ namespace DotNetWorkQueue.Tests.IoC
                 wrapper.Register<ITestService, TestServiceImpl>(LifeStyles.Transient);
                 var result = wrapper.RegisterDecorator(typeof(ITestService), typeof(TestServiceDecorator),
                     LifeStyles.Transient);
-                result.Should().BeSameAs(wrapper);
+                Assert.AreSame(wrapper, result);
             }
         }
 
@@ -364,7 +363,7 @@ namespace DotNetWorkQueue.Tests.IoC
             {
                 wrapper.Register<ITestService, TestServiceImpl>(LifeStyles.Transient);
                 var result = wrapper.RegisterDecorator<ITestService, TestServiceDecorator>(LifeStyles.Transient);
-                result.Should().BeSameAs(wrapper);
+                Assert.AreSame(wrapper, result);
             }
         }
 
@@ -377,7 +376,7 @@ namespace DotNetWorkQueue.Tests.IoC
                 wrapper.RegisterDecorator<ITestService, TestServiceDecorator>(LifeStyles.Transient);
 
                 var instance = wrapper.GetInstance<ITestService>();
-                instance.Should().BeOfType<TestServiceDecorator>();
+                Assert.AreEqual(typeof(TestServiceDecorator), instance.GetType());
             }
         }
 
@@ -390,7 +389,7 @@ namespace DotNetWorkQueue.Tests.IoC
             {
                 var result = wrapper.Register(typeof(IGenericService<>), LifeStyles.Transient,
                     typeof(GenericServiceImpl<>).Assembly);
-                result.Should().BeSameAs(wrapper);
+                Assert.AreSame(wrapper, result);
             }
         }
 
