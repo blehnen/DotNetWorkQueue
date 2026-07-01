@@ -1,6 +1,5 @@
 using DotNetWorkQueue.Notifications;
 using DotNetWorkQueue.Queue;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
@@ -44,7 +43,7 @@ namespace DotNetWorkQueue.Tests.Queue
 
             sut.InvokeMessageComplete(new MessageCompleteNotification(null, null, null, null));
 
-            called.Should().BeTrue();
+            Assert.IsTrue(called);
             metrics.Received(1).IncrementProcessed();
         }
 
@@ -61,7 +60,7 @@ namespace DotNetWorkQueue.Tests.Queue
 
             sut.InvokeRollback(new RollBackNotification(null, null, null, null));
 
-            called.Should().BeTrue();
+            Assert.IsTrue(called);
             metrics.Received(1).IncrementRolledBack();
         }
     }
@@ -103,7 +102,7 @@ namespace DotNetWorkQueue.Tests.Queue
 
             sut.InvokeError(new ErrorNotification(null, null, null, null));
 
-            called.Should().BeTrue();
+            Assert.IsTrue(called);
             metrics.Received(1).IncrementErrored();
         }
 
@@ -119,7 +118,7 @@ namespace DotNetWorkQueue.Tests.Queue
 
             sut.InvokePoisonMessageError(new PoisonMessageNotification(new DotNetWorkQueue.Exceptions.PoisonMessageException()));
 
-            called.Should().BeTrue();
+            Assert.IsTrue(called);
             metrics.Received(1).IncrementPoisonMessage();
         }
 
