@@ -1,6 +1,5 @@
 using System;
 using DotNetWorkQueue.Queue;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.Queue
@@ -15,7 +14,7 @@ namespace DotNetWorkQueue.Tests.Queue
             var sut = new ConsumerMetricsNotification(() => count++, () => { }, () => { }, () => { });
             sut.IncrementProcessed();
             sut.IncrementProcessed();
-            count.Should().Be(2);
+            Assert.AreEqual(2, count);
         }
 
         [TestMethod]
@@ -24,7 +23,7 @@ namespace DotNetWorkQueue.Tests.Queue
             var count = 0;
             var sut = new ConsumerMetricsNotification(() => { }, () => count++, () => { }, () => { });
             sut.IncrementErrored();
-            count.Should().Be(1);
+            Assert.AreEqual(1, count);
         }
 
         [TestMethod]
@@ -33,7 +32,7 @@ namespace DotNetWorkQueue.Tests.Queue
             var count = 0;
             var sut = new ConsumerMetricsNotification(() => { }, () => { }, () => count++, () => { });
             sut.IncrementRolledBack();
-            count.Should().Be(1);
+            Assert.AreEqual(1, count);
         }
 
         [TestMethod]
@@ -42,7 +41,7 @@ namespace DotNetWorkQueue.Tests.Queue
             var count = 0;
             var sut = new ConsumerMetricsNotification(() => { }, () => { }, () => { }, () => count++);
             sut.IncrementPoisonMessage();
-            count.Should().Be(1);
+            Assert.AreEqual(1, count);
         }
 
         [TestMethod]
@@ -53,10 +52,10 @@ namespace DotNetWorkQueue.Tests.Queue
             Action act3 = () => new ConsumerMetricsNotification(() => { }, () => { }, null, () => { });
             Action act4 = () => new ConsumerMetricsNotification(() => { }, () => { }, () => { }, null);
 
-            act1.Should().Throw<ArgumentNullException>();
-            act2.Should().Throw<ArgumentNullException>();
-            act3.Should().Throw<ArgumentNullException>();
-            act4.Should().Throw<ArgumentNullException>();
+            Assert.Throws<ArgumentNullException>(act1);
+            Assert.Throws<ArgumentNullException>(act2);
+            Assert.Throws<ArgumentNullException>(act3);
+            Assert.Throws<ArgumentNullException>(act4);
         }
 
         [TestMethod]

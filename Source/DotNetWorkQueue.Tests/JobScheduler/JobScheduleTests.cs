@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using DotNetWorkQueue.JobScheduler;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Tests.JobScheduler
@@ -34,42 +33,42 @@ namespace DotNetWorkQueue.Tests.JobScheduler
         public void Constructor_InvalidFieldCount_1Field_Throws()
         {
             Action act = () => new JobSchedule("invalid", GetNow);
-            act.Should().Throw<ArgumentException>();
+            Assert.Throws<ArgumentException>(act);
         }
 
         [TestMethod]
         public void Constructor_InvalidFieldCount_4Fields_Throws()
         {
             Action act = () => new JobSchedule("* * * *", GetNow);
-            act.Should().Throw<ArgumentException>();
+            Assert.Throws<ArgumentException>(act);
         }
 
         [TestMethod]
         public void Constructor_InvalidFieldCount_7Fields_Throws()
         {
             Action act = () => new JobSchedule("* * * * * * *", GetNow);
-            act.Should().Throw<ArgumentException>();
+            Assert.Throws<ArgumentException>(act);
         }
 
         [TestMethod]
         public void Constructor_SchyntaxFormat_Throws()
         {
             Action act = () => new JobSchedule("second(*%3)", GetNow);
-            act.Should().Throw<ArgumentException>();
+            Assert.Throws<ArgumentException>(act);
         }
 
         [TestMethod]
         public void Constructor_InvalidCronSyntax_5Field_Throws()
         {
             Action act = () => new JobSchedule("99 99 99 99 99", GetNow);
-            act.Should().Throw<Cronos.CronFormatException>();
+            Assert.Throws<Cronos.CronFormatException>(act);
         }
 
         [TestMethod]
         public void Constructor_InvalidCronSyntax_6Field_Throws()
         {
             Action act = () => new JobSchedule("99 99 99 99 99 99", GetNow);
-            act.Should().Throw<Cronos.CronFormatException>();
+            Assert.Throws<Cronos.CronFormatException>(act);
         }
 
         // --- Valid construction ---

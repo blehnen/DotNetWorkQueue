@@ -20,7 +20,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using DotNetWorkQueue.Queue;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -47,8 +46,8 @@ namespace DotNetWorkQueue.Tests.Queue
 
             decorator.Handle(message, notification);
 
-            captured.Should().NotBeNull();
-            captured.Token.CanBeCanceled.Should().BeTrue();
+            Assert.IsNotNull(captured);
+            Assert.IsTrue(captured.Token.CanBeCanceled);
         }
 
         [TestMethod]
@@ -63,7 +62,7 @@ namespace DotNetWorkQueue.Tests.Queue
 
             decorator.Handle(message, notification);
 
-            MessageCancellationTracker.IsProcessing("unregister-success-1").Should().BeFalse();
+            Assert.IsFalse(MessageCancellationTracker.IsProcessing("unregister-success-1"));
         }
 
         [TestMethod]
@@ -79,9 +78,9 @@ namespace DotNetWorkQueue.Tests.Queue
             var notification = CreateNotification();
 
             Action act = () => decorator.Handle(message, notification);
-            act.Should().Throw<InvalidOperationException>();
+            Assert.Throws<InvalidOperationException>(act);
 
-            MessageCancellationTracker.IsProcessing("unregister-error-1").Should().BeFalse();
+            Assert.IsFalse(MessageCancellationTracker.IsProcessing("unregister-error-1"));
         }
 
         [TestMethod]
@@ -96,7 +95,7 @@ namespace DotNetWorkQueue.Tests.Queue
 
             decorator.Handle(message, notification);
 
-            notification.MessageCancellation.Should().BeOfType<MessageCancellationNoOp>();
+            Assert.AreEqual(typeof(MessageCancellationNoOp), notification.MessageCancellation.GetType());
         }
 
         [TestMethod]
