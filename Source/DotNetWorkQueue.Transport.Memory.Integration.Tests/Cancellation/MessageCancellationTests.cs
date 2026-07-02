@@ -22,7 +22,6 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Cancellation
@@ -86,7 +85,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Cancellation
                                 }, null);
 
                                 // Wait for handler to start
-                                handlerStarted.Wait(TimeSpan.FromSeconds(10)).Should().BeTrue("handler should start");
+                                Assert.IsTrue(handlerStarted.Wait(TimeSpan.FromSeconds(10)), "handler should start");
 
                                 // Give the tracker a moment to register
                                 Thread.Sleep(100);
@@ -104,7 +103,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Cancellation
                                 // by checking the handler's observation
 
                                 // Wait for handler to complete (it will timeout after 10s or get cancelled)
-                                handlerCompleted.Wait(TimeSpan.FromSeconds(15)).Should().BeTrue("handler should complete");
+                                Assert.IsTrue(handlerCompleted.Wait(TimeSpan.FromSeconds(15)), "handler should complete");
                             }
                         }
 
@@ -160,12 +159,12 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Cancellation
                                     handlerCompleted.Set();
                                 }, null);
 
-                                handlerCompleted.Wait(TimeSpan.FromSeconds(10)).Should().BeTrue("handler should complete");
+                                Assert.IsTrue(handlerCompleted.Wait(TimeSpan.FromSeconds(10)), "handler should complete");
                             }
                         }
 
-                        tokenWasAvailable.Should().BeTrue("MessageCancellation should be set on workerNotification");
-                        tokenCanBeCanceled.Should().BeTrue("The cancellation token should be cancelable");
+                        Assert.IsTrue(tokenWasAvailable, "MessageCancellation should be set on workerNotification");
+                        Assert.IsTrue(tokenCanBeCanceled, "The cancellation token should be cancelable");
                     }
                 }
             }
