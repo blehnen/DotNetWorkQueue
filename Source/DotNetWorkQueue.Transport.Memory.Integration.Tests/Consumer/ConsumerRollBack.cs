@@ -4,7 +4,6 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
@@ -75,13 +74,13 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
                                         allDone.Set();
                                 }, new ConsumerQueueNotifications());
 
-                                allDone.Wait(TimeSpan.FromSeconds(30)).Should().BeTrue(
+                                Assert.IsTrue(allDone.Wait(TimeSpan.FromSeconds(30)),
                                     "consumer should process remaining messages after errors");
                             }
                         }
 
-                        processedCount.Should().Be(3, "3 messages should be processed successfully");
-                        errorCount.Should().Be(2, "2 messages should have thrown errors");
+                        Assert.AreEqual(3, processedCount, "3 messages should be processed successfully");
+                        Assert.AreEqual(2, errorCount, "2 messages should have thrown errors");
                     }
                 }
             }
@@ -136,13 +135,13 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
                                 }, new ConsumerQueueNotifications());
 
                                 // Wait for first message then stop
-                                firstMessageProcessed.Wait(TimeSpan.FromSeconds(10)).Should().BeTrue(
+                                Assert.IsTrue(firstMessageProcessed.Wait(TimeSpan.FromSeconds(10)),
                                     "at least one message should be processed");
                             }
                             // Consumer disposed -- no crash
                         }
 
-                        processedCount.Should().BeGreaterThanOrEqualTo(1,
+                        Assert.IsTrue(processedCount >= 1,
                             "at least one message should have been processed before stop");
                     }
                 }
