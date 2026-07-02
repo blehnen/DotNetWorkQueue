@@ -7,7 +7,6 @@ using DotNetWorkQueue.Transport.LiteDb.Schema;
 using DotNetWorkQueue.Transport.Shared;
 using LiteDB;
 using NSubstitute;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.QueryHandler
@@ -60,7 +59,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.QueryHandler
                 var query = new DoesJobExistQuery("myJob", DateTimeOffset.UtcNow, db);
                 var result = handler.Handle(query);
 
-                result.Should().Be(QueueStatuses.NotQueued);
+                Assert.AreEqual(QueueStatuses.NotQueued, result);
             }
         }
 
@@ -86,7 +85,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.QueryHandler
                 var query = new DoesJobExistQuery("myJob", DateTimeOffset.UtcNow, db);
                 var result = handler.Handle(query);
 
-                result.Should().Be(QueueStatuses.Waiting);
+                Assert.AreEqual(QueueStatuses.Waiting, result);
             }
         }
 
@@ -111,7 +110,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.QueryHandler
                 var query = new DoesJobExistQuery("myJob", DateTimeOffset.UtcNow, db);
                 var result = handler.Handle(query);
 
-                result.Should().Be(QueueStatuses.Processing);
+                Assert.AreEqual(QueueStatuses.Processing, result);
             }
         }
 
@@ -141,7 +140,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.QueryHandler
                 var query = new DoesJobExistQuery("myJob", scheduledTime, db);
                 var result = handler.Handle(query);
 
-                result.Should().Be(QueueStatuses.Processed);
+                Assert.AreEqual(QueueStatuses.Processed, result);
             }
         }
 
@@ -171,7 +170,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.QueryHandler
                 var query = new DoesJobExistQuery("myJob", differentTime, db);
                 var result = handler.Handle(query);
 
-                result.Should().Be(QueueStatuses.NotQueued);
+                Assert.AreEqual(QueueStatuses.NotQueued, result);
             }
         }
 
@@ -186,7 +185,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.QueryHandler
                 var query = new DoesJobExistQuery("myJob", DateTimeOffset.UtcNow, db);
                 var result = handler.Handle(query);
 
-                result.Should().Be(QueueStatuses.NotQueued);
+                Assert.AreEqual(QueueStatuses.NotQueued, result);
             }
         }
 
@@ -202,7 +201,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.QueryHandler
                 var query = new DoesJobExistQuery("nonexistentJob", DateTimeOffset.UtcNow, db);
                 var result = handler.Handle(query);
 
-                result.Should().Be(QueueStatuses.NotQueued);
+                Assert.AreEqual(QueueStatuses.NotQueued, result);
             }
         }
 

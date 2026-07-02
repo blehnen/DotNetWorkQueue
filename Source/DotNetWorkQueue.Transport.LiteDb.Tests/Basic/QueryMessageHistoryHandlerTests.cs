@@ -21,7 +21,6 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.Schema;
 using NSubstitute;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
@@ -83,8 +82,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 var record = handler.GetByQueueId("q1");
 
                 // Assert: DurationMs must be 0, NOT null
-                record.Should().NotBeNull();
-                record.DurationMs.Should().Be(0L,
+                Assert.IsNotNull(record);
+                Assert.AreEqual(0L, record.DurationMs,
                     "DurationMs=0 on a completed row must be preserved as 0, not converted to null");
             }
         }
@@ -112,8 +111,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 var record = handler.GetByQueueId("q2");
 
                 // Assert: DurationMs must be null — row never completed
-                record.Should().NotBeNull();
-                record.DurationMs.Should().BeNull(
+                Assert.IsNotNull(record);
+                Assert.IsNull(record.DurationMs,
                     "DurationMs must be null when CompletedUtc=0 (row never completed)");
             }
         }

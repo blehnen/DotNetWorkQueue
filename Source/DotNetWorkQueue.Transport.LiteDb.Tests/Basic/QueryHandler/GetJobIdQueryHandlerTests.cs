@@ -21,7 +21,6 @@ using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.LiteDb.Schema;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
@@ -94,7 +93,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.QueryHandler
                 var query = new GetJobIdQuery<int>("myJob");
                 var result = handler.Handle(query);
 
-                result.Should().Be(42);
+                Assert.AreEqual(42, result);
             }
         }
 
@@ -108,7 +107,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.QueryHandler
                 var query = new GetJobIdQuery<int>("missingJob");
                 var result = handler.Handle(query);
 
-                result.Should().Be(0);
+                Assert.AreEqual(0, result);
             }
         }
 
@@ -144,7 +143,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.QueryHandler
                 var query = new GetJobIdQuery<int>("jobB");
                 var result = handler.Handle(query);
 
-                result.Should().Be(2);
+                Assert.AreEqual(2, result);
             }
         }
 
@@ -168,7 +167,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.QueryHandler
                 var query = new GetJobIdQuery<int>("notThere");
                 var result = handler.Handle(query);
 
-                result.Should().Be(0);
+                Assert.AreEqual(0, result);
             }
         }
 

@@ -22,7 +22,6 @@ using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.Basic.Command;
 using DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.LiteDb.Schema;
-using FluentAssertions;
 using LiteDB;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -59,10 +58,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.CommandHandler
             var col = db.GetCollection<JobsTable>(tableNameHelper.JobTableName);
             var all = col.FindAll().ToList();
 
-            all.Should().HaveCount(1);
-            all[0].JobName.Should().Be("TestJob");
-            all[0].JobScheduledTime.Should().Be(scheduledTime);
-            all[0].JobEventTime.Should().Be(eventTime);
+            Assert.AreEqual(1, all.Count);
+            Assert.AreEqual("TestJob", all[0].JobName);
+            Assert.AreEqual(scheduledTime, all[0].JobScheduledTime);
+            Assert.AreEqual(eventTime, all[0].JobEventTime);
         }
 
         [TestMethod]
@@ -91,10 +90,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.CommandHandler
             handler.Handle(command);
 
             var all = col.FindAll().ToList();
-            all.Should().HaveCount(1, "existing job should be updated, not duplicated");
-            all[0].JobName.Should().Be("ExistingJob");
-            all[0].JobScheduledTime.Should().Be(newScheduled);
-            all[0].JobEventTime.Should().Be(newEvent);
+            Assert.AreEqual(1, all.Count, "existing job should be updated, not duplicated");
+            Assert.AreEqual("ExistingJob", all[0].JobName);
+            Assert.AreEqual(newScheduled, all[0].JobScheduledTime);
+            Assert.AreEqual(newEvent, all[0].JobEventTime);
         }
 
         [TestMethod]
@@ -123,15 +122,15 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.CommandHandler
             handler.Handle(command);
 
             var all = col.FindAll().OrderBy(j => j.JobName).ToList();
-            all.Should().HaveCount(2);
+            Assert.AreEqual(2, all.Count);
 
             var first = all.Single(j => j.JobName == "FirstJob");
-            first.JobScheduledTime.Should().Be(firstScheduled);
-            first.JobEventTime.Should().Be(firstEvent);
+            Assert.AreEqual(firstScheduled, first.JobScheduledTime);
+            Assert.AreEqual(firstEvent, first.JobEventTime);
 
             var second = all.Single(j => j.JobName == "SecondJob");
-            second.JobScheduledTime.Should().Be(secondScheduled);
-            second.JobEventTime.Should().Be(secondEvent);
+            Assert.AreEqual(secondScheduled, second.JobScheduledTime);
+            Assert.AreEqual(secondEvent, second.JobEventTime);
         }
 
         private static TableNameHelper CreateTableNameHelper()

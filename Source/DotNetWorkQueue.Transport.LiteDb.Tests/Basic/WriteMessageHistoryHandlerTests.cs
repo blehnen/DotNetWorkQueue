@@ -4,8 +4,8 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.Schema;
 using NSubstitute;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using DotNetWorkQueue.Tests.Shared;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
 {
@@ -54,14 +54,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 {
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var records = col.FindAll().ToList();
-                    records.Should().HaveCount(1);
-                    records[0].QueueId.Should().Be("q1");
-                    records[0].CorrelationId.Should().Be("c1");
-                    records[0].Route.Should().Be("routeA");
-                    records[0].MessageType.Should().Be("MyType");
-                    records[0].Status.Should().Be((int)MessageHistoryStatus.Enqueued);
-                    records[0].RetryCount.Should().Be(0);
-                    records[0].EnqueuedUtc.Should().BeGreaterThan(0);
+                    Assert.AreEqual(1, records.Count);
+                    Assert.AreEqual("q1", records[0].QueueId);
+                    Assert.AreEqual("c1", records[0].CorrelationId);
+                    Assert.AreEqual("routeA", records[0].Route);
+                    Assert.AreEqual("MyType", records[0].MessageType);
+                    Assert.AreEqual((int)MessageHistoryStatus.Enqueued, records[0].Status);
+                    Assert.AreEqual(0, records[0].RetryCount);
+                    Assert.IsTrue(records[0].EnqueuedUtc > 0);
                 }
             }
         }
@@ -80,8 +80,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 {
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
-                    record.Body.Should().BeEquivalentTo(body);
-                    record.Headers.Should().BeEquivalentTo(headers);
+                    AssertHelper.AreEquivalent(body, record.Body);
+                    AssertHelper.AreEquivalent(headers, record.Headers);
                 }
             }
         }
@@ -98,8 +98,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 {
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
-                    record.Body.Should().BeNull();
-                    record.Headers.Should().BeNull();
+                    Assert.IsNull(record.Body);
+                    Assert.IsNull(record.Headers);
                 }
             }
         }
@@ -119,8 +119,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 {
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
-                    record.Status.Should().Be((int)MessageHistoryStatus.Processing);
-                    record.StartedUtc.Should().BeGreaterThan(0);
+                    Assert.AreEqual((int)MessageHistoryStatus.Processing, record.Status);
+                    Assert.IsTrue(record.StartedUtc > 0);
                 }
             }
         }
@@ -132,7 +132,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
             using (cm)
             {
                 Action act = () => handler.RecordProcessingStart("nonexistent");
-                act.Should().NotThrow();
+                act();
             }
         }
 
@@ -152,9 +152,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 {
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
-                    record.Status.Should().Be((int)MessageHistoryStatus.Complete);
-                    record.CompletedUtc.Should().BeGreaterThan(0);
-                    record.DurationMs.Should().BeGreaterThanOrEqualTo(0);
+                    Assert.AreEqual((int)MessageHistoryStatus.Complete, record.Status);
+                    Assert.IsTrue(record.CompletedUtc > 0);
+                    Assert.IsTrue(record.DurationMs >= 0);
                 }
             }
         }
@@ -174,7 +174,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
                     // RecordComplete should have returned early without updating
-                    record.Status.Should().Be((int)MessageHistoryStatus.Processing);
+                    Assert.AreEqual((int)MessageHistoryStatus.Processing, record.Status);
                 }
             }
         }
@@ -203,9 +203,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 {
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
-                    record.Status.Should().Be((int)MessageHistoryStatus.Complete);
-                    record.StartedUtc.Should().Be(0, "StartedUtc was manually cleared to simulate missing start");
-                    record.DurationMs.Should().Be(0, "DurationMs must be explicitly 0 when StartedUtc is not set");
+                    Assert.AreEqual((int)MessageHistoryStatus.Complete, record.Status);
+                    Assert.AreEqual(0, record.StartedUtc, "StartedUtc was manually cleared to simulate missing start");
+                    Assert.AreEqual(0, record.DurationMs, "DurationMs must be explicitly 0 when StartedUtc is not set");
                 }
             }
         }
@@ -217,7 +217,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
             using (cm)
             {
                 Action act = () => handler.RecordComplete("nonexistent");
-                act.Should().NotThrow();
+                act();
             }
         }
 
@@ -237,10 +237,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 {
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
-                    record.Status.Should().Be((int)MessageHistoryStatus.Error);
-                    record.ExceptionText.Should().Be("Something went wrong");
-                    record.CompletedUtc.Should().BeGreaterThan(0);
-                    record.DurationMs.Should().BeGreaterThanOrEqualTo(0);
+                    Assert.AreEqual((int)MessageHistoryStatus.Error, record.Status);
+                    Assert.AreEqual("Something went wrong", record.ExceptionText);
+                    Assert.IsTrue(record.CompletedUtc > 0);
+                    Assert.IsTrue(record.DurationMs >= 0);
                 }
             }
         }
@@ -258,9 +258,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 {
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
-                    record.Status.Should().Be((int)MessageHistoryStatus.Error);
-                    record.ExceptionText.Should().Be("Error without processing");
-                    record.DurationMs.Should().Be(0);
+                    Assert.AreEqual((int)MessageHistoryStatus.Error, record.Status);
+                    Assert.AreEqual("Error without processing", record.ExceptionText);
+                    Assert.AreEqual(0, record.DurationMs);
                 }
             }
         }
@@ -272,7 +272,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
             using (cm)
             {
                 Action act = () => handler.RecordError("nonexistent", "error");
-                act.Should().NotThrow();
+                act();
             }
         }
 
@@ -292,11 +292,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 {
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
-                    record.Status.Should().Be((int)MessageHistoryStatus.Enqueued);
-                    record.RetryCount.Should().Be(1);
-                    record.StartedUtc.Should().Be(0);
-                    record.CompletedUtc.Should().Be(0);
-                    record.DurationMs.Should().Be(0);
+                    Assert.AreEqual((int)MessageHistoryStatus.Enqueued, record.Status);
+                    Assert.AreEqual(1, record.RetryCount);
+                    Assert.AreEqual(0, record.StartedUtc);
+                    Assert.AreEqual(0, record.CompletedUtc);
+                    Assert.AreEqual(0, record.DurationMs);
                 }
             }
         }
@@ -316,7 +316,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 {
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
-                    record.RetryCount.Should().Be(3);
+                    Assert.AreEqual(3, record.RetryCount);
                 }
             }
         }
@@ -328,7 +328,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
             using (cm)
             {
                 Action act = () => handler.RecordRollback("nonexistent");
-                act.Should().NotThrow();
+                act();
             }
         }
 
@@ -347,8 +347,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 {
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
-                    record.Status.Should().Be((int)MessageHistoryStatus.Deleted);
-                    record.CompletedUtc.Should().BeGreaterThan(0);
+                    Assert.AreEqual((int)MessageHistoryStatus.Deleted, record.Status);
+                    Assert.IsTrue(record.CompletedUtc > 0);
                 }
             }
         }
@@ -360,7 +360,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
             using (cm)
             {
                 Action act = () => handler.RecordDelete("nonexistent");
-                act.Should().NotThrow();
+                act();
             }
         }
 
@@ -379,8 +379,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 {
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
-                    record.Status.Should().Be((int)MessageHistoryStatus.Expired);
-                    record.CompletedUtc.Should().BeGreaterThan(0);
+                    Assert.AreEqual((int)MessageHistoryStatus.Expired, record.Status);
+                    Assert.IsTrue(record.CompletedUtc > 0);
                 }
             }
         }
@@ -392,7 +392,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
             using (cm)
             {
                 Action act = () => handler.RecordExpire("nonexistent");
-                act.Should().NotThrow();
+                act();
             }
         }
 
@@ -412,11 +412,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 {
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
-                    record.Status.Should().Be((int)MessageHistoryStatus.Complete);
-                    record.QueueId.Should().Be("q1");
-                    record.CorrelationId.Should().Be("c1");
-                    record.Route.Should().Be("route1");
-                    record.MessageType.Should().Be("MyMessage");
+                    Assert.AreEqual((int)MessageHistoryStatus.Complete, record.Status);
+                    Assert.AreEqual("q1", record.QueueId);
+                    Assert.AreEqual("c1", record.CorrelationId);
+                    Assert.AreEqual("route1", record.Route);
+                    Assert.AreEqual("MyMessage", record.MessageType);
                 }
             }
         }
