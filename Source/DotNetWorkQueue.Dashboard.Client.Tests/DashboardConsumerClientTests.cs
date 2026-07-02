@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Client.Tests
@@ -29,7 +28,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
         public void Constructor_Throws_When_Options_Null()
         {
             Action act = () => new DashboardConsumerClient((DashboardClientOptions)null);
-            act.Should().Throw<ArgumentNullException>();
+            Assert.Throws<ArgumentNullException>(act);
         }
 
         [TestMethod]
@@ -38,7 +37,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var opts = CreateOptions();
             opts.DashboardApiUrl = null;
             Action act = () => new DashboardConsumerClient(opts);
-            act.Should().Throw<ArgumentException>();
+            Assert.Throws<ArgumentException>(act);
         }
 
         [TestMethod]
@@ -47,21 +46,21 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var opts = CreateOptions();
             opts.QueueName = null;
             Action act = () => new DashboardConsumerClient(opts);
-            act.Should().Throw<ArgumentException>();
+            Assert.Throws<ArgumentException>(act);
         }
 
         [TestMethod]
         public void Constructor_HttpClient_Throws_When_Null()
         {
             Action act = () => new DashboardConsumerClient((HttpClient)null, CreateOptions());
-            act.Should().Throw<ArgumentNullException>();
+            Assert.Throws<ArgumentNullException>(act);
         }
 
         [TestMethod]
         public void Constructor_HttpClientFactory_Throws_When_Null()
         {
             Action act = () => new DashboardConsumerClient((IHttpClientFactory)null, CreateOptions());
-            act.Should().Throw<ArgumentNullException>();
+            Assert.Throws<ArgumentNullException>(act);
         }
 
         // === StartAsync ===
@@ -93,8 +92,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             await client.StartAsync();
 
-            client.ConsumerId.Should().Be(consumerId);
-            client.IsRegistered.Should().BeTrue();
+            Assert.AreEqual(consumerId, client.ConsumerId);
+            Assert.IsTrue(client.IsRegistered);
         }
 
         [TestMethod]
@@ -121,7 +120,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             await client.StartAsync();
             await client.StartAsync();
 
-            callCount.Should().Be(1);
+            Assert.AreEqual(1, callCount);
         }
 
         // === StopAsync ===
@@ -150,11 +149,11 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             using var client = new DashboardConsumerClient(httpClient, CreateOptions());
 
             await client.StartAsync();
-            client.IsRegistered.Should().BeTrue();
+            Assert.IsTrue(client.IsRegistered);
 
             await client.StopAsync();
-            client.IsRegistered.Should().BeFalse();
-            client.ConsumerId.Should().BeNull();
+            Assert.IsFalse(client.IsRegistered);
+            Assert.IsNull(client.ConsumerId);
         }
 
         // === Metrics ===
@@ -166,10 +165,10 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
             using var client = new DashboardConsumerClient(httpClient, CreateOptions());
 
-            client.MessagesProcessed.Should().Be(0);
-            client.MessagesErrored.Should().Be(0);
-            client.MessagesRolledBack.Should().Be(0);
-            client.PoisonMessages.Should().Be(0);
+            Assert.AreEqual(0, client.MessagesProcessed);
+            Assert.AreEqual(0, client.MessagesErrored);
+            Assert.AreEqual(0, client.MessagesRolledBack);
+            Assert.AreEqual(0, client.PoisonMessages);
         }
 
         [TestMethod]
@@ -183,7 +182,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             client.IncrementProcessed();
             client.IncrementProcessed();
 
-            client.MessagesProcessed.Should().Be(3);
+            Assert.AreEqual(3, client.MessagesProcessed);
         }
 
         [TestMethod]
@@ -196,7 +195,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             client.IncrementErrored();
             client.IncrementErrored();
 
-            client.MessagesErrored.Should().Be(2);
+            Assert.AreEqual(2, client.MessagesErrored);
         }
 
         [TestMethod]
@@ -208,7 +207,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             client.IncrementRolledBack();
 
-            client.MessagesRolledBack.Should().Be(1);
+            Assert.AreEqual(1, client.MessagesRolledBack);
         }
 
         [TestMethod]
@@ -220,7 +219,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             client.IncrementPoisonMessage();
 
-            client.PoisonMessages.Should().Be(1);
+            Assert.AreEqual(1, client.PoisonMessages);
         }
 
         [TestMethod]
@@ -264,12 +263,12 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             // Give async void time to complete
             await Task.Delay(200);
 
-            capturedJson.Should().NotBeNull();
+            Assert.IsNotNull(capturedJson);
             using var doc = JsonDocument.Parse(capturedJson);
-            doc.RootElement.GetProperty("MessagesProcessed").GetInt64().Should().Be(2);
-            doc.RootElement.GetProperty("MessagesErrored").GetInt64().Should().Be(1);
-            doc.RootElement.GetProperty("MessagesRolledBack").GetInt64().Should().Be(0);
-            doc.RootElement.GetProperty("PoisonMessages").GetInt64().Should().Be(0);
+            Assert.AreEqual(2, doc.RootElement.GetProperty("MessagesProcessed").GetInt64());
+            Assert.AreEqual(1, doc.RootElement.GetProperty("MessagesErrored").GetInt64());
+            Assert.AreEqual(0, doc.RootElement.GetProperty("MessagesRolledBack").GetInt64());
+            Assert.AreEqual(0, doc.RootElement.GetProperty("PoisonMessages").GetInt64());
         }
 
         // === Dispose ===
@@ -281,8 +280,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
             using var client = new DashboardConsumerClient(httpClient, CreateOptions());
 
-            client.IsRegistered.Should().BeFalse();
-            client.ConsumerId.Should().BeNull();
+            Assert.IsFalse(client.IsRegistered);
+            Assert.IsNull(client.ConsumerId);
         }
 
         [TestMethod]
@@ -303,7 +302,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var opts = CreateOptions();
             opts.ApiKey = "my-secret-key";
             using var client = new DashboardConsumerClient(opts);
-            client.IsRegistered.Should().BeFalse();
+            Assert.IsFalse(client.IsRegistered);
         }
 
         [TestMethod]
@@ -324,10 +323,10 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             client.IncrementPoisonMessage();
             client.IncrementPoisonMessage();
 
-            client.MessagesProcessed.Should().Be(3);
-            client.MessagesErrored.Should().Be(2);
-            client.MessagesRolledBack.Should().Be(1);
-            client.PoisonMessages.Should().Be(4);
+            Assert.AreEqual(3, client.MessagesProcessed);
+            Assert.AreEqual(2, client.MessagesErrored);
+            Assert.AreEqual(1, client.MessagesRolledBack);
+            Assert.AreEqual(4, client.PoisonMessages);
         }
 
         [TestMethod]
@@ -341,7 +340,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 QueueName = null
             };
             Action act = () => new DashboardConsumerClient(httpClient, opts);
-            act.Should().Throw<ArgumentException>();
+            Assert.Throws<ArgumentException>(act);
         }
 
         [TestMethod]
@@ -353,7 +352,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             // Should not throw even though not started
             await client.StopAsync();
-            client.IsRegistered.Should().BeFalse();
+            Assert.IsFalse(client.IsRegistered);
         }
 
         // === IHttpClientFactory constructor ===
@@ -371,7 +370,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 QueueName = null
             };
             Action act = () => new DashboardConsumerClient(factory, opts);
-            act.Should().Throw<ArgumentException>();
+            Assert.Throws<ArgumentException>(act);
         }
 
         [TestMethod]
@@ -384,7 +383,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 QueueName = "testQueue"
             };
             Action act = () => new DashboardConsumerClient(factory, opts);
-            act.Should().Throw<ArgumentException>();
+            Assert.Throws<ArgumentException>(act);
         }
 
         [TestMethod]
@@ -392,7 +391,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
         {
             var factory = new FakeHttpClientFactory(new HttpClient());
             Action act = () => new DashboardConsumerClient(factory, null);
-            act.Should().Throw<ArgumentNullException>();
+            Assert.Throws<ArgumentNullException>(act);
         }
 
         [TestMethod]
@@ -405,7 +404,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var opts = CreateOptions();
             using var client = new DashboardConsumerClient(factory, opts);
 
-            client.IsRegistered.Should().BeFalse();
+            Assert.IsFalse(client.IsRegistered);
         }
 
         [TestMethod]
@@ -419,7 +418,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             opts.ApiKey = "my-key";
             using var client = new DashboardConsumerClient(factory, opts);
 
-            client.IsRegistered.Should().BeFalse();
+            Assert.IsFalse(client.IsRegistered);
         }
 
         [TestMethod]
@@ -435,7 +434,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var opts = CreateOptions();
             using var client = new DashboardConsumerClient(factory, opts);
 
-            client.IsRegistered.Should().BeFalse();
+            Assert.IsFalse(client.IsRegistered);
         }
 
         // === StartAsync with HeartbeatIntervalSeconds = 0 ===
@@ -466,8 +465,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             await client.StartAsync();
 
-            client.ConsumerId.Should().Be(consumerId);
-            client.IsRegistered.Should().BeTrue();
+            Assert.AreEqual(consumerId, client.ConsumerId);
+            Assert.IsTrue(client.IsRegistered);
         }
 
         // === HeartbeatCallback with 404 response ===
@@ -500,7 +499,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
             using var client = new DashboardConsumerClient(httpClient, CreateOptions());
             await client.StartAsync();
-            client.IsRegistered.Should().BeTrue();
+            Assert.IsTrue(client.IsRegistered);
 
             // Trigger heartbeat manually via reflection
             var method = typeof(DashboardConsumerClient).GetMethod("HeartbeatCallback",
@@ -510,8 +509,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             // Give async void time to complete
             await Task.Delay(300);
 
-            client.IsRegistered.Should().BeFalse();
-            client.ConsumerId.Should().BeNull();
+            Assert.IsFalse(client.IsRegistered);
+            Assert.IsNull(client.ConsumerId);
         }
 
         // === HeartbeatCallback when not registered ===
@@ -536,7 +535,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             method.Invoke(client, new object[] { null });
             await Task.Delay(200);
 
-            heartbeatCalled.Should().BeFalse();
+            Assert.IsFalse(heartbeatCalled);
         }
 
         // === HeartbeatCallback exception swallowed ===
@@ -578,8 +577,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             await Task.Delay(200);
 
             // Client should still be registered despite exception
-            client.IsRegistered.Should().BeTrue();
-            callCount.Should().Be(1);
+            Assert.IsTrue(client.IsRegistered);
+            Assert.AreEqual(1, callCount);
         }
 
         // === Dispose with active registration ===
@@ -614,12 +613,12 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
             var client = new DashboardConsumerClient(httpClient, CreateOptions());
             await client.StartAsync();
-            client.IsRegistered.Should().BeTrue();
+            Assert.IsTrue(client.IsRegistered);
 
             client.Dispose();
 
             // Sync Dispose no longer attempts HTTP DELETE to avoid sync-over-async deadlocks
-            deleteReceived.Should().BeFalse();
+            Assert.IsFalse(deleteReceived);
         }
 
         // === Dispose with owned HttpClient ===
@@ -670,7 +669,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             // Sync Dispose should not attempt any HTTP calls
             client.Dispose();
-            deleteAttempted.Should().BeFalse();
+            Assert.IsFalse(deleteAttempted);
         }
 
         // === StopAsync DELETE throws ===
@@ -703,12 +702,12 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
             using var client = new DashboardConsumerClient(httpClient, CreateOptions());
             await client.StartAsync();
-            client.IsRegistered.Should().BeTrue();
+            Assert.IsTrue(client.IsRegistered);
 
             // Should not throw
             await client.StopAsync();
 
-            client.IsRegistered.Should().BeFalse();
+            Assert.IsFalse(client.IsRegistered);
         }
 
         // === Constructor HttpClient with options null ===
@@ -719,7 +718,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var handler = new MockHandler(_ => new HttpResponseMessage(HttpStatusCode.OK));
             var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
             Action act = () => new DashboardConsumerClient(httpClient, null);
-            act.Should().Throw<ArgumentNullException>();
+            Assert.Throws<ArgumentNullException>(act);
         }
 
         // === DisposeAsync ===
@@ -766,11 +765,11 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/") };
             var client = new DashboardConsumerClient(httpClient, CreateOptions());
             await client.StartAsync();
-            client.IsRegistered.Should().BeTrue();
+            Assert.IsTrue(client.IsRegistered);
 
             await client.DisposeAsync();
 
-            deleteReceived.Should().BeTrue();
+            Assert.IsTrue(deleteReceived);
         }
 
         [TestMethod]
@@ -790,7 +789,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             // No StartAsync() call -- not registered
             await client.DisposeAsync();
 
-            deleteReceived.Should().BeFalse();
+            Assert.IsFalse(deleteReceived);
         }
 
         [TestMethod]
@@ -824,7 +823,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             // Should not throw -- exception is swallowed
             Func<Task> act = async () => await client.DisposeAsync();
-            await act.Should().NotThrowAsync();
+            await act();
         }
 
         [TestMethod]
@@ -843,7 +842,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             // A disposed HttpClient throws ObjectDisposedException on use
             Func<Task> act = () => httpClient.GetAsync("http://localhost:5000/test");
-            await act.Should().ThrowAsync<ObjectDisposedException>();
+            await Assert.ThrowsAsync<ObjectDisposedException>(act);
         }
 
         [TestMethod]
