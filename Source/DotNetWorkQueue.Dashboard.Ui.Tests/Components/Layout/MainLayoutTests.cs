@@ -20,7 +20,6 @@ using Bunit;
 using Bunit.TestDoubles;
 using DotNetWorkQueue.Dashboard.Ui.Components.Layout;
 using DotNetWorkQueue.Dashboard.Ui.Services;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -37,7 +36,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Layout
 
             var cut = Render<MainLayout>();
 
-            cut.Markup.Should().Contain("DotNetWorkQueue Dashboard");
+            StringAssert.Contains(cut.Markup, "DotNetWorkQueue Dashboard");
         }
 
         [TestMethod]
@@ -48,7 +47,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Layout
 
             var cut = Render<MainLayout>();
 
-            cut.Markup.Should().Contain("DotNetWorkQueue Dashboard");
+            StringAssert.Contains(cut.Markup, "DotNetWorkQueue Dashboard");
         }
 
         [TestMethod]
@@ -59,7 +58,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Layout
 
             var cut = Render<MainLayout>();
 
-            cut.Markup.Should().Contain("Sign out");
+            StringAssert.Contains(cut.Markup, "Sign out");
         }
 
         [TestMethod]
@@ -70,7 +69,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Layout
 
             var cut = Render<MainLayout>();
 
-            cut.Markup.Should().NotContain("Sign out");
+            Assert.IsFalse(cut.Markup.Contains("Sign out"));
         }
 
         [TestMethod]
@@ -82,7 +81,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Layout
 
             Render<MainLayout>();
 
-            nav.Uri.Should().EndWith("/login");
+            StringAssert.EndsWith(nav.Uri, "/login");
         }
     }
 }
