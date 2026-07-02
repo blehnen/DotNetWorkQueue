@@ -24,7 +24,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Ui.Services;
-using FluentAssertions;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http.Features;
@@ -71,7 +70,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             await service.StartAsync(CancellationToken.None);
 
-            registry.GetByName("Local")!.BaseUrl.Should().Be("http://localhost:5123");
+            Assert.AreEqual("http://localhost:5123", registry.GetByName("Local")!.BaseUrl);
         }
 
         [TestMethod]
@@ -81,7 +80,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             await service.StartAsync(CancellationToken.None);
 
-            registry.GetByName("Local")!.BaseUrl.Should().Be("http://localhost:5000");
+            Assert.AreEqual("http://localhost:5000", registry.GetByName("Local")!.BaseUrl);
         }
 
         [TestMethod]
@@ -94,7 +93,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             await service.StartAsync(CancellationToken.None);
 
-            registry.GetByName("Local")!.BaseUrl.Should().Be("http://localhost:5000");
+            Assert.AreEqual("http://localhost:5000", registry.GetByName("Local")!.BaseUrl);
         }
 
         [TestMethod]
@@ -119,7 +118,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var task = service.StopAsync(CancellationToken.None);
 
-            task.IsCompleted.Should().BeTrue();
+            Assert.IsTrue(task.IsCompleted);
             await task;
         }
     }

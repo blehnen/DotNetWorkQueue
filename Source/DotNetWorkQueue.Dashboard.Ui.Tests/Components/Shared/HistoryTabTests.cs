@@ -23,7 +23,6 @@ using Bunit;
 using DotNetWorkQueue.Dashboard.Ui.Components.Shared;
 using DotNetWorkQueue.Dashboard.Ui.Models;
 using DotNetWorkQueue.Dashboard.Ui.Services;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MudBlazor;
 using NSubstitute;
@@ -54,7 +53,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
 
             var cut = RenderHistoryTab(api, snackbar, readOnly: true);
 
-            cut.Markup.Should().NotContain("Purge History");
+            Assert.IsFalse(cut.Markup.Contains("Purge History"));
         }
 
         [TestMethod]
@@ -65,7 +64,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
 
             var cut = RenderHistoryTab(api, snackbar);
 
-            cut.Markup.Should().NotContain("Purge History");
+            Assert.IsFalse(cut.Markup.Contains("Purge History"));
         }
 
         [TestMethod]
@@ -76,7 +75,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
 
             var cut = RenderHistoryTab(api, snackbar);
 
-            cut.Markup.Should().Contain("Purge History");
+            StringAssert.Contains(cut.Markup, "Purge History");
         }
 
         [TestMethod]
@@ -89,7 +88,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
 
             var cut = RenderHistoryTab(api, snackbar);
 
-            cut.Markup.Should().Contain("boom");
+            StringAssert.Contains(cut.Markup, "boom");
         }
 
         [TestMethod]
@@ -115,7 +114,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
 
             var cut = RenderHistoryTab(api, snackbar);
 
-            cut.Markup.Should().Contain("Expand exception");
+            StringAssert.Contains(cut.Markup, "Expand exception");
         }
 
         private IRenderedComponent<Microsoft.AspNetCore.Components.IComponent> RenderHistoryTab(IDashboardApiClient api, ISnackbar snackbar, bool readOnly = false)

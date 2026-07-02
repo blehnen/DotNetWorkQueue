@@ -21,7 +21,6 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using DotNetWorkQueue.Dashboard.Ui.Services;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
@@ -54,8 +53,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = sut.GetClientForSource("local");
 
-            result.Should().NotBeNull();
-            result.Should().BeAssignableTo<IDashboardApiClient>();
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(IDashboardApiClient));
         }
 
         [TestMethod]
@@ -66,7 +65,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
             var first = sut.GetClientForSource("local");
             var second = sut.GetClientForSource("local");
 
-            first.Should().BeSameAs(second);
+            Assert.AreSame(second, first);
         }
 
         [TestMethod]
@@ -79,7 +78,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
             var local = sut.GetClientForSource("local");
             var prod = sut.GetClientForSource("production");
 
-            local.Should().NotBeSameAs(prod);
+            Assert.AreNotSame(prod, local);
         }
 
         [TestMethod]
@@ -89,8 +88,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var act = () => sut.GetClientForSource("nonexistent");
 
-            act.Should().Throw<KeyNotFoundException>()
-                .WithMessage("*nonexistent*");
+            var ex = Assert.Throws<KeyNotFoundException>(act);
+            StringAssert.Contains(ex.Message, "nonexistent", StringComparison.OrdinalIgnoreCase);
         }
 
         [TestMethod]
@@ -100,7 +99,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var act = () => sut.GetClientForSource(null!);
 
-            act.Should().Throw<ArgumentNullException>();
+            Assert.Throws<ArgumentNullException>(act);
         }
 
         [TestMethod]
@@ -112,9 +111,9 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = sut.GetAllSources();
 
-            result.Should().HaveCount(2);
-            result[0].Name.Should().Be("Local");
-            result[1].Name.Should().Be("Production");
+            Assert.AreEqual(2, result.Count);
+            Assert.AreEqual("Local", result[0].Name);
+            Assert.AreEqual("Production", result[1].Name);
         }
 
         [TestMethod]
