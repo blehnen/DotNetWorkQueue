@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Interceptors;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -270,7 +269,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             long nonFatal, long inQueueCount, ICreationScope scope)
         {
             Assert.AreEqual(0, enqueued);
-            error.Should().BeNull("no errors should occur");
+            Assert.IsNull(error, "no errors should occur");
             Assert.AreEqual(1, nonFatal);
             verify(queueConnection, inQueueCount, scope);
         }

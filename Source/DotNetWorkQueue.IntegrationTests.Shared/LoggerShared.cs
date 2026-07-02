@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -36,9 +35,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 using (var textReader = new StreamReader(fileStream))
                 {
                     var errors = textReader.ReadToEnd();
-                    errors.Should()
-                        .NotBeNullOrWhiteSpace(
-                            $"errors should have occurred, however no errors where found for queue {queueName}");
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(errors),
+                        $"errors should have occurred, however no errors where found for queue {queueName}");
                 }
             }
             else
@@ -58,8 +56,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 using (var textReader = new StreamReader(fileStream))
                 {
                     var errors = textReader.ReadToEnd();
-                    errors.Should()
-                        .BeEmpty("No errors should have occurred, however the following errors where found {0}", errors);
+                    Assert.AreEqual(string.Empty, errors,
+                        $"No errors should have occurred, however the following errors where found {errors}");
                 }
             }
         }
