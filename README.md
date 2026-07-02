@@ -3,6 +3,9 @@
 [![License LGPLv2.1](https://img.shields.io/badge/license-LGPLv2.1-green.svg)](http://www.gnu.org/licenses/lgpl-2.1.html)
 [![CI](https://github.com/blehnen/DotNetWorkQueue/actions/workflows/ci.yml/badge.svg)](https://github.com/blehnen/DotNetWorkQueue/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/blehnen/DotNetWorkQueue/branch/master/graph/badge.svg?token=E23UZ6U9CU)](https://codecov.io/gh/blehnen/DotNetWorkQueue)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=blehnen_DotNetWorkQueue&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=blehnen_DotNetWorkQueue)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=blehnen_DotNetWorkQueue&metric=bugs)](https://sonarcloud.io/summary/new_code?id=blehnen_DotNetWorkQueue)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=blehnen_DotNetWorkQueue&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=blehnen_DotNetWorkQueue)
 
 A producer / distributed consumer library for .NET applications. Targets .NET 8.0 and .NET 10.0.
 
