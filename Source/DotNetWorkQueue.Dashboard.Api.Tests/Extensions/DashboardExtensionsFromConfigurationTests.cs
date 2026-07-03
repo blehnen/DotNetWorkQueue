@@ -17,10 +17,10 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using DotNetWorkQueue.Dashboard.Api;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
-using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -51,8 +51,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
 
             var provider = services.BuildServiceProvider();
             var options = provider.GetRequiredService<DashboardOptions>();
-            options.EnableSwagger.Should().BeFalse();
-            options.ConnectionRegistrations.Should().NotBeEmpty();
+            Assert.IsFalse(options.EnableSwagger);
+            Assert.IsTrue((options.ConnectionRegistrations).Any());
         }
 
         // Task 2: Parameterized test over all 5 valid transport names
@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
 
             var provider = services.BuildServiceProvider();
             var options = provider.GetRequiredService<DashboardOptions>();
-            options.ConnectionRegistrations.Should().NotBeEmpty();
+            Assert.IsTrue((options.ConnectionRegistrations).Any());
         }
 
         // Task 2: Unknown-transport error test
@@ -122,7 +122,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
             var ex = Assert.ThrowsExactly<ArgumentException>(() =>
                 services.AddDotNetWorkQueueDashboard(config.GetSection("Dashboard")));
 
-            ex.Message.Should().Contain("Transport");
+            StringAssert.Contains(ex.Message, "Transport");
         }
 
         // Task 3: Missing-ConnectionString error test
@@ -144,7 +144,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
             var ex = Assert.ThrowsExactly<ArgumentException>(() =>
                 services.AddDotNetWorkQueueDashboard(config.GetSection("Dashboard")));
 
-            ex.Message.Should().Contain("ConnectionString");
+            StringAssert.Contains(ex.Message, "ConnectionString");
         }
     }
 }

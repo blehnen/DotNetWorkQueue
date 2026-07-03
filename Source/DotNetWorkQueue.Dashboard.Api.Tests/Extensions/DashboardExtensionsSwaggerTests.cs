@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Dashboard.Api;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
@@ -45,8 +44,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
                 .GetRequiredService<IOptions<SwaggerGenOptions>>()
                 .Value;
 
-            swaggerOptions.SwaggerGeneratorOptions.SwaggerDocs.Should().ContainKey("v1");
-            swaggerOptions.SwaggerGeneratorOptions.SwaggerDocs["v1"].Title.Should().Be("DotNetWorkQueue Dashboard");
+            Assert.IsTrue((swaggerOptions.SwaggerGeneratorOptions.SwaggerDocs).ContainsKey("v1"));
+            Assert.AreEqual("DotNetWorkQueue Dashboard", swaggerOptions.SwaggerGeneratorOptions.SwaggerDocs["v1"].Title);
         }
 
         [TestMethod]
@@ -66,11 +65,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
                 .GetRequiredService<IOptions<SwaggerGenOptions>>()
                 .Value;
 
-            swaggerOptions.SwaggerGeneratorOptions.SecuritySchemes.Should().ContainKey("ApiKey");
+            Assert.IsTrue((swaggerOptions.SwaggerGeneratorOptions.SecuritySchemes).ContainsKey("ApiKey"));
             var scheme = swaggerOptions.SwaggerGeneratorOptions.SecuritySchemes["ApiKey"];
-            scheme.Type.Should().Be(SecuritySchemeType.ApiKey);
-            scheme.In.Should().Be(ParameterLocation.Header);
-            scheme.Name.Should().Be("X-Api-Key");
+            Assert.AreEqual(SecuritySchemeType.ApiKey, scheme.Type);
+            Assert.AreEqual(ParameterLocation.Header, scheme.In);
+            Assert.AreEqual("X-Api-Key", scheme.Name);
         }
 
         [TestMethod]
@@ -90,7 +89,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
                 .GetRequiredService<IOptions<SwaggerGenOptions>>()
                 .Value;
 
-            swaggerOptions.SwaggerGeneratorOptions.SecuritySchemes.Should().NotContainKey("ApiKey");
+            Assert.IsFalse((swaggerOptions.SwaggerGeneratorOptions.SecuritySchemes).ContainsKey("ApiKey"));
         }
     }
 }

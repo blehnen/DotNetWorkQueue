@@ -1,6 +1,6 @@
 using System;
+using System.Linq;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -16,7 +16,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests
             var options = new DashboardOptions();
             using var api = new DashboardApi(options, NullLogger<DashboardApi>.Instance);
 
-            api.Connections.Should().BeEmpty();
+            Assert.IsFalse((api.Connections).Any());
         }
 
         [TestMethod]
@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests
 
             var result = api.FindQueue(Guid.NewGuid());
 
-            result.Should().BeNull();
+            Assert.IsNull(result);
         }
 
         [TestMethod]
@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests
 
             var act = () => api.GetQueueContainer(Guid.NewGuid());
 
-            act.Should().Throw<InvalidOperationException>();
+            Assert.Throws<InvalidOperationException>(act);
         }
 
         [TestMethod]
@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests
 
             var act = () => api.FindQueue(Guid.NewGuid());
 
-            act.Should().Throw<ObjectDisposedException>();
+            Assert.Throws<ObjectDisposedException>(act);
         }
 
         [TestMethod]
@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests
 
             var act = () => api.GetQueueContainer(Guid.NewGuid());
 
-            act.Should().Throw<ObjectDisposedException>();
+            Assert.Throws<ObjectDisposedException>(act);
         }
     }
 }

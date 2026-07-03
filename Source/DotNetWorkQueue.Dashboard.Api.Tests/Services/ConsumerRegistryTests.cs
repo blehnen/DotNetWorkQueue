@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DotNetWorkQueue.Dashboard.Api.Services;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
@@ -43,7 +42,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
         {
             var registry = CreateRegistry(out _);
             var id = registry.Register("testQueue", "MACHINE1", 1234, null);
-            id.Should().NotBeEmpty();
+            Assert.AreNotEqual(Guid.Empty, id);
         }
 
         [TestMethod]
@@ -52,7 +51,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var registry = CreateRegistry(out _);
             var id1 = registry.Register("testQueue", "MACHINE1", 1234, null);
             var id2 = registry.Register("testQueue", "MACHINE1", 5678, null);
-            id1.Should().NotBe(id2);
+            Assert.AreNotEqual(id2, id1);
         }
 
         [TestMethod]
@@ -62,8 +61,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             registry.Register("testQueue", "MACHINE1", 1234, null);
 
             var entries = registry.GetAll();
-            entries.Should().HaveCount(1);
-            entries[0].MatchedQueueId.Should().Be(queueId);
+            Assert.AreEqual(1, (entries).Count());
+            Assert.AreEqual(queueId, entries[0].MatchedQueueId);
         }
 
         [TestMethod]
@@ -73,7 +72,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             registry.Register("otherQueue", "MACHINE1", 1234, null);
 
             var entries = registry.GetAll();
-            entries[0].MatchedQueueId.Should().BeNull();
+            Assert.IsNull(entries[0].MatchedQueueId);
         }
 
         [TestMethod]
@@ -83,7 +82,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             registry.Register("testQueue", "MACHINE1", 1234, "MyConsumer");
 
             var entries = registry.GetAll();
-            entries[0].FriendlyName.Should().Be("MyConsumer");
+            Assert.AreEqual("MyConsumer", entries[0].FriendlyName);
         }
 
         [TestMethod]
@@ -95,8 +94,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var after = DateTimeOffset.UtcNow;
 
             var entry = registry.GetAll()[0];
-            entry.RegisteredAt.Should().BeOnOrAfter(before).And.BeOnOrBefore(after);
-            entry.LastHeartbeat.Should().BeOnOrAfter(before).And.BeOnOrBefore(after);
+            Assert.IsTrue((entry.RegisteredAt) >= (before));
+            Assert.IsTrue((entry.RegisteredAt) <= (after));
+            Assert.IsTrue((entry.LastHeartbeat) >= (before));
+            Assert.IsTrue((entry.LastHeartbeat) <= (after));
         }
 
         [TestMethod]
@@ -109,15 +110,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             System.Threading.Thread.Sleep(10);
             var result = registry.Heartbeat(id);
 
-            result.Should().BeTrue();
-            registry.GetAll()[0].LastHeartbeat.Should().BeAfter(initialHeartbeat);
+            Assert.IsTrue(result);
+            Assert.IsTrue((registry.GetAll()[0].LastHeartbeat) > (initialHeartbeat));
         }
 
         [TestMethod]
         public void Heartbeat_Returns_False_For_Unknown_Id()
         {
             var registry = CreateRegistry(out _);
-            registry.Heartbeat(Guid.NewGuid()).Should().BeFalse();
+            Assert.IsFalse(registry.Heartbeat(Guid.NewGuid()));
         }
 
         [TestMethod]
@@ -129,10 +130,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             registry.Heartbeat(id, messagesProcessed: 100, messagesErrored: 5, messagesRolledBack: 3, poisonMessages: 1);
 
             var entry = registry.GetAll()[0];
-            entry.MessagesProcessed.Should().Be(100);
-            entry.MessagesErrored.Should().Be(5);
-            entry.MessagesRolledBack.Should().Be(3);
-            entry.PoisonMessages.Should().Be(1);
+            Assert.AreEqual(100, entry.MessagesProcessed);
+            Assert.AreEqual(5, entry.MessagesErrored);
+            Assert.AreEqual(3, entry.MessagesRolledBack);
+            Assert.AreEqual(1, entry.PoisonMessages);
         }
 
         [TestMethod]
@@ -145,10 +146,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             registry.Heartbeat(id, messagesProcessed: 200, messagesErrored: 8, messagesRolledBack: 4, poisonMessages: 1);
 
             var entry = registry.GetAll()[0];
-            entry.MessagesProcessed.Should().Be(200);
-            entry.MessagesErrored.Should().Be(8);
-            entry.MessagesRolledBack.Should().Be(4);
-            entry.PoisonMessages.Should().Be(1);
+            Assert.AreEqual(200, entry.MessagesProcessed);
+            Assert.AreEqual(8, entry.MessagesErrored);
+            Assert.AreEqual(4, entry.MessagesRolledBack);
+            Assert.AreEqual(1, entry.PoisonMessages);
         }
 
         [TestMethod]
@@ -158,10 +159,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             registry.Register("testQueue", "MACHINE1", 1234, null);
 
             var entry = registry.GetAll()[0];
-            entry.MessagesProcessed.Should().Be(0);
-            entry.MessagesErrored.Should().Be(0);
-            entry.MessagesRolledBack.Should().Be(0);
-            entry.PoisonMessages.Should().Be(0);
+            Assert.AreEqual(0, entry.MessagesProcessed);
+            Assert.AreEqual(0, entry.MessagesErrored);
+            Assert.AreEqual(0, entry.MessagesRolledBack);
+            Assert.AreEqual(0, entry.PoisonMessages);
         }
 
         [TestMethod]
@@ -170,15 +171,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var registry = CreateRegistry(out _);
             var id = registry.Register("testQueue", "MACHINE1", 1234, null);
 
-            registry.Unregister(id).Should().BeTrue();
-            registry.GetAll().Should().BeEmpty();
+            Assert.IsTrue(registry.Unregister(id));
+            Assert.IsFalse((registry.GetAll()).Any());
         }
 
         [TestMethod]
         public void Unregister_Returns_False_For_Unknown_Id()
         {
             var registry = CreateRegistry(out _);
-            registry.Unregister(Guid.NewGuid()).Should().BeFalse();
+            Assert.IsFalse(registry.Unregister(Guid.NewGuid()));
         }
 
         [TestMethod]
@@ -188,7 +189,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             registry.Register("testQueue", "MACHINE1", 1234, null);
             registry.Register("testQueue", "MACHINE2", 5678, null);
 
-            registry.GetAll().Should().HaveCount(2);
+            Assert.AreEqual(2, (registry.GetAll()).Count());
         }
 
         [TestMethod]
@@ -199,8 +200,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             registry.Register("otherQueue", "MACHINE2", 5678, null);
 
             var matched = registry.GetByQueue(queueId);
-            matched.Should().HaveCount(1);
-            matched[0].MachineName.Should().Be("MACHINE1");
+            Assert.AreEqual(1, (matched).Count());
+            Assert.AreEqual("MACHINE1", matched[0].MachineName);
         }
 
         [TestMethod]
@@ -209,7 +210,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var registry = CreateRegistry(out _);
             registry.Register("testQueue", "MACHINE1", 1234, null);
 
-            registry.GetByQueue(Guid.NewGuid()).Should().BeEmpty();
+            Assert.IsFalse((registry.GetByQueue(Guid.NewGuid())).Any());
         }
 
         [TestMethod]
@@ -221,8 +222,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             registry.Register("otherQueue", "MACHINE3", 9012, null);
 
             var counts = registry.GetCountsByQueue();
-            counts.Should().ContainKey(queueId);
-            counts[queueId].Should().Be(2);
+            Assert.IsTrue((counts).ContainsKey(queueId));
+            Assert.AreEqual(2, counts[queueId]);
         }
 
         [TestMethod]
@@ -231,7 +232,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var registry = CreateRegistry(out _);
             registry.Register("unknownQueue", "MACHINE1", 1234, null);
 
-            registry.GetCountsByQueue().Should().BeEmpty();
+            Assert.IsFalse((registry.GetCountsByQueue()).Any());
         }
 
         [TestMethod]
@@ -242,8 +243,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             // With a zero threshold, everything is stale
             var pruned = registry.PruneStale(TimeSpan.Zero);
-            pruned.Should().Be(1);
-            registry.GetAll().Should().BeEmpty();
+            Assert.AreEqual(1, pruned);
+            Assert.IsFalse((registry.GetAll()).Any());
         }
 
         [TestMethod]
@@ -253,15 +254,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             registry.Register("testQueue", "MACHINE1", 1234, null);
 
             var pruned = registry.PruneStale(TimeSpan.FromMinutes(5));
-            pruned.Should().Be(0);
-            registry.GetAll().Should().HaveCount(1);
+            Assert.AreEqual(0, pruned);
+            Assert.AreEqual(1, (registry.GetAll()).Count());
         }
 
         [TestMethod]
         public void PruneStale_Returns_Zero_When_Empty()
         {
             var registry = CreateRegistry(out _);
-            registry.PruneStale(TimeSpan.Zero).Should().Be(0);
+            Assert.AreEqual(0, registry.PruneStale(TimeSpan.Zero));
         }
     }
 }
