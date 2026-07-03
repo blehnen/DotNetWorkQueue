@@ -1,10 +1,10 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Controllers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Dashboard.Api.Services;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.GetConnections();
 
-            result.Should().BeOfType<OkObjectResult>();
+            Assert.IsInstanceOfType<OkObjectResult>(result);
         }
 
         [TestMethod]
@@ -39,9 +39,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.GetConnections() as OkObjectResult;
 
-            result.Should().NotBeNull();
+            Assert.IsNotNull(result);
             var items = result.Value as IReadOnlyList<ConnectionResponse>;
-            items.Should().HaveCount(1);
+            Assert.AreEqual(1, (items).Count());
         }
 
         [TestMethod]
@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.GetQueues(connectionId);
 
-            result.Should().BeOfType<OkObjectResult>();
+            Assert.IsInstanceOfType<OkObjectResult>(result);
         }
 
         [TestMethod]
@@ -80,7 +80,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.GetJobs(connectionId);
 
-            result.Should().BeOfType<OkObjectResult>();
+            Assert.IsInstanceOfType<OkObjectResult>(result);
         }
 
         [TestMethod]

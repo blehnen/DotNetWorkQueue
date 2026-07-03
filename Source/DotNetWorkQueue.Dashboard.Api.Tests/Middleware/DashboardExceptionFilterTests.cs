@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.Dashboard.Api.Middleware;
-using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -27,11 +26,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Middleware
 
             filter.OnException(context);
 
-            context.ExceptionHandled.Should().BeTrue();
+            Assert.IsTrue(context.ExceptionHandled);
             var result = context.Result as ObjectResult;
-            result.Should().NotBeNull();
-            result.StatusCode.Should().Be(404);
-            GetErrorMessage(result).Should().Be("Queue not found");
+            Assert.IsNotNull(result);
+            Assert.AreEqual(404, result.StatusCode);
+            Assert.AreEqual("Queue not found", GetErrorMessage(result));
         }
 
         [TestMethod]
@@ -42,11 +41,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Middleware
 
             filter.OnException(context);
 
-            context.ExceptionHandled.Should().BeTrue();
+            Assert.IsTrue(context.ExceptionHandled);
             var result = context.Result as ObjectResult;
-            result.Should().NotBeNull();
-            result.StatusCode.Should().Be(404);
-            GetErrorMessage(result).Should().Be("An internal error occurred");
+            Assert.IsNotNull(result);
+            Assert.AreEqual(404, result.StatusCode);
+            Assert.AreEqual("An internal error occurred", GetErrorMessage(result));
         }
 
         [TestMethod]
@@ -57,11 +56,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Middleware
 
             filter.OnException(context);
 
-            context.ExceptionHandled.Should().BeTrue();
+            Assert.IsTrue(context.ExceptionHandled);
             var result = context.Result as ObjectResult;
-            result.Should().NotBeNull();
-            result.StatusCode.Should().Be(501);
-            GetErrorMessage(result).Should().Be("Feature not available");
+            Assert.IsNotNull(result);
+            Assert.AreEqual(501, result.StatusCode);
+            Assert.AreEqual("Feature not available", GetErrorMessage(result));
         }
 
         [TestMethod]
@@ -72,11 +71,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Middleware
 
             filter.OnException(context);
 
-            context.ExceptionHandled.Should().BeTrue();
+            Assert.IsTrue(context.ExceptionHandled);
             var result = context.Result as ObjectResult;
-            result.Should().NotBeNull();
-            result.StatusCode.Should().Be(501);
-            GetErrorMessage(result).Should().Be("An internal error occurred");
+            Assert.IsNotNull(result);
+            Assert.AreEqual(501, result.StatusCode);
+            Assert.AreEqual("An internal error occurred", GetErrorMessage(result));
         }
 
         [TestMethod]
@@ -87,11 +86,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Middleware
 
             filter.OnException(context);
 
-            context.ExceptionHandled.Should().BeTrue();
+            Assert.IsTrue(context.ExceptionHandled);
             var result = context.Result as ObjectResult;
-            result.Should().NotBeNull();
-            result.StatusCode.Should().Be(503);
-            GetErrorMessage(result).Should().Be("Service unavailable");
+            Assert.IsNotNull(result);
+            Assert.AreEqual(503, result.StatusCode);
+            Assert.AreEqual("Service unavailable", GetErrorMessage(result));
         }
 
         [TestMethod]
@@ -102,11 +101,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Middleware
 
             filter.OnException(context);
 
-            context.ExceptionHandled.Should().BeTrue();
+            Assert.IsTrue(context.ExceptionHandled);
             var result = context.Result as ObjectResult;
-            result.Should().NotBeNull();
-            result.StatusCode.Should().Be(503);
-            GetErrorMessage(result).Should().Be("Service unavailable");
+            Assert.IsNotNull(result);
+            Assert.AreEqual(503, result.StatusCode);
+            Assert.AreEqual("Service unavailable", GetErrorMessage(result));
         }
 
         [TestMethod]
@@ -117,11 +116,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Middleware
 
             filter.OnException(context);
 
-            context.ExceptionHandled.Should().BeTrue();
+            Assert.IsTrue(context.ExceptionHandled);
             var result = context.Result as ObjectResult;
-            result.Should().NotBeNull();
-            result.StatusCode.Should().Be(500);
-            GetErrorMessage(result).Should().Be("An internal error occurred");
+            Assert.IsNotNull(result);
+            Assert.AreEqual(500, result.StatusCode);
+            Assert.AreEqual("An internal error occurred", GetErrorMessage(result));
         }
 
         [TestMethod]
@@ -132,11 +131,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Middleware
 
             filter.OnException(context);
 
-            context.ExceptionHandled.Should().BeTrue();
+            Assert.IsTrue(context.ExceptionHandled);
             var result = context.Result as ObjectResult;
-            result.Should().NotBeNull();
-            result.StatusCode.Should().Be(500);
-            GetErrorMessage(result).Should().Be("Something unexpected");
+            Assert.IsNotNull(result);
+            Assert.AreEqual(500, result.StatusCode);
+            Assert.AreEqual("Something unexpected", GetErrorMessage(result));
         }
 
         private static DashboardExceptionFilter CreateFilter(string environmentName)

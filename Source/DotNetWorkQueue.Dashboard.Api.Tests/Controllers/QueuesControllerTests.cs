@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Controllers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Dashboard.Api.Services;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -27,9 +26,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.GetStatus(queueId);
 
-            result.Should().BeOfType<OkObjectResult>();
+            Assert.IsInstanceOfType<OkObjectResult>(result);
             var okResult = (OkObjectResult)result;
-            ((QueueStatusResponse)okResult.Value).Total.Should().Be(17);
+            Assert.AreEqual(17, ((QueueStatusResponse)okResult.Value).Total);
         }
 
         [TestMethod]
@@ -42,7 +41,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.GetFeatures(queueId);
 
-            result.Should().BeOfType<OkObjectResult>();
+            Assert.IsInstanceOfType<OkObjectResult>(result);
         }
 
         [TestMethod]
@@ -71,8 +70,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.GetMessageCount(queueId);
 
-            result.Should().BeOfType<OkObjectResult>();
-            ((OkObjectResult)result).Value.Should().Be(42L);
+            Assert.IsInstanceOfType<OkObjectResult>(result);
+            Assert.AreEqual(42L, ((OkObjectResult)result).Value);
         }
 
         [TestMethod]
@@ -85,7 +84,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.GetMessageDetail(queueId, "1");
 
-            result.Should().BeOfType<OkObjectResult>();
+            Assert.IsInstanceOfType<OkObjectResult>(result);
         }
 
         [TestMethod]
@@ -98,7 +97,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.GetMessageDetail(queueId, "999");
 
-            result.Should().BeOfType<NotFoundResult>();
+            Assert.IsInstanceOfType<NotFoundResult>(result);
         }
 
         [TestMethod]
@@ -130,7 +129,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.GetErrors(queueId);
 
-            result.Should().BeOfType<OkObjectResult>();
+            Assert.IsInstanceOfType<OkObjectResult>(result);
         }
 
         [TestMethod]
@@ -143,7 +142,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.GetErrorRetries(queueId, "1");
 
-            result.Should().BeOfType<OkObjectResult>();
+            Assert.IsInstanceOfType<OkObjectResult>(result);
         }
 
         [TestMethod]
@@ -156,7 +155,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.GetConfiguration(queueId);
 
-            result.Should().BeOfType<OkObjectResult>();
+            Assert.IsInstanceOfType<OkObjectResult>(result);
         }
 
         [TestMethod]
@@ -167,7 +166,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.GetMessages(Guid.NewGuid(), status: 99);
 
-            result.Should().BeOfType<BadRequestObjectResult>();
+            Assert.IsInstanceOfType<BadRequestObjectResult>(result);
         }
 
         [TestMethod]
@@ -183,7 +182,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.GetMessages(queueId, status: 0);
 
-            result.Should().BeOfType<OkObjectResult>();
+            Assert.IsInstanceOfType<OkObjectResult>(result);
         }
 
         [TestMethod]
@@ -194,7 +193,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.GetMessageCount(Guid.NewGuid(), status: 99);
 
-            result.Should().BeOfType<BadRequestObjectResult>();
+            Assert.IsInstanceOfType<BadRequestObjectResult>(result);
         }
 
         [TestMethod]
@@ -210,7 +209,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.GetMessages(queueId);
 
-            result.Should().BeOfType<OkObjectResult>();
+            Assert.IsInstanceOfType<OkObjectResult>(result);
         }
 
         [TestMethod]
@@ -226,7 +225,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.GetMessageBody(queueId, "1");
 
-            result.Should().BeOfType<OkObjectResult>();
+            Assert.IsInstanceOfType<OkObjectResult>(result);
         }
 
         [TestMethod]
@@ -239,7 +238,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.GetMessageBody(queueId, "999");
 
-            result.Should().BeOfType<NotFoundResult>();
+            Assert.IsInstanceOfType<NotFoundResult>(result);
         }
 
         [TestMethod]
@@ -255,7 +254,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.GetMessageHeaders(queueId, "1");
 
-            result.Should().BeOfType<OkObjectResult>();
+            Assert.IsInstanceOfType<OkObjectResult>(result);
         }
 
         [TestMethod]
@@ -268,7 +267,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.GetMessageHeaders(queueId, "999");
 
-            result.Should().BeOfType<NotFoundResult>();
+            Assert.IsInstanceOfType<NotFoundResult>(result);
         }
 
         [TestMethod]
@@ -281,7 +280,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.DeleteMessage(queueId, "1");
 
-            result.Should().BeOfType<NoContentResult>();
+            Assert.IsInstanceOfType<NoContentResult>(result);
         }
 
         [TestMethod]
@@ -294,7 +293,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.DeleteMessage(queueId, "999");
 
-            result.Should().BeOfType<NotFoundResult>();
+            Assert.IsInstanceOfType<NotFoundResult>(result);
         }
 
         [TestMethod]
@@ -307,9 +306,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.DeleteAllErrors(queueId);
 
-            result.Should().BeOfType<OkObjectResult>();
+            Assert.IsInstanceOfType<OkObjectResult>(result);
             var ok = (OkObjectResult)result;
-            ((DeleteAllResponse)ok.Value).Deleted.Should().Be(5L);
+            Assert.AreEqual(5L, ((DeleteAllResponse)ok.Value).Deleted);
         }
 
         [TestMethod]
@@ -322,7 +321,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.RequeueErrorMessage(queueId, "1");
 
-            result.Should().BeOfType<NoContentResult>();
+            Assert.IsInstanceOfType<NoContentResult>(result);
         }
 
         [TestMethod]
@@ -335,7 +334,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.RequeueErrorMessage(queueId, "999");
 
-            result.Should().BeOfType<NotFoundResult>();
+            Assert.IsInstanceOfType<NotFoundResult>(result);
         }
 
         [TestMethod]
@@ -348,7 +347,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.ResetStaleMessage(queueId, "1");
 
-            result.Should().BeOfType<NoContentResult>();
+            Assert.IsInstanceOfType<NoContentResult>(result);
         }
 
         [TestMethod]
@@ -361,7 +360,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.ResetStaleMessage(queueId, "999");
 
-            result.Should().BeOfType<NotFoundResult>();
+            Assert.IsInstanceOfType<NotFoundResult>(result);
         }
 
         [TestMethod]
@@ -372,7 +371,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.EditMessageBody(Guid.NewGuid(), "1", new EditMessageBodyRequest { Body = null });
 
-            result.Should().BeOfType<BadRequestObjectResult>();
+            Assert.IsInstanceOfType<BadRequestObjectResult>(result);
         }
 
         [TestMethod]
@@ -385,7 +384,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.EditMessageBody(queueId, "1", new EditMessageBodyRequest { Body = "{}" });
 
-            result.Should().BeOfType<NoContentResult>();
+            Assert.IsInstanceOfType<NoContentResult>(result);
         }
 
         [TestMethod]
@@ -398,7 +397,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.EditMessageBody(queueId, "999", new EditMessageBodyRequest { Body = "{}" });
 
-            result.Should().BeOfType<NotFoundResult>();
+            Assert.IsInstanceOfType<NotFoundResult>(result);
         }
 
         [TestMethod]
@@ -411,7 +410,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.EditMessageBody(queueId, "1", new EditMessageBodyRequest { Body = "{}" });
 
-            result.Should().BeOfType<BadRequestObjectResult>();
+            Assert.IsInstanceOfType<BadRequestObjectResult>(result);
         }
 
         [TestMethod]
@@ -424,7 +423,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.EditMessageBody(queueId, "1", new EditMessageBodyRequest { Body = "{}" });
 
-            result.Should().BeOfType<ConflictObjectResult>();
+            Assert.IsInstanceOfType<ConflictObjectResult>(result);
         }
 
         [TestMethod]
@@ -437,7 +436,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = await controller.EditMessageBody(queueId, "1", new EditMessageBodyRequest { Body = "{invalid}" });
 
-            result.Should().BeOfType<BadRequestObjectResult>();
+            Assert.IsInstanceOfType<BadRequestObjectResult>(result);
         }
     }
 }
