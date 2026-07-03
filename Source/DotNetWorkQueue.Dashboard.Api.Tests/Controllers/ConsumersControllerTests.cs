@@ -1,10 +1,10 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
 using DotNetWorkQueue.Dashboard.Api.Controllers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Dashboard.Api.Services;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -40,10 +40,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
                 FriendlyName = "test"
             });
 
-            var objectResult = result.Should().BeOfType<ObjectResult>().Subject;
-            objectResult.StatusCode.Should().Be(201);
-            var response = objectResult.Value.Should().BeOfType<ConsumerRegistrationResponse>().Subject;
-            response.ConsumerId.Should().Be(consumerId);
+            Assert.IsInstanceOfType<ObjectResult>(result);
+            var objectResult = (ObjectResult)result;
+            Assert.AreEqual(201, objectResult.StatusCode);
+            Assert.IsInstanceOfType<ConsumerRegistrationResponse>(objectResult.Value);
+            var response = (ConsumerRegistrationResponse)objectResult.Value;
+            Assert.AreEqual(consumerId, response.ConsumerId);
         }
 
         [TestMethod]
@@ -56,7 +58,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
                 QueueName = "q", MachineName = "M", ProcessId = 1
             });
 
-            result.Should().BeOfType<NotFoundResult>();
+            Assert.IsInstanceOfType<NotFoundResult>(result);
         }
 
         [TestMethod]
@@ -72,7 +74,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
             }) as ObjectResult;
 
             var response = result!.Value as ConsumerRegistrationResponse;
-            response!.HeartbeatIntervalSeconds.Should().Be(45);
+            Assert.AreEqual(45, response!.HeartbeatIntervalSeconds);
         }
 
         // === Heartbeat ===
@@ -86,7 +88,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.Heartbeat(new ConsumerHeartbeatRequest { ConsumerId = id });
 
-            result.Should().BeOfType<NoContentResult>();
+            Assert.IsInstanceOfType<NoContentResult>(result);
         }
 
         [TestMethod]
@@ -97,7 +99,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.Heartbeat(new ConsumerHeartbeatRequest { ConsumerId = Guid.NewGuid() });
 
-            result.Should().BeOfType<NotFoundResult>();
+            Assert.IsInstanceOfType<NotFoundResult>(result);
         }
 
         [TestMethod]
@@ -116,7 +118,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
                 PoisonMessages = 1
             });
 
-            result.Should().BeOfType<NoContentResult>();
+            Assert.IsInstanceOfType<NoContentResult>(result);
             registry.Received(1).Heartbeat(id, 100, 5, 3, 1);
         }
 
@@ -127,7 +129,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.Heartbeat(new ConsumerHeartbeatRequest { ConsumerId = Guid.NewGuid() });
 
-            result.Should().BeOfType<NotFoundResult>();
+            Assert.IsInstanceOfType<NotFoundResult>(result);
         }
 
         // === Unregister ===
@@ -141,7 +143,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.Unregister(id);
 
-            result.Should().BeOfType<NoContentResult>();
+            Assert.IsInstanceOfType<NoContentResult>(result);
         }
 
         [TestMethod]
@@ -152,7 +154,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.Unregister(Guid.NewGuid());
 
-            result.Should().BeOfType<NotFoundResult>();
+            Assert.IsInstanceOfType<NotFoundResult>(result);
         }
 
         [TestMethod]
@@ -162,7 +164,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.Unregister(Guid.NewGuid());
 
-            result.Should().BeOfType<NotFoundResult>();
+            Assert.IsInstanceOfType<NotFoundResult>(result);
         }
 
         // === GetConsumers ===
@@ -178,9 +180,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.GetConsumers() as OkObjectResult;
 
-            result.Should().NotBeNull();
+            Assert.IsNotNull(result);
             var items = result!.Value as List<ConsumerInfoResponse>;
-            items.Should().HaveCount(1);
+            Assert.AreEqual(1, (items).Count());
         }
 
         [TestMethod]
@@ -202,11 +204,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.GetConsumers() as OkObjectResult;
             var items = result!.Value as List<ConsumerInfoResponse>;
-            items.Should().HaveCount(1);
-            items![0].MessagesProcessed.Should().Be(500);
-            items[0].MessagesErrored.Should().Be(10);
-            items[0].MessagesRolledBack.Should().Be(7);
-            items[0].PoisonMessages.Should().Be(2);
+            Assert.AreEqual(1, (items).Count());
+            Assert.AreEqual(500, items![0].MessagesProcessed);
+            Assert.AreEqual(10, items[0].MessagesErrored);
+            Assert.AreEqual(7, items[0].MessagesRolledBack);
+            Assert.AreEqual(2, items[0].PoisonMessages);
         }
 
         [TestMethod]
@@ -229,9 +231,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.GetConsumers() as OkObjectResult;
 
-            result.Should().NotBeNull();
+            Assert.IsNotNull(result);
             var items = result!.Value as ConsumerInfoResponse[];
-            items.Should().BeEmpty();
+            Assert.IsFalse((items).Any());
         }
 
         // === GetConsumerCounts ===
@@ -245,10 +247,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.GetConsumerCounts() as OkObjectResult;
 
-            result.Should().NotBeNull();
+            Assert.IsNotNull(result);
             var counts = result!.Value as Dictionary<Guid, int>;
-            counts.Should().ContainKey(queueId);
-            counts![queueId].Should().Be(3);
+            Assert.IsTrue((counts).ContainsKey(queueId));
+            Assert.AreEqual(3, counts![queueId]);
         }
 
         [TestMethod]
@@ -258,9 +260,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.GetConsumerCounts() as OkObjectResult;
 
-            result.Should().NotBeNull();
+            Assert.IsNotNull(result);
             var counts = result!.Value as Dictionary<Guid, int>;
-            counts.Should().BeEmpty();
+            Assert.IsFalse((counts).Any());
         }
     }
 }

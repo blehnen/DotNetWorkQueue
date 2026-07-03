@@ -5,7 +5,6 @@ using System.Reflection;
 using DotNetWorkQueue.Dashboard.Api;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
 using DotNetWorkQueue.Dashboard.Api.Services;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -167,8 +166,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
             {
                 // Use Newtonsoft.Json as a test DLL — it's in our bin but let's verify
                 // the preload path works by copying it and checking it loads from there
-                var sourceDll = Path.Combine(AppContext.BaseDirectory, "FluentAssertions.dll");
-                var destDll = Path.Combine(pluginDir, "FluentAssertions.dll");
+                var sourceDll = Path.Combine(AppContext.BaseDirectory, "Newtonsoft.Json.dll");
+                var destDll = Path.Combine(pluginDir, "Newtonsoft.Json.dll");
                 File.Copy(sourceDll, destDll);
 
                 var services = new ServiceCollection();
@@ -183,7 +182,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
                 // If PreloadAssemblies threw, we wouldn't get here
                 var provider = services.BuildServiceProvider();
                 var opts = provider.GetRequiredService<DashboardOptions>();
-                opts.AssemblyPaths.Should().ContainSingle().Which.Should().Be(pluginDir);
+                Assert.AreEqual(1, (opts.AssemblyPaths).Count());
+                Assert.AreEqual(pluginDir, (opts.AssemblyPaths).Single());
             }
             finally
             {
@@ -205,7 +205,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
             });
 
             var provider = services.BuildServiceProvider();
-            provider.GetRequiredService<DashboardOptions>().Should().NotBeNull();
+            Assert.IsNotNull(provider.GetRequiredService<DashboardOptions>());
         }
 
         [TestMethod]
@@ -229,7 +229,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
                 });
 
                 var provider = services.BuildServiceProvider();
-                provider.GetRequiredService<DashboardOptions>().Should().NotBeNull();
+                Assert.IsNotNull(provider.GetRequiredService<DashboardOptions>());
             }
             finally
             {

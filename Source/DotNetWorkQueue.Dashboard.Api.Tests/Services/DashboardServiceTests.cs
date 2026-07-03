@@ -16,7 +16,6 @@ using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
-using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -35,9 +34,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             var result = service.GetConnections();
 
-            result.Should().HaveCount(1);
-            result[0].DisplayName.Should().Be("Test Connection");
-            result[0].QueueCount.Should().Be(1);
+            Assert.AreEqual(1, (result).Count());
+            Assert.AreEqual("Test Connection", result[0].DisplayName);
+            Assert.AreEqual(1, result[0].QueueCount);
         }
 
         [TestMethod]
@@ -48,8 +47,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             var result = service.GetQueues(connectionId);
 
-            result.Should().HaveCount(1);
-            result[0].QueueName.Should().Be("TestQueue");
+            Assert.AreEqual(1, (result).Count());
+            Assert.AreEqual("TestQueue", result[0].QueueName);
         }
 
         [TestMethod]
@@ -60,7 +59,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             var act = () => service.GetQueues(Guid.NewGuid());
 
-            act.Should().Throw<InvalidOperationException>();
+            Assert.Throws<InvalidOperationException>(act);
         }
 
         [TestMethod]
@@ -80,10 +79,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetStatusAsync(queueId);
 
-            result.Waiting.Should().Be(10);
-            result.Processing.Should().Be(5);
-            result.Error.Should().Be(2);
-            result.Total.Should().Be(17);
+            Assert.AreEqual(10, result.Waiting);
+            Assert.AreEqual(5, result.Processing);
+            Assert.AreEqual(2, result.Error);
+            Assert.AreEqual(17, result.Total);
         }
 
         [TestMethod]
@@ -108,10 +107,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = service.GetFeatures(queueId);
 
-            result.EnableStatus.Should().BeTrue();
-            result.EnablePriority.Should().BeFalse();
-            result.EnableHeartBeat.Should().BeTrue();
-            result.EnableStatusTable.Should().BeTrue();
+            Assert.IsTrue(result.EnableStatus);
+            Assert.IsFalse(result.EnablePriority);
+            Assert.IsTrue(result.EnableHeartBeat);
+            Assert.IsTrue(result.EnableStatusTable);
         }
 
         [TestMethod]
@@ -128,7 +127,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageCountAsync(queueId, null);
 
-            result.Should().Be(42L);
+            Assert.AreEqual(42L, result);
         }
 
         [TestMethod]
@@ -145,7 +144,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageDetailAsync(queueId, "999");
 
-            result.Should().BeNull();
+            Assert.IsNull(result);
         }
 
         [TestMethod]
@@ -163,7 +162,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetConfigurationAsync(queueId);
 
-            result.ConfigurationJson.Should().Be("{\"test\":true}");
+            Assert.AreEqual("{\"test\":true}", result.ConfigurationJson);
         }
 
         [TestMethod]
@@ -185,8 +184,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetJobsByConnectionAsync(connectionId);
 
-            result.Should().HaveCount(1);
-            result[0].JobName.Should().Be("ConnectionJob");
+            Assert.AreEqual(1, (result).Count());
+            Assert.AreEqual("ConnectionJob", result[0].JobName);
         }
 
         [TestMethod]
@@ -210,7 +209,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetJobsByConnectionAsync(connectionId);
 
-            result.Should().BeEmpty();
+            Assert.IsFalse((result).Any());
         }
 
         [TestMethod]
@@ -221,7 +220,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             var act = async () => await service.GetJobsByConnectionAsync(Guid.NewGuid());
 
-            await act.Should().ThrowAsync<InvalidOperationException>();
+            await Assert.ThrowsAsync<InvalidOperationException>(act);
         }
 
         private static IDashboardApi CreateApi(out Guid connectionId, out Guid queueId, bool isRelational = false)
@@ -301,12 +300,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
-            result.Should().NotBeNull();
-            result.Body.Should().NotBeNullOrEmpty();
-            result.TypeName.Should().Be("System.String");
-            result.WasIntercepted.Should().BeFalse();
-            result.InterceptorChain.Should().BeEmpty();
-            result.DecodingError.Should().BeNull();
+            Assert.IsNotNull(result);
+            Assert.IsFalse(string.IsNullOrEmpty(result.Body));
+            Assert.AreEqual("System.String", result.TypeName);
+            Assert.IsFalse(result.WasIntercepted);
+            Assert.IsFalse((result.InterceptorChain).Any());
+            Assert.IsNull(result.DecodingError);
         }
 
         [TestMethod]
@@ -323,7 +322,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "999");
 
-            result.Should().BeNull();
+            Assert.IsNull(result);
         }
 
         [TestMethod]
@@ -352,10 +351,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
-            result.Should().NotBeNull();
-            result.Body.Should().BeNull();
-            result.DecodingError.Should().Contain("Bad headers");
-            result.DecodingError.Should().Contain("Failed to decode message headers");
+            Assert.IsNotNull(result);
+            Assert.IsNull(result.Body);
+            StringAssert.Contains(result.DecodingError, "Bad headers");
+            StringAssert.Contains(result.DecodingError, "Failed to decode message headers");
         }
 
         [TestMethod]
@@ -384,9 +383,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageHeadersAsync(queueId, "42");
 
-            result.Should().NotBeNull();
-            result.Headers.Should().ContainKey("key");
-            result.DecodingError.Should().BeNull();
+            Assert.IsNotNull(result);
+            Assert.IsTrue((result.Headers).ContainsKey("key"));
+            Assert.IsNull(result.DecodingError);
         }
 
         [TestMethod]
@@ -403,7 +402,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageHeadersAsync(queueId, "999");
 
-            result.Should().BeNull();
+            Assert.IsNull(result);
         }
 
         [TestMethod]
@@ -431,9 +430,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageHeadersAsync(queueId, "42");
 
-            result.Should().NotBeNull();
-            result.Headers.Should().BeNull();
-            result.DecodingError.Should().Be("Corrupt data");
+            Assert.IsNotNull(result);
+            Assert.IsNull(result.Headers);
+            Assert.AreEqual("Corrupt data", result.DecodingError);
         }
 
         [TestMethod]
@@ -454,9 +453,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
-            result.Should().NotBeNull();
-            result.DecodingError.Should().BeNull();
-            result.TypeName.Should().Be("System.String");
+            Assert.IsNotNull(result);
+            Assert.IsNull(result.DecodingError);
+            Assert.AreEqual("System.String", result.TypeName);
         }
 
         [TestMethod]
@@ -474,11 +473,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
-            result.Should().NotBeNull();
-            result.DecodingError.Should().BeNull();
-            result.Body.Should().NotBeNullOrEmpty();
+            Assert.IsNotNull(result);
+            Assert.IsNull(result.DecodingError);
+            Assert.IsFalse(string.IsNullOrEmpty(result.Body));
             // TypeName comes from the header value since the type couldn't be resolved at runtime
-            result.TypeName.Should().Be("NotReal.Type, NotReal");
+            Assert.AreEqual("NotReal.Type, NotReal", result.TypeName);
         }
 
         [TestMethod]
@@ -496,9 +495,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
-            result.Should().NotBeNull();
-            result.DecodingError.Should().BeNull();
-            result.Body.Should().NotBeNullOrEmpty();
+            Assert.IsNotNull(result);
+            Assert.IsNull(result.DecodingError);
+            Assert.IsFalse(string.IsNullOrEmpty(result.Body));
         }
 
         private static IContainer SetupBodyDecodeContainer(Guid queueId, IDashboardApi api,
@@ -589,16 +588,16 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
-            result.Should().NotBeNull();
-            result.Body.Should().BeNull();
-            result.DecodingError.Should().Contain("TripleDesMessageInterceptor");
-            result.DecodingError.Should().Contain("GZipMessageInterceptor");
-            result.DecodingError.Should().Contain("Padding is invalid and cannot be removed");
-            result.DecodingError.Should().Contain("Verify that the dashboard has the same interceptors configured");
-            result.WasIntercepted.Should().BeTrue();
-            result.InterceptorChain.Should().HaveCount(2);
-            result.InterceptorChain.Should().Contain("TripleDesMessageInterceptor");
-            result.InterceptorChain.Should().Contain("GZipMessageInterceptor");
+            Assert.IsNotNull(result);
+            Assert.IsNull(result.Body);
+            StringAssert.Contains(result.DecodingError, "TripleDesMessageInterceptor");
+            StringAssert.Contains(result.DecodingError, "GZipMessageInterceptor");
+            StringAssert.Contains(result.DecodingError, "Padding is invalid and cannot be removed");
+            StringAssert.Contains(result.DecodingError, "Verify that the dashboard has the same interceptors configured");
+            Assert.IsTrue(result.WasIntercepted);
+            Assert.AreEqual(2, (result.InterceptorChain).Count());
+            CollectionAssert.Contains((System.Collections.ICollection)result.InterceptorChain, "TripleDesMessageInterceptor");
+            CollectionAssert.Contains((System.Collections.ICollection)result.InterceptorChain, "GZipMessageInterceptor");
         }
 
         [TestMethod]
@@ -644,13 +643,13 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
-            result.Should().NotBeNull();
-            result.Body.Should().BeNull();
-            result.DecodingError.Should().Contain("assembly");
-            result.DecodingError.Should().Contain("Could not load assembly");
-            result.DecodingError.Should().Contain("ensure the assembly containing the message type is available");
-            result.WasIntercepted.Should().BeFalse();
-            result.InterceptorChain.Should().BeEmpty();
+            Assert.IsNotNull(result);
+            Assert.IsNull(result.Body);
+            StringAssert.Contains(result.DecodingError, "assembly");
+            StringAssert.Contains(result.DecodingError, "Could not load assembly");
+            StringAssert.Contains(result.DecodingError, "ensure the assembly containing the message type is available");
+            Assert.IsFalse(result.WasIntercepted);
+            Assert.IsFalse((result.InterceptorChain).Any());
         }
 
         [TestMethod]
@@ -696,13 +695,13 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
-            result.Should().NotBeNull();
-            result.Body.Should().BeNull();
-            result.DecodingError.Should().Be("Unexpected deserialization failure");
+            Assert.IsNotNull(result);
+            Assert.IsNull(result.Body);
+            Assert.AreEqual("Unexpected deserialization failure", result.DecodingError);
             // Even for generic exceptions, interceptor info should be populated since headers parsed OK
-            result.WasIntercepted.Should().BeTrue();
-            result.InterceptorChain.Should().HaveCount(1);
-            result.InterceptorChain.Should().Contain("GZipMessageInterceptor");
+            Assert.IsTrue(result.WasIntercepted);
+            Assert.AreEqual(1, (result.InterceptorChain).Count());
+            CollectionAssert.Contains((System.Collections.ICollection)result.InterceptorChain, "GZipMessageInterceptor");
         }
 
         [TestMethod]
@@ -751,13 +750,13 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetMessageBodyAsync(queueId, "42");
 
-            result.Should().NotBeNull();
-            result.Body.Should().NotBeNullOrEmpty();
-            result.DecodingError.Should().BeNull();
-            result.WasIntercepted.Should().BeTrue();
-            result.InterceptorChain.Should().HaveCount(2);
-            result.InterceptorChain.Should().Contain("TripleDesMessageInterceptor");
-            result.InterceptorChain.Should().Contain("GZipMessageInterceptor");
+            Assert.IsNotNull(result);
+            Assert.IsFalse(string.IsNullOrEmpty(result.Body));
+            Assert.IsNull(result.DecodingError);
+            Assert.IsTrue(result.WasIntercepted);
+            Assert.AreEqual(2, (result.InterceptorChain).Count());
+            CollectionAssert.Contains((System.Collections.ICollection)result.InterceptorChain, "TripleDesMessageInterceptor");
+            CollectionAssert.Contains((System.Collections.ICollection)result.InterceptorChain, "GZipMessageInterceptor");
         }
 
         [TestMethod]
@@ -774,7 +773,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.DeleteMessageAsync(queueId, "42");
 
-            result.Should().BeTrue();
+            Assert.IsTrue(result);
         }
 
         [TestMethod]
@@ -791,7 +790,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.DeleteMessageAsync(queueId, "999");
 
-            result.Should().BeFalse();
+            Assert.IsFalse(result);
         }
 
         [TestMethod]
@@ -808,7 +807,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.DeleteAllErrorMessagesAsync(queueId);
 
-            result.Should().Be(7L);
+            Assert.AreEqual(7L, result);
         }
 
         [TestMethod]
@@ -825,7 +824,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.RequeueErrorMessageAsync(queueId, "42");
 
-            result.Should().BeTrue();
+            Assert.IsTrue(result);
         }
 
         [TestMethod]
@@ -842,7 +841,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.RequeueErrorMessageAsync(queueId, "999");
 
-            result.Should().BeFalse();
+            Assert.IsFalse(result);
         }
 
         [TestMethod]
@@ -859,7 +858,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.ResetStaleMessageAsync(queueId, "42");
 
-            result.Should().BeTrue();
+            Assert.IsTrue(result);
         }
 
         [TestMethod]
@@ -876,7 +875,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.ResetStaleMessageAsync(queueId, "999");
 
-            result.Should().BeFalse();
+            Assert.IsFalse(result);
         }
 
         [TestMethod]
@@ -893,7 +892,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.EditMessageBodyAsync(queueId, "999","{}");
 
-            result.Should().Be(EditMessageBodyResult.NotFound);
+            Assert.AreEqual(EditMessageBodyResult.NotFound, result);
         }
 
         [TestMethod]
@@ -911,7 +910,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.EditMessageBodyAsync(queueId, "42","\"hello\"");
 
-            result.Should().Be(EditMessageBodyResult.TypeUnresolvable);
+            Assert.AreEqual(EditMessageBodyResult.TypeUnresolvable, result);
         }
 
         [TestMethod]
@@ -930,7 +929,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.EditMessageBodyAsync(queueId, "42","\"hello\"");
 
-            result.Should().Be(EditMessageBodyResult.MessageBeingProcessed);
+            Assert.AreEqual(EditMessageBodyResult.MessageBeingProcessed, result);
         }
 
         [TestMethod]
@@ -949,7 +948,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.EditMessageBodyAsync(queueId, "42","{ not valid json");
 
-            result.Should().Be(EditMessageBodyResult.InvalidJson);
+            Assert.AreEqual(EditMessageBodyResult.InvalidJson, result);
         }
 
         [TestMethod]
@@ -968,7 +967,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.EditMessageBodyAsync(queueId, "42","\"hello world\"");
 
-            result.Should().Be(EditMessageBodyResult.Success);
+            Assert.AreEqual(EditMessageBodyResult.Success, result);
         }
 
         /// <summary>

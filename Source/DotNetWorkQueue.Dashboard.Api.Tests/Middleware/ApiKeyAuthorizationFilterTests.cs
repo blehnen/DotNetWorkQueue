@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
 using DotNetWorkQueue.Dashboard.Api.Middleware;
-using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -23,7 +22,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Middleware
 
             filter.OnAuthorization(context);
 
-            context.Result.Should().BeNull();
+            Assert.IsNull(context.Result);
         }
 
         [TestMethod]
@@ -35,7 +34,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Middleware
 
             filter.OnAuthorization(context);
 
-            context.Result.Should().BeNull();
+            Assert.IsNull(context.Result);
         }
 
         [TestMethod]
@@ -47,7 +46,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Middleware
 
             filter.OnAuthorization(context);
 
-            context.Result.Should().BeOfType<UnauthorizedObjectResult>();
+            Assert.IsInstanceOfType<UnauthorizedObjectResult>(context.Result);
         }
 
         [TestMethod]
@@ -59,7 +58,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Middleware
 
             filter.OnAuthorization(context);
 
-            context.Result.Should().BeOfType<UnauthorizedObjectResult>();
+            Assert.IsInstanceOfType<UnauthorizedObjectResult>(context.Result);
         }
 
         private static AuthorizationFilterContext CreateContext(string apiKeyHeaderValue = null)

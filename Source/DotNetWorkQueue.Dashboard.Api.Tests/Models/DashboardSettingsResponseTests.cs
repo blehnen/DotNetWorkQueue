@@ -1,5 +1,4 @@
 using DotNetWorkQueue.Dashboard.Api.Models;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Tests.Models
@@ -11,14 +10,14 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Models
         public void ReadOnly_Can_Be_Set_And_Read()
         {
             var sut = new DashboardSettingsResponse { ReadOnly = true };
-            sut.ReadOnly.Should().BeTrue();
+            Assert.IsTrue(sut.ReadOnly);
         }
 
         [TestMethod]
         public void ReadOnly_Defaults_To_False()
         {
             var sut = new DashboardSettingsResponse();
-            sut.ReadOnly.Should().BeFalse();
+            Assert.IsFalse(sut.ReadOnly);
         }
     }
 }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Services;
-using FluentAssertions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -22,9 +21,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             var result = await check.CheckHealthAsync(new HealthCheckContext());
 
-            result.Status.Should().Be(HealthStatus.Healthy);
-            result.Data.Should().ContainKey("uptime");
-            result.Data.Should().ContainKey("connections");
+            Assert.AreEqual(HealthStatus.Healthy, result.Status);
+            Assert.IsTrue((result.Data).ContainsKey("uptime"));
+            Assert.IsTrue((result.Data).ContainsKey("connections"));
         }
 
         [TestMethod]
@@ -36,8 +35,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             var result = await check.CheckHealthAsync(new HealthCheckContext());
 
-            result.Status.Should().Be(HealthStatus.Unhealthy);
-            result.Description.Should().Contain("disposed");
+            Assert.AreEqual(HealthStatus.Unhealthy, result.Status);
+            StringAssert.Contains(result.Description, "disposed");
         }
 
         [TestMethod]
@@ -49,8 +48,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             var result = await check.CheckHealthAsync(new HealthCheckContext());
 
-            result.Status.Should().Be(HealthStatus.Unhealthy);
-            result.Description.Should().Contain("failed");
+            Assert.AreEqual(HealthStatus.Unhealthy, result.Status);
+            StringAssert.Contains(result.Description, "failed");
         }
     }
 }

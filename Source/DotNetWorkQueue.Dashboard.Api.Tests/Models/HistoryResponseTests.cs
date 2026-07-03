@@ -1,6 +1,5 @@
 using System;
 using DotNetWorkQueue.Dashboard.Api.Models;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Tests.Models
@@ -12,21 +11,21 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Models
         public void QueueId_Can_Be_Set_And_Read()
         {
             var sut = new HistoryResponse { QueueId = "msg-123" };
-            sut.QueueId.Should().Be("msg-123");
+            Assert.AreEqual("msg-123", sut.QueueId);
         }
 
         [TestMethod]
         public void CorrelationId_Can_Be_Set_And_Read()
         {
             var sut = new HistoryResponse { CorrelationId = "corr-456" };
-            sut.CorrelationId.Should().Be("corr-456");
+            Assert.AreEqual("corr-456", sut.CorrelationId);
         }
 
         [TestMethod]
         public void Status_Can_Be_Set_And_Read()
         {
             var sut = new HistoryResponse { Status = 3 };
-            sut.Status.Should().Be(3);
+            Assert.AreEqual(3, sut.Status);
         }
 
         [TestMethod]
@@ -34,35 +33,35 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Models
         {
             var time = new DateTime(2026, 3, 24, 12, 0, 0, DateTimeKind.Utc);
             var sut = new HistoryResponse { EnqueuedUtc = time };
-            sut.EnqueuedUtc.Should().Be(time);
+            Assert.AreEqual(time, sut.EnqueuedUtc);
         }
 
         [TestMethod]
         public void DurationMs_Can_Be_Set_And_Read()
         {
             var sut = new HistoryResponse { DurationMs = 1500L };
-            sut.DurationMs.Should().Be(1500L);
+            Assert.AreEqual(1500L, sut.DurationMs);
         }
 
         [TestMethod]
         public void ExceptionText_Can_Be_Set_And_Read()
         {
             var sut = new HistoryResponse { ExceptionText = "NullReferenceException" };
-            sut.ExceptionText.Should().Be("NullReferenceException");
+            Assert.AreEqual("NullReferenceException", sut.ExceptionText);
         }
 
         [TestMethod]
         public void RetryCount_Can_Be_Set_And_Read()
         {
             var sut = new HistoryResponse { RetryCount = 3 };
-            sut.RetryCount.Should().Be(3);
+            Assert.AreEqual(3, sut.RetryCount);
         }
 
         [TestMethod]
         public void Route_Can_Be_Set_And_Read()
         {
             var sut = new HistoryResponse { Route = "high-priority" };
-            sut.Route.Should().Be("high-priority");
+            Assert.AreEqual("high-priority", sut.Route);
         }
 
         [TestMethod]
@@ -87,17 +86,17 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Models
                 MessageType = "MyApp.Commands.DoWork"
             };
 
-            sut.QueueId.Should().Be("q-1");
-            sut.CorrelationId.Should().Be("c-1");
-            sut.Status.Should().Be(2);
-            sut.EnqueuedUtc.Should().Be(enqueued);
-            sut.StartedUtc.Should().Be(started);
-            sut.CompletedUtc.Should().Be(completed);
-            sut.DurationMs.Should().Be(1000L);
-            sut.ExceptionText.Should().BeNull();
-            sut.RetryCount.Should().Be(0);
-            sut.Route.Should().Be("default");
-            sut.MessageType.Should().Be("MyApp.Commands.DoWork");
+            Assert.AreEqual("q-1", sut.QueueId);
+            Assert.AreEqual("c-1", sut.CorrelationId);
+            Assert.AreEqual(2, sut.Status);
+            Assert.AreEqual(enqueued, sut.EnqueuedUtc);
+            Assert.AreEqual(started, sut.StartedUtc);
+            Assert.AreEqual(completed, sut.CompletedUtc);
+            Assert.AreEqual(1000L, sut.DurationMs);
+            Assert.IsNull(sut.ExceptionText);
+            Assert.AreEqual(0, sut.RetryCount);
+            Assert.AreEqual("default", sut.Route);
+            Assert.AreEqual("MyApp.Commands.DoWork", sut.MessageType);
         }
     }
 }

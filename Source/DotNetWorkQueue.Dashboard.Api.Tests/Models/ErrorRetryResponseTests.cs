@@ -1,5 +1,4 @@
 using DotNetWorkQueue.Dashboard.Api.Models;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Tests.Models
@@ -18,10 +17,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Models
                 RetryCount = 5
             };
 
-            sut.ErrorTrackingId.Should().Be(42L);
-            sut.QueueId.Should().Be("msg-789");
-            sut.ExceptionType.Should().Be("System.InvalidOperationException");
-            sut.RetryCount.Should().Be(5);
+            Assert.AreEqual(42L, sut.ErrorTrackingId);
+            Assert.AreEqual("msg-789", sut.QueueId);
+            Assert.AreEqual("System.InvalidOperationException", sut.ExceptionType);
+            Assert.AreEqual(5, sut.RetryCount);
         }
     }
 }

@@ -23,7 +23,6 @@ using System.Reflection;
 using DotNetWorkQueue.Dashboard.Api;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
 using DotNetWorkQueue.Dashboard.Api.Controllers;
-using FluentAssertions;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
@@ -54,8 +53,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
             var corsOptions = provider.GetRequiredService<IOptions<CorsOptions>>().Value;
 
             var policy = corsOptions.GetPolicy("DashboardCors");
-            policy.Should().NotBeNull();
-            policy!.Origins.Should().BeEquivalentTo(new[] { "https://example.com", "https://localhost:5001" });
+            Assert.IsNotNull(policy);
+            CollectionAssert.AreEquivalent((System.Collections.ICollection)new[] { "https://example.com", "https://localhost:5001" }, (System.Collections.ICollection)(policy!.Origins));
         }
 
         [TestMethod]
@@ -75,7 +74,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
             var corsOptions = provider.GetService<IOptions<CorsOptions>>();
 
             if (corsOptions != null)
-                corsOptions.Value.GetPolicy("DashboardCors").Should().BeNull();
+                Assert.IsNull(corsOptions.Value.GetPolicy("DashboardCors"));
         }
 
         // Note: the "DashboardExtensions adds DashboardAuthorizationConvention when
@@ -97,7 +96,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
 
             convention.Apply(controllerModel);
 
-            controllerModel.Filters.OfType<AuthorizeFilter>().Should().HaveCount(1);
+            Assert.AreEqual(1, (controllerModel.Filters.OfType<AuthorizeFilter>()).Count());
         }
 
         [TestMethod]
@@ -111,7 +110,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
 
             convention.Apply(controllerModel);
 
-            controllerModel.Filters.Should().BeEmpty();
+            Assert.IsFalse((controllerModel.Filters).Any());
         }
     }
 }

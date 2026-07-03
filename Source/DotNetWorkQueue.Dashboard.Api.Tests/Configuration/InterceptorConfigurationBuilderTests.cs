@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
@@ -17,7 +16,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
         {
             var queueOptions = new DashboardQueueOptions { QueueName = "test" };
             var result = InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
-            result.Should().BeNull();
+            Assert.IsNull(result);
         }
 
         [TestMethod]
@@ -30,7 +29,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 InterceptorConfiguration = expected
             };
             var result = InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
-            result.Should().BeSameAs(expected);
+            Assert.AreSame(expected, result);
         }
 
         [TestMethod]
@@ -48,7 +47,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 InterceptorProfile = "encrypted"
             };
             var result = InterceptorConfigurationBuilder.Resolve(queueOptions, profiles);
-            result.Should().BeSameAs(expected);
+            Assert.AreSame(expected, result);
         }
 
         [TestMethod]
@@ -65,7 +64,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 InterceptorProfile = "encrypted"
             };
             var result = InterceptorConfigurationBuilder.Resolve(queueOptions, profiles);
-            result.Should().BeSameAs(profileAction);
+            Assert.AreSame(profileAction, result);
         }
 
         [TestMethod]
@@ -82,7 +81,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 InterceptorProfile = "ENCRYPTED"
             };
             var result = InterceptorConfigurationBuilder.Resolve(queueOptions, profiles);
-            result.Should().BeSameAs(profileAction);
+            Assert.AreSame(profileAction, result);
         }
 
         [TestMethod]
@@ -94,8 +93,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 InterceptorProfile = "missing"
             };
             Action act = () => InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
-            act.Should().Throw<InvalidOperationException>()
-                .WithMessage("*missing*");
+            var ex = Assert.Throws<InvalidOperationException>(act);
+            Assert.IsTrue(ex.Message.Contains("missing", StringComparison.OrdinalIgnoreCase));
         }
 
         [TestMethod]
@@ -116,7 +115,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 }
             };
             var result = InterceptorConfigurationBuilder.Resolve(queueOptions, profiles);
-            result.Should().BeSameAs(profileAction);
+            Assert.AreSame(profileAction, result);
         }
 
         [TestMethod]
@@ -132,7 +131,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 }
             };
             var result = InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
-            result.Should().BeNull();
+            Assert.IsNull(result);
         }
 
         [TestMethod]
@@ -147,7 +146,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 }
             };
             var result = InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
-            result.Should().NotBeNull();
+            Assert.IsNotNull(result);
         }
 
         [TestMethod]
@@ -166,7 +165,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 }
             };
             var result = InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
-            result.Should().NotBeNull();
+            Assert.IsNotNull(result);
         }
 
         [TestMethod]
@@ -181,8 +180,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 }
             };
             Action act = () => InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
-            act.Should().Throw<InvalidOperationException>()
-                .WithMessage("*Key*");
+            var ex = Assert.Throws<InvalidOperationException>(act);
+            Assert.IsTrue(ex.Message.Contains("Key", StringComparison.OrdinalIgnoreCase));
         }
 
         [TestMethod]
@@ -200,8 +199,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 }
             };
             Action act = () => InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
-            act.Should().Throw<InvalidOperationException>()
-                .WithMessage("*IV*");
+            var ex = Assert.Throws<InvalidOperationException>(act);
+            Assert.IsTrue(ex.Message.Contains("IV", StringComparison.OrdinalIgnoreCase));
         }
 
         [TestMethod]
@@ -213,7 +212,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 Interceptors = new DashboardInterceptorOptions()
             };
             var result = InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
-            result.Should().BeNull();
+            Assert.IsNull(result);
         }
     }
 }

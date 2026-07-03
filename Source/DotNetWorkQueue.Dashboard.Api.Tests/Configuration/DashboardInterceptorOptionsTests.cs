@@ -1,5 +1,4 @@
 using DotNetWorkQueue.Dashboard.Api.Configuration;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
@@ -11,32 +10,32 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
         public void Defaults_Are_Null()
         {
             var opts = new DashboardInterceptorOptions();
-            opts.GZip.Should().BeNull();
-            opts.TripleDes.Should().BeNull();
+            Assert.IsNull(opts.GZip);
+            Assert.IsNull(opts.TripleDes);
         }
 
         [TestMethod]
         public void GZip_Defaults()
         {
             var opts = new GZipInterceptorOptions();
-            opts.Enabled.Should().BeTrue();
-            opts.MinimumSize.Should().Be(150);
+            Assert.IsTrue(opts.Enabled);
+            Assert.AreEqual(150, opts.MinimumSize);
         }
 
         [TestMethod]
         public void GZip_MinimumSize_Can_Be_Set()
         {
             var opts = new GZipInterceptorOptions { MinimumSize = 500 };
-            opts.MinimumSize.Should().Be(500);
+            Assert.AreEqual(500, opts.MinimumSize);
         }
 
         [TestMethod]
         public void TripleDes_Defaults()
         {
             var opts = new TripleDesInterceptorOptions();
-            opts.Enabled.Should().BeTrue();
-            opts.Key.Should().BeNull();
-            opts.IV.Should().BeNull();
+            Assert.IsTrue(opts.Enabled);
+            Assert.IsNull(opts.Key);
+            Assert.IsNull(opts.IV);
         }
 
         [TestMethod]
@@ -47,8 +46,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 Key = "dGVzdGtleQ==",
                 IV = "dGVzdGl2"
             };
-            opts.Key.Should().Be("dGVzdGtleQ==");
-            opts.IV.Should().Be("dGVzdGl2");
+            Assert.AreEqual("dGVzdGtleQ==", opts.Key);
+            Assert.AreEqual("dGVzdGl2", opts.IV);
         }
     }
 }
