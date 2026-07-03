@@ -21,7 +21,6 @@ using Bunit;
 using Bunit.TestDoubles;
 using DotNetWorkQueue.Dashboard.Ui.Components.Pages;
 using DotNetWorkQueue.Dashboard.Ui.Services;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -43,7 +42,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
 
             Render<Home>();
 
-            nav.Uri.Should().EndWith("/source/primary");
+            StringAssert.EndsWith(nav.Uri, "/source/primary");
         }
 
         [TestMethod]
@@ -58,7 +57,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
 
             var cut = Render<Home>(ps => ps.Add(p => p.SourceSlug, "does-not-exist"));
 
-            cut.Markup.Should().Contain("not found");
+            StringAssert.Contains(cut.Markup, "not found");
         }
 
         [TestMethod]
@@ -73,8 +72,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
 
             var cut = Render<Home>();
 
-            cut.Markup.Should().Contain("Alpha");
-            cut.Markup.Should().Contain("Beta");
+            StringAssert.Contains(cut.Markup, "Alpha");
+            StringAssert.Contains(cut.Markup, "Beta");
         }
 
         private void RegisterDependencies(IReadOnlyList<DashboardApiSourceConfig> sources)

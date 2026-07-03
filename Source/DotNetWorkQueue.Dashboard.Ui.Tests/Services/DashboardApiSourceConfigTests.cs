@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 
 using DotNetWorkQueue.Dashboard.Ui.Services;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
@@ -30,70 +29,70 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
         public void Slug_From_Simple_Name()
         {
             var config = new DashboardApiSourceConfig { Name = "Local" };
-            config.Slug.Should().Be("local");
+            Assert.AreEqual("local", config.Slug);
         }
 
         [TestMethod]
         public void Slug_From_Name_With_Spaces()
         {
             var config = new DashboardApiSourceConfig { Name = "Production SQL Server" };
-            config.Slug.Should().Be("production-sql-server");
+            Assert.AreEqual("production-sql-server", config.Slug);
         }
 
         [TestMethod]
         public void Slug_From_Name_With_Special_Chars()
         {
             var config = new DashboardApiSourceConfig { Name = "My Server (US-East)" };
-            config.Slug.Should().Be("my-server-us-east");
+            Assert.AreEqual("my-server-us-east", config.Slug);
         }
 
         [TestMethod]
         public void Slug_Collapses_Consecutive_Hyphens()
         {
             var config = new DashboardApiSourceConfig { Name = "test--name" };
-            config.Slug.Should().Be("test-name");
+            Assert.AreEqual("test-name", config.Slug);
         }
 
         [TestMethod]
         public void Slug_Trims_Leading_Trailing_Hyphens()
         {
             var config = new DashboardApiSourceConfig { Name = " -Test- " };
-            config.Slug.Should().Be("test");
+            Assert.AreEqual("test", config.Slug);
         }
 
         [TestMethod]
         public void Slug_From_Name_With_Numbers()
         {
             var config = new DashboardApiSourceConfig { Name = "Server 42" };
-            config.Slug.Should().Be("server-42");
+            Assert.AreEqual("server-42", config.Slug);
         }
 
         [TestMethod]
         public void Name_Set_Get()
         {
             var config = new DashboardApiSourceConfig { Name = "MySource" };
-            config.Name.Should().Be("MySource");
+            Assert.AreEqual("MySource", config.Name);
         }
 
         [TestMethod]
         public void BaseUrl_Set_Get()
         {
             var config = new DashboardApiSourceConfig { BaseUrl = "https://example.com/api" };
-            config.BaseUrl.Should().Be("https://example.com/api");
+            Assert.AreEqual("https://example.com/api", config.BaseUrl);
         }
 
         [TestMethod]
         public void ApiKey_Set_Get()
         {
             var config = new DashboardApiSourceConfig { ApiKey = "secret-key-123" };
-            config.ApiKey.Should().Be("secret-key-123");
+            Assert.AreEqual("secret-key-123", config.ApiKey);
         }
 
         [TestMethod]
         public void ApiKey_Defaults_To_Null()
         {
             var config = new DashboardApiSourceConfig();
-            config.ApiKey.Should().BeNull();
+            Assert.IsNull(config.ApiKey);
         }
     }
 }

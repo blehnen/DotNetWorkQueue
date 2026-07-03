@@ -20,7 +20,6 @@
 using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.Dashboard.Ui.Services;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
@@ -45,7 +44,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = registry.GetAll();
 
-            result.Should().HaveCount(2);
+            Assert.AreEqual(2, result.Count);
         }
 
         [TestMethod]
@@ -60,8 +59,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = registry.GetBySlug("local");
 
-            result.Should().NotBeNull();
-            result!.Name.Should().Be("Local");
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Local", result!.Name);
         }
 
         [TestMethod]
@@ -75,7 +74,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = registry.GetBySlug("nonexistent");
 
-            result.Should().BeNull();
+            Assert.IsNull(result);
         }
 
         [TestMethod]
@@ -90,8 +89,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = registry.GetByName("Local");
 
-            result.Should().NotBeNull();
-            result!.BaseUrl.Should().Be("https://localhost:5001");
+            Assert.IsNotNull(result);
+            Assert.AreEqual("https://localhost:5001", result!.BaseUrl);
         }
 
         [TestMethod]
@@ -105,7 +104,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = registry.GetByName("nonexistent");
 
-            result.Should().BeNull();
+            Assert.IsNull(result);
         }
 
         [TestMethod]
@@ -115,8 +114,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var act = () => new SourceRegistry(sources);
 
-            act.Should().Throw<ArgumentException>()
-                .WithMessage("*at least one*");
+            var ex = Assert.Throws<ArgumentException>(act);
+            StringAssert.Contains(ex.Message, "at least one", StringComparison.OrdinalIgnoreCase);
         }
 
         [TestMethod]
@@ -124,7 +123,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
         {
             var act = () => new SourceRegistry(null!);
 
-            act.Should().Throw<ArgumentNullException>();
+            Assert.Throws<ArgumentNullException>(act);
         }
 
         [TestMethod]
@@ -138,9 +137,9 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var act = () => new SourceRegistry(sources);
 
-            act.Should().Throw<ArgumentException>()
-                .WithMessage("*duplicate*")
-                .WithMessage("*Local*");
+            var ex = Assert.Throws<ArgumentException>(act);
+            StringAssert.Contains(ex.Message, "duplicate", StringComparison.OrdinalIgnoreCase);
+            StringAssert.Contains(ex.Message, "Local", StringComparison.OrdinalIgnoreCase);
         }
 
         [TestMethod]
@@ -154,8 +153,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var act = () => new SourceRegistry(sources);
 
-            act.Should().Throw<ArgumentException>()
-                .WithMessage("*slug*");
+            var ex = Assert.Throws<ArgumentException>(act);
+            StringAssert.Contains(ex.Message, "slug", StringComparison.OrdinalIgnoreCase);
         }
 
         [TestMethod]
@@ -169,7 +168,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = registry.GetAll();
 
-            result.Should().BeAssignableTo<IReadOnlyList<DashboardApiSourceConfig>>();
+            Assert.IsInstanceOfType(result, typeof(IReadOnlyList<DashboardApiSourceConfig>));
         }
 
         [TestMethod]
@@ -183,8 +182,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = registry.GetByName("LOCAL");
 
-            result.Should().NotBeNull();
-            result!.Name.Should().Be("Local");
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Local", result!.Name);
         }
     }
 }

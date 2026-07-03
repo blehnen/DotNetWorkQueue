@@ -21,12 +21,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Ui.Services;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -59,8 +59,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = sut.GetHealth("local");
 
-            result.Should().NotBeNull();
-            result.Status.Should().Be(SourceHealthStatus.Unknown);
+            Assert.IsNotNull(result);
+            Assert.AreEqual(SourceHealthStatus.Unknown, result.Status);
         }
 
         [TestMethod]
@@ -70,8 +70,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = sut.GetAllHealth();
 
-            result.Should().NotBeNull();
-            result.Should().BeEmpty();
+            Assert.IsNotNull(result);
+            Assert.IsFalse(result.Any());
         }
 
         [TestMethod]
@@ -88,9 +88,9 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
             await sut.PollAllSourcesAsync(CancellationToken.None);
 
             var result = sut.GetHealth(source.Slug);
-            result.Status.Should().Be(SourceHealthStatus.Healthy);
-            result.LastChecked.Should().BeOnOrAfter(before);
-            result.ErrorMessage.Should().BeNull();
+            Assert.AreEqual(SourceHealthStatus.Healthy, result.Status);
+            Assert.IsTrue(result.LastChecked >= before);
+            Assert.IsNull(result.ErrorMessage);
         }
 
         [TestMethod]
@@ -106,8 +106,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
             await sut.PollAllSourcesAsync(CancellationToken.None);
 
             var result = sut.GetHealth(source.Slug);
-            result.Status.Should().Be(SourceHealthStatus.Unhealthy);
-            result.ErrorMessage.Should().Contain("Connection refused");
+            Assert.AreEqual(SourceHealthStatus.Unhealthy, result.Status);
+            StringAssert.Contains(result.ErrorMessage, "Connection refused");
         }
 
         [TestMethod]
@@ -122,13 +122,13 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
             // First poll: healthy
             apiClient.GetSettingsAsync().Returns(Task.FromResult<Models.DashboardSettingsResponse?>(new Models.DashboardSettingsResponse()));
             await sut.PollAllSourcesAsync(CancellationToken.None);
-            sut.GetHealth(source.Slug).Status.Should().Be(SourceHealthStatus.Healthy);
+            Assert.AreEqual(SourceHealthStatus.Healthy, sut.GetHealth(source.Slug).Status);
 
             // Second poll: unhealthy
             apiClient.GetSettingsAsync().Returns<Models.DashboardSettingsResponse?>(_ => throw new HttpRequestException("Timeout"));
             await sut.PollAllSourcesAsync(CancellationToken.None);
-            sut.GetHealth(source.Slug).Status.Should().Be(SourceHealthStatus.Unhealthy);
-            sut.GetHealth(source.Slug).ErrorMessage.Should().Contain("Timeout");
+            Assert.AreEqual(SourceHealthStatus.Unhealthy, sut.GetHealth(source.Slug).Status);
+            StringAssert.Contains(sut.GetHealth(source.Slug).ErrorMessage, "Timeout");
         }
 
         [TestMethod]
@@ -148,13 +148,13 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             // First poll: unhealthy
             await sut.PollAllSourcesAsync(CancellationToken.None);
-            sut.GetHealth(source.Slug).Status.Should().Be(SourceHealthStatus.Unhealthy);
+            Assert.AreEqual(SourceHealthStatus.Unhealthy, sut.GetHealth(source.Slug).Status);
 
             // Second poll: healthy (recovery)
             shouldThrow = false;
             await sut.PollAllSourcesAsync(CancellationToken.None);
-            sut.GetHealth(source.Slug).Status.Should().Be(SourceHealthStatus.Healthy);
-            sut.GetHealth(source.Slug).ErrorMessage.Should().BeNull();
+            Assert.AreEqual(SourceHealthStatus.Healthy, sut.GetHealth(source.Slug).Status);
+            Assert.IsNull(sut.GetHealth(source.Slug).ErrorMessage);
         }
 
         [TestMethod]
@@ -175,9 +175,9 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
             await sut.PollAllSourcesAsync(CancellationToken.None);
 
             var all = sut.GetAllHealth();
-            all.Should().HaveCount(2);
-            all[source1.Slug].Status.Should().Be(SourceHealthStatus.Healthy);
-            all[source2.Slug].Status.Should().Be(SourceHealthStatus.Unhealthy);
+            Assert.AreEqual(2, all.Count);
+            Assert.AreEqual(SourceHealthStatus.Healthy, all[source1.Slug].Status);
+            Assert.AreEqual(SourceHealthStatus.Unhealthy, all[source2.Slug].Status);
         }
 
         [TestMethod]
@@ -203,24 +203,24 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
             await sut.PollAllSourcesAsync(CancellationToken.None);
 
             // Verify no log call was made for same-state poll
-            logger.ReceivedCalls().Should().BeEmpty();
+            Assert.IsFalse(logger.ReceivedCalls().Any());
 
             // Third poll: unhealthy (transition Healthy -> Unhealthy, should log)
             shouldThrow = true;
             await sut.PollAllSourcesAsync(CancellationToken.None);
 
             // Verify a log call was made for the transition
-            logger.ReceivedCalls().Should().NotBeEmpty();
+            Assert.IsTrue(logger.ReceivedCalls().Any());
 
             // Fourth poll: still unhealthy (no transition, should NOT log)
             logger.ClearReceivedCalls();
             await sut.PollAllSourcesAsync(CancellationToken.None);
-            logger.ReceivedCalls().Should().BeEmpty();
+            Assert.IsFalse(logger.ReceivedCalls().Any());
 
             // Fifth poll: recovery (Unhealthy -> Healthy, should log)
             shouldThrow = false;
             await sut.PollAllSourcesAsync(CancellationToken.None);
-            logger.ReceivedCalls().Should().NotBeEmpty();
+            Assert.IsTrue(logger.ReceivedCalls().Any());
         }
     }
 }

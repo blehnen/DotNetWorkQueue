@@ -22,7 +22,6 @@
 using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.Dashboard.Ui.Services;
-using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -49,9 +48,9 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = DashboardConfigParser.ParseSources(config);
 
-            result.Should().HaveCount(1);
-            result[0].Name.Should().Be("Local");
-            result[0].BaseUrl.Should().Be("http://localhost:5000");
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("Local", result[0].Name);
+            Assert.AreEqual("http://localhost:5000", result[0].BaseUrl);
         }
 
         [TestMethod]
@@ -67,7 +66,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = DashboardConfigParser.ParseSources(config);
 
-            result.Should().HaveCount(2);
+            Assert.AreEqual(2, result.Count);
         }
 
         [TestMethod]
@@ -82,8 +81,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = DashboardConfigParser.ParseSources(config);
 
-            result.Should().HaveCount(1);
-            result[0].ApiKey.Should().Be("my-secret-key");
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("my-secret-key", result[0].ApiKey);
         }
 
         [TestMethod]
@@ -97,8 +96,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = DashboardConfigParser.ParseSources(config);
 
-            result.Should().HaveCount(1);
-            result[0].ApiKey.Should().BeNull();
+            Assert.AreEqual(1, result.Count);
+            Assert.IsNull(result[0].ApiKey);
         }
 
         [TestMethod]
@@ -111,9 +110,9 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var act = () => DashboardConfigParser.ValidateNoLegacyConfig(config);
 
-            act.Should().Throw<InvalidOperationException>()
-                .WithMessage("*Sources*")
-                .WithMessage("*migration*");
+            var ex = Assert.Throws<InvalidOperationException>(act);
+            StringAssert.Contains(ex.Message, "Sources", StringComparison.OrdinalIgnoreCase);
+            StringAssert.Contains(ex.Message, "migration", StringComparison.OrdinalIgnoreCase);
         }
 
         [TestMethod]
@@ -128,7 +127,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var act = () => DashboardConfigParser.ValidateNoLegacyConfig(config);
 
-            act.Should().NotThrow();
+            act();
         }
 
         [TestMethod]
@@ -141,7 +140,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var act = () => DashboardConfigParser.ValidateNoLegacyConfig(config);
 
-            act.Should().NotThrow();
+            act();
         }
     }
 }

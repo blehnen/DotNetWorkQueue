@@ -20,7 +20,6 @@ using Bunit;
 using Bunit.TestDoubles;
 using DotNetWorkQueue.Dashboard.Ui.Components.Pages;
 using DotNetWorkQueue.Dashboard.Ui.Services;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -36,8 +35,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
 
             var cut = Render<Login>();
 
-            cut.Markup.Should().Contain("Sign In");
-            cut.Markup.Should().Contain("Dashboard Login");
+            StringAssert.Contains(cut.Markup, "Sign In");
+            StringAssert.Contains(cut.Markup, "Dashboard Login");
         }
 
         [TestMethod]
@@ -49,7 +48,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
 
             var cut = Render<Login>();
 
-            cut.Markup.Should().Contain("Invalid username or password.");
+            StringAssert.Contains(cut.Markup, "Invalid username or password.");
         }
 
         [TestMethod]
@@ -59,7 +58,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
 
             var cut = Render<Login>();
 
-            cut.Markup.Should().NotContain("Invalid username or password.");
+            Assert.IsFalse(cut.Markup.Contains("Invalid username or password."));
         }
 
         [TestMethod]
@@ -70,7 +69,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
 
             Render<Login>();
 
-            nav.Uri.Should().Be(nav.BaseUri);
+            Assert.AreEqual(nav.BaseUri, nav.Uri);
         }
     }
 }

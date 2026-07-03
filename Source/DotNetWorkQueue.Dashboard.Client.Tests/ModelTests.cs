@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using DotNetWorkQueue.Dashboard.Client.Models;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Client.Tests
@@ -26,15 +25,15 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 Route = "route-a"
             };
 
-            sut.QueueId.Should().Be("msg-1");
-            sut.QueuedDateTime.Should().Be(now);
-            sut.CorrelationId.Should().Be("corr-1");
-            sut.Status.Should().Be(1);
-            sut.Priority.Should().Be(5);
-            sut.QueueProcessTime.Should().Be(now.AddMinutes(1));
-            sut.HeartBeat.Should().Be(now.AddMinutes(2));
-            sut.ExpirationTime.Should().Be(now.AddMinutes(3));
-            sut.Route.Should().Be("route-a");
+            Assert.AreEqual("msg-1", sut.QueueId);
+            Assert.AreEqual(now, sut.QueuedDateTime);
+            Assert.AreEqual("corr-1", sut.CorrelationId);
+            Assert.AreEqual(1, sut.Status);
+            Assert.AreEqual(5, sut.Priority);
+            Assert.AreEqual(now.AddMinutes(1), sut.QueueProcessTime);
+            Assert.AreEqual(now.AddMinutes(2), sut.HeartBeat);
+            Assert.AreEqual(now.AddMinutes(3), sut.ExpirationTime);
+            Assert.AreEqual("route-a", sut.Route);
         }
 
         [TestMethod]
@@ -49,10 +48,10 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 LastExceptionDate = now
             };
 
-            sut.Id.Should().Be(42);
-            sut.QueueId.Should().Be("msg-2");
-            sut.LastException.Should().Be("NullRef");
-            sut.LastExceptionDate.Should().Be(now);
+            Assert.AreEqual(42, sut.Id);
+            Assert.AreEqual("msg-2", sut.QueueId);
+            Assert.AreEqual("NullRef", sut.LastException);
+            Assert.AreEqual(now, sut.LastExceptionDate);
         }
 
         [TestMethod]
@@ -69,13 +68,13 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 EnableRoute = true
             };
 
-            sut.EnablePriority.Should().BeTrue();
-            sut.EnableStatus.Should().BeTrue();
-            sut.EnableStatusTable.Should().BeTrue();
-            sut.EnableHeartBeat.Should().BeTrue();
-            sut.EnableDelayedProcessing.Should().BeTrue();
-            sut.EnableMessageExpiration.Should().BeTrue();
-            sut.EnableRoute.Should().BeTrue();
+            Assert.IsTrue(sut.EnablePriority);
+            Assert.IsTrue(sut.EnableStatus);
+            Assert.IsTrue(sut.EnableStatusTable);
+            Assert.IsTrue(sut.EnableHeartBeat);
+            Assert.IsTrue(sut.EnableDelayedProcessing);
+            Assert.IsTrue(sut.EnableMessageExpiration);
+            Assert.IsTrue(sut.EnableRoute);
         }
 
         [TestMethod]
@@ -88,8 +87,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 QueueName = "test-queue"
             };
 
-            sut.Id.Should().Be(id);
-            sut.QueueName.Should().Be("test-queue");
+            Assert.AreEqual(id, sut.Id);
+            Assert.AreEqual("test-queue", sut.QueueName);
         }
 
         [TestMethod]
@@ -103,10 +102,10 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 Total = 17
             };
 
-            sut.Waiting.Should().Be(10);
-            sut.Processing.Should().Be(5);
-            sut.Error.Should().Be(2);
-            sut.Total.Should().Be(17);
+            Assert.AreEqual(10, sut.Waiting);
+            Assert.AreEqual(5, sut.Processing);
+            Assert.AreEqual(2, sut.Error);
+            Assert.AreEqual(17, sut.Total);
         }
 
         [TestMethod]
@@ -120,9 +119,9 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 JobScheduledTime = now.AddHours(1)
             };
 
-            sut.JobName.Should().Be("daily-cleanup");
-            sut.JobEventTime.Should().Be(now);
-            sut.JobScheduledTime.Should().Be(now.AddHours(1));
+            Assert.AreEqual("daily-cleanup", sut.JobName);
+            Assert.AreEqual(now, sut.JobEventTime);
+            Assert.AreEqual(now.AddHours(1), sut.JobScheduledTime);
         }
 
         [TestMethod]
@@ -136,10 +135,10 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 IsProcessing = false
             };
 
-            sut.Body.Should().Be("{\"key\":\"value\"}");
-            sut.TypeName.Should().Be("MyType");
-            sut.IsEditable.Should().BeTrue();
-            sut.IsProcessing.Should().BeFalse();
+            Assert.AreEqual("{\"key\":\"value\"}", sut.Body);
+            Assert.AreEqual("MyType", sut.TypeName);
+            Assert.IsTrue(sut.IsEditable);
+            Assert.IsFalse(sut.IsProcessing);
         }
 
         [TestMethod]
@@ -151,8 +150,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 Headers = headers
             };
 
-            sut.Headers.Should().HaveCount(2);
-            sut.Headers["h1"].Should().Be("v1");
+            Assert.AreEqual(2, sut.Headers.Count);
+            Assert.AreEqual("v1", sut.Headers["h1"]);
         }
 
         [TestMethod]
@@ -166,10 +165,10 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 RetryCount = 3
             };
 
-            sut.ErrorTrackingId.Should().Be(99);
-            sut.QueueId.Should().Be("msg-5");
-            sut.ExceptionType.Should().Be("System.InvalidOperationException");
-            sut.RetryCount.Should().Be(3);
+            Assert.AreEqual(99, sut.ErrorTrackingId);
+            Assert.AreEqual("msg-5", sut.QueueId);
+            Assert.AreEqual("System.InvalidOperationException", sut.ExceptionType);
+            Assert.AreEqual(3, sut.RetryCount);
         }
 
         [TestMethod]
@@ -183,24 +182,24 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 PageSize = 25
             };
 
-            sut.Items.Should().HaveCount(2);
-            sut.TotalCount.Should().Be(100);
-            sut.PageIndex.Should().Be(2);
-            sut.PageSize.Should().Be(25);
+            Assert.AreEqual(2, sut.Items.Count);
+            Assert.AreEqual(100, sut.TotalCount);
+            Assert.AreEqual(2, sut.PageIndex);
+            Assert.AreEqual(25, sut.PageSize);
         }
 
         [TestMethod]
         public void BulkActionResponse_Properties()
         {
             var sut = new BulkActionResponse { Count = 42 };
-            sut.Count.Should().Be(42);
+            Assert.AreEqual(42, sut.Count);
         }
 
         [TestMethod]
         public void DeleteAllResponse_Properties()
         {
             var sut = new DeleteAllResponse { Deleted = 15 };
-            sut.Deleted.Should().Be(15);
+            Assert.AreEqual(15, sut.Deleted);
         }
 
         [TestMethod]
@@ -213,22 +212,22 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 HeartbeatIntervalSeconds = 30
             };
 
-            sut.ConsumerId.Should().Be(id);
-            sut.HeartbeatIntervalSeconds.Should().Be(30);
+            Assert.AreEqual(id, sut.ConsumerId);
+            Assert.AreEqual(30, sut.HeartbeatIntervalSeconds);
         }
 
         [TestMethod]
         public void EditMessageBodyRequest_Properties()
         {
             var sut = new EditMessageBodyRequest { Body = "new body" };
-            sut.Body.Should().Be("new body");
+            Assert.AreEqual("new body", sut.Body);
         }
 
         [TestMethod]
         public void ConfigurationResponse_Properties()
         {
             var sut = new ConfigurationResponse { ConfigurationJson = "{\"setting\":true}" };
-            sut.ConfigurationJson.Should().Be("{\"setting\":true}");
+            Assert.AreEqual("{\"setting\":true}", sut.ConfigurationJson);
         }
 
         [TestMethod]
@@ -253,18 +252,18 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 PoisonMessages = 1
             };
 
-            sut.ConsumerId.Should().Be(consumerId);
-            sut.QueueName.Should().Be("q1");
-            sut.MachineName.Should().Be("SERVER1");
-            sut.ProcessId.Should().Be(9876);
-            sut.FriendlyName.Should().Be("Worker-1");
-            sut.RegisteredAt.Should().Be(now);
-            sut.LastHeartbeat.Should().Be(now.AddSeconds(10));
-            sut.MatchedQueueId.Should().Be(queueId);
-            sut.MessagesProcessed.Should().Be(100);
-            sut.MessagesErrored.Should().Be(5);
-            sut.MessagesRolledBack.Should().Be(2);
-            sut.PoisonMessages.Should().Be(1);
+            Assert.AreEqual(consumerId, sut.ConsumerId);
+            Assert.AreEqual("q1", sut.QueueName);
+            Assert.AreEqual("SERVER1", sut.MachineName);
+            Assert.AreEqual(9876, sut.ProcessId);
+            Assert.AreEqual("Worker-1", sut.FriendlyName);
+            Assert.AreEqual(now, sut.RegisteredAt);
+            Assert.AreEqual(now.AddSeconds(10), sut.LastHeartbeat);
+            Assert.AreEqual(queueId, sut.MatchedQueueId);
+            Assert.AreEqual(100, sut.MessagesProcessed);
+            Assert.AreEqual(5, sut.MessagesErrored);
+            Assert.AreEqual(2, sut.MessagesRolledBack);
+            Assert.AreEqual(1, sut.PoisonMessages);
         }
     }
 }

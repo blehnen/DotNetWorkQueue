@@ -6,7 +6,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Client.Models;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Client.Tests
@@ -20,28 +19,28 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
         public void Constructor_Options_Throws_When_Null()
         {
             Action act = () => new DashboardApiClient((DashboardClientOptions)null);
-            act.Should().Throw<ArgumentNullException>();
+            Assert.Throws<ArgumentNullException>(act);
         }
 
         [TestMethod]
         public void Constructor_Options_Throws_When_Url_Missing()
         {
             Action act = () => new DashboardApiClient(new DashboardClientOptions());
-            act.Should().Throw<ArgumentException>();
+            Assert.Throws<ArgumentException>(act);
         }
 
         [TestMethod]
         public void Constructor_HttpClient_Throws_When_Null()
         {
             Action act = () => new DashboardApiClient((HttpClient)null);
-            act.Should().Throw<ArgumentNullException>();
+            Assert.Throws<ArgumentNullException>(act);
         }
 
         [TestMethod]
         public void Constructor_HttpClientFactory_Throws_When_Null()
         {
             Action act = () => new DashboardApiClient((IHttpClientFactory)null, new DashboardClientOptions { DashboardApiUrl = "http://localhost" });
-            act.Should().Throw<ArgumentNullException>();
+            Assert.Throws<ArgumentNullException>(act);
         }
 
         // === GetConnectionsAsync ===
@@ -57,10 +56,10 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetConnectionsAsync();
 
-            result.Success.Should().BeTrue();
-            result.Value.Should().HaveCount(1);
-            result.Value[0].DisplayName.Should().Be("Test");
-            result.Value[0].QueueCount.Should().Be(3);
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(1, result.Value.Count);
+            Assert.AreEqual("Test", result.Value[0].DisplayName);
+            Assert.AreEqual(3, result.Value[0].QueueCount);
         }
 
         [TestMethod]
@@ -70,10 +69,10 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetConnectionsAsync();
 
-            result.Success.Should().BeFalse();
-            result.StatusCode.Should().Be(HttpStatusCode.NotFound);
-            result.ErrorMessage.Should().Be("Not Found");
-            result.Value.Should().BeNull();
+            Assert.IsFalse(result.Success);
+            Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
+            Assert.AreEqual("Not Found", result.ErrorMessage);
+            Assert.IsNull(result.Value);
         }
 
         // === GetQueueStatusAsync ===
@@ -86,9 +85,9 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetQueueStatusAsync(Guid.NewGuid());
 
-            result.Success.Should().BeTrue();
-            result.Value.Waiting.Should().Be(10);
-            result.Value.Total.Should().Be(17);
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(10, result.Value.Waiting);
+            Assert.AreEqual(17, result.Value.Total);
         }
 
         // === GetConsumersAsync ===
@@ -105,10 +104,10 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetConsumersAsync();
 
-            result.Success.Should().BeTrue();
-            result.Value.Should().HaveCount(1);
-            result.Value[0].ConsumerId.Should().Be(consumerId);
-            result.Value[0].MachineName.Should().Be("M1");
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(1, result.Value.Count);
+            Assert.AreEqual(consumerId, result.Value[0].ConsumerId);
+            Assert.AreEqual("M1", result.Value[0].MachineName);
         }
 
         [TestMethod]
@@ -129,7 +128,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var queueId = Guid.NewGuid();
             await client.GetConsumersAsync(queueId);
 
-            capturedUrl.Should().Contain($"queueId={queueId}");
+            StringAssert.Contains(capturedUrl, $"queueId={queueId}");
         }
 
         // === GetConsumerCountsAsync ===
@@ -143,9 +142,9 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetConsumerCountsAsync();
 
-            result.Success.Should().BeTrue();
-            result.Value.Should().ContainKey(queueId);
-            result.Value[queueId].Should().Be(3);
+            Assert.IsTrue(result.Success);
+            Assert.IsTrue(result.Value.ContainsKey(queueId));
+            Assert.AreEqual(3, result.Value[queueId]);
         }
 
         // === DeleteMessageAsync returns ApiReturnValue ===
@@ -157,8 +156,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.DeleteMessageAsync(Guid.NewGuid(), "msg-1");
 
-            result.Success.Should().BeTrue();
-            result.Value.Should().BeTrue();
+            Assert.IsTrue(result.Success);
+            Assert.IsTrue(result.Value);
         }
 
         [TestMethod]
@@ -168,8 +167,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.DeleteMessageAsync(Guid.NewGuid(), "msg-1");
 
-            result.Success.Should().BeFalse();
-            result.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.IsFalse(result.Success);
+            Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
         }
 
         // === GetQueuesAsync ===
@@ -183,10 +182,10 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetQueuesAsync(Guid.NewGuid());
 
-            result.Success.Should().BeTrue();
-            result.Value.Should().HaveCount(1);
-            result.Value[0].Id.Should().Be(id);
-            result.Value[0].QueueName.Should().Be("my-queue");
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(1, result.Value.Count);
+            Assert.AreEqual(id, result.Value[0].Id);
+            Assert.AreEqual("my-queue", result.Value[0].QueueName);
         }
 
         // === GetJobsAsync ===
@@ -200,11 +199,11 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetJobsAsync(Guid.NewGuid());
 
-            result.Success.Should().BeTrue();
-            result.Value.Should().HaveCount(1);
-            result.Value[0].JobName.Should().Be("daily");
-            result.Value[0].JobEventTime.Should().Be(now);
-            result.Value[0].JobScheduledTime.Should().Be(now.AddHours(1));
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(1, result.Value.Count);
+            Assert.AreEqual("daily", result.Value[0].JobName);
+            Assert.AreEqual(now, result.Value[0].JobEventTime);
+            Assert.AreEqual(now.AddHours(1), result.Value[0].JobScheduledTime);
         }
 
         // === GetQueueFeaturesAsync ===
@@ -226,14 +225,14 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetQueueFeaturesAsync(Guid.NewGuid());
 
-            result.Success.Should().BeTrue();
-            result.Value.EnablePriority.Should().BeTrue();
-            result.Value.EnableStatus.Should().BeTrue();
-            result.Value.EnableStatusTable.Should().BeFalse();
-            result.Value.EnableHeartBeat.Should().BeTrue();
-            result.Value.EnableDelayedProcessing.Should().BeFalse();
-            result.Value.EnableMessageExpiration.Should().BeTrue();
-            result.Value.EnableRoute.Should().BeFalse();
+            Assert.IsTrue(result.Success);
+            Assert.IsTrue(result.Value.EnablePriority);
+            Assert.IsTrue(result.Value.EnableStatus);
+            Assert.IsFalse(result.Value.EnableStatusTable);
+            Assert.IsTrue(result.Value.EnableHeartBeat);
+            Assert.IsFalse(result.Value.EnableDelayedProcessing);
+            Assert.IsTrue(result.Value.EnableMessageExpiration);
+            Assert.IsFalse(result.Value.EnableRoute);
         }
 
         // === GetQueueConfigurationAsync ===
@@ -246,8 +245,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetQueueConfigurationAsync(Guid.NewGuid());
 
-            result.Success.Should().BeTrue();
-            result.Value.ConfigurationJson.Should().Be("{\"heartbeat\":30}");
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual("{\"heartbeat\":30}", result.Value.ConfigurationJson);
         }
 
         // === GetMessagesAsync ===
@@ -266,12 +265,12 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetMessagesAsync(Guid.NewGuid());
 
-            result.Success.Should().BeTrue();
-            result.Value.Items.Should().HaveCount(1);
-            result.Value.Items[0].QueueId.Should().Be("msg-1");
-            result.Value.TotalCount.Should().Be(50);
-            result.Value.PageIndex.Should().Be(0);
-            result.Value.PageSize.Should().Be(25);
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(1, result.Value.Items.Count);
+            Assert.AreEqual("msg-1", result.Value.Items[0].QueueId);
+            Assert.AreEqual(50, result.Value.TotalCount);
+            Assert.AreEqual(0, result.Value.PageIndex);
+            Assert.AreEqual(25, result.Value.PageSize);
         }
 
         [TestMethod]
@@ -292,7 +291,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             await client.GetMessagesAsync(Guid.NewGuid(), status: 2);
 
-            capturedUrl.Should().Contain("status=2");
+            StringAssert.Contains(capturedUrl, "status=2");
         }
 
         // === GetMessageCountAsync ===
@@ -305,8 +304,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetMessageCountAsync(Guid.NewGuid());
 
-            result.Success.Should().BeTrue();
-            result.Value.Should().Be(42);
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(42, result.Value);
         }
 
         [TestMethod]
@@ -326,7 +325,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             await client.GetMessageCountAsync(Guid.NewGuid(), status: 1);
 
-            capturedUrl.Should().Contain("status=1");
+            StringAssert.Contains(capturedUrl, "status=1");
         }
 
         // === GetMessageAsync (detail) ===
@@ -345,11 +344,11 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetMessageAsync(Guid.NewGuid(), "msg-5");
 
-            result.Success.Should().BeTrue();
-            result.Value.QueueId.Should().Be("msg-5");
-            result.Value.Status.Should().Be(1);
-            result.Value.CorrelationId.Should().Be("corr-5");
-            result.Value.Route.Should().Be("route-b");
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual("msg-5", result.Value.QueueId);
+            Assert.AreEqual(1, result.Value.Status);
+            Assert.AreEqual("corr-5", result.Value.CorrelationId);
+            Assert.AreEqual("route-b", result.Value.Route);
         }
 
         // === GetMessageBodyAsync ===
@@ -368,11 +367,11 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetMessageBodyAsync(Guid.NewGuid(), "msg-1");
 
-            result.Success.Should().BeTrue();
-            result.Value.Body.Should().Be("{\"data\":1}");
-            result.Value.TypeName.Should().Be("MyMessage");
-            result.Value.IsEditable.Should().BeTrue();
-            result.Value.IsProcessing.Should().BeFalse();
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual("{\"data\":1}", result.Value.Body);
+            Assert.AreEqual("MyMessage", result.Value.TypeName);
+            Assert.IsTrue(result.Value.IsEditable);
+            Assert.IsFalse(result.Value.IsProcessing);
         }
 
         // === GetMessageHeadersAsync ===
@@ -388,9 +387,9 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetMessageHeadersAsync(Guid.NewGuid(), "msg-1");
 
-            result.Success.Should().BeTrue();
-            result.Value.Headers.Should().HaveCount(2);
-            result.Value.Headers["key1"].Should().Be("val1");
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(2, result.Value.Headers.Count);
+            Assert.AreEqual("val1", result.Value.Headers["key1"]);
         }
 
         // === GetErrorRetriesAsync ===
@@ -406,11 +405,11 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetErrorRetriesAsync(Guid.NewGuid(), "msg-1");
 
-            result.Success.Should().BeTrue();
-            result.Value.Should().HaveCount(1);
-            result.Value[0].ErrorTrackingId.Should().Be(1);
-            result.Value[0].ExceptionType.Should().Be("System.Exception");
-            result.Value[0].RetryCount.Should().Be(3);
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(1, result.Value.Count);
+            Assert.AreEqual(1, result.Value[0].ErrorTrackingId);
+            Assert.AreEqual("System.Exception", result.Value[0].ExceptionType);
+            Assert.AreEqual(3, result.Value[0].RetryCount);
         }
 
         // === GetStaleMessagesAsync ===
@@ -429,10 +428,10 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetStaleMessagesAsync(Guid.NewGuid());
 
-            result.Success.Should().BeTrue();
-            result.Value.Items.Should().HaveCount(1);
-            result.Value.Items[0].QueueId.Should().Be("stale-1");
-            result.Value.TotalCount.Should().Be(5);
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(1, result.Value.Items.Count);
+            Assert.AreEqual("stale-1", result.Value.Items[0].QueueId);
+            Assert.AreEqual(5, result.Value.TotalCount);
         }
 
         // === GetErrorsAsync ===
@@ -451,11 +450,11 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.GetErrorsAsync(Guid.NewGuid());
 
-            result.Success.Should().BeTrue();
-            result.Value.Items.Should().HaveCount(1);
-            result.Value.Items[0].QueueId.Should().Be("msg-1");
-            result.Value.Items[0].LastException.Should().Be("boom");
-            result.Value.TotalCount.Should().Be(10);
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(1, result.Value.Items.Count);
+            Assert.AreEqual("msg-1", result.Value.Items[0].QueueId);
+            Assert.AreEqual("boom", result.Value.Items[0].LastException);
+            Assert.AreEqual(10, result.Value.TotalCount);
         }
 
         // === RequeueErrorMessageAsync ===
@@ -467,8 +466,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.RequeueErrorMessageAsync(Guid.NewGuid(), "msg-1");
 
-            result.Success.Should().BeTrue();
-            result.Value.Should().BeTrue();
+            Assert.IsTrue(result.Success);
+            Assert.IsTrue(result.Value);
         }
 
         // === ResetMessageAsync (stale) ===
@@ -480,8 +479,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.ResetMessageAsync(Guid.NewGuid(), "msg-1");
 
-            result.Success.Should().BeTrue();
-            result.Value.Should().BeTrue();
+            Assert.IsTrue(result.Success);
+            Assert.IsTrue(result.Value);
         }
 
         // === EditMessageBodyAsync ===
@@ -493,8 +492,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.EditMessageBodyAsync(Guid.NewGuid(), "msg-1", "{\"updated\":true}");
 
-            result.Success.Should().BeTrue();
-            result.Value.Should().BeTrue();
+            Assert.IsTrue(result.Success);
+            Assert.IsTrue(result.Value);
         }
 
         // === RequeueAllErrorsAsync ===
@@ -507,8 +506,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.RequeueAllErrorsAsync(Guid.NewGuid());
 
-            result.Success.Should().BeTrue();
-            result.Value.Count.Should().Be(7);
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(7, result.Value.Count);
         }
 
         // === ResetAllStaleMessagesAsync ===
@@ -521,8 +520,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.ResetAllStaleMessagesAsync(Guid.NewGuid());
 
-            result.Success.Should().BeTrue();
-            result.Value.Count.Should().Be(3);
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(3, result.Value.Count);
         }
 
         // === DeleteAllErrorsAsync ===
@@ -535,8 +534,8 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
 
             var result = await client.DeleteAllErrorsAsync(Guid.NewGuid());
 
-            result.Success.Should().BeTrue();
-            result.Value.Deleted.Should().Be(12);
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(12, result.Value.Deleted);
         }
 
         // === Dispose ===
@@ -559,7 +558,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             client.Dispose();
 
             // External client should still be usable (not disposed)
-            httpClient.BaseAddress.Should().NotBeNull();
+            Assert.IsNotNull(httpClient.BaseAddress);
         }
 
         // === Helpers ===
