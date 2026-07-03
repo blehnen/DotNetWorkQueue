@@ -1,5 +1,4 @@
 using DotNetWorkQueue.Dashboard.Api.Configuration;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
@@ -11,35 +10,35 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
         public void QueueName_Can_Be_Set()
         {
             var opts = new DashboardQueueOptions { QueueName = "MyQueue" };
-            opts.QueueName.Should().Be("MyQueue");
+            Assert.AreEqual("MyQueue", opts.QueueName);
         }
 
         [TestMethod]
         public void InterceptorConfiguration_Defaults_To_Null()
         {
             var opts = new DashboardQueueOptions();
-            opts.InterceptorConfiguration.Should().BeNull();
+            Assert.IsNull(opts.InterceptorConfiguration);
         }
 
         [TestMethod]
         public void InterceptorProfile_Defaults_To_Null()
         {
             var opts = new DashboardQueueOptions();
-            opts.InterceptorProfile.Should().BeNull();
+            Assert.IsNull(opts.InterceptorProfile);
         }
 
         [TestMethod]
         public void InterceptorProfile_Can_Be_Set()
         {
             var opts = new DashboardQueueOptions { InterceptorProfile = "encrypted" };
-            opts.InterceptorProfile.Should().Be("encrypted");
+            Assert.AreEqual("encrypted", opts.InterceptorProfile);
         }
 
         [TestMethod]
         public void Interceptors_Defaults_To_Null()
         {
             var opts = new DashboardQueueOptions();
-            opts.Interceptors.Should().BeNull();
+            Assert.IsNull(opts.Interceptors);
         }
 
         [TestMethod]
@@ -50,7 +49,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 GZip = new GZipInterceptorOptions()
             };
             var opts = new DashboardQueueOptions { Interceptors = interceptors };
-            opts.Interceptors.Should().BeSameAs(interceptors);
+            Assert.AreSame(interceptors, opts.Interceptors);
         }
     }
 }
