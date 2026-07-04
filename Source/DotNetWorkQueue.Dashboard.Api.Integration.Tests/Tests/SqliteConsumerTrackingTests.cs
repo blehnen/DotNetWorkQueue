@@ -24,7 +24,6 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -71,19 +70,19 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var body = new { QueueName = queueName, MachineName = "SQLITEHOST", ProcessId = 5000, FriendlyName = "SqliteWorker" };
             var response = await server.Client.PostAsJsonAsync("api/v1/dashboard/consumers/register", body);
 
-            response.StatusCode.Should().Be(HttpStatusCode.Created);
+            Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
             var registration = await response.Content.ReadFromJsonAsync<ConsumerRegistrationResponse>();
-            registration.Should().NotBeNull();
-            registration!.ConsumerId.Should().NotBeEmpty();
-            registration.HeartbeatIntervalSeconds.Should().BeGreaterThan(0);
+            Assert.IsNotNull(registration);
+            Assert.AreNotEqual(Guid.Empty, registration!.ConsumerId);
+            Assert.IsTrue(registration.HeartbeatIntervalSeconds > 0);
 
             // Verify consumer appears in list and is matched to the queue
             var consumers = await server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
-            consumers.Should().HaveCount(1);
-            consumers![0].MatchedQueueId.Should().Be(queueId);
-            consumers[0].MachineName.Should().Be("SQLITEHOST");
-            consumers[0].QueueName.Should().Be(queueName);
+            Assert.AreEqual(1, consumers.Count);
+            Assert.AreEqual(queueId, consumers![0].MatchedQueueId);
+            Assert.AreEqual("SQLITEHOST", consumers[0].MachineName);
+            Assert.AreEqual(queueName, consumers[0].QueueName);
         }
 
         // === Heartbeat updates timestamp ===
@@ -132,16 +131,16 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 PoisonMessages = 0L
             };
             var hbResponse = await server.Client.PostAsJsonAsync("api/v1/dashboard/consumers/heartbeat", hbBody);
-            hbResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.AreEqual(HttpStatusCode.NoContent, hbResponse.StatusCode);
 
             // Verify timestamp updated and metrics present
             var consumersAfter = await server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
-            consumersAfter![0].LastHeartbeat.Should().BeOnOrAfter(initialHeartbeat);
-            consumersAfter[0].MessagesProcessed.Should().Be(50);
-            consumersAfter[0].MessagesErrored.Should().Be(2);
-            consumersAfter[0].MessagesRolledBack.Should().Be(1);
-            consumersAfter[0].PoisonMessages.Should().Be(0);
+            Assert.IsTrue(consumersAfter![0].LastHeartbeat >= initialHeartbeat);
+            Assert.AreEqual(50, consumersAfter[0].MessagesProcessed);
+            Assert.AreEqual(2, consumersAfter[0].MessagesErrored);
+            Assert.AreEqual(1, consumersAfter[0].MessagesRolledBack);
+            Assert.AreEqual(0, consumersAfter[0].PoisonMessages);
         }
 
         // === List consumers filtered by queue ===
@@ -184,12 +183,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Filter by queueId should return only the 2 matched
             var filtered = await server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 $"api/v1/dashboard/consumers?queueId={queueId}");
-            filtered.Should().HaveCount(2);
+            Assert.AreEqual(2, filtered.Count);
 
             // All should return all 3
             var all = await server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
-            all.Should().HaveCount(3);
+            Assert.AreEqual(3, all.Count);
         }
 
         // === Unregister removes consumer ===
@@ -223,17 +222,17 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Verify registered
             var consumers = await server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
-            consumers.Should().HaveCount(1);
+            Assert.AreEqual(1, consumers.Count);
 
             // Unregister
             var deleteResponse = await server.Client.DeleteAsync(
                 $"api/v1/dashboard/consumers/{registration!.ConsumerId}");
-            deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.AreEqual(HttpStatusCode.NoContent, deleteResponse.StatusCode);
 
             // Verify gone
             consumers = await server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
-            consumers.Should().BeEmpty();
+            Assert.AreEqual(0, consumers.Count);
         }
 
         // === Consumer pruning service prunes stale consumers ===
@@ -265,12 +264,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Register a consumer but do NOT send heartbeats
             var regResponse = await server.Client.PostAsJsonAsync("api/v1/dashboard/consumers/register",
                 new { QueueName = queueName, MachineName = "STALEHOST", ProcessId = 7777 });
-            regResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+            Assert.AreEqual(HttpStatusCode.Created, regResponse.StatusCode);
 
             // Verify it exists
             var consumers = await server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
-            consumers.Should().HaveCount(1);
+            Assert.AreEqual(1, consumers.Count);
 
             // Wait for the pruning service to remove it (stale threshold = 2s, prune interval = 1s)
             // Poll up to 10 seconds to account for timing
@@ -288,7 +287,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 }
             }
 
-            pruned.Should().BeTrue("Consumer should have been pruned by the ConsumerPruningService");
+            Assert.IsTrue(pruned);
         }
 
         // === Consumer tracking disabled returns appropriate responses ===
@@ -318,27 +317,27 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Register should return 404 when tracking is disabled
             var regResponse = await server.Client.PostAsJsonAsync("api/v1/dashboard/consumers/register",
                 new { QueueName = queueName, MachineName = "HOST", ProcessId = 100 });
-            regResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, regResponse.StatusCode);
 
             // Heartbeat should return 404
             var hbResponse = await server.Client.PostAsJsonAsync("api/v1/dashboard/consumers/heartbeat",
                 new { ConsumerId = Guid.NewGuid(), MessagesProcessed = 0L, MessagesErrored = 0L, MessagesRolledBack = 0L, PoisonMessages = 0L });
-            hbResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, hbResponse.StatusCode);
 
             // Unregister should return 404
             var deleteResponse = await server.Client.DeleteAsync(
                 $"api/v1/dashboard/consumers/{Guid.NewGuid()}");
-            deleteResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, deleteResponse.StatusCode);
 
             // GET consumers returns empty list (not 404)
             var consumers = await server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
-            consumers.Should().BeEmpty();
+            Assert.AreEqual(0, consumers.Count);
 
             // GET counts returns empty dictionary
             var counts = await server.Client.GetFromJsonAsync<Dictionary<Guid, int>>(
                 "api/v1/dashboard/consumers/count");
-            counts.Should().BeEmpty();
+            Assert.AreEqual(0, counts.Count);
         }
 
         // === Consumer counts per queue ===
@@ -373,7 +372,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // No consumers initially
             var counts = await server.Client.GetFromJsonAsync<Dictionary<Guid, int>>(
                 "api/v1/dashboard/consumers/count");
-            counts.Should().BeEmpty();
+            Assert.AreEqual(0, counts.Count);
 
             // Register two
             await server.Client.PostAsJsonAsync("api/v1/dashboard/consumers/register",
@@ -383,8 +382,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             counts = await server.Client.GetFromJsonAsync<Dictionary<Guid, int>>(
                 "api/v1/dashboard/consumers/count");
-            counts.Should().ContainKey(queueId);
-            counts![queueId].Should().Be(2);
+            Assert.IsTrue(counts.ContainsKey(queueId));
+            Assert.AreEqual(2, counts![queueId]);
 
             // Unmatched queue consumer should not appear in counts
             await server.Client.PostAsJsonAsync("api/v1/dashboard/consumers/register",
@@ -392,7 +391,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             counts = await server.Client.GetFromJsonAsync<Dictionary<Guid, int>>(
                 "api/v1/dashboard/consumers/count");
-            counts![queueId].Should().Be(2); // still 2, unmatched not counted
+            Assert.AreEqual(2, counts![queueId]); // still 2, unmatched not counted
         }
     }
 }

@@ -24,7 +24,6 @@ using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.Memory;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -86,8 +85,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var body = await _server.Client.GetFromJsonAsync<MessageBodyResponse>(
                 $"api/v1/dashboard/queues/{_queueId}/messages/{messageId}/body");
 
-            body.Body.Should().NotBeNullOrEmpty();
-            body.TypeName.Should().Contain("FakeMessage");
+            Assert.IsFalse(string.IsNullOrEmpty(body.Body));
+            StringAssert.Contains(body.TypeName, "FakeMessage");
         }
 
         [TestMethod]
@@ -102,7 +101,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var body = await _server.Client.GetFromJsonAsync<MessageBodyResponse>(
                 $"api/v1/dashboard/queues/{_queueId}/messages/{messageId}/body");
 
-            body.Body.Should().NotBeNullOrEmpty();
+            Assert.IsFalse(string.IsNullOrEmpty(body.Body));
         }
 
         [TestMethod]
@@ -118,7 +117,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var body = await _server.Client.GetFromJsonAsync<MessageBodyResponse>(
                 $"api/v1/dashboard/queues/{_queueId}/messages/{messageId}/body");
 
-            body.Body.Should().NotBeNullOrEmpty();
+            Assert.IsFalse(string.IsNullOrEmpty(body.Body));
         }
     }
 }

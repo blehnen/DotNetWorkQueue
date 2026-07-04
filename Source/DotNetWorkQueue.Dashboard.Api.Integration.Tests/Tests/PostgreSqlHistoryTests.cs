@@ -24,7 +24,6 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -82,8 +81,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/history");
 
-            result.Should().NotBeNull();
-            result.Items.Should().BeEmpty();
+            Assert.IsNotNull(result);
+            Assert.AreEqual(0, result.Items.Count);
         }
 
         [TestMethod]
@@ -91,9 +90,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/history/count");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             var count = await response.Content.ReadFromJsonAsync<long>();
-            count.Should().Be(0);
+            Assert.AreEqual(0, count);
         }
 
         [TestMethod]
@@ -101,7 +100,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/history/99999");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -109,9 +108,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.DeleteAsync(
                 $"api/v1/dashboard/queues/{_queueId}/history");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadFromJsonAsync<DeleteAllResponse>();
-            result.Deleted.Should().Be(0);
+            Assert.AreEqual(0, result.Deleted);
         }
     }
 }

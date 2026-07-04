@@ -25,7 +25,6 @@ using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.Memory;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -75,8 +74,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages?pageSize=100");
-            paged.Items.Should().HaveCount(5);
-            paged.TotalCount.Should().Be(5);
+            Assert.AreEqual(5, paged.Items.Count);
+            Assert.AreEqual(5, paged.TotalCount);
         }
 
         [TestMethod]
@@ -84,8 +83,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages?pageSize=10&pageIndex=99");
-            paged.Items.Should().BeEmpty();
-            paged.TotalCount.Should().Be(5);
+            Assert.AreEqual(0, paged.Items.Count);
+            Assert.AreEqual(5, paged.TotalCount);
         }
 
         [TestMethod]
@@ -97,11 +96,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var first = await _server.Client.DeleteAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/{messageId}");
-            first.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.AreEqual(HttpStatusCode.NoContent, first.StatusCode);
 
             var second = await _server.Client.DeleteAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/{messageId}");
-            second.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, second.StatusCode);
         }
     }
 }

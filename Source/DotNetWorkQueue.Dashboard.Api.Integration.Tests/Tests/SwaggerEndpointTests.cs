@@ -19,7 +19,6 @@
 using System.Net;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -50,11 +49,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync("swagger/v1/swagger.json");
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             var content = await response.Content.ReadAsStringAsync();
-            content.Should().NotBeNullOrEmpty();
-            content.Should().Contain("\"openapi\"");
-            content.Should().Contain("DotNetWorkQueue Dashboard");
+            Assert.IsFalse(string.IsNullOrEmpty(content));
+            StringAssert.Contains(content, "\"openapi\"");
+            StringAssert.Contains(content, "DotNetWorkQueue Dashboard");
         }
     }
 }

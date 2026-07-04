@@ -26,7 +26,6 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -90,7 +89,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 Encoding.UTF8, "application/json");
             var response = await _server.Client.PutAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/{messageId}/body", content);
-            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         }
 
         [TestMethod]
@@ -101,7 +100,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 Encoding.UTF8, "application/json");
             var response = await _server.Client.PutAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/99999999/body", content);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -116,7 +115,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 Encoding.UTF8, "application/json");
             var response = await _server.Client.PutAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/{messageId}/body", content);
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [TestMethod]
@@ -129,7 +128,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages?status=1&pageSize=1");
-            paged.Items.Should().NotBeEmpty();
+            Assert.IsTrue(paged.Items.Count > 0);
             var messageId = paged.Items[0].QueueId;
 
             var content = new StringContent(
@@ -137,7 +136,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 Encoding.UTF8, "application/json");
             var response = await _server.Client.PutAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/{messageId}/body", content);
-            response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+            Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
         }
     }
 }

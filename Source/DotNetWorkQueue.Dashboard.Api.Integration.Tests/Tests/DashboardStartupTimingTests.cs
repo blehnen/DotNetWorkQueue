@@ -26,7 +26,6 @@ using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -90,12 +89,14 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // by hitting an endpoint that resolves the transport-options chain.
             var connections = await _server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
-            connections.Should().NotBeNullOrEmpty();
+            Assert.IsNotNull(connections);
+            Assert.IsTrue(connections.Count > 0);
             var connectionId = connections[0].Id;
 
             var queues = await _server.Client.GetFromJsonAsync<List<QueueInfoResponse>>(
                 $"api/v1/dashboard/connections/{connectionId}/queues");
-            queues.Should().NotBeNullOrEmpty();
+            Assert.IsNotNull(queues);
+            Assert.IsTrue(queues.Count > 0);
             var queueId = queues[0].Id;
 
             // --- Phase 2: create the queue with history enabled and populate it ---
@@ -143,15 +144,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // cached EnableHistory=false at phase-1 resolution.
             var history = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/history?pageSize=100");
-            history.Should().NotBeNull();
-            history.Items.Should().HaveCountGreaterThanOrEqualTo(MessageCount,
+            Assert.IsNotNull(history);
+            Assert.IsTrue(history.Items.Count >= MessageCount,
                 "history reads must survive a stale/default options cache on the dashboard side");
 
             var countResponse = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{queueId}/history/count");
             countResponse.EnsureSuccessStatusCode();
             var count = await countResponse.Content.ReadFromJsonAsync<long>();
-            count.Should().BeGreaterThanOrEqualTo(MessageCount);
+            Assert.IsTrue(count >= MessageCount);
         }
     }
 }

@@ -24,8 +24,8 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using DotNetWorkQueue.Tests.Shared;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
@@ -62,9 +62,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var status = await server.Client.GetFromJsonAsync<MaintenanceStatusResponse>(
                 $"api/v1/dashboard/queues/{queues[0].Id}/maintenance");
 
-            status.HostMaintenance.Should().BeFalse();
-            status.IsRunning.Should().BeFalse();
-            status.LastRunUtc.Should().BeNull();
+            Assert.IsFalse(status.HostMaintenance);
+            Assert.IsFalse(status.IsRunning);
+            Assert.IsNull(status.LastRunUtc);
         }
 
         [TestMethod]
@@ -102,8 +102,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var status = await server.Client.GetFromJsonAsync<MaintenanceStatusResponse>(
                 $"api/v1/dashboard/queues/{queueId}/maintenance");
 
-            status.HostMaintenance.Should().BeTrue();
-            status.IsRunning.Should().BeTrue();
+            Assert.IsTrue(status.HostMaintenance);
+            Assert.IsTrue(status.IsRunning);
 
             // Wait for at least one monitor cycle to complete (monitors run on timer)
             // The heartbeat monitor runs immediately on Start, so LastRunUtc should populate quickly
@@ -117,8 +117,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 Thread.Sleep(500);
             }
 
-            polled.LastRunUtc.Should().NotBeNull();
-            polled.LastRunUtc.Value.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(30));
+            Assert.IsNotNull(polled.LastRunUtc);
+            AssertHelper.AreClose(DateTime.UtcNow, polled.LastRunUtc.Value, TimeSpan.FromSeconds(30));
         }
 
         [TestMethod]
@@ -152,9 +152,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var status = await server.Client.GetFromJsonAsync<MaintenanceStatusResponse>(
                 $"api/v1/dashboard/queues/{queues[0].Id}/maintenance");
 
-            status.HostMaintenance.Should().BeFalse();
-            status.IsRunning.Should().BeFalse();
-            status.LastRunUtc.Should().BeNull();
+            Assert.IsFalse(status.HostMaintenance);
+            Assert.IsFalse(status.IsRunning);
+            Assert.IsNull(status.LastRunUtc);
         }
 
         [TestMethod]
@@ -213,20 +213,20 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 }
             }
 
-            queueId1.Should().NotBeEmpty();
-            queueId2.Should().NotBeEmpty();
+            Assert.AreNotEqual(Guid.Empty, queueId1);
+            Assert.AreNotEqual(Guid.Empty, queueId2);
 
             // Queue 1: maintenance hosted and running
             var status1 = await server.Client.GetFromJsonAsync<MaintenanceStatusResponse>(
                 $"api/v1/dashboard/queues/{queueId1}/maintenance");
-            status1.HostMaintenance.Should().BeTrue();
-            status1.IsRunning.Should().BeTrue();
+            Assert.IsTrue(status1.HostMaintenance);
+            Assert.IsTrue(status1.IsRunning);
 
             // Queue 2: maintenance NOT hosted
             var status2 = await server.Client.GetFromJsonAsync<MaintenanceStatusResponse>(
                 $"api/v1/dashboard/queues/{queueId2}/maintenance");
-            status2.HostMaintenance.Should().BeFalse();
-            status2.IsRunning.Should().BeFalse();
+            Assert.IsFalse(status2.HostMaintenance);
+            Assert.IsFalse(status2.IsRunning);
         }
 
         [TestMethod]
@@ -263,8 +263,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var status = await server.Client.GetFromJsonAsync<MaintenanceStatusResponse>(
                 $"api/v1/dashboard/queues/{queueId}/maintenance");
 
-            status.HostMaintenance.Should().BeTrue();
-            status.IsRunning.Should().BeTrue();
+            Assert.IsTrue(status.HostMaintenance);
+            Assert.IsTrue(status.IsRunning);
 
             // Wait for at least one monitor cycle
             MaintenanceStatusResponse polled = null;
@@ -277,7 +277,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 Thread.Sleep(500);
             }
 
-            polled.LastRunUtc.Should().NotBeNull();
+            Assert.IsNotNull(polled.LastRunUtc);
         }
     }
 }

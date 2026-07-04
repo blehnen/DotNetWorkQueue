@@ -24,7 +24,6 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -88,7 +87,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages/stale?thresholdSeconds=1");
-            paged.Items.Should().NotBeEmpty();
+            Assert.IsTrue(paged.Items.Count > 0);
         }
 
         [TestMethod]
@@ -98,12 +97,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             await DashboardPollingHelper.WaitForStaleAsync(_server.Client, _queueId);
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages/stale?thresholdSeconds=1");
-            paged.Items.Should().NotBeEmpty();
+            Assert.IsTrue(paged.Items.Count > 0);
             var messageId = paged.Items[0].QueueId;
 
             var response = await _server.Client.PostAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/{messageId}/reset", null);
-            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         }
     }
 }

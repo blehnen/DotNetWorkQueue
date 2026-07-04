@@ -24,7 +24,6 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.SqlServer.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -86,7 +85,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var status = await _server.Client.GetFromJsonAsync<QueueStatusResponse>(
                 $"api/v1/dashboard/queues/{_queueId}/status");
-            status.Processing.Should().BeGreaterThanOrEqualTo(1);
+            Assert.IsTrue(status.Processing >= 1);
         }
 
         [TestMethod]
@@ -94,7 +93,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages?status=1&pageSize=100");
-            paged.Items.Should().NotBeEmpty();
+            Assert.IsTrue(paged.Items.Count > 0);
         }
 
         [TestMethod]
@@ -102,12 +101,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages?status=1&pageSize=1");
-            paged.Items.Should().NotBeEmpty();
+            Assert.IsTrue(paged.Items.Count > 0);
             var messageId = paged.Items[0].QueueId;
 
             var response = await _server.Client.DeleteAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/{messageId}");
-            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         }
     }
 }
