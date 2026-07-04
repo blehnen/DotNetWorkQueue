@@ -19,8 +19,8 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Linq;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
@@ -56,9 +56,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var response = await _server.Client.SendAsync(request);
 
-            response.Headers.TryGetValues("Access-Control-Allow-Origin", out var origins).Should().BeTrue(
+            Assert.IsTrue(response.Headers.TryGetValues("Access-Control-Allow-Origin", out var origins),
                 "because the CORS middleware should have added the allow-origin header for the matching origin");
-            origins.Should().Contain("https://example.com");
+            Assert.IsTrue(origins.Contains("https://example.com"));
         }
     }
 }

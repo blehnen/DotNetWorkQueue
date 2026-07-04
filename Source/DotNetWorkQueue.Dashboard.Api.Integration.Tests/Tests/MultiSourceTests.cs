@@ -26,7 +26,6 @@ using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.Memory;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -87,8 +86,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var connections = await _server1.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
-            connections.Should().HaveCount(1);
-            connections[0].QueueCount.Should().Be(1);
+            Assert.AreEqual(1, connections.Count);
+            Assert.AreEqual(1, connections[0].QueueCount);
         }
 
         [TestMethod]
@@ -96,8 +95,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var connections = await _server2.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
-            connections.Should().HaveCount(1);
-            connections[0].QueueCount.Should().Be(1);
+            Assert.AreEqual(1, connections.Count);
+            Assert.AreEqual(1, connections[0].QueueCount);
         }
 
         [TestMethod]
@@ -108,12 +107,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var connections2 = await _server2.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
 
-            connections1.Should().HaveCount(1);
-            connections2.Should().HaveCount(1);
+            Assert.AreEqual(1, connections1.Count);
+            Assert.AreEqual(1, connections2.Count);
 
             var ids1 = connections1.Select(c => c.Id).ToHashSet();
             var ids2 = connections2.Select(c => c.Id).ToHashSet();
-            ids1.Overlaps(ids2).Should().BeFalse("connection IDs from separate servers should not overlap");
+            Assert.IsFalse(ids1.Overlaps(ids2));
         }
 
         [TestMethod]
@@ -129,7 +128,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var paged = await _server1.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/messages?pageSize=100");
-            paged.Items.Should().HaveCount(3);
+            Assert.AreEqual(3, paged.Items.Count);
         }
 
         [TestMethod]
@@ -145,7 +144,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var paged = await _server2.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/messages?pageSize=100");
-            paged.Items.Should().HaveCount(2);
+            Assert.AreEqual(2, paged.Items.Count);
         }
 
         [TestMethod]
@@ -167,13 +166,13 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Delete one message from server1
             var deleteResponse = await _server1.Client.DeleteAsync(
                 $"api/v1/dashboard/queues/{queueId1}/messages/{messageId}");
-            deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.AreEqual(HttpStatusCode.NoContent, deleteResponse.StatusCode);
 
             // Server1 should now have 2 messages
             var countResponse1 = await _server1.Client.GetAsync(
                 $"api/v1/dashboard/queues/{queueId1}/messages/count");
             var count1 = await countResponse1.Content.ReadFromJsonAsync<long>();
-            count1.Should().Be(2);
+            Assert.AreEqual(2, count1);
 
             // Server2 should still have 2 messages (unaffected)
             var connections2 = await _server2.Client.GetFromJsonAsync<List<ConnectionResponse>>(
@@ -187,7 +186,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var countResponse2 = await _server2.Client.GetAsync(
                 $"api/v1/dashboard/queues/{queueId2}/messages/count");
             var count2 = await countResponse2.Content.ReadFromJsonAsync<long>();
-            count2.Should().Be(2);
+            Assert.AreEqual(2, count2);
         }
 
         [TestMethod]
@@ -196,8 +195,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var response1 = await _server1.Client.GetAsync("api/v1/dashboard/health");
             var response2 = await _server2.Client.GetAsync("api/v1/dashboard/health");
 
-            response1.StatusCode.Should().Be(HttpStatusCode.OK);
-            response2.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response1.StatusCode);
+            Assert.AreEqual(HttpStatusCode.OK, response2.StatusCode);
         }
     }
 }

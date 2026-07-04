@@ -8,8 +8,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using DotNetWorkQueue.Tests.Shared;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
@@ -50,11 +50,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await RegisterConsumer("MACHINE1", 1234, "Worker1");
 
-            response.StatusCode.Should().Be(HttpStatusCode.Created);
+            Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
             var registration = await response.Content.ReadFromJsonAsync<ConsumerRegistrationResponse>();
-            registration.Should().NotBeNull();
-            registration!.ConsumerId.Should().NotBeEmpty();
-            registration.HeartbeatIntervalSeconds.Should().BeGreaterThan(0);
+            Assert.IsNotNull(registration);
+            Assert.AreNotEqual(Guid.Empty, registration!.ConsumerId);
+            Assert.IsTrue(registration.HeartbeatIntervalSeconds > 0);
         }
 
         [TestMethod]
@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var r1 = await RegisterAndDeserialize("M1", 1000);
             var r2 = await RegisterAndDeserialize("M2", 2000);
 
-            r1.ConsumerId.Should().NotBe(r2.ConsumerId);
+            Assert.AreNotEqual(r2.ConsumerId, r1.ConsumerId);
         }
 
         // === Heartbeat ===
@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var response = await SendHeartbeat(registration.ConsumerId);
 
-            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         }
 
         [TestMethod]
@@ -83,7 +83,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await SendHeartbeat(Guid.NewGuid());
 
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -93,7 +93,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var response = await SendHeartbeat(registration.ConsumerId, 100, 5, 3, 1);
 
-            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         }
 
         [TestMethod]
@@ -105,12 +105,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
 
-            consumers.Should().HaveCount(1);
+            Assert.AreEqual(1, consumers.Count);
             var c = consumers![0];
-            c.MessagesProcessed.Should().Be(250);
-            c.MessagesErrored.Should().Be(10);
-            c.MessagesRolledBack.Should().Be(7);
-            c.PoisonMessages.Should().Be(2);
+            Assert.AreEqual(250, c.MessagesProcessed);
+            Assert.AreEqual(10, c.MessagesErrored);
+            Assert.AreEqual(7, c.MessagesRolledBack);
+            Assert.AreEqual(2, c.PoisonMessages);
         }
 
         [TestMethod]
@@ -124,10 +124,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 "api/v1/dashboard/consumers");
 
             var c = consumers![0];
-            c.MessagesProcessed.Should().Be(500);
-            c.MessagesErrored.Should().Be(8);
-            c.MessagesRolledBack.Should().Be(4);
-            c.PoisonMessages.Should().Be(1);
+            Assert.AreEqual(500, c.MessagesProcessed);
+            Assert.AreEqual(8, c.MessagesErrored);
+            Assert.AreEqual(4, c.MessagesRolledBack);
+            Assert.AreEqual(1, c.PoisonMessages);
         }
 
         [TestMethod]
@@ -140,10 +140,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 "api/v1/dashboard/consumers");
 
             var c = consumers![0];
-            c.MessagesProcessed.Should().Be(0);
-            c.MessagesErrored.Should().Be(0);
-            c.MessagesRolledBack.Should().Be(0);
-            c.PoisonMessages.Should().Be(0);
+            Assert.AreEqual(0, c.MessagesProcessed);
+            Assert.AreEqual(0, c.MessagesErrored);
+            Assert.AreEqual(0, c.MessagesRolledBack);
+            Assert.AreEqual(0, c.PoisonMessages);
         }
 
         // === Unregister ===
@@ -156,7 +156,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var response = await _server.Client.DeleteAsync(
                 $"api/v1/dashboard/consumers/{registration.ConsumerId}");
 
-            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         }
 
         [TestMethod]
@@ -165,7 +165,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var response = await _server.Client.DeleteAsync(
                 $"api/v1/dashboard/consumers/{Guid.NewGuid()}");
 
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -178,7 +178,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
-            consumers.Should().BeEmpty();
+            Assert.AreEqual(0, consumers.Count);
         }
 
         // === List ===
@@ -192,7 +192,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
 
-            consumers.Should().HaveCount(2);
+            Assert.AreEqual(2, consumers.Count);
         }
 
         [TestMethod]
@@ -203,8 +203,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 $"api/v1/dashboard/consumers?queueId={_queueId}");
 
-            consumers.Should().HaveCount(1);
-            consumers![0].MatchedQueueId.Should().Be(_queueId);
+            Assert.AreEqual(1, consumers.Count);
+            Assert.AreEqual(_queueId, consumers![0].MatchedQueueId);
         }
 
         [TestMethod]
@@ -215,7 +215,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 $"api/v1/dashboard/consumers?queueId={Guid.NewGuid()}");
 
-            consumers.Should().BeEmpty();
+            Assert.AreEqual(0, consumers.Count);
         }
 
         [TestMethod]
@@ -226,14 +226,14 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
 
-            consumers.Should().HaveCount(1);
+            Assert.AreEqual(1, consumers.Count);
             var c = consumers![0];
-            c.MachineName.Should().Be("TESTMACHINE");
-            c.ProcessId.Should().Be(9876);
-            c.FriendlyName.Should().Be("MyWorker");
-            c.QueueName.Should().Be("testQueue");
-            c.RegisteredAt.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
-            c.LastHeartbeat.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
+            Assert.AreEqual("TESTMACHINE", c.MachineName);
+            Assert.AreEqual(9876, c.ProcessId);
+            Assert.AreEqual("MyWorker", c.FriendlyName);
+            Assert.AreEqual("testQueue", c.QueueName);
+            AssertHelper.AreClose(DateTimeOffset.UtcNow, c.RegisteredAt, TimeSpan.FromSeconds(5));
+            AssertHelper.AreClose(DateTimeOffset.UtcNow, c.LastHeartbeat, TimeSpan.FromSeconds(5));
         }
 
         // === Counts ===
@@ -247,8 +247,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var counts = await _server.Client.GetFromJsonAsync<Dictionary<Guid, int>>(
                 "api/v1/dashboard/consumers/count");
 
-            counts.Should().ContainKey(_queueId);
-            counts![_queueId].Should().Be(2);
+            Assert.IsTrue(counts.ContainsKey(_queueId));
+            Assert.AreEqual(2, counts![_queueId]);
         }
 
         [TestMethod]
@@ -257,7 +257,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var counts = await _server.Client.GetFromJsonAsync<Dictionary<Guid, int>>(
                 "api/v1/dashboard/consumers/count");
 
-            counts.Should().BeEmpty();
+            Assert.AreEqual(0, counts.Count);
         }
 
         // === Full lifecycle ===
@@ -267,35 +267,35 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             // Register
             var registration = await RegisterAndDeserialize("M1", 1000, "Worker1");
-            registration.ConsumerId.Should().NotBeEmpty();
+            Assert.AreNotEqual(Guid.Empty, registration.ConsumerId);
 
             // Heartbeat with metrics
             var hbResponse = await SendHeartbeat(registration.ConsumerId, 42, 3, 2, 1);
-            hbResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.AreEqual(HttpStatusCode.NoContent, hbResponse.StatusCode);
 
             // List — verify metrics are present
             var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
-            consumers.Should().HaveCount(1);
-            consumers![0].MessagesProcessed.Should().Be(42);
-            consumers[0].MessagesErrored.Should().Be(3);
-            consumers[0].MessagesRolledBack.Should().Be(2);
-            consumers[0].PoisonMessages.Should().Be(1);
+            Assert.AreEqual(1, consumers.Count);
+            Assert.AreEqual(42, consumers![0].MessagesProcessed);
+            Assert.AreEqual(3, consumers[0].MessagesErrored);
+            Assert.AreEqual(2, consumers[0].MessagesRolledBack);
+            Assert.AreEqual(1, consumers[0].PoisonMessages);
 
             // Count
             var counts = await _server.Client.GetFromJsonAsync<Dictionary<Guid, int>>(
                 "api/v1/dashboard/consumers/count");
-            counts![_queueId].Should().Be(1);
+            Assert.AreEqual(1, counts![_queueId]);
 
             // Unregister
             var deleteResponse = await _server.Client.DeleteAsync(
                 $"api/v1/dashboard/consumers/{registration.ConsumerId}");
-            deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.AreEqual(HttpStatusCode.NoContent, deleteResponse.StatusCode);
 
             // Verify gone
             consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
-            consumers.Should().BeEmpty();
+            Assert.AreEqual(0, consumers.Count);
         }
 
         // === Helpers ===

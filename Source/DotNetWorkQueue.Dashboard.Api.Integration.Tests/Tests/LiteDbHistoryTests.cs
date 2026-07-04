@@ -27,8 +27,8 @@ using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using DotNetWorkQueue.Tests.Shared;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
@@ -86,8 +86,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/history");
 
-            result.Should().NotBeNull();
-            result.Items.Should().BeEmpty();
+            Assert.IsNotNull(result);
+            Assert.AreEqual(0, result.Items.Count);
         }
 
         [TestMethod]
@@ -95,9 +95,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/history/count");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             var count = await response.Content.ReadFromJsonAsync<long>();
-            count.Should().Be(0);
+            Assert.AreEqual(0, count);
         }
 
         [TestMethod]
@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/history/99999");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -113,9 +113,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.DeleteAsync(
                 $"api/v1/dashboard/queues/{_queueId}/history");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadFromJsonAsync<DeleteAllResponse>();
-            result.Deleted.Should().Be(0);
+            Assert.AreEqual(0, result.Deleted);
         }
     }
 
@@ -220,9 +220,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/history?pageSize=100");
 
-            result.Should().NotBeNull();
-            result.Items.Should().NotBeEmpty();
-            result.Items.Count.Should().BeGreaterThanOrEqualTo(MessageCount);
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.Items.Count > 0);
+            Assert.IsTrue(result.Items.Count >= MessageCount);
         }
 
         [TestMethod]
@@ -231,11 +231,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/history?pageIndex=0&pageSize=2");
 
-            result.Should().NotBeNull();
-            result.Items.Should().HaveCount(2);
-            result.TotalCount.Should().BeGreaterThanOrEqualTo(MessageCount);
-            result.PageIndex.Should().Be(0);
-            result.PageSize.Should().Be(2);
+            Assert.IsNotNull(result);
+            Assert.AreEqual(2, result.Items.Count);
+            Assert.IsTrue(result.TotalCount >= MessageCount);
+            Assert.AreEqual(0, result.PageIndex);
+            Assert.AreEqual(2, result.PageSize);
         }
 
         [TestMethod]
@@ -244,9 +244,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/history?pageIndex=1&pageSize=2");
 
-            result.Should().NotBeNull();
-            result.Items.Should().HaveCount(2);
-            result.PageIndex.Should().Be(1);
+            Assert.IsNotNull(result);
+            Assert.AreEqual(2, result.Items.Count);
+            Assert.AreEqual(1, result.PageIndex);
         }
 
         [TestMethod]
@@ -255,9 +255,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/history?pageIndex=100&pageSize=25");
 
-            result.Should().NotBeNull();
-            result.Items.Should().BeEmpty();
-            result.TotalCount.Should().BeGreaterThanOrEqualTo(MessageCount);
+            Assert.IsNotNull(result);
+            Assert.AreEqual(0, result.Items.Count);
+            Assert.IsTrue(result.TotalCount >= MessageCount);
         }
 
         [TestMethod]
@@ -267,9 +267,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/history?status=2&pageSize=100");
 
-            result.Should().NotBeNull();
-            result.Items.Should().NotBeEmpty();
-            result.Items.Should().AllSatisfy(item => item.Status.Should().Be(2));
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.Items.Count > 0);
+            AssertHelper.AllSatisfy(result.Items, item => Assert.AreEqual(2, item.Status));
         }
 
         [TestMethod]
@@ -279,8 +279,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/history?status=3&pageSize=100");
 
-            result.Should().NotBeNull();
-            result.Items.Should().BeEmpty();
+            Assert.IsNotNull(result);
+            Assert.AreEqual(0, result.Items.Count);
         }
 
         [TestMethod]
@@ -290,8 +290,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/history?status=1&pageSize=100");
 
-            result.Should().NotBeNull();
-            result.Items.Should().BeEmpty();
+            Assert.IsNotNull(result);
+            Assert.AreEqual(0, result.Items.Count);
         }
 
         [TestMethod]
@@ -299,9 +299,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/history/count");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             var count = await response.Content.ReadFromJsonAsync<long>();
-            count.Should().BeGreaterThanOrEqualTo(MessageCount);
+            Assert.IsTrue(count >= MessageCount);
         }
 
         [TestMethod]
@@ -309,9 +309,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/history/count?status=2");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             var count = await response.Content.ReadFromJsonAsync<long>();
-            count.Should().BeGreaterThanOrEqualTo(MessageCount);
+            Assert.IsTrue(count >= MessageCount);
         }
 
         [TestMethod]
@@ -319,9 +319,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/history/count?status=3");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             var count = await response.Content.ReadFromJsonAsync<long>();
-            count.Should().Be(0);
+            Assert.AreEqual(0, count);
         }
 
         [TestMethod]
@@ -329,17 +329,17 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var history = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/history?pageSize=1");
-            history.Items.Should().NotBeEmpty();
+            Assert.IsTrue(history.Items.Count > 0);
             var recordQueueId = history.Items[0].QueueId;
 
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/history/{recordQueueId}");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
             var record = await response.Content.ReadFromJsonAsync<HistoryResponse>();
-            record.Should().NotBeNull();
-            record.QueueId.Should().Be(recordQueueId);
-            record.Status.Should().Be(2); // Complete
+            Assert.IsNotNull(record);
+            Assert.AreEqual(recordQueueId, record.QueueId);
+            Assert.AreEqual(2, record.Status); // Complete
         }
 
         [TestMethod]
@@ -347,7 +347,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/history/99999");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -356,12 +356,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var result = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/history?pageSize=1");
 
-            result.Items.Should().NotBeEmpty();
+            Assert.IsTrue(result.Items.Count > 0);
             var record = result.Items[0];
 
-            record.QueueId.Should().NotBeNullOrEmpty();
-            record.Status.Should().Be(2); // Complete
-            record.EnqueuedUtc.Should().BeAfter(DateTime.MinValue);
+            Assert.IsFalse(string.IsNullOrEmpty(record.QueueId));
+            Assert.AreEqual(2, record.Status); // Complete
+            Assert.IsTrue(record.EnqueuedUtc > DateTime.MinValue);
         }
 
         [TestMethod]
@@ -370,15 +370,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Purge records "older than 0 days" = purge all
             var response = await _server.Client.DeleteAsync(
                 $"api/v1/dashboard/queues/{_queueId}/history?olderThanDays=0");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadFromJsonAsync<DeleteAllResponse>();
-            result.Deleted.Should().BeGreaterThanOrEqualTo(MessageCount);
+            Assert.IsTrue(result.Deleted >= MessageCount);
 
             // Verify count is now 0
             var countResponse = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/history/count");
             var count = await countResponse.Content.ReadFromJsonAsync<long>();
-            count.Should().Be(0);
+            Assert.AreEqual(0, count);
         }
 
         [TestMethod]
@@ -387,15 +387,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Purge records older than 365 days - none should qualify since they were just created
             var response = await _server.Client.DeleteAsync(
                 $"api/v1/dashboard/queues/{_queueId}/history?olderThanDays=365");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadFromJsonAsync<DeleteAllResponse>();
-            result.Deleted.Should().Be(0);
+            Assert.AreEqual(0, result.Deleted);
 
             // Verify count is unchanged
             var countResponse = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/history/count");
             var count = await countResponse.Content.ReadFromJsonAsync<long>();
-            count.Should().BeGreaterThanOrEqualTo(MessageCount);
+            Assert.IsTrue(count >= MessageCount);
         }
     }
 }

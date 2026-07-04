@@ -26,7 +26,6 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -59,8 +58,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var settings = await server.Client.GetFromJsonAsync<DashboardSettingsResponse>(
                 "api/v1/dashboard/settings");
-            settings.Should().NotBeNull();
-            settings.ReadOnly.Should().BeFalse();
+            Assert.IsNotNull(settings);
+            Assert.IsFalse(settings.ReadOnly);
         }
 
         [TestMethod]
@@ -87,8 +86,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var settings = await server.Client.GetFromJsonAsync<DashboardSettingsResponse>(
                 "api/v1/dashboard/settings");
-            settings.Should().NotBeNull();
-            settings.ReadOnly.Should().BeTrue();
+            Assert.IsNotNull(settings);
+            Assert.IsTrue(settings.ReadOnly);
         }
 
         // === ReadOnly mode blocks write operations ===
@@ -120,15 +119,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // GET requests should still work
             var connections = await server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
-            connections.Should().HaveCount(1);
+            Assert.AreEqual(1, connections.Count);
 
             var queues = await server.Client.GetFromJsonAsync<List<QueueInfoResponse>>(
                 $"api/v1/dashboard/connections/{connections[0].Id}/queues");
-            queues.Should().HaveCount(1);
+            Assert.AreEqual(1, queues.Count);
 
             var status = await server.Client.GetFromJsonAsync<QueueStatusResponse>(
                 $"api/v1/dashboard/queues/{queues[0].Id}/status");
-            status.Total.Should().Be(3);
+            Assert.AreEqual(3, status.Total);
         }
 
         [TestMethod]
@@ -167,7 +166,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var response = await server.Client.DeleteAsync(
                 $"api/v1/dashboard/queues/{queueId}/messages/{messageId}");
-            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         [TestMethod]
@@ -200,7 +199,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var response = await server.Client.PostAsync(
                 $"api/v1/dashboard/queues/{queueId}/messages/12345/requeue", null);
-            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         [TestMethod]
@@ -233,7 +232,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var response = await server.Client.DeleteAsync(
                 $"api/v1/dashboard/queues/{queueId}/errors");
-            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         [TestMethod]
@@ -275,7 +274,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 Encoding.UTF8, "application/json");
             var response = await server.Client.PutAsync(
                 $"api/v1/dashboard/queues/{queueId}/messages/{messageId}/body", content);
-            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         [TestMethod]
@@ -308,7 +307,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var response = await server.Client.PostAsync(
                 $"api/v1/dashboard/queues/{queueId}/messages/12345/reset", null);
-            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         [TestMethod]
@@ -341,7 +340,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var response = await server.Client.DeleteAsync(
                 $"api/v1/dashboard/queues/{queueId}/history");
-            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
         }
     }
 }

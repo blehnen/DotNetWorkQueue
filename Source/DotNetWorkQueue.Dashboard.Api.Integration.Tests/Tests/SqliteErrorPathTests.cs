@@ -27,7 +27,6 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -93,7 +92,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{Guid.NewGuid()}/status");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -101,7 +100,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{Guid.NewGuid()}/features");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -109,7 +108,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{Guid.NewGuid()}/configuration");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -117,7 +116,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{Guid.NewGuid()}/maintenance");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -125,7 +124,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{Guid.NewGuid()}/messages?pageSize=10");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -133,7 +132,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{Guid.NewGuid()}/messages/count");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -141,7 +140,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{Guid.NewGuid()}/errors");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -149,7 +148,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{Guid.NewGuid()}/history");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         // === DashboardExceptionFilter: InvalidOperationException for connections ===
@@ -159,7 +158,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/connections/{Guid.NewGuid()}/queues");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -167,7 +166,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/connections/{Guid.NewGuid()}/jobs");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         // === Message detail/body/headers for nonexistent messages ===
@@ -177,7 +176,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/99999999");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -185,7 +184,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/99999999/body");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -193,7 +192,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/99999999/headers");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         // === Requeue/reset for nonexistent messages ===
@@ -203,7 +202,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.PostAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/99999999/requeue", null);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -211,7 +210,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.PostAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/99999999/reset", null);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         // === Delete nonexistent message ===
@@ -221,7 +220,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.DeleteAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/99999999");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         // === Invalid status parameter ===
@@ -231,7 +230,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages?status=99");
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [TestMethod]
@@ -239,7 +238,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/count?status=99");
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [TestMethod]
@@ -247,7 +246,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages?status=-99");
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         // === Edit body with null body returns 400 ===
@@ -262,7 +261,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var content = new StringContent("{}", Encoding.UTF8, "application/json");
             var response = await _server.Client.PutAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/{messageId}/body", content);
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         // === Edit body for nonexistent message returns 404 ===
@@ -275,7 +274,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 Encoding.UTF8, "application/json");
             var response = await _server.Client.PutAsync(
                 $"api/v1/dashboard/queues/{_queueId}/messages/99999999/body", content);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         // === Stale messages endpoint on nonexistent queue returns 404 ===
@@ -285,7 +284,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{Guid.NewGuid()}/messages/stale");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         // === Delete all errors on nonexistent queue returns 404 ===
@@ -295,7 +294,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.DeleteAsync(
                 $"api/v1/dashboard/queues/{Guid.NewGuid()}/errors");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         // === History endpoints on nonexistent queue ===
@@ -305,7 +304,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{Guid.NewGuid()}/history/count");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -313,7 +312,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{Guid.NewGuid()}/history/99999");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
@@ -321,7 +320,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.DeleteAsync(
                 $"api/v1/dashboard/queues/{Guid.NewGuid()}/history");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         // === Exception filter returns JSON error body ===
@@ -331,15 +330,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var response = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{Guid.NewGuid()}/status");
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
 
             var body = await response.Content.ReadAsStringAsync();
-            body.Should().NotBeNullOrEmpty();
+            Assert.IsFalse(string.IsNullOrEmpty(body));
 
             // The exception filter returns { "error": "..." }
             var doc = JsonDocument.Parse(body);
-            doc.RootElement.TryGetProperty("error", out var errorProp).Should().BeTrue();
-            errorProp.GetString().Should().Contain("An internal error occurred");
+            Assert.IsTrue(doc.RootElement.TryGetProperty("error", out var errorProp));
+            StringAssert.Contains(errorProp.GetString(), "An internal error occurred");
         }
     }
 }

@@ -25,7 +25,6 @@ using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.Memory;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -75,9 +74,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var status = await _server.Client.GetFromJsonAsync<QueueStatusResponse>(
                 $"api/v1/dashboard/queues/{_queueId}/status");
-            status.Waiting.Should().Be(0);
-            status.Processing.Should().Be(0);
-            status.Total.Should().Be(0);
+            Assert.AreEqual(0, status.Waiting);
+            Assert.AreEqual(0, status.Processing);
+            Assert.AreEqual(0, status.Total);
         }
 
         [TestMethod]
@@ -85,8 +84,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages?pageSize=100");
-            paged.Items.Should().BeEmpty();
-            paged.TotalCount.Should().Be(0);
+            Assert.AreEqual(0, paged.Items.Count);
+            Assert.AreEqual(0, paged.TotalCount);
         }
     }
 }

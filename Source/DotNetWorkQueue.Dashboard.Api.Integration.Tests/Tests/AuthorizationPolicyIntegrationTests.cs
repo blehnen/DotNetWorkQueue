@@ -20,7 +20,6 @@ using System.Net;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
-using FluentAssertions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -79,7 +78,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // middleware, not a controller) and assert an unauthenticated 401 response.
             var response = await _server.Client.GetAsync("api/v1/dashboard/connections");
 
-            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+            Assert.AreEqual(HttpStatusCode.Unauthorized, response.StatusCode);
         }
 
         private class NoAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>

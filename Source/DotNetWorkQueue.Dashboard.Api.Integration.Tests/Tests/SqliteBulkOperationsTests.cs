@@ -25,7 +25,6 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -71,9 +70,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // No stale messages -- all are Waiting
             var response = await server.Client.PostAsync(
                 $"api/v1/dashboard/queues/{queueId}/messages/reset-all", null);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadFromJsonAsync<BulkActionResponse>();
-            result.Count.Should().Be(0);
+            Assert.AreEqual(0, result.Count);
         }
 
         [TestMethod]
@@ -115,14 +114,14 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Reset all stale (resets all Processing messages)
             var response = await server.Client.PostAsync(
                 $"api/v1/dashboard/queues/{queueId}/messages/reset-all", null);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadFromJsonAsync<BulkActionResponse>();
-            result.Count.Should().BeGreaterThanOrEqualTo(1);
+            Assert.IsTrue(result.Count >= 1);
 
             // Verify waiting count increased
             var status = await server.Client.GetFromJsonAsync<QueueStatusResponse>(
                 $"api/v1/dashboard/queues/{queueId}/status");
-            status.Waiting.Should().BeGreaterThanOrEqualTo(1);
+            Assert.IsTrue(status.Waiting >= 1);
         }
 
         // === Error Retries ===
@@ -165,7 +164,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // No retries for this message
             var retries = await server.Client.GetFromJsonAsync<List<ErrorRetryResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/messages/{messageId}/retries");
-            retries.Should().BeEmpty();
+            Assert.AreEqual(0, retries.Count);
         }
 
         [TestMethod]
@@ -208,15 +207,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Get the error message ID
             var errors = await server.Client.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/errors");
-            errors.Items.Should().NotBeEmpty();
+            Assert.IsTrue(errors.Items.Count > 0);
             var messageId = errors.Items[0].QueueId;
 
             // Check retries for this message
             var retries = await server.Client.GetFromJsonAsync<List<ErrorRetryResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/messages/{messageId}/retries");
-            retries.Should().NotBeEmpty();
-            retries[0].ExceptionType.Should().NotBeNullOrEmpty();
-            retries[0].RetryCount.Should().BeGreaterThanOrEqualTo(1);
+            Assert.IsTrue(retries.Count > 0);
+            Assert.IsFalse(string.IsNullOrEmpty(retries[0].ExceptionType));
+            Assert.IsTrue(retries[0].RetryCount >= 1);
         }
 
         // === Requeue single error then verify status returns to waiting ===
@@ -266,17 +265,17 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Requeue it
             var response = await server.Client.PostAsync(
                 $"api/v1/dashboard/queues/{queueId}/messages/{messageId}/requeue", null);
-            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
 
             // Verify status shows it back in Waiting
             var status = await server.Client.GetFromJsonAsync<QueueStatusResponse>(
                 $"api/v1/dashboard/queues/{queueId}/status");
-            status.Waiting.Should().BeGreaterThanOrEqualTo(1);
+            Assert.IsTrue(status.Waiting >= 1);
 
             // Verify error count is reduced
             var errorsAfter = await server.Client.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/errors");
-            errorsAfter.Items.Count.Should().BeLessThan(errors.Items.Count);
+            Assert.IsTrue(errorsAfter.Items.Count < errors.Items.Count);
         }
 
         // === Reset stale (single message) already tested in SqliteStaleTests,
@@ -320,7 +319,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Try to reset a Waiting message -- should return NotFound since it's not Processing
             var response = await server.Client.PostAsync(
                 $"api/v1/dashboard/queues/{queueId}/messages/{messageId}/reset", null);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         // === Cancel endpoint ===
@@ -361,7 +360,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Cancel should return 409 when no consumer is running in-process
             var response = await server.Client.PostAsync(
                 $"api/v1/dashboard/queues/{queueId}/messages/{messageId}/cancel", null);
-            response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+            Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
         }
 
         // === Error pagination ===
@@ -406,18 +405,18 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // First page
             var page0 = await server.Client.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/errors?pageIndex=0&pageSize=2");
-            page0.Items.Should().HaveCount(2);
-            page0.TotalCount.Should().BeGreaterThanOrEqualTo(3);
+            Assert.AreEqual(2, page0.Items.Count);
+            Assert.IsTrue(page0.TotalCount >= 3);
 
             // Second page
             var page1 = await server.Client.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/errors?pageIndex=1&pageSize=2");
-            page1.Items.Should().NotBeEmpty();
-            page1.Items.Count.Should().BeGreaterThanOrEqualTo(1);
+            Assert.IsTrue(page1.Items.Count > 0);
+            Assert.IsTrue(page1.Items.Count >= 1);
 
             // Error detail fields
-            page0.Items[0].LastException.Should().NotBeNullOrEmpty();
-            page0.Items[0].QueueId.Should().NotBeNullOrEmpty();
+            Assert.IsFalse(string.IsNullOrEmpty(page0.Items[0].LastException));
+            Assert.IsFalse(string.IsNullOrEmpty(page0.Items[0].QueueId));
         }
     }
 }

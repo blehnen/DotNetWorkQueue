@@ -26,7 +26,6 @@ using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.Memory;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -104,7 +103,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Verify server2 is healthy first
             var connections = await _server2.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
-            connections.Should().HaveCount(1);
+            Assert.AreEqual(1, connections.Count);
 
             // Dispose server2
             await _server2.DisposeAsync();
@@ -120,7 +119,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 exceptionThrown = true;
             }
 
-            exceptionThrown.Should().BeTrue("calling a disposed server should throw an exception");
+            Assert.IsTrue(exceptionThrown);
             _server2 = null; // prevent double-dispose in cleanup
         }
 
@@ -132,8 +131,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var connections = await _server1.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
-            connections.Should().HaveCount(1);
-            connections[0].QueueCount.Should().Be(1);
+            Assert.AreEqual(1, connections.Count);
+            Assert.AreEqual(1, connections[0].QueueCount);
         }
 
         [TestMethod]
@@ -152,7 +151,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var paged = await _server1.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/messages?pageSize=100");
-            paged.Items.Should().HaveCount(3);
+            Assert.AreEqual(3, paged.Items.Count);
         }
 
         [TestMethod]
@@ -162,7 +161,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             _server2 = null;
 
             var response = await _server1.Client.GetAsync("api/v1/dashboard/health");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         }
     }
 }

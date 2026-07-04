@@ -25,7 +25,6 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Dashboard.Api.Models;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -71,10 +70,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var config = await server.Client.GetFromJsonAsync<ConfigurationResponse>(
                 $"api/v1/dashboard/queues/{queueId}/configuration");
-            config.Should().NotBeNull();
-            config!.ConfigurationJson.Should().NotBeNullOrEmpty();
+            Assert.IsNotNull(config);
+            Assert.IsFalse(string.IsNullOrEmpty(config!.ConfigurationJson));
             // The configuration JSON should contain transport-specific settings
-            config.ConfigurationJson.Should().Contain("EnableStatus");
+            StringAssert.Contains(config.ConfigurationJson, "EnableStatus");
         }
 
         // === Status endpoint returns correct counts ===
@@ -110,11 +109,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var status = await server.Client.GetFromJsonAsync<QueueStatusResponse>(
                 $"api/v1/dashboard/queues/{queueId}/status");
-            status.Should().NotBeNull();
-            status!.Waiting.Should().Be(7);
-            status.Processing.Should().Be(0);
-            status.Error.Should().Be(0);
-            status.Total.Should().Be(7);
+            Assert.IsNotNull(status);
+            Assert.AreEqual(7, status!.Waiting);
+            Assert.AreEqual(0, status.Processing);
+            Assert.AreEqual(0, status.Error);
+            Assert.AreEqual(7, status.Total);
         }
 
         // === Features reflect transport options ===
@@ -153,14 +152,14 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var features = await server.Client.GetFromJsonAsync<QueueFeaturesResponse>(
                 $"api/v1/dashboard/queues/{queueId}/features");
-            features.Should().NotBeNull();
-            features!.EnableStatus.Should().BeTrue();
-            features.EnableStatusTable.Should().BeTrue();
-            features.EnableHeartBeat.Should().BeTrue();
-            features.EnablePriority.Should().BeTrue();
-            features.EnableDelayedProcessing.Should().BeTrue();
-            features.EnableMessageExpiration.Should().BeTrue();
-            features.EnableRoute.Should().BeTrue();
+            Assert.IsNotNull(features);
+            Assert.IsTrue(features!.EnableStatus);
+            Assert.IsTrue(features.EnableStatusTable);
+            Assert.IsTrue(features.EnableHeartBeat);
+            Assert.IsTrue(features.EnablePriority);
+            Assert.IsTrue(features.EnableDelayedProcessing);
+            Assert.IsTrue(features.EnableMessageExpiration);
+            Assert.IsTrue(features.EnableRoute);
         }
 
         [TestMethod]
@@ -193,15 +192,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var features = await server.Client.GetFromJsonAsync<QueueFeaturesResponse>(
                 $"api/v1/dashboard/queues/{queueId}/features");
-            features.Should().NotBeNull();
-            features!.EnableStatus.Should().BeTrue();
-            features.EnableStatusTable.Should().BeTrue();
+            Assert.IsNotNull(features);
+            Assert.IsTrue(features!.EnableStatus);
+            Assert.IsTrue(features.EnableStatusTable);
             // SQLite defaults EnableHeartBeat to true even when not explicitly set
-            features.EnableHeartBeat.Should().BeTrue();
-            features.EnablePriority.Should().BeFalse();
-            features.EnableDelayedProcessing.Should().BeFalse();
-            features.EnableMessageExpiration.Should().BeFalse();
-            features.EnableRoute.Should().BeFalse();
+            Assert.IsTrue(features.EnableHeartBeat);
+            Assert.IsFalse(features.EnablePriority);
+            Assert.IsFalse(features.EnableDelayedProcessing);
+            Assert.IsFalse(features.EnableMessageExpiration);
+            Assert.IsFalse(features.EnableRoute);
         }
 
         // === List all queues ===
@@ -229,14 +228,14 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var connections = await server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
-            connections.Should().HaveCount(1);
-            connections![0].QueueCount.Should().Be(1);
+            Assert.AreEqual(1, connections.Count);
+            Assert.AreEqual(1, connections![0].QueueCount);
 
             var queues = await server.Client.GetFromJsonAsync<List<QueueInfoResponse>>(
                 $"api/v1/dashboard/connections/{connections[0].Id}/queues");
-            queues.Should().HaveCount(1);
-            queues![0].QueueName.Should().Be(queueName);
-            queues[0].Id.Should().NotBeEmpty();
+            Assert.AreEqual(1, queues.Count);
+            Assert.AreEqual(queueName, queues![0].QueueName);
+            Assert.AreNotEqual(Guid.Empty, queues[0].Id);
         }
 
         // === Multiple queues on same connection ===
@@ -279,7 +278,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var connections = await server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
-            connections.Should().HaveCount(2);
+            Assert.AreEqual(2, connections.Count);
 
             // Find queue IDs across connections
             Guid queueId1 = Guid.Empty, queueId2 = Guid.Empty;
@@ -294,19 +293,19 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 }
             }
 
-            queueId1.Should().NotBeEmpty();
-            queueId2.Should().NotBeEmpty();
+            Assert.AreNotEqual(Guid.Empty, queueId1);
+            Assert.AreNotEqual(Guid.Empty, queueId2);
 
             // Verify each queue has the correct message count
             var status1 = await server.Client.GetFromJsonAsync<QueueStatusResponse>(
                 $"api/v1/dashboard/queues/{queueId1}/status");
-            status1!.Waiting.Should().Be(4);
-            status1.Total.Should().Be(4);
+            Assert.AreEqual(4, status1!.Waiting);
+            Assert.AreEqual(4, status1.Total);
 
             var status2 = await server.Client.GetFromJsonAsync<QueueStatusResponse>(
                 $"api/v1/dashboard/queues/{queueId2}/status");
-            status2!.Waiting.Should().Be(6);
-            status2.Total.Should().Be(6);
+            Assert.AreEqual(6, status2!.Waiting);
+            Assert.AreEqual(6, status2.Total);
         }
 
         // === Jobs endpoint returns empty for queues without jobs ===
@@ -337,7 +336,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var jobs = await server.Client.GetFromJsonAsync<List<JobResponse>>(
                 $"api/v1/dashboard/connections/{connections[0].Id}/jobs");
-            jobs.Should().BeEmpty();
+            Assert.AreEqual(0, jobs.Count);
         }
 
         // === Settings endpoint returns expected values ===
@@ -365,8 +364,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var settings = await server.Client.GetFromJsonAsync<DashboardSettingsResponse>(
                 "api/v1/dashboard/settings");
-            settings.Should().NotBeNull();
-            settings!.ReadOnly.Should().BeFalse();
+            Assert.IsNotNull(settings);
+            Assert.IsFalse(settings!.ReadOnly);
         }
 
         // === Stale messages returns empty when no stale messages ===
@@ -403,8 +402,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var paged = await server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/messages/stale");
-            paged.Should().NotBeNull();
-            paged!.Items.Should().BeEmpty();
+            Assert.IsNotNull(paged);
+            Assert.AreEqual(0, paged!.Items.Count);
         }
 
         // === Errors returns empty when no errors ===
@@ -440,9 +439,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var paged = await server.Client.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/errors");
-            paged.Should().NotBeNull();
-            paged!.Items.Should().BeEmpty();
-            paged.TotalCount.Should().Be(0);
+            Assert.IsNotNull(paged);
+            Assert.AreEqual(0, paged!.Items.Count);
+            Assert.AreEqual(0, paged.TotalCount);
         }
 
         // === Message count with valid status filters ===
@@ -479,30 +478,30 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Status 0 = Waiting
             var waitingResponse = await server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{queueId}/messages/count?status=0");
-            waitingResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, waitingResponse.StatusCode);
             var waitingCount = await waitingResponse.Content.ReadFromJsonAsync<long>();
-            waitingCount.Should().Be(5);
+            Assert.AreEqual(5, waitingCount);
 
             // Status 1 = Processing (should be 0)
             var processingResponse = await server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{queueId}/messages/count?status=1");
-            processingResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, processingResponse.StatusCode);
             var processingCount = await processingResponse.Content.ReadFromJsonAsync<long>();
-            processingCount.Should().Be(0);
+            Assert.AreEqual(0, processingCount);
 
             // Status 2 = Error (should be 0)
             var errorResponse = await server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{queueId}/messages/count?status=2");
-            errorResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, errorResponse.StatusCode);
             var errorCount = await errorResponse.Content.ReadFromJsonAsync<long>();
-            errorCount.Should().Be(0);
+            Assert.AreEqual(0, errorCount);
 
             // No filter = total
             var totalResponse = await server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{queueId}/messages/count");
-            totalResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, totalResponse.StatusCode);
             var totalCount = await totalResponse.Content.ReadFromJsonAsync<long>();
-            totalCount.Should().Be(5);
+            Assert.AreEqual(5, totalCount);
         }
 
         // === Delete all errors when empty returns zero ===
@@ -538,9 +537,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var response = await server.Client.DeleteAsync(
                 $"api/v1/dashboard/queues/{queueId}/errors");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadFromJsonAsync<DeleteAllResponse>();
-            result!.Deleted.Should().Be(0);
+            Assert.AreEqual(0, result!.Deleted);
         }
 
         // === Error retries for nonexistent message returns empty ===
@@ -576,7 +575,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var retries = await server.Client.GetFromJsonAsync<List<ErrorRetryResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/messages/99999999/retries");
-            retries.Should().BeEmpty();
+            Assert.AreEqual(0, retries.Count);
         }
     }
 }

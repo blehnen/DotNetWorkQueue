@@ -21,7 +21,6 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers;
 using DotNetWorkQueue.Transport.Memory;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
@@ -61,18 +60,18 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         public async Task Health_ReturnsOk()
         {
             var response = await _server.Client.GetAsync("api/v1/dashboard/health");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         }
 
         [TestMethod]
         public async Task Health_ResponseContainsHealthyStatus()
         {
             var response = await _server.Client.GetAsync("api/v1/dashboard/health");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
             var body = await response.Content.ReadAsStringAsync();
-            body.Should().NotBeNullOrEmpty();
-            body.Should().Contain("Healthy");
+            Assert.IsFalse(string.IsNullOrEmpty(body));
+            StringAssert.Contains(body, "Healthy");
         }
     }
 }
