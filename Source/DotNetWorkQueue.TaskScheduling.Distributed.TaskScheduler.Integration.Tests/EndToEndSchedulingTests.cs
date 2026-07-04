@@ -3,7 +3,6 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler;
 using DotNetWorkQueue.Transport.Memory.Basic;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests
@@ -63,9 +62,9 @@ namespace DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.T
                     {
                         using (var queue = creator.CreateConsumer(queueConnection))
                         {
-                            queue.Should().NotBeNull(
+                            Assert.IsNotNull(queue,
                                 "scheduler-wired consumer container constructed and resolved a consumer");
-                            queue.Configuration.Should().NotBeNull(
+                            Assert.IsNotNull(queue.Configuration,
                                 "the scheduler injection must not break configuration resolution");
                         }
                     }

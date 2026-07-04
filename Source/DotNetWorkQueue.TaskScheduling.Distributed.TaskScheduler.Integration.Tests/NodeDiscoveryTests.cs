@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue;
 using DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests
@@ -78,10 +77,10 @@ namespace DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.T
 
                 // Wait up to 10 seconds for node B to receive the update (UDP + timer-driven).
                 var fired = signal.Wait(TimeSpan.FromSeconds(10));
-                fired.Should().BeTrue("node B must receive RemoteCountChanged from node A within 10 seconds");
+                Assert.IsTrue(fired, "node B must receive RemoteCountChanged from node A within 10 seconds");
 
                 // Node B's aggregate count should reflect node A's bump.
-                nodeB.Sync.GetCurrentTaskCount().Should().BeGreaterThanOrEqualTo(1,
+                Assert.IsTrue(nodeB.Sync.GetCurrentTaskCount() >= 1,
                     "node B should see node A's remote task count");
             }
         }
@@ -107,10 +106,10 @@ namespace DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.T
                     nodeA.Sync.IncreaseCurrentTaskCount();
 
                     var discovered = discoverySignal.Wait(TimeSpan.FromSeconds(10));
-                    discovered.Should().BeTrue("node B must see node A's count before we test disposal");
+                    Assert.IsTrue(discovered, "node B must see node A's count before we test disposal");
 
                     var countBeforeDispose = nodeB.Sync.GetCurrentTaskCount();
-                    countBeforeDispose.Should().BeGreaterThanOrEqualTo(1, "should have a remote count to decay");
+                    Assert.IsTrue(countBeforeDispose >= 1, "should have a remote count to decay");
 
                     // Dispose node A — node B should observe it drop off the remote list.
                     nodeA.Dispose();
@@ -126,7 +125,7 @@ namespace DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.T
                         Thread.Sleep(100);
                     }
 
-                    countAfterDispose.Should().BeLessThan(countBeforeDispose,
+                    Assert.IsTrue(countAfterDispose < countBeforeDispose,
                         "node B's aggregate count should drop after node A is disposed (RemovedNode decay)");
                 }
                 finally

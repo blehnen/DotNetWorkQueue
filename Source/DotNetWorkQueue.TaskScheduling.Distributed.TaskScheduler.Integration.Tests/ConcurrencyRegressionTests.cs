@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using DotNetWorkQueue;
 using DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests
@@ -77,7 +76,7 @@ namespace DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.T
                 Assert.Fail("Deadlock detected: 30-second timeout elapsed waiting for worker threads");
             }
 
-            _sync.GetCurrentTaskCount().Should().Be(0, "all increments are matched by decrements; final count must be zero");
+            Assert.AreEqual(0, _sync.GetCurrentTaskCount(), "all increments are matched by decrements; final count must be zero");
         }
     }
 }
