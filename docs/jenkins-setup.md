@@ -11,20 +11,20 @@ This guide walks through setting up the Jenkins master to run the DotNetWorkQueu
   - PostgreSQL on port 5432
   - Redis on port 6379
 
-## 1. Build the Docker Agent Image
+## 1. Get the Docker Agent Image
 
-On each Docker host, build the CI agent image:
+The CI agent image is built and published to Docker Hub from the dedicated
+[blehnen/dotnetworkqueue-ci](https://github.com/blehnen/dotnetworkqueue-ci)
+repository (rebuilt weekly). On each Docker host, pull it:
 
 ```bash
-git clone https://github.com/blehnen/DotNetWorkQueue.git
-cd DotNetWorkQueue
-docker build -t dotnetworkqueue-ci:latest docker/
+docker pull blehnen74/dotnetworkqueue-ci:latest
 ```
 
 Verify both SDKs are available:
 
 ```bash
-docker run --rm dotnetworkqueue-ci:latest dotnet --list-sdks
+docker run --rm blehnen74/dotnetworkqueue-ci:latest dotnet --list-sdks
 ```
 
 You should see both .NET 8.x and .NET 10.x SDKs listed.
@@ -56,8 +56,8 @@ For each Docker host, create a cloud entry:
 - **Container Cap**: number of concurrent containers this host can run (depends on CPU/RAM)
 - **Docker Agent Template**:
   - **Labels**: `docker`
-  - **Docker Image**: `dotnetworkqueue-ci:latest`
-  - **Pull strategy**: **Never pull** (image is built locally)
+  - **Docker Image**: `blehnen74/dotnetworkqueue-ci:latest`
+  - **Pull strategy**: **Pull once** (or periodically, to pick up the weekly rebuild)
   - **Remote Filing System Root**: `/home/jenkins`
   - **Connect method**: Attach Docker container
 
@@ -152,7 +152,7 @@ This means only `master` (as a PR target) and open PR branches get built.
 Before running the pipeline, verify Docker containers can reach the test services:
 
 ```bash
-docker run --rm dotnetworkqueue-ci:latest bash -c "
+docker run --rm blehnen74/dotnetworkqueue-ci:latest bash -c "
     curl -s --connect-timeout 5 <db-host>:1433 && echo 'SQL Server: OK' || echo 'SQL Server: FAIL'
     curl -s --connect-timeout 5 <db-host>:5432 && echo 'PostgreSQL: OK' || echo 'PostgreSQL: FAIL'
     curl -s --connect-timeout 5 <redis-host>:6379 && echo 'Redis: OK' || echo 'Redis: FAIL'
@@ -175,10 +175,10 @@ Note: These services may not respond to curl properly, but the connection attemp
 |---------|-------------|-----|
 | "No nodes with label docker" | Docker cloud not configured or hosts unreachable | Check cloud config, verify Docker TCP is open |
 | "docker: not found" in pipeline | Using `docker { image }` agent syntax | Use `agent { label 'docker' }` — the cloud provisions the container |
-| Java version error in agent | JRE in Docker image older than Jenkins master | Match the JRE version in `docker/Dockerfile` to your Jenkins master |
+| Java version error in agent | JRE in Docker image older than Jenkins master | Match the JRE version in the [dotnetworkqueue-ci](https://github.com/blehnen/dotnetworkqueue-ci) image to your Jenkins master |
 | Connection string errors | Credentials not created or wrong ID | Verify credential IDs match Jenkinsfile: `sqlserver-connstring`, `postgresql-connstring`, `redis-connstring`, `codecov-token` |
 | `connectionstring.txt` not found | File written to wrong path | Connection strings must be in `bin/Debug/net10.0/` (written after build) |
-| SQLite `libdl.so` errors | Missing native library symlink | Rebuild Docker image — `docker/Dockerfile` includes the fix |
+| SQLite `libdl.so` errors | Missing native library symlink | Pull the latest [dotnetworkqueue-ci](https://github.com/blehnen/dotnetworkqueue-ci) image — it includes the fix |
 | Test host crash (ObjectDisposedException) | Timer callback race on Linux | Fixed in `BaseMonitor.cs` — ensure you have the latest code |
 | Coverage upload fails | codecov-token not set or wrong CLI syntax | Verify credential exists; Jenkinsfile uses `codecov upload-process` subcommand |
 | Build takes too long | NuGet restore downloading on every run | Consider mounting a NuGet cache volume |
