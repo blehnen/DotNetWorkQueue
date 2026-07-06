@@ -251,6 +251,22 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
         }
 
         [TestMethod]
+        public void Throws_When_Aes_Key_Not_Base64()
+        {
+            var queueOptions = new DashboardQueueOptions
+            {
+                QueueName = "test",
+                Interceptors = new DashboardInterceptorOptions
+                {
+                    Aes = new AesInterceptorOptions { Key = "!!!not-base64!!!" }
+                }
+            };
+            Action act = () => InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
+            var ex = Assert.Throws<InvalidOperationException>(act);
+            Assert.IsTrue(ex.Message.Contains("Base64", StringComparison.OrdinalIgnoreCase));
+        }
+
+        [TestMethod]
         public void Returns_Null_When_Json_Options_Empty()
         {
             var queueOptions = new DashboardQueueOptions

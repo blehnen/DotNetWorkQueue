@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Tests.Interceptors
         {
             var enc = New(NewKey()).MessageToBytes(Encoding.UTF8.GetBytes("hello"), null);
             Assert.AreEqual((byte)0x01, enc.Output[0]);
-            Assert.AreEqual(1 + 12 + 16 + "hello"u8.Length, enc.Output.Length);
+            Assert.HasCount(1 + 12 + 16 + "hello"u8.Length, enc.Output);
         }
 
         [TestMethod]
