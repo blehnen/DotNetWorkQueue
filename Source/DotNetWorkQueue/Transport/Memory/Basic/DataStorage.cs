@@ -724,6 +724,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// (the lock is non-recursive), and releases it on dispose only if this scope entered it.
         /// Centralizes the re-entrancy guard and guaranteed release used by every read method.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Bug", "S7133",
+            Justification = "Scoped RAII lock idiom: EnterReadLock in the constructor is guaranteed to be " +
+                            "released by Dispose via the using statement. S7133's same-method concern does not apply.")]
         private readonly struct ReadLockScope : IDisposable
         {
             private readonly ReaderWriterLockSlim _lock;
