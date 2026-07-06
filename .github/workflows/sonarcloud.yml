@@ -52,6 +52,10 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"blehnen_DotNetWorkQueue" /o:"blehnen" /d:sonar.exclusions="**/*.png,**/*.ico,**/*.jpg,**/*.jpeg,**/*.gif,**/*.webp,**/*.woff,**/*.woff2,**/*.ttf,**/*.eot"
+          # Code coverage is measured and enforced via Codecov (Coverlet on the Jenkins
+          # integration pipeline), not SonarCloud. sonar.coverage.exclusions=** tells Sonar
+          # not to expect coverage data, so its "Coverage on New Code" gate condition does not
+          # fail every PR (this workflow only builds; it does not run tests).
+          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"blehnen_DotNetWorkQueue" /o:"blehnen" /d:sonar.exclusions="**/*.png,**/*.ico,**/*.jpg,**/*.jpeg,**/*.gif,**/*.webp,**/*.woff,**/*.woff2,**/*.ttf,**/*.eot" /d:sonar.coverage.exclusions="**/*"
           dotnet build "Source/DotNetWorkQueue.sln" -c Debug
           ${{ runner.temp }}\scanner\dotnet-sonarscanner end
