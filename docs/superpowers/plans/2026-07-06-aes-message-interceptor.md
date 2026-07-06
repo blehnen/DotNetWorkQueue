@@ -114,7 +114,8 @@ namespace DotNetWorkQueue.Tests.Interceptors
             var key = NewKey();
             var enc = New(key).MessageToBytes(Encoding.UTF8.GetBytes("secret"), null).Output;
             enc[^1] ^= 0xFF; // flip last ciphertext byte
-            Assert.ThrowsExactly<CryptographicException>(() => New(key).BytesToMessage(enc, null));
+            // AesGcm throws AuthenticationTagMismatchException : CryptographicException -> use Throws<> (T-or-derived)
+            Assert.Throws<CryptographicException>(() => New(key).BytesToMessage(enc, null));
         }
 
         [TestMethod]
@@ -130,7 +131,7 @@ namespace DotNetWorkQueue.Tests.Interceptors
         public void WrongKey_Throws()
         {
             var enc = New(NewKey()).MessageToBytes(Encoding.UTF8.GetBytes("secret"), null).Output;
-            Assert.ThrowsExactly<CryptographicException>(() => New(NewKey()).BytesToMessage(enc, null));
+            Assert.Throws<CryptographicException>(() => New(NewKey()).BytesToMessage(enc, null));
         }
 
         [TestMethod]
