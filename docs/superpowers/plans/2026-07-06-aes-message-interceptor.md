@@ -31,7 +31,8 @@ Design spec: `docs/superpowers/specs/2026-07-06-aes-message-interceptor-design.m
 - **Modify** `Source/DotNetWorkQueue.Dashboard.Api/Configuration/InterceptorConfigurationBuilder.cs` — AES branch; `#pragma` around 3DES branch.
 - **Modify** `Source/DotNetWorkQueue.Dashboard.Api.Tests/Configuration/InterceptorConfigurationBuilderTests.cs` and `DashboardInterceptorOptionsTests.cs` — AES coverage.
 - **Create** an AES round-trip integration test under `Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/`.
-- **Modify** docs: `docker/dashboard/appsettings.example.json`, `docker/dashboard/README.md`, `docker/dashboard/DOCKERHUB.md`, `Changelog.md`, `Source/Directory.Build.props` (version bump). Wiki (separate) at release time.
+- **Modify** docs: `docker/dashboard/appsettings.example.json`, `docker/dashboard/README.md`, `docker/dashboard/DOCKERHUB.md`, `Changelog.md`, `Source/Directory.Build.props` (version bump).
+- **Modify** wiki — separate local repo at `/mnt/f/git/DotNetWorkQueue.wiki` (its own git repo/commit): the encryption/interceptor page — document AES, key generation, migration guide (producer AES / consumer AES+3DES), 3DES deprecation + removal timeline.
 
 ---
 
@@ -589,6 +590,10 @@ In `Changelog.md`, add a concise entry: `Added AesMessageInterceptor (AES-256-GC
 
 In `Source/Directory.Build.props`, bump `<Version>` (e.g. `0.9.42` → `0.9.43`).
 
+- [ ] **Step 4b: Update the wiki (separate repo)**
+
+In `/mnt/f/git/DotNetWorkQueue.wiki` (its own git repo), update the encryption/interceptor page: document `AesMessageInterceptor` (AES-256-GCM, 32-byte key generation, no IV), the migration guide (producer registers AES; consumer registers AES + 3DES; drain then drop 3DES), and mark 3DES deprecated with the removal timeline (link the removal issue from Task 8). Commit in that repo (`git -C /mnt/f/git/DotNetWorkQueue.wiki commit`). Do not push until the feature is released.
+
 - [ ] **Step 5: Verify the no-tests solution builds in Release**
 
 Run: `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release -p:CI=true`
@@ -616,7 +621,11 @@ gh pr create --title "Add AES-256-GCM message interceptor; deprecate TripleDES" 
 
 Create a GitHub issue in `blehnen/DotNetWorkQueue.Samples` titled "Update samples to use AesMessageInterceptor (after release)", noting it depends on the published NuGet package and should replace 3DES usages with AES. Link it from the PR body.
 
-- [ ] **Step 3: Watch checks; address CodeRabbit/SonarCloud/Jenkins as they report.**
+- [ ] **Step 3: Create the 3DES removal tracking issue**
+
+Create a GitHub issue in `blehnen/DotNetWorkQueue` titled "Remove deprecated TripleDesMessageInterceptor", targeting the **next major release (1.0.0), ~early 2027**. Body: 3DES was deprecated when AES-256-GCM landed (link this PR); removal is breaking (public API) so it ships in the next major; migration = switch producers to AES and drain 3DES-encrypted messages first. Cross-link the wiki migration guide. Reference this issue number from the wiki page (Task 7 Step 4b).
+
+- [ ] **Step 4: Watch checks; address CodeRabbit/SonarCloud/Jenkins as they report.**
 
 ---
 
