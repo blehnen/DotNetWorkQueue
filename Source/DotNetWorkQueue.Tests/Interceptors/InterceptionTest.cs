@@ -57,6 +57,43 @@ namespace DotNetWorkQueue.Tests.Interceptors
             }
         }
 
+        [TestMethod]
+        public void Coexistence_ConsumerPoolDecryptsBoth()
+        {
+            var aesKey = new byte[32];
+            System.Security.Cryptography.RandomNumberGenerator.Fill(aesKey);
+            var aesCfg = new AesMessageInterceptorConfiguration(aesKey);
+
+#pragma warning disable CS0618 // migration scenario: legacy 3DES stays in the consumer pool
+            var tdesCfg = new TripleDesMessageInterceptorConfiguration(
+                Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Convert.FromBase64String("aaaaaaaaaaa="));
+
+            // Producer registers AES only
+            var producer = new MessageInterceptors(
+                new List<IMessageInterceptor> { new AesMessageInterceptor(aesCfg) },
+                new InterceptorFactory(Substitute.For<IContainerFactory>()));
+
+            // A legacy producer that used 3DES only
+            var legacyProducer = new MessageInterceptors(
+                new List<IMessageInterceptor> { new TripleDesMessageInterceptor(tdesCfg) },
+                new InterceptorFactory(Substitute.For<IContainerFactory>()));
+
+            // Consumer registers BOTH — the pool of decryptors
+            var consumer = new MessageInterceptors(
+                new List<IMessageInterceptor> { new AesMessageInterceptor(aesCfg), new TripleDesMessageInterceptor(tdesCfg) },
+                new InterceptorFactory(Substitute.For<IContainerFactory>()));
+#pragma warning restore CS0618
+
+            var body = Encoding.UTF8.GetBytes("coexistence body");
+
+            var aesMsg = producer.MessageToBytes(body, null);
+            CollectionAssert.AreEqual(body, consumer.BytesToMessage(aesMsg.Output, aesMsg.Graph, null));
+
+            var tdesMsg = legacyProducer.MessageToBytes(body, null);
+            CollectionAssert.AreEqual(body, consumer.BytesToMessage(tdesMsg.Output, tdesMsg.Graph, null));
+        }
+
         private void Test(IMessageInterceptorRegistrar register, string body)
         {
             var serialization = register.MessageToBytes(Encoding.UTF8.GetBytes(body), null);
