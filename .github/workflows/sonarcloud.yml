@@ -49,6 +49,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"blehnen_DotNetWorkQueue" /o:"blehnen"
+          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"blehnen_DotNetWorkQueue" /o:"blehnen" /d:sonar.exclusions="**/*.png,**/*.ico,**/*.jpg,**/*.jpeg,**/*.gif,**/*.webp,**/*.woff,**/*.woff2,**/*.ttf,**/*.eot"
           dotnet build "Source/DotNetWorkQueue.sln" -c Debug
           ${{ runner.temp }}\scanner\dotnet-sonarscanner end
