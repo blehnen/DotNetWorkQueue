@@ -139,15 +139,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (Complete)
                 return Guid.Empty;
 
-            var tookLock = false;
-            try
+            using (new ReadLockScope(_lock))
             {
-                if (!_lock.IsReadLockHeld)
-                {
-                    _lock.EnterReadLock();
-                    tookLock = true;
-                }
-
                 if (Complete)
                     return Guid.Empty;
 
@@ -208,11 +201,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 throw new DotNetWorkQueueException(
                     "Failed to insert record - the job has already been queued or processed");
             }
-            finally
-            {
-                if (tookLock)
-                    _lock.ExitReadLock();
-            }
         }
 
         /// <inheritdoc />
@@ -227,15 +215,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (Complete)
                 return;
 
-            var tookLock = false;
-            try
+            using (new ReadLockScope(_lock))
             {
-                if (!_lock.IsReadLockHeld)
-                {
-                    _lock.EnterReadLock();
-                    tookLock = true;
-                }
-
                 if (Complete)
                     return;
 
@@ -248,11 +229,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 //2) Move the work item into an error queue on error
                 //3) Delete the work item when a delete message call is received
             }
-            finally
-            {
-                if (tookLock)
-                    _lock.ExitReadLock();
-            }
         }
         /// <inheritdoc />
         public IReceivedMessageInternal GetNextMessage(List<string> routes, TimeSpan timeout)
@@ -263,15 +239,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (routes != null && routes.Count > 0)
                 throw new NotSupportedException("The in-memory transport does not support routes");
 
-            var tookLock = false;
-            try
+            using (new ReadLockScope(_lock))
             {
-                if (!_lock.IsReadLockHeld)
-                {
-                    _lock.EnterReadLock();
-                    tookLock = true;
-                }
-
                 if (Complete)
                     return null;
 
@@ -355,11 +324,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     }
                 }
             }
-            finally
-            {
-                if (tookLock)
-                    _lock.ExitReadLock();
-            }
         }
         /// <summary>
         /// Gets the headers for the specified message if possible
@@ -373,15 +337,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (Complete)
                 return null;
 
-            var tookLock = false;
-            try
+            using (new ReadLockScope(_lock))
             {
-                if (!_lock.IsReadLockHeld)
-                {
-                    _lock.EnterReadLock();
-                    tookLock = true;
-                }
-
                 if (Complete)
                     return null;
 
@@ -394,11 +351,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     return null;
                 }
             }
-            finally
-            {
-                if (tookLock)
-                    _lock.ExitReadLock();
-            }
         }
         /// <inheritdoc />
         public bool DeleteMessage(Guid id)
@@ -406,15 +358,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (Complete)
                 return false;
 
-            var tookLock = false;
-            try
+            using (new ReadLockScope(_lock))
             {
-                if (!_lock.IsReadLockHeld)
-                {
-                    _lock.EnterReadLock();
-                    tookLock = true;
-                }
-
                 if (Complete)
                     return false;
 
@@ -444,11 +389,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     return false;
                 }
             }
-            finally
-            {
-                if (tookLock)
-                    _lock.ExitReadLock();
-            }
         }
 
         /// <inheritdoc />
@@ -457,26 +397,14 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (Complete)
                 return DateTimeOffset.MinValue;
 
-            var tookLock = false;
-            try
+            using (new ReadLockScope(_lock))
             {
-                if (!_lock.IsReadLockHeld)
-                {
-                    _lock.EnterReadLock();
-                    tookLock = true;
-                }
-
                 if (Complete)
                     return DateTimeOffset.MinValue;
 
                 if (JobLastEventCache.TryGetValue<DateTimeOffset>(GenerateKey(jobName), out var cached))
                     return cached;
                 return default;
-            }
-            finally
-            {
-                if (tookLock)
-                    _lock.ExitReadLock();
             }
         }
 
@@ -486,15 +414,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (Complete)
                 return;
 
-            var tookLock = false;
-            try
+            using (new ReadLockScope(_lock))
             {
-                if (!_lock.IsReadLockHeld)
-                {
-                    _lock.EnterReadLock();
-                    tookLock = true;
-                }
-
                 if (Complete)
                     return;
 
@@ -509,11 +430,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     }
                 }
             }
-            finally
-            {
-                if (tookLock)
-                    _lock.ExitReadLock();
-            }
         }
 
         /// <inheritdoc />
@@ -522,15 +438,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (Complete)
                 return QueueStatuses.NotQueued;
 
-            var tookLock = false;
-            try
+            using (new ReadLockScope(_lock))
             {
-                if (!_lock.IsReadLockHeld)
-                {
-                    _lock.EnterReadLock();
-                    tookLock = true;
-                }
-
                 if (Complete)
                     return QueueStatuses.NotQueued;
 
@@ -560,11 +469,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 return time == scheduledTime ? QueueStatuses.Processed : QueueStatuses.NotQueued;
                 
             }
-            finally
-            {
-                if (tookLock)
-                    _lock.ExitReadLock();
-            }
         }
 
         /// <inheritdoc />
@@ -575,15 +479,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 if (Complete)
                     return 0;
 
-                var tookLock = false;
-                try
+                using (new ReadLockScope(_lock))
                 {
-                    if (!_lock.IsReadLockHeld)
-                    {
-                        _lock.EnterReadLock();
-                        tookLock = true;
-                    }
-
                     if (Complete)
                         return 0;
 
@@ -593,11 +490,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     }
 
                     return 0;
-                }
-                finally
-                {
-                    if (tookLock)
-                        _lock.ExitReadLock();
                 }
             }
         }
@@ -610,15 +502,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 if (Complete)
                     return 0;
 
-                var tookLock = false;
-                try
+                using (new ReadLockScope(_lock))
                 {
-                    if (!_lock.IsReadLockHeld)
-                    {
-                        _lock.EnterReadLock();
-                        tookLock = true;
-                    }
-
                     if (Complete)
                         return 0;
 
@@ -629,11 +514,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     
                     return 0;
                 }
-                finally
-                {
-                    if (tookLock)
-                        _lock.ExitReadLock();
-                }
             }
         }
 
@@ -643,15 +523,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (Complete)
                 return 0;
 
-            var tookLock = false;
-            try
+            using (new ReadLockScope(_lock))
             {
-                if (!_lock.IsReadLockHeld)
-                {
-                    _lock.EnterReadLock();
-                    tookLock = true;
-                }
-
                 if (Complete)
                     return 0;
 
@@ -661,11 +534,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 }
                 return 0;
             }
-            finally
-            {
-                if (tookLock)
-                    _lock.ExitReadLock();
-            }
         }
 
         /// <inheritdoc />
@@ -674,15 +542,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (Complete)
                 return 0;
 
-            var tookLock = false;
-            try
+            using (new ReadLockScope(_lock))
             {
-                if (!_lock.IsReadLockHeld)
-                {
-                    _lock.EnterReadLock();
-                    tookLock = true;
-                }
-
                 if (Complete)
                     return 0;
 
@@ -692,11 +553,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 }
                 return 0;
             }
-            finally
-            {
-                if (tookLock)
-                    _lock.ExitReadLock();
-            }
         }
 
         /// <inheritdoc />
@@ -705,15 +561,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (Complete)
                 return new List<QueueItem>();
 
-            var tookLock = false;
-            try
+            using (new ReadLockScope(_lock))
             {
-                if (!_lock.IsReadLockHeld)
-                {
-                    _lock.EnterReadLock();
-                    tookLock = true;
-                }
-
                 if (Complete)
                     return new List<QueueItem>();
 
@@ -723,11 +572,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 }
                 return new List<QueueItem>();
             }
-            finally
-            {
-                if (tookLock)
-                    _lock.ExitReadLock();
-            }
         }
 
         /// <inheritdoc />
@@ -736,15 +580,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (Complete)
                 return new List<QueueItem>();
 
-            var tookLock = false;
-            try
+            using (new ReadLockScope(_lock))
             {
-                if (!_lock.IsReadLockHeld)
-                {
-                    _lock.EnterReadLock();
-                    tookLock = true;
-                }
-
                 if (Complete)
                     return new List<QueueItem>();
 
@@ -753,11 +590,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     return value.Values.Skip(skip).Take(take).ToList();
                 }
                 return new List<QueueItem>();
-            }
-            finally
-            {
-                if (tookLock)
-                    _lock.ExitReadLock();
             }
         }
 
@@ -768,15 +600,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (Complete)
                 return null;
 
-            var tookLock = false;
-            try
+            using (new ReadLockScope(_lock))
             {
-                if (!_lock.IsReadLockHeld)
-                {
-                    _lock.EnterReadLock();
-                    tookLock = true;
-                }
-
                 if (Complete)
                     return null;
 
@@ -799,11 +624,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
                 return null;
             }
-            finally
-            {
-                if (tookLock)
-                    _lock.ExitReadLock();
-            }
         }
 
         /// <inheritdoc />
@@ -812,15 +632,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (Complete)
                 return new Dictionary<string, Guid>();
 
-            var tookLock = false;
-            try
+            using (new ReadLockScope(_lock))
             {
-                if (!_lock.IsReadLockHeld)
-                {
-                    _lock.EnterReadLock();
-                    tookLock = true;
-                }
-
                 if (Complete)
                     return new Dictionary<string, Guid>();
 
@@ -829,11 +642,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     return new Dictionary<string, Guid>(value);
                 }
                 return new Dictionary<string, Guid>();
-            }
-            finally
-            {
-                if (tookLock)
-                    _lock.ExitReadLock();
             }
         }
 
@@ -909,6 +717,40 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         private string GenerateKey(string jobName)
         {
             return string.Concat(_connectionInformation.ToString(), "|", jobName);
+        }
+
+        /// <summary>
+        /// Scoped read lock. Enters the read lock unless the current thread already holds it
+        /// (the lock is non-recursive), and releases it on dispose only if this scope entered it.
+        /// Centralizes the re-entrancy guard and guaranteed release used by every read method.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Bug", "S7133",
+            Justification = "Scoped RAII lock idiom: EnterReadLock in the constructor is guaranteed to be " +
+                            "released by Dispose via the using statement. S7133's same-method concern does not apply.")]
+        private readonly struct ReadLockScope : IDisposable
+        {
+            private readonly ReaderWriterLockSlim _lock;
+            private readonly bool _entered;
+
+            public ReadLockScope(ReaderWriterLockSlim lockToUse)
+            {
+                _lock = lockToUse;
+                if (!lockToUse.IsReadLockHeld)
+                {
+                    lockToUse.EnterReadLock();
+                    _entered = true;
+                }
+                else
+                {
+                    _entered = false;
+                }
+            }
+
+            public void Dispose()
+            {
+                if (_entered)
+                    _lock.ExitReadLock();
+            }
         }
 
         private class IncrementWrapper
