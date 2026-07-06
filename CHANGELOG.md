@@ -1,3 +1,8 @@
+### 0.9.43 — 2026-07-06
+- Added `AesMessageInterceptor` (AES-256-GCM authenticated encryption) as the recommended built-in message encryption — per-message CSPRNG nonce, versioned envelope, 32-byte key. Fixes the weaknesses of the 3DES interceptor (Sweet32, no tamper detection, static IV)
+- Deprecated `TripleDesMessageInterceptor` (`[Obsolete]`; retired by NIST SP 800-131A). It still decrypts existing 3DES messages and will be removed in a future major (GitHub issue tracked). Migration: producers register AES; consumers register AES + 3DES until the 3DES backlog drains — the per-message interceptor graph selects the right decryptor
+- Dashboard: new `Aes` interceptor option so the dashboard can decrypt AES-encrypted message bodies for display
+
 ### 0.9.42 — 2026-06-30
 - SQL Server and PostgreSQL transports: the inbox held-transaction batch send (`Send(List<...>, DbTransaction)` with `EnableHoldTransactionUntilMessageCommitted`) now performs a true multi-row insert inside the caller's transaction instead of looping single-row inserts. The batch handler reuses the caller's connection/transaction and never commits, rolls back, or disposes it — the caller still owns commit/rollback. Same multi-row body insert + per-message meta/status rows as the standalone batch path (GitHub #167, follow-up to #162)
 - Behavior change (held-transaction batch path only): a failure now throws so the caller can roll back, instead of being swallowed into per-message results. The caller owns the transaction's all-or-nothing semantics. The standalone/outbox batch path is unchanged. SQLite is excluded by design (single-writer model makes the held-transaction inbox pattern non-viable; see #149)
