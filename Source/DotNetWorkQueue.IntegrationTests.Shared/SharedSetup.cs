@@ -28,16 +28,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             {
                 case InterceptorAdding.ConfigurationOnly:
                     return new QueueContainer<TTransportInit>(serviceRegister => serviceRegister.Register(() => metrics,
-                       LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                           Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton).RegisterNonScopedSingleton(trace), options => SetOptions(options, enableChaos));
+                       LifeStyles.Singleton).Register(() => new AesMessageInterceptorConfiguration(System.Text.Encoding.ASCII.GetBytes("0123456789abcdef0123456789abcdef")                           ), LifeStyles.Singleton).RegisterNonScopedSingleton(trace), options => SetOptions(options, enableChaos));
                 case InterceptorAdding.Yes:
                     return new QueueContainer<TTransportInit>(serviceRegister => serviceRegister.Register(() => metrics,
                         LifeStyles.Singleton).RegisterCollection<IMessageInterceptor>(new[]
                         {
                             typeof (GZipMessageInterceptor), //gzip compression
-                            typeof (TripleDesMessageInterceptor) //encryption
-                        }).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                            Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton).RegisterNonScopedSingleton(trace), options => SetOptions(options, enableChaos));
+                            typeof (AesMessageInterceptor) //encryption
+                        }).Register(() => new AesMessageInterceptorConfiguration(System.Text.Encoding.ASCII.GetBytes("0123456789abcdef0123456789abcdef")                            ), LifeStyles.Singleton).RegisterNonScopedSingleton(trace), options => SetOptions(options, enableChaos));
                 default:
                     return new QueueContainer<TTransportInit>(serviceRegister => serviceRegister.Register(() => metrics,
                         LifeStyles.Singleton).RegisterNonScopedSingleton(trace), options => SetOptions(options, enableChaos));
@@ -65,9 +63,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                                 .RegisterNonScopedSingleton(scope)
                                 .RegisterNonScopedSingleton(trace)
                                 .Register(() => metrics,
-                                    LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration(
-                                    Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                                    Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton),
+                                    LifeStyles.Singleton).Register(() => new AesMessageInterceptorConfiguration(System.Text.Encoding.ASCII.GetBytes("0123456789abcdef0123456789abcdef")), LifeStyles.Singleton),
                             options => SetOptions(options, enableChaos));
                     case InterceptorAdding.Yes:
                         return new QueueContainer<TTransportInit>(
@@ -79,10 +75,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                                     LifeStyles.Singleton).RegisterCollection<IMessageInterceptor>(new[]
                                 {
                                     typeof(GZipMessageInterceptor), //gzip compression
-                                    typeof(TripleDesMessageInterceptor) //encryption
-                                }).Register(() => new TripleDesMessageInterceptorConfiguration(
-                                    Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                                    Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton),
+                                    typeof(AesMessageInterceptor) //encryption
+                                }).Register(() => new AesMessageInterceptorConfiguration(System.Text.Encoding.ASCII.GetBytes("0123456789abcdef0123456789abcdef")), LifeStyles.Singleton),
                             options => SetOptions(options, enableChaos));
                     default:
                         return new QueueContainer<TTransportInit>(
@@ -101,17 +95,15 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                     case InterceptorAdding.ConfigurationOnly:
                         return new QueueContainer<TTransportInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton).Register(() => metrics,
-                                LifeStyles.Singleton).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                                Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton).RegisterNonScopedSingleton(scope).RegisterNonScopedSingleton(trace), options => SetOptions(options, enableChaos));
+                                LifeStyles.Singleton).Register(() => new AesMessageInterceptorConfiguration(System.Text.Encoding.ASCII.GetBytes("0123456789abcdef0123456789abcdef")                                ), LifeStyles.Singleton).RegisterNonScopedSingleton(scope).RegisterNonScopedSingleton(trace), options => SetOptions(options, enableChaos));
                     case InterceptorAdding.Yes:
                         return new QueueContainer<TTransportInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton).Register(() => metrics,
                                 LifeStyles.Singleton).RegisterCollection<IMessageInterceptor>(new[]
                             {
                                 typeof (GZipMessageInterceptor), //gzip compression
-                                typeof (TripleDesMessageInterceptor) //encryption
-                            }).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                                Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton).RegisterNonScopedSingleton(scope).RegisterNonScopedSingleton(trace), options => SetOptions(options, enableChaos));
+                                typeof (AesMessageInterceptor) //encryption
+                            }).Register(() => new AesMessageInterceptorConfiguration(System.Text.Encoding.ASCII.GetBytes("0123456789abcdef0123456789abcdef")                                ), LifeStyles.Singleton).RegisterNonScopedSingleton(scope).RegisterNonScopedSingleton(trace), options => SetOptions(options, enableChaos));
                     default:
                         return new QueueContainer<TTransportInit>(
                             serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton).Register(() => metrics,
