@@ -17,10 +17,12 @@ namespace DotNetWorkQueue.Tests.Interceptors
             var list = new List<IMessageInterceptor>
             {
                 new GZipMessageInterceptor(new GZipMessageInterceptorConfiguration()),
+#pragma warning disable CS0618 // deliberately testing the deprecated 3DES interceptor
                 new TripleDesMessageInterceptor(
                     new TripleDesMessageInterceptorConfiguration(
                         Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
                         Convert.FromBase64String("aaaaaaaaaaa=")))
+#pragma warning restore CS0618
             };
 
             IMessageInterceptorRegistrar register = new MessageInterceptors(list, new InterceptorFactory(Substitute.For<IContainerFactory>()));

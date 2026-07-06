@@ -26,6 +26,7 @@ namespace DotNetWorkQueue.Interceptors
     /// <summary>
     /// Encrypts/Decrypts a byte array
     /// </summary>
+    [Obsolete("TripleDES is deprecated (NIST SP 800-131A) and vulnerable to Sweet32. Use AesMessageInterceptor (AES-256-GCM). This type is retained so existing 3DES-encrypted messages remain decryptable and will be removed in a future major version. See the encryption migration guide.")]
     public class TripleDesMessageInterceptor : IMessageInterceptor
     {
         #region Member level variables
@@ -100,6 +101,7 @@ namespace DotNetWorkQueue.Interceptors
     /// <summary>
     /// Configuration class for <see cref="TripleDesMessageInterceptor"/>
     /// </summary>
+    [Obsolete("TripleDES is deprecated (NIST SP 800-131A) and vulnerable to Sweet32. Use AesMessageInterceptor (AES-256-GCM). This type is retained so existing 3DES-encrypted messages remain decryptable and will be removed in a future major version. See the encryption migration guide.")]
     public class TripleDesMessageInterceptorConfiguration
     {
         /// <summary>
