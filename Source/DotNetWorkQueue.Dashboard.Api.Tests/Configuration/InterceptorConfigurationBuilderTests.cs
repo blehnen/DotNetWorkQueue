@@ -204,6 +204,53 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
         }
 
         [TestMethod]
+        public void Returns_Action_When_Aes_Enabled()
+        {
+            var queueOptions = new DashboardQueueOptions
+            {
+                QueueName = "test",
+                Interceptors = new DashboardInterceptorOptions
+                {
+                    Aes = new AesInterceptorOptions { Key = Convert.ToBase64String(new byte[32]) }
+                }
+            };
+            var result = InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
+            Assert.IsNotNull(result);
+        }
+
+        [TestMethod]
+        public void Throws_When_Aes_Missing_Key()
+        {
+            var queueOptions = new DashboardQueueOptions
+            {
+                QueueName = "test",
+                Interceptors = new DashboardInterceptorOptions
+                {
+                    Aes = new AesInterceptorOptions()
+                }
+            };
+            Action act = () => InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
+            var ex = Assert.Throws<InvalidOperationException>(act);
+            Assert.IsTrue(ex.Message.Contains("Key", StringComparison.OrdinalIgnoreCase));
+        }
+
+        [TestMethod]
+        public void Throws_When_Aes_Key_Wrong_Size()
+        {
+            var queueOptions = new DashboardQueueOptions
+            {
+                QueueName = "test",
+                Interceptors = new DashboardInterceptorOptions
+                {
+                    Aes = new AesInterceptorOptions { Key = Convert.ToBase64String(new byte[16]) }
+                }
+            };
+            Action act = () => InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
+            var ex = Assert.Throws<InvalidOperationException>(act);
+            Assert.IsTrue(ex.Message.Contains("32", StringComparison.OrdinalIgnoreCase));
+        }
+
+        [TestMethod]
         public void Returns_Null_When_Json_Options_Empty()
         {
             var queueOptions = new DashboardQueueOptions

@@ -68,8 +68,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         {
             var enableGZip = interceptorOptions.GZip is { Enabled: true };
             var enableTripleDes = interceptorOptions.TripleDes is { Enabled: true };
+            var enableAes = interceptorOptions.Aes is { Enabled: true };
 
-            if (!enableGZip && !enableTripleDes)
+            if (!enableGZip && !enableTripleDes && !enableAes)
                 return null;
 
             // Validate TripleDES config upfront
@@ -81,9 +82,19 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
                     throw new InvalidOperationException("TripleDes interceptor requires an IV (Base64-encoded).");
             }
 
+            // Validate AES config upfront
+            if (enableAes)
+            {
+                if (string.IsNullOrEmpty(interceptorOptions.Aes.Key))
+                    throw new InvalidOperationException("Aes interceptor requires a Key (Base64-encoded).");
+                if (Convert.FromBase64String(interceptorOptions.Aes.Key).Length != 32)
+                    throw new InvalidOperationException("Aes interceptor Key must decode to 32 bytes (AES-256).");
+            }
+
             // Capture values for the closure
             var gzipOptions = interceptorOptions.GZip;
             var tripleDesOptions = interceptorOptions.TripleDes;
+            var aesOptions = interceptorOptions.Aes;
 
             return container =>
             {
@@ -97,6 +108,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
                         LifeStyles.Singleton);
                 }
 
+#pragma warning disable CS0618 // 3DES retained for decrypting legacy messages; deprecated
                 if (enableTripleDes)
                 {
                     types.Add(typeof(TripleDesMessageInterceptor));
@@ -104,6 +116,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
                         new TripleDesMessageInterceptorConfiguration(
                             Convert.FromBase64String(tripleDesOptions.Key),
                             Convert.FromBase64String(tripleDesOptions.IV)),
+                        LifeStyles.Singleton);
+                }
+#pragma warning restore CS0618
+
+                if (enableAes)
+                {
+                    types.Add(typeof(AesMessageInterceptor));
+                    container.Register(() =>
+                        new AesMessageInterceptorConfiguration(Convert.FromBase64String(aesOptions.Key)),
                         LifeStyles.Singleton);
                 }
 
