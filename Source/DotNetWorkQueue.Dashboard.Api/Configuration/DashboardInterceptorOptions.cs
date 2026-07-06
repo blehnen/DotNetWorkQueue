@@ -35,6 +35,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         /// Set to null (or omit from JSON) to disable.
         /// </summary>
         public TripleDesInterceptorOptions TripleDes { get; set; }
+
+        /// <summary>
+        /// Gets or sets AES-256-GCM encryption interceptor options.
+        /// Set to null (or omit from JSON) to disable.
+        /// </summary>
+        public AesInterceptorOptions Aes { get; set; }
     }
 
     /// <summary>
@@ -72,5 +78,21 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         /// Gets or sets the initialization vector as a Base64-encoded string.
         /// </summary>
         public string IV { get; set; }
+    }
+
+    /// <summary>
+    /// JSON-bindable options for the AES-256-GCM message interceptor.
+    /// </summary>
+    public class AesInterceptorOptions
+    {
+        /// <summary>
+        /// Gets or sets whether AES encryption is enabled. Default is true.
+        /// </summary>
+        public bool Enabled { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets the AES-256 key as a Base64-encoded string (32 bytes when decoded).
+        /// </summary>
+        public string Key { get; set; }
     }
 }

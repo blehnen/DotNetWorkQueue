@@ -68,22 +68,17 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         {
             var enableGZip = interceptorOptions.GZip is { Enabled: true };
             var enableTripleDes = interceptorOptions.TripleDes is { Enabled: true };
+            var enableAes = interceptorOptions.Aes is { Enabled: true };
 
-            if (!enableGZip && !enableTripleDes)
+            if (!enableGZip && !enableTripleDes && !enableAes)
                 return null;
 
-            // Validate TripleDES config upfront
-            if (enableTripleDes)
-            {
-                if (string.IsNullOrEmpty(interceptorOptions.TripleDes.Key))
-                    throw new InvalidOperationException("TripleDes interceptor requires a Key (Base64-encoded).");
-                if (string.IsNullOrEmpty(interceptorOptions.TripleDes.IV))
-                    throw new InvalidOperationException("TripleDes interceptor requires an IV (Base64-encoded).");
-            }
+            ValidateInterceptorOptions(enableTripleDes, enableAes, interceptorOptions);
 
             // Capture values for the closure
             var gzipOptions = interceptorOptions.GZip;
             var tripleDesOptions = interceptorOptions.TripleDes;
+            var aesOptions = interceptorOptions.Aes;
 
             return container =>
             {
@@ -97,6 +92,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
                         LifeStyles.Singleton);
                 }
 
+#pragma warning disable CS0618 // 3DES retained for decrypting legacy messages; deprecated
                 if (enableTripleDes)
                 {
                     types.Add(typeof(TripleDesMessageInterceptor));
@@ -106,9 +102,52 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
                             Convert.FromBase64String(tripleDesOptions.IV)),
                         LifeStyles.Singleton);
                 }
+#pragma warning restore CS0618
+
+                if (enableAes)
+                {
+                    types.Add(typeof(AesMessageInterceptor));
+                    container.Register(() =>
+                        new AesMessageInterceptorConfiguration(Convert.FromBase64String(aesOptions.Key)),
+                        LifeStyles.Singleton);
+                }
 
                 container.RegisterCollection<IMessageInterceptor>(types);
             };
+        }
+
+        /// <summary>
+        /// Validates the interceptor options up front, throwing <see cref="InvalidOperationException"/>
+        /// for any misconfiguration so all validation failures share one exception type.
+        /// </summary>
+        private static void ValidateInterceptorOptions(bool enableTripleDes, bool enableAes, DashboardInterceptorOptions interceptorOptions)
+        {
+            if (enableTripleDes)
+            {
+                if (string.IsNullOrEmpty(interceptorOptions.TripleDes.Key))
+                    throw new InvalidOperationException("TripleDes interceptor requires a Key (Base64-encoded).");
+                if (string.IsNullOrEmpty(interceptorOptions.TripleDes.IV))
+                    throw new InvalidOperationException("TripleDes interceptor requires an IV (Base64-encoded).");
+            }
+
+            if (enableAes)
+            {
+                if (string.IsNullOrEmpty(interceptorOptions.Aes.Key))
+                    throw new InvalidOperationException("Aes interceptor requires a Key (Base64-encoded).");
+
+                byte[] decodedAesKey;
+                try
+                {
+                    decodedAesKey = Convert.FromBase64String(interceptorOptions.Aes.Key);
+                }
+                catch (FormatException ex)
+                {
+                    throw new InvalidOperationException("Aes interceptor Key is not a valid Base64 string.", ex);
+                }
+
+                if (decodedAesKey.Length != 32)
+                    throw new InvalidOperationException("Aes interceptor Key must decode to 32 bytes (AES-256).");
+            }
         }
     }
 }

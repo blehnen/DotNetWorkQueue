@@ -12,6 +12,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
             var opts = new DashboardInterceptorOptions();
             Assert.IsNull(opts.GZip);
             Assert.IsNull(opts.TripleDes);
+            Assert.IsNull(opts.Aes);
         }
 
         [TestMethod]
@@ -48,6 +49,21 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
             };
             Assert.AreEqual("dGVzdGtleQ==", opts.Key);
             Assert.AreEqual("dGVzdGl2", opts.IV);
+        }
+
+        [TestMethod]
+        public void Aes_Defaults()
+        {
+            var opts = new AesInterceptorOptions();
+            Assert.IsTrue(opts.Enabled);
+            Assert.IsNull(opts.Key);
+        }
+
+        [TestMethod]
+        public void Aes_Can_Be_Set()
+        {
+            var opts = new AesInterceptorOptions { Key = "dGVzdGtleQ==" };
+            Assert.AreEqual("dGVzdGtleQ==", opts.Key);
         }
     }
 }

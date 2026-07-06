@@ -27,6 +27,7 @@ namespace DotNetWorkQueue
     /// and de-serializing a message.
     /// <remarks>For instance, this can be used to compress or encrypt the message in the transport</remarks>
     /// <seealso cref="GZipMessageInterceptor"/>
+    /// <seealso cref="AesMessageInterceptor"/>
     /// <seealso cref="TripleDesMessageInterceptor"/>
     /// </summary>
     public interface IMessageInterceptor
