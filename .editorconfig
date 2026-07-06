@@ -10,19 +10,26 @@ root = true
 # and cleans local build output. Only low-value / migration-artifact / wrong-for-
 # our-design rules are silenced; genuinely useful rules (CA2254, CA1873, CA1854,
 # CA1513, CA1816, MSTEST0037, and all csharpsquid rules) are left active.
+#
+# NOTE: EditorConfig does not support inline comments — a '#' after a value is
+# parsed as part of the value. Every rationale below is therefore on its own line.
 # ---------------------------------------------------------------------------
 
 [*.cs]
 # MSTest analyzer style nags (test-only rules) — fallout from the FluentAssertions -> MSTest migration.
-dotnet_diagnostic.MSTEST0049.severity = none   # "pass TestContext.CancellationToken to the overload accepting one"
-dotnet_diagnostic.MSTEST0046.severity = none   # "use Assert.Contains instead of StringAssert.Contains"
-dotnet_diagnostic.CA2263.severity = none       # "prefer the generic overload Assert.IsInstanceOfType<T>"
-
-# CA1859 recommends concrete return types for performance, but the public API here
+# MSTEST0049: "pass TestContext.CancellationToken to the overload accepting one"
+dotnet_diagnostic.MSTEST0049.severity = none
+# MSTEST0046: "use Assert.Contains instead of StringAssert.Contains"
+dotnet_diagnostic.MSTEST0046.severity = none
+# CA2263: "prefer the generic overload Assert.IsInstanceOfType<T>"
+dotnet_diagnostic.CA2263.severity = none
+# CA1859: recommends concrete return types for performance, but the public API
 # deliberately returns interfaces (IQueueOutputMessage, etc.) as the contract.
 dotnet_diagnostic.CA1859.severity = none
 
 # Test projects only: rules that are noise in tests but kept active in production code.
 [**/*Tests*/**.cs]
-dotnet_diagnostic.CA1822.severity = none       # "member can be marked static" — not useful on test methods
-dotnet_diagnostic.CA1806.severity = none       # "instance never used" — tests new-up a type to assert its ctor throws
+# CA1822: "member can be marked static" — not useful on test methods.
+dotnet_diagnostic.CA1822.severity = none
+# CA1806: "instance never used" — tests new-up a type to assert its ctor throws.
+dotnet_diagnostic.CA1806.severity = none
