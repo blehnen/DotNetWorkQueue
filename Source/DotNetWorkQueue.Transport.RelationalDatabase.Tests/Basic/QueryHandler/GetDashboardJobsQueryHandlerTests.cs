@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 
             var result = handler.Handle(new GetDashboardJobsQuery());
 
-            Assert.AreEqual(3, result.Count);
+            Assert.HasCount(3, result);
             Assert.AreEqual("JobA", result[0].JobName);
             Assert.AreEqual("JobB", result[1].JobName);
             Assert.AreEqual("JobC", result[2].JobName);

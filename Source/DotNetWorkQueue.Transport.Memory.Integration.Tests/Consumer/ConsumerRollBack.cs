@@ -141,7 +141,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
                             // Consumer disposed -- no crash
                         }
 
-                        Assert.IsTrue(processedCount >= 1,
+                        Assert.IsGreaterThanOrEqualTo(1, processedCount,
                             "at least one message should have been processed before stop");
                     }
                 }

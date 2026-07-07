@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             registry.Register("testQueue", "MACHINE1", 1234, null);
 
             var entries = registry.GetAll();
-            Assert.AreEqual(1, (entries).Count());
+            Assert.HasCount(1, entries);
             Assert.AreEqual(queueId, entries[0].MatchedQueueId);
         }
 
@@ -94,10 +94,10 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var after = DateTimeOffset.UtcNow;
 
             var entry = registry.GetAll()[0];
-            Assert.IsTrue((entry.RegisteredAt) >= (before));
-            Assert.IsTrue((entry.RegisteredAt) <= (after));
-            Assert.IsTrue((entry.LastHeartbeat) >= (before));
-            Assert.IsTrue((entry.LastHeartbeat) <= (after));
+            Assert.IsGreaterThanOrEqualTo(before, entry.RegisteredAt);
+            Assert.IsLessThanOrEqualTo(after, entry.RegisteredAt);
+            Assert.IsGreaterThanOrEqualTo(before, entry.LastHeartbeat);
+            Assert.IsLessThanOrEqualTo(after, entry.LastHeartbeat);
         }
 
         [TestMethod]
@@ -111,7 +111,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var result = registry.Heartbeat(id);
 
             Assert.IsTrue(result);
-            Assert.IsTrue((registry.GetAll()[0].LastHeartbeat) > (initialHeartbeat));
+            Assert.IsGreaterThan(initialHeartbeat, registry.GetAll()[0].LastHeartbeat);
         }
 
         [TestMethod]
@@ -172,7 +172,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var id = registry.Register("testQueue", "MACHINE1", 1234, null);
 
             Assert.IsTrue(registry.Unregister(id));
-            Assert.IsFalse((registry.GetAll()).Any());
+            Assert.IsEmpty(registry.GetAll());
         }
 
         [TestMethod]
@@ -189,7 +189,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             registry.Register("testQueue", "MACHINE1", 1234, null);
             registry.Register("testQueue", "MACHINE2", 5678, null);
 
-            Assert.AreEqual(2, (registry.GetAll()).Count());
+            Assert.HasCount(2, registry.GetAll());
         }
 
         [TestMethod]
@@ -200,7 +200,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             registry.Register("otherQueue", "MACHINE2", 5678, null);
 
             var matched = registry.GetByQueue(queueId);
-            Assert.AreEqual(1, (matched).Count());
+            Assert.HasCount(1, matched);
             Assert.AreEqual("MACHINE1", matched[0].MachineName);
         }
 
@@ -210,7 +210,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var registry = CreateRegistry(out _);
             registry.Register("testQueue", "MACHINE1", 1234, null);
 
-            Assert.IsFalse((registry.GetByQueue(Guid.NewGuid())).Any());
+            Assert.IsEmpty(registry.GetByQueue(Guid.NewGuid()));
         }
 
         [TestMethod]
@@ -232,7 +232,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var registry = CreateRegistry(out _);
             registry.Register("unknownQueue", "MACHINE1", 1234, null);
 
-            Assert.IsFalse((registry.GetCountsByQueue()).Any());
+            Assert.IsEmpty(registry.GetCountsByQueue());
         }
 
         [TestMethod]
@@ -244,7 +244,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             // With a zero threshold, everything is stale
             var pruned = registry.PruneStale(TimeSpan.Zero);
             Assert.AreEqual(1, pruned);
-            Assert.IsFalse((registry.GetAll()).Any());
+            Assert.IsEmpty(registry.GetAll());
         }
 
         [TestMethod]
@@ -255,7 +255,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             var pruned = registry.PruneStale(TimeSpan.FromMinutes(5));
             Assert.AreEqual(0, pruned);
-            Assert.AreEqual(1, (registry.GetAll()).Count());
+            Assert.HasCount(1, registry.GetAll());
         }
 
         [TestMethod]

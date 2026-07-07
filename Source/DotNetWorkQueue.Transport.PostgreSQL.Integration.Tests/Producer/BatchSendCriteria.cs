@@ -78,8 +78,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
                         Assert.IsFalse(output.HasErrors, "batch send reported errors");
 
                         var ids = output.Select(m => Convert.ToInt64(m.SentMessage.MessageId.Id.Value)).ToList();
-                        Assert.AreEqual(count, ids.Count);
-                        Assert.AreEqual(count, ids.Distinct().Count(), "generated ids are not unique");
+                        Assert.HasCount(count, ids);
+                        Assert.HasCount(count, ids.Distinct(), "generated ids are not unique");
 
                         // Definitive id-order check: the OrderID stored for result[i].id must equal i.
                         // Load the whole QueueID -> OrderID map in one query rather than per-row.
@@ -167,7 +167,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
 
                         var output = producer.Send(messages);
                         Assert.IsFalse(output.HasErrors);
-                        Assert.AreEqual(count, output.Count);
+                        Assert.HasCount(count, output);
                     }
                     new VerifyQueueData(queueName, oCreation.Options).Verify(count, null);
                 }

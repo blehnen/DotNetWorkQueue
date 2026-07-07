@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
 
             var cut = Render<Login>();
 
-            Assert.IsFalse(cut.Markup.Contains("Invalid username or password."));
+            Assert.DoesNotContain("Invalid username or password.", cut.Markup);
         }
 
         [TestMethod]

@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Tests.Factory
 
             Assert.AreEqual(info.ExceptionType, t);
             Assert.AreEqual(info.Times, times);
-            Assert.AreEqual(info.MaxRetries, times.Count);
+            Assert.HasCount(info.MaxRetries, times);
         }
         [TestMethod]
         public void Create_Null_Params_Fails()

@@ -118,7 +118,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             tests.Add(test, test);
             tests.Add(test2, test2);
 
-            Assert.AreEqual(2, tests.Count);
+            Assert.HasCount(2, tests);
             Assert.AreEqual(test, tests[test]);
             Assert.AreEqual(test2, tests[test2]);
             Assert.AreNotEqual(test, tests[test2]);
@@ -133,7 +133,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
                 var test = new WorkGroup(string.Concat(Name, i.ToString()), i + 1);
                 tests.Add(test, test);
             }
-            Assert.AreEqual(100000, tests.Count);
+            Assert.HasCount(100000, tests);
         }
     }
 }

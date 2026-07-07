@@ -98,16 +98,16 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
             // helpers, masking the actual call site if a future edit added a Commit /
             // Rollback / Close / Dispose call to one of them.
             var forkStart = content.IndexOf("private long HandleExternalTransaction", StringComparison.Ordinal);
-            Assert.IsTrue(forkStart >= 0, "HandleExternalTransaction not found in source.");
+            Assert.IsGreaterThanOrEqualTo(0, forkStart, "HandleExternalTransaction not found in source.");
             var forkEnd = content.IndexOf("\n        }\n", forkStart, StringComparison.Ordinal);
-            Assert.IsTrue(forkEnd >= 0,
+            Assert.IsGreaterThanOrEqualTo(0, forkEnd,
                 "Closing brace of HandleExternalTransaction (column-8 '}' on its own line) not found.");
             var forkBody = content.Substring(forkStart, forkEnd - forkStart);
 
-            Assert.IsFalse(forkBody.Contains(".Commit()"), "HandleExternalTransaction must not call .Commit() on the caller's transaction.");
-            Assert.IsFalse(forkBody.Contains(".Rollback()"), "HandleExternalTransaction must not call .Rollback() on the caller's transaction.");
-            Assert.IsFalse(forkBody.Contains(".Close()"), "HandleExternalTransaction must not call .Close() on the caller's connection.");
-            Assert.IsFalse(forkBody.Contains(".Dispose()"), "HandleExternalTransaction must not call .Dispose() on the caller's connection or transaction.");
+            Assert.DoesNotContain(".Commit()", forkBody, "HandleExternalTransaction must not call .Commit() on the caller's transaction.");
+            Assert.DoesNotContain(".Rollback()", forkBody, "HandleExternalTransaction must not call .Rollback() on the caller's transaction.");
+            Assert.DoesNotContain(".Close()", forkBody, "HandleExternalTransaction must not call .Close() on the caller's connection.");
+            Assert.DoesNotContain(".Dispose()", forkBody, "HandleExternalTransaction must not call .Dispose() on the caller's connection or transaction.");
         }
 
         /// <summary>

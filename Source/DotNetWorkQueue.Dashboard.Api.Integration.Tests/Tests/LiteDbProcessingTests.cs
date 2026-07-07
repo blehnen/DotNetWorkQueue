@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var status = await _server.Client.GetFromJsonAsync<QueueStatusResponse>(
                 $"api/v1/dashboard/queues/{_queueId}/status");
-            Assert.IsTrue(status.Processing >= 1);
+            Assert.IsGreaterThanOrEqualTo(1, status.Processing);
         }
 
         [TestMethod]
@@ -92,7 +92,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages?status=1&pageSize=100");
-            Assert.IsTrue(paged.Items.Count > 0);
+            Assert.IsNotEmpty(paged.Items);
         }
 
         [TestMethod]
@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages?status=1&pageSize=1");
-            Assert.IsTrue(paged.Items.Count > 0);
+            Assert.IsNotEmpty(paged.Items);
             var messageId = paged.Items[0].QueueId;
 
             var response = await _server.Client.DeleteAsync(

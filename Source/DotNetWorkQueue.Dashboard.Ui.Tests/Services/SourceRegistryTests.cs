@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = registry.GetAll();
 
-            Assert.AreEqual(2, result.Count);
+            Assert.HasCount(2, result);
         }
 
         [TestMethod]

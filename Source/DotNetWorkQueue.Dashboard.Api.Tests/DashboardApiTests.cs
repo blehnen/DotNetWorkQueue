@@ -16,7 +16,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests
             var options = new DashboardOptions();
             using var api = new DashboardApi(options, NullLogger<DashboardApi>.Instance);
 
-            Assert.IsFalse((api.Connections).Any());
+            Assert.IsEmpty(api.Connections);
         }
 
         [TestMethod]

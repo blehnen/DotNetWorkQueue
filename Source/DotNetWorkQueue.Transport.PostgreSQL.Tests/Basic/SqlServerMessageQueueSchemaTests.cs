@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             factory.Create().Returns(options);
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
-            Assert.IsTrue(tables.Any(item => item.Name == tableName.StatusName));
+            Assert.Contains(item => item.Name == tableName.StatusName, tables);
         }
 
         [TestMethod]
@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.StatusName);
-            Assert.IsTrue(statusTable.Columns.Items.Any(item => item.Name == "testing"));
+            Assert.Contains(item => item.Name == "testing", statusTable.Columns.Items);
         }
 
         [TestMethod]
@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.StatusName);
-            Assert.IsTrue(statusTable.Constraints.Any(item => item.Name == "ix_testing"));
+            Assert.Contains(item => item.Name == "ix_testing", statusTable.Constraints);
         }
 
         [TestMethod]
@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.IsTrue(statusTable.Columns.Items.Any(item => item.Name == "Priority"));
+            Assert.Contains(item => item.Name == "Priority", statusTable.Columns.Items);
         }
 
         [TestMethod]
@@ -83,7 +83,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.IsTrue(statusTable.Columns.Items.Any(item => item.Name == "Status"));
+            Assert.Contains(item => item.Name == "Status", statusTable.Columns.Items);
         }
 
         [TestMethod]
@@ -96,7 +96,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.IsTrue(statusTable.Columns.Items.Any(item => item.Name == "QueueProcessTime"));
+            Assert.Contains(item => item.Name == "QueueProcessTime", statusTable.Columns.Items);
         }
 
         [TestMethod]
@@ -109,7 +109,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.IsTrue(statusTable.Columns.Items.Any(item => item.Name == "HeartBeat"));
+            Assert.Contains(item => item.Name == "HeartBeat", statusTable.Columns.Items);
         }
 
         [TestMethod]
@@ -122,7 +122,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var test = Create(factory, tableName);
             var tables = test.GetSchema().ConvertAll(o => (Table)o);
             var statusTable = tables.Find(item => item.Name == tableName.MetaDataName);
-            Assert.IsTrue(statusTable.Columns.Items.Any(item => item.Name == "ExpirationTime"));
+            Assert.Contains(item => item.Name == "ExpirationTime", statusTable.Columns.Items);
         }
 
 

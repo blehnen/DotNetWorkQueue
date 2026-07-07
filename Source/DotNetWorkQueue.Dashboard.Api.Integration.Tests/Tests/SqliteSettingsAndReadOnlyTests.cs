@@ -119,11 +119,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // GET requests should still work
             var connections = await server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
-            Assert.AreEqual(1, connections.Count);
+            Assert.HasCount(1, connections);
 
             var queues = await server.Client.GetFromJsonAsync<List<QueueInfoResponse>>(
                 $"api/v1/dashboard/connections/{connections[0].Id}/queues");
-            Assert.AreEqual(1, queues.Count);
+            Assert.HasCount(1, queues);
 
             var status = await server.Client.GetFromJsonAsync<QueueStatusResponse>(
                 $"api/v1/dashboard/queues/{queues[0].Id}/status");

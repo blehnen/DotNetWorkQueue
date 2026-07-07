@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Tests.Time
             var test = Create();
             test.GetCurrentUtcDate();
             var offSet = test.GetCurrentOffset;
-            Assert.IsTrue(offSet.Duration() < TimeSpan.FromMilliseconds(1),
+            Assert.IsLessThan(TimeSpan.FromMilliseconds(1), offSet.Duration(),
                 $"Expected offset near zero but was {offSet}");
         }
 

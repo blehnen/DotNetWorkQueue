@@ -71,7 +71,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
             var result = sut.GetAllHealth();
 
             Assert.IsNotNull(result);
-            Assert.IsFalse(result.Any());
+            Assert.IsEmpty(result);
         }
 
         [TestMethod]
@@ -89,7 +89,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = sut.GetHealth(source.Slug);
             Assert.AreEqual(SourceHealthStatus.Healthy, result.Status);
-            Assert.IsTrue(result.LastChecked >= before);
+            Assert.IsGreaterThanOrEqualTo(before, result.LastChecked);
             Assert.IsNull(result.ErrorMessage);
         }
 
@@ -175,7 +175,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
             await sut.PollAllSourcesAsync(CancellationToken.None);
 
             var all = sut.GetAllHealth();
-            Assert.AreEqual(2, all.Count);
+            Assert.HasCount(2, all);
             Assert.AreEqual(SourceHealthStatus.Healthy, all[source1.Slug].Status);
             Assert.AreEqual(SourceHealthStatus.Unhealthy, all[source2.Slug].Status);
         }
@@ -203,24 +203,24 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
             await sut.PollAllSourcesAsync(CancellationToken.None);
 
             // Verify no log call was made for same-state poll
-            Assert.IsFalse(logger.ReceivedCalls().Any());
+            Assert.IsEmpty(logger.ReceivedCalls());
 
             // Third poll: unhealthy (transition Healthy -> Unhealthy, should log)
             shouldThrow = true;
             await sut.PollAllSourcesAsync(CancellationToken.None);
 
             // Verify a log call was made for the transition
-            Assert.IsTrue(logger.ReceivedCalls().Any());
+            Assert.IsNotEmpty(logger.ReceivedCalls());
 
             // Fourth poll: still unhealthy (no transition, should NOT log)
             logger.ClearReceivedCalls();
             await sut.PollAllSourcesAsync(CancellationToken.None);
-            Assert.IsFalse(logger.ReceivedCalls().Any());
+            Assert.IsEmpty(logger.ReceivedCalls());
 
             // Fifth poll: recovery (Unhealthy -> Healthy, should log)
             shouldThrow = false;
             await sut.PollAllSourcesAsync(CancellationToken.None);
-            Assert.IsTrue(logger.ReceivedCalls().Any());
+            Assert.IsNotEmpty(logger.ReceivedCalls());
         }
     }
 }

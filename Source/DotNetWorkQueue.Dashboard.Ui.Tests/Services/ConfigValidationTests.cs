@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = DashboardConfigParser.ParseSources(config);
 
-            Assert.AreEqual(1, result.Count);
+            Assert.HasCount(1, result);
             Assert.AreEqual("Local", result[0].Name);
             Assert.AreEqual("http://localhost:5000", result[0].BaseUrl);
         }
@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = DashboardConfigParser.ParseSources(config);
 
-            Assert.AreEqual(2, result.Count);
+            Assert.HasCount(2, result);
         }
 
         [TestMethod]
@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = DashboardConfigParser.ParseSources(config);
 
-            Assert.AreEqual(1, result.Count);
+            Assert.HasCount(1, result);
             Assert.AreEqual("my-secret-key", result[0].ApiKey);
         }
 
@@ -96,7 +96,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = DashboardConfigParser.ParseSources(config);
 
-            Assert.AreEqual(1, result.Count);
+            Assert.HasCount(1, result);
             Assert.IsNull(result[0].ApiKey);
         }
 

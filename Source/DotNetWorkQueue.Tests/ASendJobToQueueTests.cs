@@ -342,7 +342,7 @@ namespace DotNetWorkQueue.Tests
                     ((m, w) => Console.WriteLine()));
 
             // Should have deleted the errored job and retried
-            Assert.IsTrue(handler.DeleteJobCallCount >= 1);
+            Assert.IsGreaterThanOrEqualTo(1, handler.DeleteJobCallCount);
             Assert.AreEqual(JobQueuedStatus.Success, result.Status);
         }
 

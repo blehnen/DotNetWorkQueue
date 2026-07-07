@@ -54,14 +54,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 {
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var records = col.FindAll().ToList();
-                    Assert.AreEqual(1, records.Count);
+                    Assert.HasCount(1, records);
                     Assert.AreEqual("q1", records[0].QueueId);
                     Assert.AreEqual("c1", records[0].CorrelationId);
                     Assert.AreEqual("routeA", records[0].Route);
                     Assert.AreEqual("MyType", records[0].MessageType);
                     Assert.AreEqual((int)MessageHistoryStatus.Enqueued, records[0].Status);
                     Assert.AreEqual(0, records[0].RetryCount);
-                    Assert.IsTrue(records[0].EnqueuedUtc > 0);
+                    Assert.IsGreaterThan(0, records[0].EnqueuedUtc);
                 }
             }
         }
@@ -120,7 +120,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
                     Assert.AreEqual((int)MessageHistoryStatus.Processing, record.Status);
-                    Assert.IsTrue(record.StartedUtc > 0);
+                    Assert.IsGreaterThan(0, record.StartedUtc);
                 }
             }
         }
@@ -153,8 +153,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
                     Assert.AreEqual((int)MessageHistoryStatus.Complete, record.Status);
-                    Assert.IsTrue(record.CompletedUtc > 0);
-                    Assert.IsTrue(record.DurationMs >= 0);
+                    Assert.IsGreaterThan(0, record.CompletedUtc);
+                    Assert.IsGreaterThanOrEqualTo(0, record.DurationMs);
                 }
             }
         }
@@ -239,8 +239,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                     var record = col.FindAll().First();
                     Assert.AreEqual((int)MessageHistoryStatus.Error, record.Status);
                     Assert.AreEqual("Something went wrong", record.ExceptionText);
-                    Assert.IsTrue(record.CompletedUtc > 0);
-                    Assert.IsTrue(record.DurationMs >= 0);
+                    Assert.IsGreaterThan(0, record.CompletedUtc);
+                    Assert.IsGreaterThanOrEqualTo(0, record.DurationMs);
                 }
             }
         }
@@ -348,7 +348,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
                     Assert.AreEqual((int)MessageHistoryStatus.Deleted, record.Status);
-                    Assert.IsTrue(record.CompletedUtc > 0);
+                    Assert.IsGreaterThan(0, record.CompletedUtc);
                 }
             }
         }
@@ -380,7 +380,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                     var col = db.Database.GetCollection<HistoryTable>(tnh.HistoryName);
                     var record = col.FindAll().First();
                     Assert.AreEqual((int)MessageHistoryStatus.Expired, record.Status);
-                    Assert.IsTrue(record.CompletedUtc > 0);
+                    Assert.IsGreaterThan(0, record.CompletedUtc);
                 }
             }
         }

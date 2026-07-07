@@ -182,7 +182,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             Assert.IsNotNull(result);
             var items = result!.Value as List<ConsumerInfoResponse>;
-            Assert.AreEqual(1, (items).Count());
+            Assert.HasCount(1, items);
         }
 
         [TestMethod]
@@ -204,7 +204,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             var result = controller.GetConsumers() as OkObjectResult;
             var items = result!.Value as List<ConsumerInfoResponse>;
-            Assert.AreEqual(1, (items).Count());
+            Assert.HasCount(1, items);
             Assert.AreEqual(500, items![0].MessagesProcessed);
             Assert.AreEqual(10, items[0].MessagesErrored);
             Assert.AreEqual(7, items[0].MessagesRolledBack);
@@ -233,7 +233,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             Assert.IsNotNull(result);
             var items = result!.Value as ConsumerInfoResponse[];
-            Assert.IsFalse((items).Any());
+            Assert.IsEmpty(items);
         }
 
         // === GetConsumerCounts ===
@@ -262,7 +262,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             Assert.IsNotNull(result);
             var counts = result!.Value as Dictionary<Guid, int>;
-            Assert.IsFalse((counts).Any());
+            Assert.IsEmpty(counts);
         }
     }
 }

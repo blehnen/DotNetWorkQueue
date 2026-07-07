@@ -20,7 +20,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
             var tables = fixture.Schema.GetSchema();
 
             Assert.IsNotNull(tables);
-            Assert.AreEqual(1, tables.Count);
+            Assert.HasCount(1, tables);
         }
 
         [TestMethod]
@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
 
             var table = (Table)fixture.Schema.GetSchema().Single();
 
-            Assert.AreEqual(3, table.Columns.Items.Count);
+            Assert.HasCount(3, table.Columns.Items);
 
             var jobEventTime = table.Columns.Items.SingleOrDefault(c => c.Name == "JobEventTime");
             Assert.IsNotNull(jobEventTime);
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
             Assert.AreEqual(ConstraintType.PrimaryKey, table.PrimaryKey.Type);
             Assert.IsTrue(table.PrimaryKey.Clustered);
             Assert.IsTrue(table.PrimaryKey.Unique);
-            Assert.AreEqual(1, table.PrimaryKey.Columns.Count);
+            Assert.HasCount(1, table.PrimaryKey.Columns);
             Assert.AreEqual("JobName", table.PrimaryKey.Columns.Single());
         }
 

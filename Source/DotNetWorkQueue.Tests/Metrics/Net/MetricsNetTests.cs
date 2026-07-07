@@ -239,8 +239,8 @@ namespace DotNetWorkQueue.Tests.Metrics.Net
             var test = Create();
             var snapshot = test.GetCollectedMetrics();
             Assert.IsNotNull(snapshot);
-            Assert.AreEqual(0, snapshot.Counters.Count);
-            Assert.AreEqual(0, snapshot.Meters.Count);
+            Assert.IsEmpty(snapshot.Counters);
+            Assert.IsEmpty(snapshot.Meters);
         }
 
         [TestMethod]
@@ -283,10 +283,10 @@ namespace DotNetWorkQueue.Tests.Metrics.Net
             meter1.Mark();
 
             var snapshot = test.GetCollectedMetrics();
-            Assert.AreEqual(2, snapshot.Counters.Count);
+            Assert.HasCount(2, snapshot.Counters);
             Assert.AreEqual(1, snapshot.Counters["counter-a"]);
             Assert.AreEqual(5, snapshot.Counters["counter-b"]);
-            Assert.AreEqual(1, snapshot.Meters.Count);
+            Assert.HasCount(1, snapshot.Meters);
             Assert.AreEqual(1, snapshot.Meters["meter-a"]);
         }
 

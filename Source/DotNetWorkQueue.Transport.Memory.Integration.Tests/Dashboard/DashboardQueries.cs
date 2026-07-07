@@ -221,7 +221,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
                 var result = handler.HandleAsync(new GetDashboardMessagesQuery(0, 100, null))
                     .GetAwaiter().GetResult();
 
-                Assert.AreEqual(3, result.Count);
+                Assert.HasCount(3, result);
                 foreach (var msg in result)
                 {
                     Assert.IsFalse(string.IsNullOrEmpty(msg.QueueId));
@@ -242,7 +242,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
                 var result = handler.HandleAsync(new GetDashboardMessagesQuery(0, 100, 0))
                     .GetAwaiter().GetResult();
 
-                Assert.AreEqual(2, result.Count);
+                Assert.HasCount(2, result);
                 foreach (var msg in result)
                 {
                     Assert.AreEqual(0, msg.Status);
@@ -262,7 +262,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
                 var result = handler.HandleAsync(new GetDashboardMessagesQuery(0, 100, 1))
                     .GetAwaiter().GetResult();
 
-                Assert.AreEqual(1, result.Count);
+                Assert.HasCount(1, result);
                 Assert.AreEqual(1, result[0].Status);
             });
         }
@@ -279,7 +279,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
                 var result = handler.HandleAsync(new GetDashboardMessagesQuery(0, 100, 2))
                     .GetAwaiter().GetResult();
 
-                Assert.AreEqual(0, result.Count);
+                Assert.IsEmpty(result);
             });
         }
 
@@ -300,7 +300,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
                 var messages = listHandler
                     .HandleAsync(new GetDashboardMessagesQuery(0, 100, null))
                     .GetAwaiter().GetResult();
-                Assert.AreEqual(1, messages.Count);
+                Assert.HasCount(1, messages);
 
                 var detailHandler =
                     container
@@ -347,7 +347,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
                 var messages = listHandler
                     .HandleAsync(new GetDashboardMessagesQuery(0, 100, null))
                     .GetAwaiter().GetResult();
-                Assert.AreEqual(1, messages.Count);
+                Assert.HasCount(1, messages);
 
                 var bodyHandler =
                     container
@@ -375,7 +375,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
                 var messages = listHandler
                     .HandleAsync(new GetDashboardMessagesQuery(0, 100, null))
                     .GetAwaiter().GetResult();
-                Assert.AreEqual(1, messages.Count);
+                Assert.HasCount(1, messages);
 
                 var headerHandler =
                     container
@@ -406,7 +406,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
                 var result = handler.HandleAsync(new GetDashboardJobsQuery())
                     .GetAwaiter().GetResult();
 
-                Assert.AreEqual(0, result.Count);
+                Assert.IsEmpty(result);
             });
         }
 
@@ -427,7 +427,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
                 var messages = listHandler
                     .HandleAsync(new GetDashboardMessagesQuery(0, 100, null))
                     .GetAwaiter().GetResult();
-                Assert.AreEqual(1, messages.Count);
+                Assert.HasCount(1, messages);
 
                 var deleteHandler =
                     container
@@ -479,7 +479,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
                 var processing = listHandler
                     .HandleAsync(new GetDashboardMessagesQuery(0, 100, 1))
                     .GetAwaiter().GetResult();
-                Assert.AreEqual(1, processing.Count);
+                Assert.HasCount(1, processing);
 
                 var deleteHandler =
                     container
@@ -519,7 +519,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
                 var result = handler.HandleAsync(new GetDashboardStaleMessagesQuery(60, 0, 100))
                     .GetAwaiter().GetResult();
 
-                Assert.AreEqual(0, result.Count);
+                Assert.IsEmpty(result);
             });
         }
 
@@ -535,7 +535,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
                 var result = handler.HandleAsync(new GetDashboardErrorMessagesQuery(0, 100))
                     .GetAwaiter().GetResult();
 
-                Assert.AreEqual(0, result.Count);
+                Assert.IsEmpty(result);
             });
         }
 
@@ -567,7 +567,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
                     .HandleAsync(new GetDashboardErrorRetriesQuery(Guid.NewGuid().ToString()))
                     .GetAwaiter().GetResult();
 
-                Assert.AreEqual(0, result.Count);
+                Assert.IsEmpty(result);
             });
         }
 

@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
             // Validator's check-4 message includes both DB names for diagnostics
             // (PROJECT.md §Non-Functional "Diagnostics"). Assert at minimum the wrong
             // database name appears.
-            Assert.IsTrue(ex.Message.IndexOf("master", StringComparison.OrdinalIgnoreCase) >= 0,
+            Assert.IsGreaterThanOrEqualTo(0, ex.Message.IndexOf("master", StringComparison.OrdinalIgnoreCase),
                 $"Expected exception message to mention 'master': {ex.Message}");
 
             // No partial write — queue MetaData table count must be 0.

@@ -95,7 +95,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
         public void CorsOrigins_Defaults_To_Empty()
         {
             var opts = new DashboardOptions();
-            Assert.IsFalse((opts.CorsOrigins).Any());
+            Assert.IsEmpty(opts.CorsOrigins);
         }
 
         [TestMethod]
@@ -107,7 +107,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 CorsOrigins = new[] { "http://localhost:5000" }
             };
             Assert.IsTrue(opts.EnableCors);
-            Assert.AreEqual(1, (opts.CorsOrigins).Count());
+            Assert.HasCount(1, opts.CorsOrigins);
             Assert.AreEqual("http://localhost:5000", (opts.CorsOrigins).Single());
         }
 
@@ -115,7 +115,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
         public void AssemblyPaths_Defaults_To_Empty()
         {
             var opts = new DashboardOptions();
-            Assert.IsFalse((opts.AssemblyPaths).Any());
+            Assert.IsEmpty(opts.AssemblyPaths);
         }
 
         [TestMethod]
@@ -125,7 +125,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
             {
                 AssemblyPaths = new[] { "/app/plugins", "/opt/dlls" }
             };
-            Assert.AreEqual(2, (opts.AssemblyPaths).Count());
+            Assert.HasCount(2, opts.AssemblyPaths);
             Assert.AreEqual("/app/plugins", opts.AssemblyPaths[0]);
             Assert.AreEqual("/opt/dlls", opts.AssemblyPaths[1]);
         }

@@ -72,12 +72,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var connections = await _server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
-            Assert.AreEqual(1, connections.Count);
+            Assert.HasCount(1, connections);
             _connectionId = connections[0].Id;
 
             var queues = await _server.Client.GetFromJsonAsync<List<QueueInfoResponse>>(
                 $"api/v1/dashboard/connections/{_connectionId}/queues");
-            Assert.AreEqual(2, queues.Count);
+            Assert.HasCount(2, queues);
 
             // Assign queue IDs by matching queue names
             foreach (var q in queues)
@@ -102,7 +102,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var connections = await _server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
-            Assert.AreEqual(1, connections.Count);
+            Assert.HasCount(1, connections);
             Assert.AreEqual(2, connections[0].QueueCount);
         }
 
@@ -111,11 +111,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged1 = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId1}/messages?pageSize=100");
-            Assert.AreEqual(3, paged1.Items.Count);
+            Assert.HasCount(3, paged1.Items);
 
             var paged2 = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId2}/messages?pageSize=100");
-            Assert.AreEqual(2, paged2.Items.Count);
+            Assert.HasCount(2, paged2.Items);
         }
 
         [TestMethod]

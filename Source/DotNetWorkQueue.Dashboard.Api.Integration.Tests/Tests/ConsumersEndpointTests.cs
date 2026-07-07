@@ -54,7 +54,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var registration = await response.Content.ReadFromJsonAsync<ConsumerRegistrationResponse>();
             Assert.IsNotNull(registration);
             Assert.AreNotEqual(Guid.Empty, registration!.ConsumerId);
-            Assert.IsTrue(registration.HeartbeatIntervalSeconds > 0);
+            Assert.IsGreaterThan(0, registration.HeartbeatIntervalSeconds);
         }
 
         [TestMethod]
@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
 
-            Assert.AreEqual(1, consumers.Count);
+            Assert.HasCount(1, consumers);
             var c = consumers![0];
             Assert.AreEqual(250, c.MessagesProcessed);
             Assert.AreEqual(10, c.MessagesErrored);
@@ -178,7 +178,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
-            Assert.AreEqual(0, consumers.Count);
+            Assert.IsEmpty(consumers);
         }
 
         // === List ===
@@ -192,7 +192,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
 
-            Assert.AreEqual(2, consumers.Count);
+            Assert.HasCount(2, consumers);
         }
 
         [TestMethod]
@@ -203,7 +203,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 $"api/v1/dashboard/consumers?queueId={_queueId}");
 
-            Assert.AreEqual(1, consumers.Count);
+            Assert.HasCount(1, consumers);
             Assert.AreEqual(_queueId, consumers![0].MatchedQueueId);
         }
 
@@ -215,7 +215,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 $"api/v1/dashboard/consumers?queueId={Guid.NewGuid()}");
 
-            Assert.AreEqual(0, consumers.Count);
+            Assert.IsEmpty(consumers);
         }
 
         [TestMethod]
@@ -226,7 +226,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
 
-            Assert.AreEqual(1, consumers.Count);
+            Assert.HasCount(1, consumers);
             var c = consumers![0];
             Assert.AreEqual("TESTMACHINE", c.MachineName);
             Assert.AreEqual(9876, c.ProcessId);
@@ -257,7 +257,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var counts = await _server.Client.GetFromJsonAsync<Dictionary<Guid, int>>(
                 "api/v1/dashboard/consumers/count");
 
-            Assert.AreEqual(0, counts.Count);
+            Assert.IsEmpty(counts);
         }
 
         // === Full lifecycle ===
@@ -276,7 +276,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // List — verify metrics are present
             var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
-            Assert.AreEqual(1, consumers.Count);
+            Assert.HasCount(1, consumers);
             Assert.AreEqual(42, consumers![0].MessagesProcessed);
             Assert.AreEqual(3, consumers[0].MessagesErrored);
             Assert.AreEqual(2, consumers[0].MessagesRolledBack);
@@ -295,7 +295,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Verify gone
             consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
                 "api/v1/dashboard/consumers");
-            Assert.AreEqual(0, consumers.Count);
+            Assert.IsEmpty(consumers);
         }
 
         // === Helpers ===

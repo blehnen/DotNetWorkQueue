@@ -16,9 +16,9 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
             using (var scope = Create())
             {
                 scope.AddScopedObject(CreateClear());
-                Assert.IsTrue(scope.ContainedClears.Count == 1);
+                Assert.HasCount(1, scope.ContainedClears);
                 scope.AddScopedObject(CreateClear());
-                Assert.IsTrue(scope.ContainedClears.Count == 2);
+                Assert.HasCount(2, scope.ContainedClears);
             }
         }
 
@@ -28,9 +28,9 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
             using (var scope = Create())
             {
                 scope.AddScopedObject(createDisposable());
-                Assert.IsTrue(scope.ContainedDisposables.Count == 1);
+                Assert.HasCount(1, scope.ContainedDisposables);
                 scope.AddScopedObject(createDisposable());
-                Assert.IsTrue(scope.ContainedDisposables.Count == 2);
+                Assert.HasCount(2, scope.ContainedDisposables);
             }
         }
 

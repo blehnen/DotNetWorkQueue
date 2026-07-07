@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var tables = schema.GetSchema();
 
             Assert.IsNotNull(tables);
-            Assert.AreEqual(1, tables.Count);
+            Assert.HasCount(1, tables);
         }
 
         [TestMethod]
@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
 
             var table = (Table)schema.GetSchema().Single();
 
-            Assert.AreEqual(3, table.Columns.Items.Count);
+            Assert.HasCount(3, table.Columns.Items);
 
             var jobEventTime = table.Columns.Items.Single(c => c.Name == "JobEventTime");
             Assert.AreEqual(ColumnTypes.Text, jobEventTime.Type);

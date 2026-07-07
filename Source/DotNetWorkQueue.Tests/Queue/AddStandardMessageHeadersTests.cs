@@ -49,9 +49,9 @@ namespace DotNetWorkQueue.Tests.Queue
             sut.AddHeaders(message, Substitute.For<IAdditionalMessageData>());
 
             var stamped = (string)message.Headers["Queue-MessageBodyType"];
-            Assert.IsFalse(stamped.Contains("Version="));
-            Assert.IsFalse(stamped.Contains("Culture="));
-            Assert.IsFalse(stamped.Contains("PublicKeyToken="));
+            Assert.DoesNotContain("Version=", stamped);
+            Assert.DoesNotContain("Culture=", stamped);
+            Assert.DoesNotContain("PublicKeyToken=", stamped);
         }
 
         [TestMethod]

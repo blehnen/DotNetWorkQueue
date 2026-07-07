@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Controllers
 
             Assert.IsNotNull(result);
             var items = result.Value as IReadOnlyList<ConnectionResponse>;
-            Assert.AreEqual(1, (items).Count());
+            Assert.HasCount(1, items);
         }
 
         [TestMethod]

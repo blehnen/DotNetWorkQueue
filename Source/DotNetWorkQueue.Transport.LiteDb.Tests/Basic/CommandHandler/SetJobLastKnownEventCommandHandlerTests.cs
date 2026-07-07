@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.CommandHandler
             var col = db.GetCollection<JobsTable>(tableNameHelper.JobTableName);
             var all = col.FindAll().ToList();
 
-            Assert.AreEqual(1, all.Count);
+            Assert.HasCount(1, all);
             Assert.AreEqual("TestJob", all[0].JobName);
             Assert.AreEqual(scheduledTime, all[0].JobScheduledTime);
             Assert.AreEqual(eventTime, all[0].JobEventTime);
@@ -90,7 +90,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.CommandHandler
             handler.Handle(command);
 
             var all = col.FindAll().ToList();
-            Assert.AreEqual(1, all.Count, "existing job should be updated, not duplicated");
+            Assert.HasCount(1, all, "existing job should be updated, not duplicated");
             Assert.AreEqual("ExistingJob", all[0].JobName);
             Assert.AreEqual(newScheduled, all[0].JobScheduledTime);
             Assert.AreEqual(newEvent, all[0].JobEventTime);
@@ -122,7 +122,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.CommandHandler
             handler.Handle(command);
 
             var all = col.FindAll().OrderBy(j => j.JobName).ToList();
-            Assert.AreEqual(2, all.Count);
+            Assert.HasCount(2, all);
 
             var first = all.Single(j => j.JobName == "FirstJob");
             Assert.AreEqual(firstScheduled, first.JobScheduledTime);

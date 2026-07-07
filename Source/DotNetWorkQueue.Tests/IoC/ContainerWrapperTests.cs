@@ -77,7 +77,7 @@ namespace DotNetWorkQueue.Tests.IoC
         {
             using (var wrapper = new ContainerWrapper(new Container()))
             {
-                Assert.AreEqual(0, wrapper.TypesThatCanBeSuppressed.Count);
+                Assert.IsEmpty(wrapper.TypesThatCanBeSuppressed);
             }
         }
 
@@ -327,7 +327,7 @@ namespace DotNetWorkQueue.Tests.IoC
             using (var wrapper = new ContainerWrapper(new Container()))
             {
                 wrapper.AddTypeThatNeedsWarningSuppression(typeof(ITestService));
-                Assert.IsTrue(wrapper.TypesThatCanBeSuppressed.Contains(typeof(ITestService)));
+                Assert.Contains(typeof(ITestService), wrapper.TypesThatCanBeSuppressed);
             }
         }
 
@@ -338,7 +338,7 @@ namespace DotNetWorkQueue.Tests.IoC
             {
                 wrapper.AddTypeThatNeedsWarningSuppression(typeof(ITestService));
                 wrapper.AddTypeThatNeedsWarningSuppression(typeof(ITestService));
-                Assert.AreEqual(1, wrapper.TypesThatCanBeSuppressed.Count);
+                Assert.HasCount(1, wrapper.TypesThatCanBeSuppressed);
             }
         }
 

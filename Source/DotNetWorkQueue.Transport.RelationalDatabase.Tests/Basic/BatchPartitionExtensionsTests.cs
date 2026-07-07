@@ -34,10 +34,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 
             var chunks = source.Partition(1000).ToList();
 
-            Assert.AreEqual(3, chunks.Count);
-            Assert.AreEqual(1000, chunks[0].Count);
-            Assert.AreEqual(1000, chunks[1].Count);
-            Assert.AreEqual(500, chunks[2].Count);
+            Assert.HasCount(3, chunks);
+            Assert.HasCount(1000, chunks[0]);
+            Assert.HasCount(1000, chunks[1]);
+            Assert.HasCount(500, chunks[2]);
         }
 
         [TestMethod]
@@ -47,9 +47,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 
             var chunks = source.Partition(1000).ToList();
 
-            Assert.AreEqual(2, chunks.Count);
-            Assert.AreEqual(1000, chunks[0].Count);
-            Assert.AreEqual(1000, chunks[1].Count);
+            Assert.HasCount(2, chunks);
+            Assert.HasCount(1000, chunks[0]);
+            Assert.HasCount(1000, chunks[1]);
         }
 
         [TestMethod]
@@ -59,8 +59,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 
             var chunks = source.Partition(1000).ToList();
 
-            Assert.AreEqual(1, chunks.Count);
-            Assert.AreEqual(10, chunks[0].Count);
+            Assert.HasCount(1, chunks);
+            Assert.HasCount(10, chunks[0]);
         }
 
         [TestMethod]
@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 
             var chunks = source.Partition(1000).ToList();
 
-            Assert.AreEqual(0, chunks.Count);
+            Assert.IsEmpty(chunks);
         }
 
         [TestMethod]

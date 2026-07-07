@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 $"api/v1/dashboard/queues/{_queueId}/history");
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(0, result.Items.Count);
+            Assert.IsEmpty(result.Items);
         }
 
         [TestMethod]

@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
 
             var result = config.GetUserParameters();
             Assert.IsNotNull(result);
-            Assert.AreEqual(1, result.Count);
+            Assert.HasCount(1, result);
             Assert.AreEqual("@p1", result[0].ParameterName);
         }
 
@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             config.SetUserParameters(parameters2);
 
             var result = config.GetUserParameters();
-            Assert.AreEqual(2, result.Count);
+            Assert.HasCount(2, result);
         }
 
         [TestMethod]
@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
 
             var result = config.GetUserParameters();
             Assert.IsNotNull(result);
-            Assert.AreEqual(1, result.Count);
+            Assert.HasCount(1, result);
         }
 
         [TestMethod]
@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             config.AddUserParameter(CreateParam("@p2"));
 
             var result = config.GetUserParameters();
-            Assert.AreEqual(2, result.Count);
+            Assert.HasCount(2, result);
         }
 
         [TestMethod]
@@ -99,7 +99,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
 
             var resultParams = config.GetUserParameters();
             Assert.IsNotNull(resultParams);
-            Assert.AreEqual(1, resultParams.Count);
+            Assert.HasCount(1, resultParams);
 
             var resultClause = config.GetUserClause();
             Assert.AreEqual("AND Col = @p1", resultClause);
@@ -120,7 +120,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
 
             // Factory should take precedence
             var resultParams = config.GetUserParameters();
-            Assert.AreEqual(1, resultParams.Count);
+            Assert.HasCount(1, resultParams);
             Assert.AreEqual("@factory", resultParams[0].ParameterName);
 
             var resultClause = config.GetUserClause();

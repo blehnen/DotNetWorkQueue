@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
         [TestMethod]
         public void SafeMax_IsPositive()
         {
-            Assert.IsTrue(SendMessageBatch.SafeMaxBatchSize >= 1);
+            Assert.IsGreaterThanOrEqualTo(1, SendMessageBatch.SafeMaxBatchSize);
         }
 
         [TestMethod]

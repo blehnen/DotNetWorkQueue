@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
         {
             var opts = new DashboardConnectionOptions();
             opts.AddQueue("TestQueue");
-            Assert.AreEqual(1, (opts.Queues).Count());
+            Assert.HasCount(1, opts.Queues);
             Assert.AreEqual("TestQueue", opts.Queues[0].QueueName);
         }
 
@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
             opts.AddQueue("Queue1");
             opts.AddQueue("Queue2");
             opts.AddQueue("Queue3");
-            Assert.AreEqual(3, (opts.Queues).Count());
+            Assert.HasCount(3, opts.Queues);
         }
 
         [TestMethod]
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
         {
             var opts = new DashboardConnectionOptions();
             opts.AddQueueWithProfile("TestQueue", "encrypted");
-            Assert.AreEqual(1, (opts.Queues).Count());
+            Assert.HasCount(1, opts.Queues);
             Assert.AreEqual("TestQueue", opts.Queues[0].QueueName);
             Assert.AreEqual("encrypted", opts.Queues[0].InterceptorProfile);
             Assert.IsNull(opts.Queues[0].InterceptorConfiguration);
@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 GZip = new GZipInterceptorOptions { MinimumSize = 200 }
             };
             opts.AddQueue("TestQueue", interceptors);
-            Assert.AreEqual(1, (opts.Queues).Count());
+            Assert.HasCount(1, opts.Queues);
             Assert.AreEqual("TestQueue", opts.Queues[0].QueueName);
             Assert.AreSame(interceptors, opts.Queues[0].Interceptors);
             Assert.IsNull(opts.Queues[0].InterceptorConfiguration);

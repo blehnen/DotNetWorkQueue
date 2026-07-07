@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 
             var result = handler.Get(0, 10, null);
 
-            Assert.AreEqual(0, result.Count);
+            Assert.IsEmpty(result);
         }
 
         [TestMethod]
@@ -88,7 +88,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 
             var result = handler.Get(0, 10, null);
 
-            Assert.AreEqual(0, result.Count);
+            Assert.IsEmpty(result);
             connection.Received(1).Open();
             command.Received(1).ExecuteReader();
         }

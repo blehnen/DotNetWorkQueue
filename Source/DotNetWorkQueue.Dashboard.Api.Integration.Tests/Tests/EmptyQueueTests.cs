@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages?pageSize=100");
-            Assert.AreEqual(0, paged.Items.Count);
+            Assert.IsEmpty(paged.Items);
             Assert.AreEqual(0, paged.TotalCount);
         }
     }

@@ -193,17 +193,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Inbox
             {
                 var result = producer.RelationalProducer.Send(BuildBatch(batchSize), transaction);
                 Assert.IsFalse(result.HasErrors, "batch send reported errors");
-                Assert.AreEqual(batchSize, result.Count, "one result per message");
+                Assert.HasCount(batchSize, result, "one result per message");
 
                 var ids = new HashSet<long>();
                 for (var i = 0; i < result.Count; i++)
                 {
                     Assert.IsTrue(result[i].SentMessage.MessageId.HasValue, "each result must carry a message id");
                     var id = (long)result[i].SentMessage.MessageId.Id.Value;
-                    Assert.IsTrue(id > 0, "message id must be a positive value");
+                    Assert.IsGreaterThan(0, id, "message id must be a positive value");
                     ids.Add(id);
                 }
-                Assert.AreEqual(batchSize, ids.Count, "message ids must be distinct");
+                Assert.HasCount(batchSize, ids, "message ids must be distinct");
 
                 transaction.Commit();
             }

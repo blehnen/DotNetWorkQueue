@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Tests.IoC
             // Assert
             Container container = c.Container;
             var results = Analyzer.Analyze(container);
-            Assert.IsFalse(results.Any(), Environment.NewLine +
+            Assert.IsEmpty(results, Environment.NewLine +
                                         string.Join(Environment.NewLine,
                                             from result in results
                                             select result.Description));
@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.Tests.IoC
             // Assert
             Container container = c.Container;
             var results = Analyzer.Analyze(container);
-            Assert.IsFalse(results.Any(), Environment.NewLine +
+            Assert.IsEmpty(results, Environment.NewLine +
                                         string.Join(Environment.NewLine,
                                             from result in results
                                             select result.Description));
@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Tests.IoC
             var results = Analyzer.Analyze(container)
                 .Where(r => r.DiagnosticType != DiagnosticType.SingleResponsibilityViolation)
                 .ToList();
-            Assert.IsFalse(results.Any(), Environment.NewLine +
+            Assert.IsEmpty(results, Environment.NewLine +
                                         string.Join(Environment.NewLine,
                                             from result in results
                                             select result.Description));

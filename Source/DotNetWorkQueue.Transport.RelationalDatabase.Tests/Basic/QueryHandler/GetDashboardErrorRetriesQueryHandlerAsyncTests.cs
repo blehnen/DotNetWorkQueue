@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 
             var result = await handler.HandleAsync(new GetDashboardErrorRetriesQuery("100"));
 
-            Assert.AreEqual(3, result.Count);
+            Assert.HasCount(3, result);
             Assert.AreEqual(10L, result[0].ErrorTrackingId);
             Assert.AreEqual("100", result[0].QueueId);
             Assert.AreEqual(30L, result[2].ErrorTrackingId);

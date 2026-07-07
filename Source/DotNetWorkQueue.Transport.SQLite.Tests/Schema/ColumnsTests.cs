@@ -15,7 +15,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Schema
         {
             var test = new Columns();
             test.Add(new Column("testing", ColumnTypes.Integer, true, null));
-            Assert.IsTrue(test.Items.Any(item => item.Name == "testing"));
+            Assert.Contains(item => item.Name == "testing", test.Items);
         }
         [TestMethod]
         public void Remove_Column()
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Schema
             var column = new Column("testing", ColumnTypes.Integer, true, null);
             test.Add(column);
             test.Remove(column);
-            Assert.IsFalse(test.Items.Any(item => item.Name == "testing"));
+            Assert.DoesNotContain(item => item.Name == "testing", test.Items);
         }
         [TestMethod]
         public void Script()

@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             // Assert
             Container container = c.Container;
             var results = Analyzer.Analyze(container);
-            Assert.IsFalse(results.Any(), Environment.NewLine +
+            Assert.IsEmpty(results, Environment.NewLine +
                                         string.Join(Environment.NewLine,
                                             from result in results
                                             select result.Description));

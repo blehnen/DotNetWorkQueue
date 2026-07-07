@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
             var (container, policies) = CreateMocks();
             RetrySqlPolicyCreation.Register(container);
             // RetryCommandHandler and RetryCommandHandlerAsync map to the same key
-            Assert.AreEqual(2, policies.TransportDefinition.Count);
+            Assert.HasCount(2, policies.TransportDefinition);
         }
 
         [TestMethod]

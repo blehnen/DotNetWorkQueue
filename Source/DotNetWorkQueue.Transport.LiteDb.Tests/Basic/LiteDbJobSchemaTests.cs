@@ -19,7 +19,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
         {
             var schema = new LiteDbJobSchema();
             var tables = schema.GetSchema();
-            Assert.IsTrue(tables.Count > 0);
+            Assert.IsNotEmpty(tables);
         }
 
         [TestMethod]
@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
         {
             var schema = new LiteDbJobSchema();
             var tables = schema.GetSchema();
-            Assert.IsTrue(tables.Any(t => t is JobsTable));
+            Assert.Contains(t => t is JobsTable, tables);
         }
 
         [TestMethod]
@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
         {
             var schema = new LiteDbJobSchema();
             var tables = schema.GetSchema();
-            Assert.AreEqual(1, tables.Count);
+            Assert.HasCount(1, tables);
         }
     }
 }

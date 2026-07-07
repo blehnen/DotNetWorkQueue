@@ -94,7 +94,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
 
             fixture.Handler.Handle(command);
 
-            Assert.AreEqual(3, fixture.Parameters.Count);
+            Assert.HasCount(3, fixture.Parameters);
             // @JobName: AnsiString with the supplied name
             Assert.AreEqual("@JobName", fixture.Parameters[0].ParameterName);
             Assert.AreEqual(DbType.AnsiString, fixture.Parameters[0].DbType);
