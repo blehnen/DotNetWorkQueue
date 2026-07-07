@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -25,9 +25,10 @@ using DotNetWorkQueue.Validation;
 namespace DotNetWorkQueue.Transport.LiteDb
 {
     /// <inheritdoc />
-    public class LiteDbConnectionInformation : BaseConnectionInformation
+    public partial class LiteDbConnectionInformation : BaseConnectionInformation
     {
-        private static readonly Regex ValidQueueNamePattern = new Regex(@"^[a-zA-Z0-9_.]+$", RegexOptions.Compiled);
+        [GeneratedRegex(@"^[a-zA-Z0-9_.]+$")]
+        private static partial Regex ValidQueueNamePattern();
 
         private readonly string _server;
 
@@ -55,7 +56,7 @@ namespace DotNetWorkQueue.Transport.LiteDb
             Guard.NotNullOrEmpty(() => name, name);
             Guard.IsValid(() => name, name, n => n.Length <= 256,
                 $"Queue name exceeds maximum length of 256 characters. Got {name.Length} characters.");
-            Guard.IsValid(() => name, name, n => ValidQueueNamePattern.IsMatch(n),
+            Guard.IsValid(() => name, name, n => ValidQueueNamePattern().IsMatch(n),
                 "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
         }
 

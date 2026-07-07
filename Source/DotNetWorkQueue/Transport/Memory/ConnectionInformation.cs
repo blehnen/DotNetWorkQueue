@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -27,9 +27,10 @@ namespace DotNetWorkQueue.Transport.Memory
     /// <summary>
     /// Contains connection information for a memory queue
     /// </summary>
-    public class ConnectionInformation : BaseConnectionInformation
+    public partial class ConnectionInformation : BaseConnectionInformation
     {
-        private static readonly Regex ValidQueueNamePattern = new Regex(@"^[a-zA-Z0-9_.]+$", RegexOptions.Compiled);
+        [GeneratedRegex(@"^[a-zA-Z0-9_.]+$")]
+        private static partial Regex ValidQueueNamePattern();
 
         #region Constructor
         /// <summary>
@@ -69,7 +70,7 @@ namespace DotNetWorkQueue.Transport.Memory
         private static void ValidateQueueName(string name)
         {
             Guard.NotNullOrEmpty(() => name, name);
-            Guard.IsValid(() => name, name, n => ValidQueueNamePattern.IsMatch(n),
+            Guard.IsValid(() => name, name, n => ValidQueueNamePattern().IsMatch(n),
                 "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
         }
 

@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -25,9 +25,10 @@ using DotNetWorkQueue.Validation;
 namespace DotNetWorkQueue.Transport.SQLite
 {
     /// <inheritdoc />
-    public class SqliteConnectionInformation : BaseConnectionInformation
+    public partial class SqliteConnectionInformation : BaseConnectionInformation
     {
-        private static readonly Regex ValidQueueNamePattern = new Regex(@"^[a-zA-Z0-9_.]+$", RegexOptions.Compiled);
+        [GeneratedRegex(@"^[a-zA-Z0-9_.]+$")]
+        private static partial Regex ValidQueueNamePattern();
 
         private readonly IDbDataSource _dataSource;
         private string _server;
@@ -68,7 +69,7 @@ namespace DotNetWorkQueue.Transport.SQLite
         private static void ValidateQueueName(string name)
         {
             if (string.IsNullOrEmpty(name)) return; // allow empty for backward compatibility
-            Guard.IsValid(() => name, name, n => ValidQueueNamePattern.IsMatch(n),
+            Guard.IsValid(() => name, name, n => ValidQueueNamePattern().IsMatch(n),
                 "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
         }
 

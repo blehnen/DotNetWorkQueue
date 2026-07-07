@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -28,9 +28,10 @@ namespace DotNetWorkQueue.Transport.SqlServer
     /// <summary>
     /// Contains connection information for a SQL server queue
     /// </summary>
-    public class SqlConnectionInformation : BaseConnectionInformation
+    public partial class SqlConnectionInformation : BaseConnectionInformation
     {
-        private static readonly Regex ValidQueueNamePattern = new Regex(@"^[a-zA-Z0-9_.]+$", RegexOptions.Compiled);
+        [GeneratedRegex(@"^[a-zA-Z0-9_.]+$")]
+        private static partial Regex ValidQueueNamePattern();
 
         private string _server;
         private string _catalog;
@@ -93,7 +94,7 @@ namespace DotNetWorkQueue.Transport.SqlServer
             if (string.IsNullOrEmpty(name)) return; // allow empty for backward compatibility
             Guard.IsValid(() => name, name, n => n.Length <= 128,
                 $"Queue name exceeds maximum length of 128 characters. Got {name.Length} characters.");
-            Guard.IsValid(() => name, name, n => ValidQueueNamePattern.IsMatch(n),
+            Guard.IsValid(() => name, name, n => ValidQueueNamePattern().IsMatch(n),
                 "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
         }
 
