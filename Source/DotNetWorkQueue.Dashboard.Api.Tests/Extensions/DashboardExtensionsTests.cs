@@ -13,6 +13,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
     [TestClass]
     public class DashboardExtensionsTests
     {
+        private static readonly string[] NonexistentAssemblyPaths = { "/nonexistent/path/that/does/not/exist" };
+
         [TestMethod]
         public void AddDotNetWorkQueueDashboard_Registers_DashboardOptions()
         {
@@ -201,7 +203,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
             services.AddDotNetWorkQueueDashboard(options =>
             {
                 options.EnableSwagger = false;
-                options.AssemblyPaths = new[] { "/nonexistent/path/that/does/not/exist" };
+                options.AssemblyPaths = NonexistentAssemblyPaths;
             });
 
             var provider = services.BuildServiceProvider();

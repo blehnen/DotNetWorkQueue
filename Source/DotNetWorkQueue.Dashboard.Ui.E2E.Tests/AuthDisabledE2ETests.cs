@@ -26,9 +26,12 @@ using static Microsoft.Playwright.Assertions;
 namespace DotNetWorkQueue.Dashboard.Ui.E2E.Tests
 {
     [TestClass]
-    public class AuthDisabledE2ETests : E2ETestBase
+    public partial class AuthDisabledE2ETests : E2ETestBase
     {
         private static DashboardSubprocess _server = null!;
+
+        [GeneratedRegex("^(?!.*/login).*$")]
+        private static partial Regex NotLoginUrl();
 
         protected override string BaseUrl => _server.RootUrl;
 
@@ -54,7 +57,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.E2E.Tests
         {
             await Page.GotoAsync("/");
 
-            await Expect(Page).ToHaveURLAsync(new Regex("^(?!.*/login).*$"));
+            await Expect(Page).ToHaveURLAsync(NotLoginUrl());
         }
 
         [TestMethod]
