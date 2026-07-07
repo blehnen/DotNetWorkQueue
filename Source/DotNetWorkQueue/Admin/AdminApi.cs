@@ -19,7 +19,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Validation;
@@ -98,12 +97,9 @@ namespace DotNetWorkQueue.Admin
         /// </summary>
         /// <param name="name">The name.</param>
         /// <exception cref="System.ObjectDisposedException"></exception>
-        protected void ThrowIfDisposed([CallerMemberName] string name = "")
+        protected void ThrowIfDisposed()
         {
-            if (Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0)
-            {
-                throw new ObjectDisposedException(name);
-            }
+            ObjectDisposedException.ThrowIf(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
         }
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.

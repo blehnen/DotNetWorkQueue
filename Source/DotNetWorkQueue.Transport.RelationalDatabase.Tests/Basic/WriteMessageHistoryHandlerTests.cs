@@ -214,7 +214,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             bool foundGuard = false;
             foreach (var sql in capturedCommandTexts)
             {
-                if (sql != null && sql.IndexOf("StartedUtc IS NOT NULL", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                if (sql != null && sql.Contains("StartedUtc IS NOT NULL", System.StringComparison.OrdinalIgnoreCase))
                 {
                     foundGuard = true;
                     break;

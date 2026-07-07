@@ -27,6 +27,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
     [TestClass]
     public class CorsIntegrationTests
     {
+        private static readonly string[] CorsOriginsValue = { "https://example.com" };
         private DashboardTestServer _server;
 
         [TestInitialize]
@@ -36,7 +37,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             {
                 options.EnableSwagger = false;
                 options.EnableCors = true;
-                options.CorsOrigins = new[] { "https://example.com" };
+                options.CorsOrigins = CorsOriginsValue;
             });
         }
 

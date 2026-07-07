@@ -98,8 +98,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             }
 
             //recheck
-            if (_disposedValue)
-                throw new ObjectDisposedException("_db");
+            ObjectDisposedException.ThrowIf(_disposedValue, this);
 
             return new LiteDbConnection(_db, false);
         }
@@ -136,6 +135,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
     }

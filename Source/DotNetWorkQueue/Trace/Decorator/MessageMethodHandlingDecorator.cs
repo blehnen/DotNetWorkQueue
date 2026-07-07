@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 
+using System;
 using System.Diagnostics;
 using DotNetWorkQueue.Messages;
 using OpenTelemetry.Trace;
@@ -50,6 +51,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         public void Dispose()
         {
             _handler.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         /// <inheritdoc />

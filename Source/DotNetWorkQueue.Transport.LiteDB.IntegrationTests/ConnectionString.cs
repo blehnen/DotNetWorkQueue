@@ -60,6 +60,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                     }
                 }
             }
+            GC.SuppressFinalize(this);
         }
 
         public enum ConnectionTypes

@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace DotNetWorkQueue.Queue
@@ -94,12 +93,9 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         /// <param name="name">The name.</param>
         /// <exception cref="System.ObjectDisposedException"></exception>
-        protected void ThrowIfDisposed([CallerMemberName] string name = "")
+        protected void ThrowIfDisposed()
         {
-            if (Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0)
-            {
-                throw new ObjectDisposedException(name);
-            }
+            ObjectDisposedException.ThrowIf(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
         }
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.

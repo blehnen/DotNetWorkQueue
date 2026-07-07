@@ -82,6 +82,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         public void Dispose()
         {
             _connection.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 
@@ -140,6 +141,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         public void Dispose()
         {
             _connection.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
     [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
@@ -166,6 +168,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         public void Dispose()
         {
             _connection.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

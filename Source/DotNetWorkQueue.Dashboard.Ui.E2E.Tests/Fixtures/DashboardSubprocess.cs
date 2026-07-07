@@ -33,11 +33,10 @@ namespace DotNetWorkQueue.Dashboard.Ui.E2E.Tests.Fixtures
     /// propagate via environment variables using ASP.NET Core's
     /// <c>Key:Subkey</c> → <c>Key__Subkey</c> convention.
     /// </summary>
-    public sealed class DashboardSubprocess : IDisposable
+    public sealed partial class DashboardSubprocess : IDisposable
     {
-        private static readonly Regex ListeningOn = new(
-            @"Now listening on:\s*(http://127\.0\.0\.1:\d+)",
-            RegexOptions.Compiled);
+        [GeneratedRegex(@"Now listening on:\s*(http://127\.0\.0\.1:\d+)")]
+        private static partial Regex ListeningOn();
 
         private readonly Process _process;
         public string RootUrl { get; }
@@ -79,7 +78,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.E2E.Tests.Fixtures
             process.OutputDataReceived += (_, e) =>
             {
                 if (e.Data == null) return;
-                var match = ListeningOn.Match(e.Data);
+                var match = ListeningOn().Match(e.Data);
                 if (match.Success)
                     urlSource.TrySetResult(match.Groups[1].Value);
             };

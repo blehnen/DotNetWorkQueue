@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase;
@@ -170,12 +169,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// </summary>
         /// <param name="name">The name.</param>
         /// <exception cref="System.ObjectDisposedException"></exception>
-        protected void ThrowIfDisposed([CallerMemberName] string name = "")
+        protected void ThrowIfDisposed()
         {
-            if (Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0)
-            {
-                throw new ObjectDisposedException(name);
-            }
+            ObjectDisposedException.ThrowIf(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
         }
 
         /// <summary>

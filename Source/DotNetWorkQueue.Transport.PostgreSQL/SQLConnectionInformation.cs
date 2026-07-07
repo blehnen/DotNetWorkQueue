@@ -26,9 +26,10 @@ using Npgsql;
 namespace DotNetWorkQueue.Transport.PostgreSQL
 {
     /// <inheritdoc />
-    public class SqlConnectionInformation : BaseConnectionInformation
+    public partial class SqlConnectionInformation : BaseConnectionInformation
     {
-        private static readonly Regex ValidQueueNamePattern = new Regex(@"^[a-zA-Z0-9_.]+$", RegexOptions.Compiled);
+        [GeneratedRegex(@"^[a-zA-Z0-9_.]+$")]
+        private static partial Regex ValidQueueNamePattern();
 
         private string _server;
 
@@ -72,7 +73,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
             if (string.IsNullOrEmpty(name)) return; // allow empty for backward compatibility
             Guard.IsValid(() => name, name, n => n.Length <= 63,
                 $"Queue name exceeds maximum length of 63 characters. Got {name.Length} characters.");
-            Guard.IsValid(() => name, name, n => ValidQueueNamePattern.IsMatch(n),
+            Guard.IsValid(() => name, name, n => ValidQueueNamePattern().IsMatch(n),
                 "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
         }
 

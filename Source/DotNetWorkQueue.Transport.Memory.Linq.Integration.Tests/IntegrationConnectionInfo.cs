@@ -9,6 +9,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests
         public void Dispose()
         {
 
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -64,6 +64,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         public void Dispose()
         {
             _handler.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         /// <inheritdoc />

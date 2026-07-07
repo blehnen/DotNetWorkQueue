@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Dashboard.Client
         /// <param name="options">The client options.</param>
         public DashboardApiClient(DashboardClientOptions options)
         {
-            if (options == null) throw new ArgumentNullException(nameof(options));
+            ArgumentNullException.ThrowIfNull(options);
             if (string.IsNullOrEmpty(options.DashboardApiUrl)) throw new ArgumentException("DashboardApiUrl is required.", nameof(options));
 
             _httpClient = new HttpClient { BaseAddress = new Uri(options.DashboardApiUrl.TrimEnd('/') + "/") };
@@ -73,8 +73,8 @@ namespace DotNetWorkQueue.Dashboard.Client
         /// <param name="options">The client options.</param>
         public DashboardApiClient(IHttpClientFactory httpClientFactory, DashboardClientOptions options)
         {
-            if (httpClientFactory == null) throw new ArgumentNullException(nameof(httpClientFactory));
-            if (options == null) throw new ArgumentNullException(nameof(options));
+            ArgumentNullException.ThrowIfNull(httpClientFactory);
+            ArgumentNullException.ThrowIfNull(options);
             if (string.IsNullOrEmpty(options.DashboardApiUrl)) throw new ArgumentException("DashboardApiUrl is required.", nameof(options));
 
             _httpClient = httpClientFactory.CreateClient("DashboardApi");
@@ -255,11 +255,11 @@ namespace DotNetWorkQueue.Dashboard.Client
             {
                 if (!response.IsSuccessStatusCode)
                 {
-                    var errorBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var errorBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
                     return ApiReturnValue<T>.Fail(response.StatusCode, errorBody);
                 }
 
-                var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
                 var value = JsonSerializer.Deserialize<T>(json, JsonOptions);
                 return ApiReturnValue<T>.Ok(response.StatusCode, value);
             }
@@ -276,7 +276,7 @@ namespace DotNetWorkQueue.Dashboard.Client
                 {
                     if (!response.IsSuccessStatusCode)
                     {
-                        var errorBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        var errorBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
                         return ApiReturnValue<bool>.Fail(response.StatusCode, errorBody);
                     }
 
@@ -296,11 +296,11 @@ namespace DotNetWorkQueue.Dashboard.Client
                 {
                     if (!response.IsSuccessStatusCode)
                     {
-                        var errorBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        var errorBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
                         return ApiReturnValue<T>.Fail(response.StatusCode, errorBody);
                     }
 
-                    var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
                     var value = JsonSerializer.Deserialize<T>(json, JsonOptions);
                     return ApiReturnValue<T>.Ok(response.StatusCode, value);
                 }
@@ -312,6 +312,7 @@ namespace DotNetWorkQueue.Dashboard.Client
         {
             if (_ownsHttpClient)
                 _httpClient.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -19,7 +19,6 @@
 using DotNetWorkQueue.Validation;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace DotNetWorkQueue.Messages
@@ -69,11 +68,12 @@ namespace DotNetWorkQueue.Messages
             if (IsDisposed && _items.Count == 0)
                 ThrowIfDisposed();
 
-            if (!_items.ContainsKey(itemData.Name))
+            if (!_items.TryGetValue(itemData.Name, out var value))
             {
-                _items[itemData.Name] = itemData.Default;
+                value = itemData.Default;
+                _items[itemData.Name] = value;
             }
-            return (T)_items[itemData.Name];
+            return (T)value;
         }
 
         /// <inheritdoc/>
@@ -144,12 +144,9 @@ namespace DotNetWorkQueue.Messages
         /// </summary>
         /// <param name="name">The name.</param>
         /// <exception cref="System.ObjectDisposedException"></exception>
-        private void ThrowIfDisposed([CallerMemberName] string name = "")
+        private void ThrowIfDisposed()
         {
-            if (Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0)
-            {
-                throw new ObjectDisposedException(name);
-            }
+            ObjectDisposedException.ThrowIf(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
         }
     }
 }

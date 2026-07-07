@@ -19,7 +19,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
@@ -79,12 +78,9 @@ namespace DotNetWorkQueue.IoC
         /// </summary>
         /// <param name="name">The name.</param>
         /// <exception cref="System.ObjectDisposedException"></exception>
-        protected void ThrowIfDisposed([CallerMemberName] string name = "")
+        protected void ThrowIfDisposed()
         {
-            if (Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0)
-            {
-                throw new ObjectDisposedException(name);
-            }
+            ObjectDisposedException.ThrowIf(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
         }
 
         /// <summary>
@@ -346,10 +342,7 @@ namespace DotNetWorkQueue.IoC
         /// <remarks>Adding an exception for a type that was not actually registered in the container causes all sorts of problems</remarks>
         public void AddTypeThatNeedsWarningSuppression(Type type)
         {
-            if (!TypesThatCanBeSuppressed.Contains(type))
-            {
-                TypesThatCanBeSuppressed.Add(type);
-            }
+            TypesThatCanBeSuppressed.Add(type);
         }
 
         /// <summary>

@@ -18,10 +18,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
         {
             var encoded = new UTF8Encoding().GetBytes(Guid.NewGuid().ToString());
             var hash = ((HashAlgorithm)CryptoConfig.CreateFromName("MD5")).ComputeHash(encoded);
-            return "INTTEST" + BitConverter.ToString(hash)
-               .Replace("-", string.Empty)
-               .Replace("_", string.Empty)
-               .ToLower();
+            return "INTTEST" + Convert.ToHexString(hash).ToLower();
 
         }
     }

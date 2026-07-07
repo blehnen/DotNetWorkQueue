@@ -26,9 +26,10 @@ using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis
 {
-    internal class RedisConnectionInfo : BaseConnectionInformation
+    internal partial class RedisConnectionInfo : BaseConnectionInformation
     {
-        private static readonly Regex ValidQueueNamePattern = new Regex(@"^[a-zA-Z0-9_.\-]+$", RegexOptions.Compiled);
+        [GeneratedRegex(@"^[a-zA-Z0-9_.\-]+$")]
+        private static partial Regex ValidQueueNamePattern();
 
         private string _server;
 
@@ -79,7 +80,7 @@ namespace DotNetWorkQueue.Transport.Redis
             Guard.NotNullOrEmpty(() => name, name);
             Guard.IsValid(() => name, name, n => n.Length <= 512,
                 $"Queue name exceeds maximum length of 512 characters. Got {name.Length} characters.");
-            Guard.IsValid(() => name, name, n => ValidQueueNamePattern.IsMatch(n),
+            Guard.IsValid(() => name, name, n => ValidQueueNamePattern().IsMatch(n),
                 "Queue name contains invalid characters. Only alphanumeric characters, underscores, dots, and hyphens are allowed.");
         }
 

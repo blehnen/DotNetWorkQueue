@@ -63,6 +63,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
                     }
                 }
             }
+            GC.SuppressFinalize(this);
         }
     }
 }

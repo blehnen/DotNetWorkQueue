@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
@@ -88,12 +87,9 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         /// <param name="name">The name.</param>
         /// <exception cref="System.ObjectDisposedException"></exception>
-        private void ThrowIfDisposed([CallerMemberName] string name = "")
+        private void ThrowIfDisposed()
         {
-            if (Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0)
-            {
-                throw new ObjectDisposedException(name);
-            }
+            ObjectDisposedException.ThrowIf(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
         }
 
         /// <inheritdoc />

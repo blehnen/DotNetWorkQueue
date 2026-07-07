@@ -116,6 +116,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
             _consumer?.Dispose();
             _container?.Dispose();
             _blockSignal?.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

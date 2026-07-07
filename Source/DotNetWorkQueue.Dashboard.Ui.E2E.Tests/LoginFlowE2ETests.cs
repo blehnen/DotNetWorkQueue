@@ -27,9 +27,15 @@ using static Microsoft.Playwright.Assertions;
 namespace DotNetWorkQueue.Dashboard.Ui.E2E.Tests
 {
     [TestClass]
-    public class LoginFlowE2ETests : E2ETestBase
+    public partial class LoginFlowE2ETests : E2ETestBase
     {
         private static DashboardSubprocess _server = null!;
+
+        [GeneratedRegex(".*/login.*error.*")]
+        private static partial Regex LoginErrorUrl();
+
+        [GeneratedRegex("^(?!.*/login).*$")]
+        private static partial Regex NotLoginUrl();
 
         protected override string BaseUrl => _server.RootUrl;
 
@@ -54,7 +60,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.E2E.Tests
         {
             await SubmitLoginAsync(DashboardAuthCredentials.Username, "wrong-password");
 
-            await Expect(Page).ToHaveURLAsync(new Regex(".*/login.*error.*"));
+            await Expect(Page).ToHaveURLAsync(LoginErrorUrl());
             await Expect(Page.GetByText("Invalid username or password.")).ToBeVisibleAsync();
         }
 
@@ -63,7 +69,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.E2E.Tests
         {
             await SubmitLoginAsync(DashboardAuthCredentials.Username, DashboardAuthCredentials.Password);
 
-            await Expect(Page).ToHaveURLAsync(new Regex("^(?!.*/login).*$"));
+            await Expect(Page).ToHaveURLAsync(NotLoginUrl());
         }
 
         /// <summary>

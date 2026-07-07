@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.SqlServer.Schema;
 
@@ -77,7 +78,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         }
 
         #region IDisposable Support
-        private bool _disposedValue; // To detect redundant calls
+        private int _disposeCount;
 
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
@@ -85,13 +86,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
+            if (disposing)
             {
-                if (disposing)
-                {
-                    _queueCreation.Dispose();
-                }
-                _disposedValue = true;
+                _queueCreation.Dispose();
             }
         }
 
@@ -102,6 +100,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
 

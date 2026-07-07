@@ -218,6 +218,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 _provider.ForceFlush(2000);
                 _provider.Dispose();
             }
+            GC.SuppressFinalize(this);
         }
     }
 
@@ -231,6 +232,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         public void Dispose()
         {
 
+            GC.SuppressFinalize(this);
         }
 
         public void HandleExecution(IReceivedMessage<MessageExpression> receivedMessage,

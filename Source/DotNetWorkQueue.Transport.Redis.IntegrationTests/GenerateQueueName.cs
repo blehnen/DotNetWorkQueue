@@ -14,10 +14,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         {
             var encoded = new UTF8Encoding().GetBytes(Guid.NewGuid().ToString());
             var hash = ((HashAlgorithm)CryptoConfig.CreateFromName("MD5")).ComputeHash(encoded);
-            return "IT" + BitConverter.ToString(hash)
-               .Replace("-", string.Empty)
-               .Replace("_", string.Empty)
-               .ToLower();
+            return "IT" + Convert.ToHexString(hash).ToLower();
         }
     }
 }

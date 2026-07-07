@@ -36,6 +36,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
     [TestClass]
     public class DashboardExtensionsCorsAndAuthTests
     {
+        private static readonly string[] ExpectedCorsOrigins = { "https://example.com", "https://localhost:5001" };
+
         [TestMethod]
         public void AddDotNetWorkQueueDashboard_Registers_CorsPolicy_When_Enabled_With_Origins()
         {
@@ -46,7 +48,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
             {
                 options.EnableSwagger = false;
                 options.EnableCors = true;
-                options.CorsOrigins = new[] { "https://example.com", "https://localhost:5001" };
+                options.CorsOrigins = ExpectedCorsOrigins;
             });
 
             var provider = services.BuildServiceProvider();
@@ -54,7 +56,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
 
             var policy = corsOptions.GetPolicy("DashboardCors");
             Assert.IsNotNull(policy);
-            CollectionAssert.AreEquivalent((System.Collections.ICollection)new[] { "https://example.com", "https://localhost:5001" }, (System.Collections.ICollection)(policy!.Origins));
+            CollectionAssert.AreEquivalent((System.Collections.ICollection)ExpectedCorsOrigins, (System.Collections.ICollection)(policy!.Origins));
         }
 
         [TestMethod]

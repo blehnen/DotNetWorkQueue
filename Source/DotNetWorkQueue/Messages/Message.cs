@@ -90,11 +90,12 @@ namespace DotNetWorkQueue.Messages
         public THeader GetHeader<THeader>(IMessageContextData<THeader> itemData)
             where THeader : class
         {
-            if (!Headers.ContainsKey(itemData.Name))
+            if (!Headers.TryGetValue(itemData.Name, out var value))
             {
-                Headers[itemData.Name] = itemData.Default;
+                value = itemData.Default;
+                Headers[itemData.Name] = value;
             }
-            return (THeader)Headers[itemData.Name];
+            return (THeader)value;
         }
 
         /// <summary>
@@ -118,11 +119,12 @@ namespace DotNetWorkQueue.Messages
         public THeader GetInternalHeader<THeader>(IMessageContextData<THeader> itemData)
             where THeader : class
         {
-            if (!_headersInternal.ContainsKey(itemData.Name))
+            if (!_headersInternal.TryGetValue(itemData.Name, out var value))
             {
-                _headersInternal[itemData.Name] = itemData.Default;
+                value = itemData.Default;
+                _headersInternal[itemData.Name] = value;
             }
-            return (THeader)_headersInternal[itemData.Name];
+            return (THeader)value;
         }
 
         /// <summary>

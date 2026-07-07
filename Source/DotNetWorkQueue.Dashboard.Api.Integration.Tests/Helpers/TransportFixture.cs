@@ -98,6 +98,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
             _creation?.Dispose();
             _creationContainer?.Dispose();
             _scope?.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

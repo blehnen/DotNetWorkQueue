@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace DotNetWorkQueue
@@ -51,12 +50,9 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <param name="name">The name.</param>
         /// <exception cref="System.ObjectDisposedException"></exception>
-        protected void ThrowIfDisposed([CallerMemberName] string name = "")
+        protected void ThrowIfDisposed()
         {
-            if (IsDisposed)
-            {
-                throw new ObjectDisposedException(name);
-            }
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
         }
 
         /// <summary>

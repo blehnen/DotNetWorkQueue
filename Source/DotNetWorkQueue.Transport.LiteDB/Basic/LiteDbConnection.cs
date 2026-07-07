@@ -57,6 +57,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         {
             if (_shared) //only dispose shared connections; manager handles direct
                 Database?.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

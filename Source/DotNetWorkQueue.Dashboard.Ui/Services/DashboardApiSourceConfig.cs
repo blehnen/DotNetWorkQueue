@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
     /// <summary>
     /// Configuration for a single Dashboard API source endpoint.
     /// </summary>
-    public class DashboardApiSourceConfig
+    public partial class DashboardApiSourceConfig
     {
         /// <summary>
         /// The display name of this API source.
@@ -56,10 +56,16 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
         private static string Slugify(string name)
         {
             var slug = name.Trim().ToLowerInvariant();
-            slug = Regex.Replace(slug, @"[^a-z0-9\-]", "-");
-            slug = Regex.Replace(slug, @"-{2,}", "-");
+            slug = NonSlugChars().Replace(slug, "-");
+            slug = MultipleHyphens().Replace(slug, "-");
             slug = slug.Trim('-');
             return slug;
         }
+
+        [GeneratedRegex(@"[^a-z0-9\-]")]
+        private static partial Regex NonSlugChars();
+
+        [GeneratedRegex(@"-{2,}")]
+        private static partial Regex MultipleHyphens();
     }
 }
