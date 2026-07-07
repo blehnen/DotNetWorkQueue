@@ -45,7 +45,7 @@
 
     <!-- Test Infrastructure -->
     <PackageVersion Include="bunit" Version="2.7.2" />
-    <PackageVersion Include="coverlet.collector" Version="10.0.1" />
+    <PackageVersion Include="coverlet.msbuild" Version="10.0.1" />
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
     <PackageVersion Include="AutoFixture.AutoNSubstitute" Version="4.18.1" />
     <PackageVersion Include="CompareNETObjects" Version="4.84.0" />

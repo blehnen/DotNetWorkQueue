@@ -27,58 +27,58 @@ pipeline {
 
                 sh '''
                     dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj" \
-                        -f net10.0 --no-build -c Debug \
-                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-core \
+                        -f net10.0 -c Debug \
+                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-core/ \
                         --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
 
                     dotnet test "Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj" \
-                        -f net10.0 --no-build -c Debug \
-                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-relational \
+                        -f net10.0 -c Debug \
+                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-relational/ \
                         --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
 
                     dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.Tests/DotNetWorkQueue.Transport.SqlServer.Tests.csproj" \
-                        -f net10.0 --no-build -c Debug \
-                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-sqlserver \
+                        -f net10.0 -c Debug \
+                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-sqlserver/ \
                         --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
 
                     dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Tests/DotNetWorkQueue.Transport.PostgreSQL.Tests.csproj" \
-                        -f net10.0 --no-build -c Debug \
-                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-postgresql \
+                        -f net10.0 -c Debug \
+                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-postgresql/ \
                         --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
 
                     dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" \
-                        -f net10.0 --no-build -c Debug \
-                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-redis \
+                        -f net10.0 -c Debug \
+                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-redis/ \
                         --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
 
                     dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Tests/DotNetWorkQueue.Transport.SQLite.Tests.csproj" \
-                        -f net10.0 --no-build -c Debug \
-                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-sqlite \
+                        -f net10.0 -c Debug \
+                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-sqlite/ \
                         --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
 
                     dotnet test "Source/DotNetWorkQueue.Transport.LiteDb.Tests/DotNetWorkQueue.Transport.LiteDb.Tests.csproj" \
-                        -f net10.0 --no-build -c Debug \
-                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-litedb \
+                        -f net10.0 -c Debug \
+                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-litedb/ \
                         --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
 
                     dotnet test "Source/DotNetWorkQueue.Transport.Memory.Tests/DotNetWorkQueue.Transport.Memory.Tests.csproj" \
-                        -f net10.0 --no-build -c Debug \
-                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-memory \
+                        -f net10.0 -c Debug \
+                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-memory/ \
                         --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
 
                     dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Tests/DotNetWorkQueue.Dashboard.Api.Tests.csproj" \
-                        -f net10.0 --no-build -c Debug \
-                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-dashboard-api \
+                        -f net10.0 -c Debug \
+                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-dashboard-api/ \
                         --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
 
                     dotnet test "Source/DotNetWorkQueue.Dashboard.Client.Tests/DotNetWorkQueue.Dashboard.Client.Tests.csproj" \
-                        -f net10.0 --no-build -c Debug \
-                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-dashboard-client \
+                        -f net10.0 -c Debug \
+                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-dashboard-client/ \
                         --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
 
                     dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj" \
-                        -f net10.0 --no-build -c Debug \
-                        --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/unit-dashboard-ui \
+                        -f net10.0 -c Debug \
+                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-dashboard-ui/ \
                         --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
                 '''
 
@@ -101,7 +101,7 @@ pipeline {
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/DotNetWorkQueue.Transport.SqlServer.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
-                                    --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlserver \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-sqlserver/ \
                                     --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml" \
                                     -- --retry-failed-tests 1
                             '''
@@ -123,7 +123,7 @@ pipeline {
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
-                                    --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlserver-linq \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-sqlserver-linq/ \
                                     --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml" \
                                     -- --retry-failed-tests 1
                             '''
@@ -145,7 +145,7 @@ pipeline {
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
-                                    --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-postgresql \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-postgresql/ \
                                     --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml" \
                                     -- --retry-failed-tests 1
                             '''
@@ -167,7 +167,7 @@ pipeline {
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
-                                    --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-postgresql-linq \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-postgresql-linq/ \
                                     --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml" \
                                     -- --retry-failed-tests 1
                             '''
@@ -190,7 +190,7 @@ pipeline {
                                 dotnet test "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
                                     --filter "TestCategory!=StarvationBaseline" \
-                                    --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-redis \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-redis/ \
                                     --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml" \
                                     -- --retry-failed-tests 1
                             '''
@@ -213,7 +213,7 @@ pipeline {
                                 dotnet test "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
                                     --filter "TestCategory!=StarvationBaseline" \
-                                    --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-redis-linq \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-redis-linq/ \
                                     --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml" \
                                     -- --retry-failed-tests 1
                             '''
@@ -232,7 +232,7 @@ pipeline {
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
-                                    --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlite \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-sqlite/ \
                                     --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
                             '''
                         }
@@ -250,7 +250,7 @@ pipeline {
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
-                                    --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-sqlite-linq \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-sqlite-linq/ \
                                     --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
                             '''
                         }
@@ -268,7 +268,7 @@ pipeline {
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.LiteDB.IntegrationTests/DotNetWorkQueue.Transport.LiteDb.IntegrationTests.csproj" \
                                     -f net10.0 -c Debug \
-                                    --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-litedb \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-litedb/ \
                                     --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
                             '''
                         }
@@ -286,7 +286,7 @@ pipeline {
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
-                                    --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-litedb-linq \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-litedb-linq/ \
                                     --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
                             '''
                         }
@@ -304,7 +304,7 @@ pipeline {
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
-                                    --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-memory \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-memory/ \
                                     --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
                             '''
                         }
@@ -322,7 +322,7 @@ pipeline {
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
-                                    --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-memory-linq \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-memory-linq/ \
                                     --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
                             '''
                         }
@@ -351,7 +351,7 @@ pipeline {
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
-                                    --settings Source/coverage.runsettings --collect:"XPlat Code Coverage" --results-directory coverage/int-dashboard \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-dashboard/ \
                                     --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
                             '''
                         }
@@ -431,7 +431,7 @@ pipeline {
                         export PATH="$PATH:$HOME/.dotnet/tools"
 
                         reportgenerator \
-                            -reports:"coverage/**/coverage.cobertura.xml" \
+                            -reports:"coverage/**/*.cobertura.xml" \
                             -targetdir:coverage/report \
                             -reporttypes:"Html;Cobertura;Badges;TeamCitySummary" \
                             -license:"$REPORTGENERATOR_LICENSE"
