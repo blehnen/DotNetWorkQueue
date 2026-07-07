@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -64,6 +64,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         public void Dispose()
         {
             _handler.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         /// <inheritdoc />

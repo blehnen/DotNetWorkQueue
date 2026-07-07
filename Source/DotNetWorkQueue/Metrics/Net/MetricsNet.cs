@@ -144,6 +144,7 @@ namespace DotNetWorkQueue.Metrics.Net
             }
             _childContexts.Clear();
             _meter.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

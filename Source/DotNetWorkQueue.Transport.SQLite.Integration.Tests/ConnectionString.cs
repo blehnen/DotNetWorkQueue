@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data.SQLite;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -63,6 +63,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
                     }
                 }
             }
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -79,6 +79,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
                 await _app.StopAsync();
                 await _app.DisposeAsync();
             }
+            GC.SuppressFinalize(this);
         }
     }
 }

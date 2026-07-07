@@ -312,6 +312,7 @@ namespace DotNetWorkQueue.Dashboard.Client
         {
             if (_ownsHttpClient)
                 _httpClient.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

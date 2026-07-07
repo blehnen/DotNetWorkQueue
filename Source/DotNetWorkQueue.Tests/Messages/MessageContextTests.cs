@@ -147,6 +147,7 @@ namespace DotNetWorkQueue.Tests.Messages
             public void Dispose()
             {
 
+                GC.SuppressFinalize(this);
             }
         }
     }

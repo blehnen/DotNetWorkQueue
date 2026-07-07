@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests
 {
@@ -9,6 +9,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests
         public void Dispose()
         {
 
+            GC.SuppressFinalize(this);
         }
     }
 }

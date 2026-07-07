@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
@@ -60,6 +60,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
                     }
                 }
             }
+            GC.SuppressFinalize(this);
         }
 
         public enum ConnectionTypes
