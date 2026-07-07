@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -98,8 +98,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             }
 
             //recheck
-            if (_disposedValue)
-                throw new ObjectDisposedException("_db");
+            ObjectDisposedException.ThrowIf(_disposedValue, this);
 
             return new LiteDbConnection(_db, false);
         }

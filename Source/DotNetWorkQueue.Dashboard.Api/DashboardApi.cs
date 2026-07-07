@@ -19,7 +19,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
@@ -198,12 +197,9 @@ namespace DotNetWorkQueue.Dashboard.Api
 
         #region IDisposable
 
-        private void ThrowIfDisposed([CallerMemberName] string name = "")
+        private void ThrowIfDisposed()
         {
-            if (Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0)
-            {
-                throw new ObjectDisposedException(name);
-            }
+            ObjectDisposedException.ThrowIf(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
         }
 
         /// <inheritdoc />
