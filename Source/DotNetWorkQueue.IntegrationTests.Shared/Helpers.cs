@@ -36,17 +36,17 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
         public static bool HasRollBack(Guid queueId, Guid id)
         {
-            if (RollBacks.ContainsKey(queueId) && RollBacks[queueId].ContainsKey(id))
+            if (RollBacks.TryGetValue(queueId, out var inner) && inner.TryGetValue(id, out var rolledBack))
             {
-                return RollBacks[queueId][id];
+                return rolledBack;
             }
             return false;
         }
         public static long Count(Guid queueId)
         {
-            if (Counters.ContainsKey(queueId))
+            if (Counters.TryGetValue(queueId, out var counter))
             {
-                return Counters[queueId].ProcessedCount;
+                return counter.ProcessedCount;
             }
             return 0;
         }
@@ -97,8 +97,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
         public int GetErrorCount(string id)
         {
-            if (_errorCounts.ContainsKey(id))
-                return _errorCounts[id];
+            if (_errorCounts.TryGetValue(id, out var count))
+                return count;
             return 0;
         }
 

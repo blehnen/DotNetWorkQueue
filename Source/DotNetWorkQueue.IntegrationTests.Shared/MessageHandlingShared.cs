@@ -74,13 +74,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 where TMessage : class
         {
             var key = message.CorrelationId.Id.Value.ToString();
-            if (haveIProcessedYouBefore.ContainsKey(key))
+            if (haveIProcessedYouBefore.TryGetValue(key, out var seen))
             {
                 if (runTime > 0)
                     Thread.Sleep(runTime * 1000);
 
                 Interlocked.Increment(ref processedCount.ProcessedCount);
-                haveIProcessedYouBefore[key] = haveIProcessedYouBefore[key] + 1;
+                haveIProcessedYouBefore[key] = seen + 1;
                 if (Interlocked.Read(ref processedCount.ProcessedCount) == messageCount)
                 {
                     waitForFinish.Set();

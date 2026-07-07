@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -152,13 +152,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
         /// <remarks>The factory method will always be returned if set, even if the non-factory method is also set</remarks>
         public static List<NpgsqlParameter> GetUserParameters(this QueueConsumerConfiguration configuration)
         {
-            if (configuration.AdditionalSettings.ContainsKey("userdequeueparamsfactory"))
+            if (configuration.AdditionalSettings.TryGetValue("userdequeueparamsfactory", out var dequeueParamsFactory))
             {
-                return ((Func<List<NpgsqlParameter>>)configuration.AdditionalSettings["userdequeueparamsfactory"]).Invoke();
+                return ((Func<List<NpgsqlParameter>>)dequeueParamsFactory).Invoke();
             }
-            if (configuration.AdditionalSettings.ContainsKey("userdequeueparams"))
+            if (configuration.AdditionalSettings.TryGetValue("userdequeueparams", out var dequeueParams))
             {
-                return (List<NpgsqlParameter>)configuration.AdditionalSettings["userdequeueparams"];
+                return (List<NpgsqlParameter>)dequeueParams;
             }
             return null;
         }
@@ -170,13 +170,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
         /// <remarks>The factory method will always be returned if set, even if the non-factory method is also set</remarks>
         public static string GetUserClause(this QueueConsumerConfiguration configuration)
         {
-            if (configuration.AdditionalSettings.ContainsKey("userdequeuefactory"))
+            if (configuration.AdditionalSettings.TryGetValue("userdequeuefactory", out var dequeueClauseFactory))
             {
-                return ((Func<string>)configuration.AdditionalSettings["userdequeuefactory"]).Invoke();
+                return ((Func<string>)dequeueClauseFactory).Invoke();
             }
-            if (configuration.AdditionalSettings.ContainsKey("userdequeue"))
+            if (configuration.AdditionalSettings.TryGetValue("userdequeue", out var dequeueClause))
             {
-                return (string)configuration.AdditionalSettings["userdequeue"];
+                return (string)dequeueClause;
             }
             return null;
         }
@@ -216,9 +216,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
         /// <param name="parameter">The parameter.</param>
         public static void AddUserParameter(this QueueConsumerConfiguration configuration, NpgsqlParameter parameter)
         {
-            if (configuration.AdditionalSettings.ContainsKey("userdequeueparams"))
+            if (configuration.AdditionalSettings.TryGetValue("userdequeueparams", out var dequeueParams))
             {
-                ((List<NpgsqlParameter>)configuration.AdditionalSettings["userdequeueparams"]).Add(parameter);
+                ((List<NpgsqlParameter>)dequeueParams).Add(parameter);
             }
             else
             {

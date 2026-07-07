@@ -48,11 +48,12 @@ namespace DotNetWorkQueue.Messages
         /// <returns></returns>
         public IMessageContextData<T> Add<T>(string name, T defaultValue) where T : class
         {
-            if (!_headers.ContainsKey(name))
+            if (!_headers.TryGetValue(name, out var value))
             {
-                _headers[name] = _messageContextDataFactory.Create(name, defaultValue);
+                value = _messageContextDataFactory.Create(name, defaultValue);
+                _headers[name] = value;
             }
-            return (IMessageContextData<T>)_headers[name];
+            return (IMessageContextData<T>)value;
         }
         /// <summary>
         /// Gets the specified header accessor from the collection

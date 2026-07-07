@@ -68,11 +68,12 @@ namespace DotNetWorkQueue.Messages
             if (IsDisposed && _items.Count == 0)
                 ThrowIfDisposed();
 
-            if (!_items.ContainsKey(itemData.Name))
+            if (!_items.TryGetValue(itemData.Name, out var value))
             {
-                _items[itemData.Name] = itemData.Default;
+                value = itemData.Default;
+                _items[itemData.Name] = value;
             }
-            return (T)_items[itemData.Name];
+            return (T)value;
         }
 
         /// <inheritdoc/>

@@ -85,11 +85,12 @@ namespace DotNetWorkQueue.Messages
         public THeader GetHeader<THeader>(IMessageContextData<THeader> itemData)
             where THeader : class
         {
-            if (!_headers.ContainsKey(itemData.Name))
+            if (!_headers.TryGetValue(itemData.Name, out var value))
             {
-                _headers[itemData.Name] = itemData.Default;
+                value = itemData.Default;
+                _headers[itemData.Name] = value;
             }
-            return (THeader)_headers[itemData.Name];
+            return (THeader)value;
         }
         /// <summary>
         /// Allows additional information to be attached to a message, that is not part of the message body.

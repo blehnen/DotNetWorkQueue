@@ -28,8 +28,8 @@ namespace DotNetWorkQueue.IntegrationTests.Metrics
         /// <inheritdoc />
         public IMeter Meter(string name, Units unit, TimeUnits rateUnit, List<KeyValuePair<string, string>> tags = null)
         {
-            if (_meters.ContainsKey(name))
-                return _meters[name];
+            if (_meters.TryGetValue(name, out var meter))
+                return meter;
             _meters.TryAdd(name, new Meter());
             return _meters[name];
         }
@@ -37,8 +37,8 @@ namespace DotNetWorkQueue.IntegrationTests.Metrics
         /// <inheritdoc />
         public IMeter Meter(string name, string unitName, TimeUnits rateUnit, List<KeyValuePair<string, string>> tags = null)
         {
-            if (_meters.ContainsKey(name))
-                return _meters[name];
+            if (_meters.TryGetValue(name, out var meter))
+                return meter;
             _meters.TryAdd(name, new Meter());
             return _meters[name];
         }
@@ -46,8 +46,8 @@ namespace DotNetWorkQueue.IntegrationTests.Metrics
         /// <inheritdoc />
         public ICounter Counter(string name, Units unit, List<KeyValuePair<string, string>> tags = null)
         {
-            if (_counters.ContainsKey(name))
-                return _counters[name];
+            if (_counters.TryGetValue(name, out var counter))
+                return counter;
             _counters.TryAdd(name, new Counter());
             return _counters[name];
         }
@@ -55,8 +55,8 @@ namespace DotNetWorkQueue.IntegrationTests.Metrics
         /// <inheritdoc />
         public ICounter Counter(string name, string unitName, List<KeyValuePair<string, string>> tags = null)
         {
-            if (_counters.ContainsKey(name))
-                return _counters[name];
+            if (_counters.TryGetValue(name, out var counter))
+                return counter;
             _counters.TryAdd(name, new Counter());
             return _counters[name];
         }
