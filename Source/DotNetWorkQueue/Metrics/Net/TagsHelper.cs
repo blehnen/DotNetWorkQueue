@@ -16,13 +16,14 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.Collections.Generic;
 
 namespace DotNetWorkQueue.Metrics.Net
 {
     internal static class TagsHelper
     {
-        private static readonly KeyValuePair<string, object>[] Empty = new KeyValuePair<string, object>[0];
+        private static readonly KeyValuePair<string, object>[] Empty = Array.Empty<KeyValuePair<string, object>>();
 
         public static KeyValuePair<string, object>[] Convert(List<KeyValuePair<string, string>> tags)
         {

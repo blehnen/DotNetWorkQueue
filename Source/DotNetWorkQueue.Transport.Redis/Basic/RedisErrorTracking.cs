@@ -58,11 +58,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="exceptionType">Type of the exception.</param>
         public void IncrementExceptionCount(string exceptionType)
         {
-            if (!Errors.ContainsKey(exceptionType))
-            {
-                Errors.Add(exceptionType, 1);
-            }
-            else
+            if (!Errors.TryAdd(exceptionType, 1))
             {
                 Errors[exceptionType] = Errors[exceptionType] + 1;
             }

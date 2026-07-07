@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
         public Task StartAsync(CancellationToken cancellationToken)
         {
             var addressesFeature = _server.Features.Get<IServerAddressesFeature>();
-            if (addressesFeature == null || !addressesFeature.Addresses.Any())
+            if (addressesFeature == null || addressesFeature.Addresses.Count == 0)
             {
                 _logger.LogWarning("Could not resolve local server address: IServerAddressesFeature is unavailable or has no addresses. The Local source will use its configured placeholder URL.");
                 return Task.CompletedTask;

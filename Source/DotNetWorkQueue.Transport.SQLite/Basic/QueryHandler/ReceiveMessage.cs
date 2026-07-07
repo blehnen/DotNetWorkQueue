@@ -223,14 +223,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         private static string GenerateTempTableName()
         {
             var encoded = new UTF8Encoding().GetBytes(Guid.NewGuid().ToString());
-            using (var hasher = MD5.Create())
-            {
-                var hash = hasher.ComputeHash(encoded);
-                return "I" + BitConverter.ToString(hash)
-                   .Replace("-", string.Empty)
-                   .Replace("_", string.Empty)
-                   .ToLower();
-            }
+            var hash = MD5.HashData(encoded);
+            return "I" + Convert.ToHexString(hash).ToLower();
         }
     }
 }

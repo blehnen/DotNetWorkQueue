@@ -342,10 +342,7 @@ namespace DotNetWorkQueue.IoC
         /// <remarks>Adding an exception for a type that was not actually registered in the container causes all sorts of problems</remarks>
         public void AddTypeThatNeedsWarningSuppression(Type type)
         {
-            if (!TypesThatCanBeSuppressed.Contains(type))
-            {
-                TypesThatCanBeSuppressed.Add(type);
-            }
+            TypesThatCanBeSuppressed.Add(type);
         }
 
         /// <summary>

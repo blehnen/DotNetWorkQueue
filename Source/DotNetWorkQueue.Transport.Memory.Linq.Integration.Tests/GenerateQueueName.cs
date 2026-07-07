@@ -1,4 +1,4 @@
-﻿#region Using
+#region Using
 
 using System;
 using System.Security.Cryptography;
@@ -17,10 +17,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests
         {
             var encoded = new UTF8Encoding().GetBytes(Guid.NewGuid().ToString());
             var hash = ((HashAlgorithm)CryptoConfig.CreateFromName("MD5")).ComputeHash(encoded);
-            return "I" + BitConverter.ToString(hash)
-               .Replace("-", string.Empty)
-               .Replace("_", string.Empty)
-               .ToLower();
+            return "I" + Convert.ToHexString(hash).ToLower();
 
         }
         public static string CreateFileName()
