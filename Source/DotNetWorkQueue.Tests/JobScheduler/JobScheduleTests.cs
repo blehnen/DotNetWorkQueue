@@ -98,7 +98,7 @@ namespace DotNetWorkQueue.Tests.JobScheduler
             var now = DateTimeOffset.UtcNow;
             var schedule = new JobSchedule("* * * * *", () => now);
             var next = schedule.Next();
-            Assert.IsTrue(next > now);
+            Assert.IsGreaterThan(now, next);
         }
 
         [TestMethod]
@@ -107,7 +107,7 @@ namespace DotNetWorkQueue.Tests.JobScheduler
             var now = DateTimeOffset.UtcNow;
             var schedule = new JobSchedule("*/10 * * * * *", () => now);
             var next = schedule.Next();
-            Assert.IsTrue(next > now);
+            Assert.IsGreaterThan(now, next);
         }
 
         [TestMethod]
@@ -116,7 +116,7 @@ namespace DotNetWorkQueue.Tests.JobScheduler
             var after = new DateTimeOffset(2025, 6, 1, 12, 0, 0, TimeSpan.Zero);
             var schedule = new JobSchedule("*/5 * * * *", () => after);
             var next = schedule.Next(after);
-            Assert.IsTrue(next > after);
+            Assert.IsGreaterThan(after, next);
         }
 
         // --- Previous() behavior ---
@@ -128,7 +128,7 @@ namespace DotNetWorkQueue.Tests.JobScheduler
             var schedule = new JobSchedule("* * * * *", () => now);
             var prev = schedule.Previous();
             Assert.IsNotNull(prev);
-            Assert.IsTrue(prev.Value <= now);
+            Assert.IsLessThanOrEqualTo(now, prev.Value);
         }
 
         [TestMethod]
@@ -138,7 +138,7 @@ namespace DotNetWorkQueue.Tests.JobScheduler
             var schedule = new JobSchedule("* * * * *", () => before);
             var prev = schedule.Previous(before);
             Assert.IsNotNull(prev);
-            Assert.IsTrue(prev.Value <= before);
+            Assert.IsLessThanOrEqualTo(before, prev.Value);
         }
 
         // --- PR comment 4: configurable lookback window ---

@@ -165,7 +165,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
             // (proves the validator fires before the cast guard).
             StringAssert.Contains(ex.Message, "WRONGDB");
             StringAssert.Contains(ex.Message, QueueDb);
-            Assert.IsFalse(ex.Message.Contains("SqlTransaction"),
+            Assert.DoesNotContain("SqlTransaction", ex.Message,
                 "Validator must fire before the SqlTransaction cast guard.");
         }
 
@@ -254,7 +254,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
 
             Assert.IsInstanceOfType(captured, typeof(RelationalSendMessageCommandBatch));
             Assert.AreSame(transaction, ((RelationalSendMessageCommandBatch)captured).ExternalTransaction);
-            Assert.AreEqual(2, captured.Messages.Count);
+            Assert.HasCount(2, captured.Messages);
         }
 
         [TestMethod]

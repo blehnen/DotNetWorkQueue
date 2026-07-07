@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var result = await client.GetConnectionsAsync();
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(1, result.Value.Count);
+            Assert.HasCount(1, result.Value);
             Assert.AreEqual("Test", result.Value[0].DisplayName);
             Assert.AreEqual(3, result.Value[0].QueueCount);
         }
@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var result = await client.GetConsumersAsync();
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(1, result.Value.Count);
+            Assert.HasCount(1, result.Value);
             Assert.AreEqual(consumerId, result.Value[0].ConsumerId);
             Assert.AreEqual("M1", result.Value[0].MachineName);
         }
@@ -183,7 +183,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var result = await client.GetQueuesAsync(Guid.NewGuid());
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(1, result.Value.Count);
+            Assert.HasCount(1, result.Value);
             Assert.AreEqual(id, result.Value[0].Id);
             Assert.AreEqual("my-queue", result.Value[0].QueueName);
         }
@@ -200,7 +200,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var result = await client.GetJobsAsync(Guid.NewGuid());
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(1, result.Value.Count);
+            Assert.HasCount(1, result.Value);
             Assert.AreEqual("daily", result.Value[0].JobName);
             Assert.AreEqual(now, result.Value[0].JobEventTime);
             Assert.AreEqual(now.AddHours(1), result.Value[0].JobScheduledTime);
@@ -266,7 +266,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var result = await client.GetMessagesAsync(Guid.NewGuid());
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(1, result.Value.Items.Count);
+            Assert.HasCount(1, result.Value.Items);
             Assert.AreEqual("msg-1", result.Value.Items[0].QueueId);
             Assert.AreEqual(50, result.Value.TotalCount);
             Assert.AreEqual(0, result.Value.PageIndex);
@@ -388,7 +388,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var result = await client.GetMessageHeadersAsync(Guid.NewGuid(), "msg-1");
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(2, result.Value.Headers.Count);
+            Assert.HasCount(2, result.Value.Headers);
             Assert.AreEqual("val1", result.Value.Headers["key1"]);
         }
 
@@ -406,7 +406,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var result = await client.GetErrorRetriesAsync(Guid.NewGuid(), "msg-1");
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(1, result.Value.Count);
+            Assert.HasCount(1, result.Value);
             Assert.AreEqual(1, result.Value[0].ErrorTrackingId);
             Assert.AreEqual("System.Exception", result.Value[0].ExceptionType);
             Assert.AreEqual(3, result.Value[0].RetryCount);
@@ -429,7 +429,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var result = await client.GetStaleMessagesAsync(Guid.NewGuid());
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(1, result.Value.Items.Count);
+            Assert.HasCount(1, result.Value.Items);
             Assert.AreEqual("stale-1", result.Value.Items[0].QueueId);
             Assert.AreEqual(5, result.Value.TotalCount);
         }
@@ -451,7 +451,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
             var result = await client.GetErrorsAsync(Guid.NewGuid());
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(1, result.Value.Items.Count);
+            Assert.HasCount(1, result.Value.Items);
             Assert.AreEqual("msg-1", result.Value.Items[0].QueueId);
             Assert.AreEqual("boom", result.Value.Items[0].LastException);
             Assert.AreEqual(10, result.Value.TotalCount);

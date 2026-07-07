@@ -174,7 +174,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             // so the message must NOT mention NpgsqlTransaction.
             StringAssert.Contains(ex.Message, "MyDb");
             StringAssert.Contains(ex.Message, "mydb");
-            Assert.IsFalse(ex.Message.Contains("NpgsqlTransaction"),
+            Assert.DoesNotContain("NpgsqlTransaction", ex.Message,
                 "Validator must fire before the NpgsqlTransaction cast guard.");
         }
 
@@ -262,7 +262,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
 
             Assert.IsInstanceOfType(captured, typeof(RelationalSendMessageCommandBatch));
             Assert.AreSame(transaction, ((RelationalSendMessageCommandBatch)captured).ExternalTransaction);
-            Assert.AreEqual(2, captured.Messages.Count);
+            Assert.HasCount(2, captured.Messages);
         }
 
         [TestMethod]

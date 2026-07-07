@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Tests.Factory
                 }).Start();
             }
             resetEvent.WaitOne();
-            Assert.AreEqual(numThreads, names.Count);
+            Assert.HasCount(numThreads, names);
         }
         private IWorkerNameFactory Create()
         {

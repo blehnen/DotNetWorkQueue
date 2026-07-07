@@ -228,12 +228,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var connections = await server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
-            Assert.AreEqual(1, connections.Count);
+            Assert.HasCount(1, connections);
             Assert.AreEqual(1, connections![0].QueueCount);
 
             var queues = await server.Client.GetFromJsonAsync<List<QueueInfoResponse>>(
                 $"api/v1/dashboard/connections/{connections[0].Id}/queues");
-            Assert.AreEqual(1, queues.Count);
+            Assert.HasCount(1, queues);
             Assert.AreEqual(queueName, queues![0].QueueName);
             Assert.AreNotEqual(Guid.Empty, queues[0].Id);
         }
@@ -278,7 +278,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var connections = await server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
-            Assert.AreEqual(2, connections.Count);
+            Assert.HasCount(2, connections);
 
             // Find queue IDs across connections
             Guid queueId1 = Guid.Empty, queueId2 = Guid.Empty;
@@ -336,7 +336,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var jobs = await server.Client.GetFromJsonAsync<List<JobResponse>>(
                 $"api/v1/dashboard/connections/{connections[0].Id}/jobs");
-            Assert.AreEqual(0, jobs.Count);
+            Assert.IsEmpty(jobs);
         }
 
         // === Settings endpoint returns expected values ===
@@ -403,7 +403,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var paged = await server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/messages/stale");
             Assert.IsNotNull(paged);
-            Assert.AreEqual(0, paged!.Items.Count);
+            Assert.IsEmpty(paged!.Items);
         }
 
         // === Errors returns empty when no errors ===
@@ -440,7 +440,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var paged = await server.Client.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/errors");
             Assert.IsNotNull(paged);
-            Assert.AreEqual(0, paged!.Items.Count);
+            Assert.IsEmpty(paged!.Items);
             Assert.AreEqual(0, paged.TotalCount);
         }
 
@@ -575,7 +575,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var retries = await server.Client.GetFromJsonAsync<List<ErrorRetryResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/messages/99999999/retries");
-            Assert.AreEqual(0, retries.Count);
+            Assert.IsEmpty(retries);
         }
     }
 }

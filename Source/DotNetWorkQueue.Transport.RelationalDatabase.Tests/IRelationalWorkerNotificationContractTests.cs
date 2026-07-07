@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests
             var declared = typeof(IRelationalWorkerNotification).GetProperties(
                 BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 
-            Assert.AreEqual(1, declared.Length,
+            Assert.HasCount(1, declared,
                 "IRelationalWorkerNotification must declare exactly one new property (Transaction).");
             Assert.AreEqual("Transaction", declared[0].Name);
         }

@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Tests.Admin
         public void Connections_Initially_Empty()
         {
             var api = Create();
-            Assert.AreEqual(0, api.Connections.Count);
+            Assert.IsEmpty(api.Connections);
         }
 
         [TestMethod]
@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Tests.Admin
             var connection = new QueueConnection("test", "connection");
             var id = api.AddQueueConnection(container, connection);
 
-            Assert.AreEqual(1, api.Connections.Count);
+            Assert.HasCount(1, api.Connections);
             Assert.IsTrue(api.Connections.ContainsKey(id));
             Assert.AreSame(connection, api.Connections[id].Item2);
             Assert.AreSame(container, api.Connections[id].Item1);
@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Tests.Admin
             var id2 = api.AddQueueConnection(container, connection2);
 
             Assert.AreNotEqual(id1, id2);
-            Assert.AreEqual(2, api.Connections.Count);
+            Assert.HasCount(2, api.Connections);
         }
 
         [TestMethod]
@@ -144,7 +144,7 @@ namespace DotNetWorkQueue.Tests.Admin
             api.AddQueueConnection(container, connection);
             api.Dispose();
 
-            Assert.AreEqual(0, api.Connections.Count);
+            Assert.IsEmpty(api.Connections);
         }
 
         [TestMethod]

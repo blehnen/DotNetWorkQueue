@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation
                             }
 
                             // Verify trace activities were collected
-                            Assert.IsTrue(trace.CollectedActivities.Count > 0,
+                            Assert.IsNotEmpty(trace.CollectedActivities,
                                 "Expected at least one trace activity to be collected, but none were recorded.");
 
                             var activityNames = trace.CollectedActivities.Select(a => a.OperationName).ToList();

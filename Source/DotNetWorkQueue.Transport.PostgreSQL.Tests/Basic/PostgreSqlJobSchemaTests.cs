@@ -17,7 +17,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var test = Create();
             var tables = test.GetSchema();
             Assert.IsNotNull(tables);
-            Assert.AreEqual(1, tables.Count);
+            Assert.HasCount(1, tables);
         }
 
         [TestMethod]
@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var test = Create();
             var table = (Table)test.GetSchema().Single();
 
-            Assert.AreEqual(3, table.Columns.Items.Count);
+            Assert.HasCount(3, table.Columns.Items);
 
             var jobEventTime = table.Columns.Items.FirstOrDefault(c => c.Name == "JobEventTime");
             Assert.IsNotNull(jobEventTime);
@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var pk = table.Constraints.FirstOrDefault(c => c.Type == ConstraintType.PrimaryKey);
             Assert.IsNotNull(pk);
             Assert.AreEqual("PK_" + tableNameHelper.JobTableName, pk.Name);
-            Assert.IsTrue(pk.Columns.Contains("JobName"));
+            Assert.Contains("JobName", pk.Columns);
             Assert.IsNotNull(table.PrimaryKey);
             Assert.IsTrue(table.PrimaryKey.Unique);
         }

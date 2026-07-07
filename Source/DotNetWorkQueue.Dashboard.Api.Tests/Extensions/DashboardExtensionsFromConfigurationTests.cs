@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
             var provider = services.BuildServiceProvider();
             var options = provider.GetRequiredService<DashboardOptions>();
             Assert.IsFalse(options.EnableSwagger);
-            Assert.IsTrue((options.ConnectionRegistrations).Any());
+            Assert.IsNotEmpty(options.ConnectionRegistrations);
         }
 
         // Task 2: Parameterized test over all 5 valid transport names
@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
 
             var provider = services.BuildServiceProvider();
             var options = provider.GetRequiredService<DashboardOptions>();
-            Assert.IsTrue((options.ConnectionRegistrations).Any());
+            Assert.IsNotEmpty(options.ConnectionRegistrations);
         }
 
         // Task 2: Unknown-transport error test

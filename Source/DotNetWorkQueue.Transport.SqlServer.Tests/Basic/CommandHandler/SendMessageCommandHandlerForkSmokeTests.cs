@@ -82,9 +82,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             // helpers like CreateStatusRecord, masking the actual call site if a future
             // edit added a Commit/Rollback/Close/Dispose call to one of them.
             var forkStart = content.IndexOf("private long HandleExternalTransaction", StringComparison.Ordinal);
-            Assert.IsTrue(forkStart >= 0, "HandleExternalTransaction not found in source.");
+            Assert.IsGreaterThanOrEqualTo(0, forkStart, "HandleExternalTransaction not found in source.");
             var forkEnd = content.IndexOf("\n        }\n", forkStart, StringComparison.Ordinal);
-            Assert.IsTrue(forkEnd >= 0,
+            Assert.IsGreaterThanOrEqualTo(0, forkEnd,
                 "Closing brace of HandleExternalTransaction (column-8 '}' on its own line) not found.");
             var forkBody = content.Substring(forkStart, forkEnd - forkStart);
 
@@ -105,13 +105,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             }
             var forkCode = codeOnly.ToString();
 
-            Assert.IsFalse(forkCode.Contains(".Commit()"),    "HandleExternalTransaction must not call .Commit() on the caller's transaction.");
-            Assert.IsFalse(forkCode.Contains(".Rollback()"),  "HandleExternalTransaction must not call .Rollback() on the caller's transaction.");
+            Assert.DoesNotContain(".Commit()", forkCode,    "HandleExternalTransaction must not call .Commit() on the caller's transaction.");
+            Assert.DoesNotContain(".Rollback()", forkCode,  "HandleExternalTransaction must not call .Rollback() on the caller's transaction.");
             // Close and Dispose are looked for as method invocations on conn/transaction — broad enough
             // to catch sqlConn.Close(), sqlTransaction.Dispose(), etc. False-positives unlikely because
             // the fork body has no other Close/Dispose surface.
-            Assert.IsFalse(forkCode.Contains(".Close()"),     "HandleExternalTransaction must not call .Close() on the caller's connection.");
-            Assert.IsFalse(forkCode.Contains(".Dispose()"),   "HandleExternalTransaction must not call .Dispose() on the caller's connection or transaction.");
+            Assert.DoesNotContain(".Close()", forkCode,     "HandleExternalTransaction must not call .Close() on the caller's connection.");
+            Assert.DoesNotContain(".Dispose()", forkCode,   "HandleExternalTransaction must not call .Dispose() on the caller's connection or transaction.");
         }
 
         /// <summary>

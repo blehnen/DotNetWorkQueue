@@ -90,13 +90,13 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var connections = await _server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
             Assert.IsNotNull(connections);
-            Assert.IsTrue(connections.Count > 0);
+            Assert.IsNotEmpty(connections);
             var connectionId = connections[0].Id;
 
             var queues = await _server.Client.GetFromJsonAsync<List<QueueInfoResponse>>(
                 $"api/v1/dashboard/connections/{connectionId}/queues");
             Assert.IsNotNull(queues);
-            Assert.IsTrue(queues.Count > 0);
+            Assert.IsNotEmpty(queues);
             var queueId = queues[0].Id;
 
             // --- Phase 2: create the queue with history enabled and populate it ---
@@ -145,14 +145,14 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             var history = await _server.Client.GetFromJsonAsync<PagedResponse<HistoryResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/history?pageSize=100");
             Assert.IsNotNull(history);
-            Assert.IsTrue(history.Items.Count >= MessageCount,
+            Assert.IsGreaterThanOrEqualTo(MessageCount, history.Items.Count,
                 "history reads must survive a stale/default options cache on the dashboard side");
 
             var countResponse = await _server.Client.GetAsync(
                 $"api/v1/dashboard/queues/{queueId}/history/count");
             countResponse.EnsureSuccessStatusCode();
             var count = await countResponse.Content.ReadFromJsonAsync<long>();
-            Assert.IsTrue(count >= MessageCount);
+            Assert.IsGreaterThanOrEqualTo(MessageCount, count);
         }
     }
 }

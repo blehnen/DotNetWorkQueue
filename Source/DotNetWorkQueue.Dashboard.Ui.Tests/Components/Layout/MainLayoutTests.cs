@@ -69,7 +69,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Layout
 
             var cut = Render<MainLayout>();
 
-            Assert.IsFalse(cut.Markup.Contains("Sign out"));
+            Assert.DoesNotContain("Sign out", cut.Markup);
         }
 
         [TestMethod]

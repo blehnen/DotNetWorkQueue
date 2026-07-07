@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             var result = service.GetConnections();
 
-            Assert.AreEqual(1, (result).Count());
+            Assert.HasCount(1, result);
             Assert.AreEqual("Test Connection", result[0].DisplayName);
             Assert.AreEqual(1, result[0].QueueCount);
         }
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             var result = service.GetQueues(connectionId);
 
-            Assert.AreEqual(1, (result).Count());
+            Assert.HasCount(1, result);
             Assert.AreEqual("TestQueue", result[0].QueueName);
         }
 
@@ -184,7 +184,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetJobsByConnectionAsync(connectionId);
 
-            Assert.AreEqual(1, (result).Count());
+            Assert.HasCount(1, result);
             Assert.AreEqual("ConnectionJob", result[0].JobName);
         }
 
@@ -209,7 +209,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             var service = new DashboardService(api, NullLogger<DashboardService>.Instance, new DashboardOptions());
             var result = await service.GetJobsByConnectionAsync(connectionId);
 
-            Assert.IsFalse((result).Any());
+            Assert.IsEmpty(result);
         }
 
         [TestMethod]
@@ -304,7 +304,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             Assert.IsFalse(string.IsNullOrEmpty(result.Body));
             Assert.AreEqual("System.String", result.TypeName);
             Assert.IsFalse(result.WasIntercepted);
-            Assert.IsFalse((result.InterceptorChain).Any());
+            Assert.IsEmpty(result.InterceptorChain);
             Assert.IsNull(result.DecodingError);
         }
 
@@ -595,7 +595,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             StringAssert.Contains(result.DecodingError, "Padding is invalid and cannot be removed");
             StringAssert.Contains(result.DecodingError, "Verify that the dashboard has the same interceptors configured");
             Assert.IsTrue(result.WasIntercepted);
-            Assert.AreEqual(2, (result.InterceptorChain).Count());
+            Assert.HasCount(2, result.InterceptorChain);
             CollectionAssert.Contains((System.Collections.ICollection)result.InterceptorChain, "TripleDesMessageInterceptor");
             CollectionAssert.Contains((System.Collections.ICollection)result.InterceptorChain, "GZipMessageInterceptor");
         }
@@ -649,7 +649,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             StringAssert.Contains(result.DecodingError, "Could not load assembly");
             StringAssert.Contains(result.DecodingError, "ensure the assembly containing the message type is available");
             Assert.IsFalse(result.WasIntercepted);
-            Assert.IsFalse((result.InterceptorChain).Any());
+            Assert.IsEmpty(result.InterceptorChain);
         }
 
         [TestMethod]
@@ -700,7 +700,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             Assert.AreEqual("Unexpected deserialization failure", result.DecodingError);
             // Even for generic exceptions, interceptor info should be populated since headers parsed OK
             Assert.IsTrue(result.WasIntercepted);
-            Assert.AreEqual(1, (result.InterceptorChain).Count());
+            Assert.HasCount(1, result.InterceptorChain);
             CollectionAssert.Contains((System.Collections.ICollection)result.InterceptorChain, "GZipMessageInterceptor");
         }
 
@@ -754,7 +754,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             Assert.IsFalse(string.IsNullOrEmpty(result.Body));
             Assert.IsNull(result.DecodingError);
             Assert.IsTrue(result.WasIntercepted);
-            Assert.AreEqual(2, (result.InterceptorChain).Count());
+            Assert.HasCount(2, result.InterceptorChain);
             CollectionAssert.Contains((System.Collections.ICollection)result.InterceptorChain, "TripleDesMessageInterceptor");
             CollectionAssert.Contains((System.Collections.ICollection)result.InterceptorChain, "GZipMessageInterceptor");
         }

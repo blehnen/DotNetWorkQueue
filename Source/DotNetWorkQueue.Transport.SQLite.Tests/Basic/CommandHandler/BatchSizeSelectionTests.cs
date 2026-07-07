@@ -36,10 +36,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic.CommandHandler
         [TestMethod]
         public void SafeMax_IsConservativeAndPositive()
         {
-            Assert.IsTrue(SendMessageBatch.SafeMaxBatchSize >= 1);
+            Assert.IsGreaterThanOrEqualTo(1, SendMessageBatch.SafeMaxBatchSize);
             // Stays under the conservative SQLite parameter ceiling (2 params per row).
-            Assert.IsTrue(SendMessageBatch.SafeMaxBatchSize
-                <= (SendMessageBatch.SqliteSafeMaxParameters / SendMessageBatch.BodyParametersPerMessage));
+            Assert.IsLessThanOrEqualTo(SendMessageBatch.SqliteSafeMaxParameters / SendMessageBatch.BodyParametersPerMessage, SendMessageBatch.SafeMaxBatchSize);
         }
 
         [TestMethod]

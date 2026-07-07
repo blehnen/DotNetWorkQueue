@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var test = Create();
             var result = test.Get(0, 10, null);
-            Assert.AreEqual(0, result.Count);
+            Assert.IsEmpty(result);
         }
 
         [TestMethod]

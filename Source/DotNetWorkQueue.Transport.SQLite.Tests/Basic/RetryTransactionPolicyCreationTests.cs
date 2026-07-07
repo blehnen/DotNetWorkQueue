@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var (container, policies) = CreateMocks();
             RetryTransactionPolicyCreation.Register(container);
             // RetryCommandHandler and RetryCommandHandlerAsync map to the same key
-            Assert.AreEqual(3, policies.TransportDefinition.Count);
+            Assert.HasCount(3, policies.TransportDefinition);
         }
 
         [TestMethod]
@@ -160,7 +160,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             }
 
             if (shouldRetry)
-                Assert.IsTrue(callCount > 1, $"Error code {errorCode} should have triggered retries but was called only {callCount} time(s)");
+                Assert.IsGreaterThan(1, callCount, $"Error code {errorCode} should have triggered retries but was called only {callCount} time(s)");
             else
                 Assert.AreEqual(1, callCount, $"Error code {errorCode} should not have triggered retries");
         }

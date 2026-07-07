@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
             Assert.AreEqual("route", record.Route);
             Assert.AreEqual("MyType", record.MessageType);
             Assert.AreEqual(0, record.RetryCount);
-            Assert.IsTrue(record.EnqueuedUtc <= DateTime.UtcNow);
+            Assert.IsLessThanOrEqualTo(DateTime.UtcNow, record.EnqueuedUtc);
         }
 
         [TestMethod]
@@ -99,7 +99,7 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
             var record = records["q1"];
             Assert.AreEqual(MessageHistoryStatus.Processing, record.Status);
             Assert.IsNotNull(record.StartedUtc);
-            Assert.IsTrue(record.StartedUtc.Value <= DateTime.UtcNow);
+            Assert.IsLessThanOrEqualTo(DateTime.UtcNow, record.StartedUtc.Value);
         }
 
         [TestMethod]
@@ -134,7 +134,7 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
             Assert.AreEqual(MessageHistoryStatus.Complete, record.Status);
             Assert.IsNotNull(record.CompletedUtc);
             Assert.IsNotNull(record.DurationMs);
-            Assert.IsTrue(record.DurationMs.Value >= 0);
+            Assert.IsGreaterThanOrEqualTo(0, record.DurationMs.Value);
         }
 
         [TestMethod]
@@ -185,7 +185,7 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
             Assert.AreEqual("NullReferenceException", record.ExceptionText);
             Assert.IsNotNull(record.CompletedUtc);
             Assert.IsNotNull(record.DurationMs);
-            Assert.IsTrue(record.DurationMs.Value >= 0);
+            Assert.IsGreaterThanOrEqualTo(0, record.DurationMs.Value);
         }
 
         [TestMethod]
@@ -342,7 +342,7 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
             Assert.AreEqual("corr1", record.CorrelationId);
             Assert.AreEqual("routeA", record.Route);
             Assert.AreEqual("MyMessage", record.MessageType);
-            Assert.IsTrue(record.EnqueuedUtc > DateTime.MinValue);
+            Assert.IsGreaterThan(DateTime.MinValue, record.EnqueuedUtc);
             Assert.IsNotNull(record.StartedUtc);
             Assert.IsNotNull(record.CompletedUtc);
             Assert.IsNotNull(record.DurationMs);

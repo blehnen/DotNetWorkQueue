@@ -69,7 +69,7 @@ namespace DotNetWorkQueue.Tests.Queue
                 test.Start();
                 Thread.Sleep(2000);
             }
-            Assert.AreEqual(2, action.ReceivedCalls().Count());
+            Assert.HasCount(2, action.ReceivedCalls());
         }
 
         [TestMethod]

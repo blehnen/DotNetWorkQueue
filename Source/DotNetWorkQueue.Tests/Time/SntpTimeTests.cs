@@ -77,8 +77,8 @@ namespace DotNetWorkQueue.Tests.Time
 
             Assert.AreEqual(1, fake.GetTimeCallCount);
             Assert.AreEqual(DateTimeKind.Utc, result.Kind);
-            Assert.IsTrue(result >= before.AddSeconds(29));
-            Assert.IsTrue(result <= after.AddSeconds(31));
+            Assert.IsGreaterThanOrEqualTo(before.AddSeconds(29), result);
+            Assert.IsLessThanOrEqualTo(after.AddSeconds(31), result);
         }
 
         [TestMethod]

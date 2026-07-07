@@ -89,8 +89,8 @@ namespace DotNetWorkQueue.Tests.Metrics.NoOp
             var test = Create();
             var result = test.GetCollectedMetrics();
             Assert.IsNotNull(result);
-            Assert.AreEqual(0, result.Counters.Count);
-            Assert.AreEqual(0, result.Meters.Count);
+            Assert.IsEmpty(result.Counters);
+            Assert.IsEmpty(result.Meters);
         }
 
         private MetricsNoOp Create()

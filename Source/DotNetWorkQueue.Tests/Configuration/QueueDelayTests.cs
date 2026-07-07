@@ -19,7 +19,7 @@ namespace DotNetWorkQueue.Tests.Configuration
         {
             var test = GetConfiguration();
             test.Add(TimeSpan.MaxValue);
-            Assert.IsTrue(test.Count() == 1);
+            Assert.AreEqual(1, test.Count());
         }
         [TestMethod]
         public void Test_DefaultNotReadOnly()

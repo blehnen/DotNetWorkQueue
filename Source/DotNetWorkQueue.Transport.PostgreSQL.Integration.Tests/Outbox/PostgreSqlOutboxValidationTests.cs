@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Outbox
                 () => producer.RelationalProducer.Send(msg, wrongTx));
 
             // Validator's exception message must include the wrong DB name (PROJECT.md §Diagnostics).
-            Assert.IsTrue(ex.Message.IndexOf("postgres", StringComparison.Ordinal) >= 0,
+            Assert.IsGreaterThanOrEqualTo(0, ex.Message.IndexOf("postgres", StringComparison.Ordinal),
                 $"Expected exception message to mention 'postgres': {ex.Message}");
 
             // No partial write — queue MetaData table count must be 0.

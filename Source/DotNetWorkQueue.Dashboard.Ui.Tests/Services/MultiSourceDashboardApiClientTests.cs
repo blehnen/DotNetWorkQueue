@@ -111,7 +111,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
 
             var result = sut.GetAllSources();
 
-            Assert.AreEqual(2, result.Count);
+            Assert.HasCount(2, result);
             Assert.AreEqual("Local", result[0].Name);
             Assert.AreEqual("Production", result[1].Name);
         }

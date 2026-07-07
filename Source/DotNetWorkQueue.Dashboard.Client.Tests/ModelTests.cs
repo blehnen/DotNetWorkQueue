@@ -150,7 +150,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 Headers = headers
             };
 
-            Assert.AreEqual(2, sut.Headers.Count);
+            Assert.HasCount(2, sut.Headers);
             Assert.AreEqual("v1", sut.Headers["h1"]);
         }
 
@@ -182,7 +182,7 @@ namespace DotNetWorkQueue.Dashboard.Client.Tests
                 PageSize = 25
             };
 
-            Assert.AreEqual(2, sut.Items.Count);
+            Assert.HasCount(2, sut.Items);
             Assert.AreEqual(100, sut.TotalCount);
             Assert.AreEqual(2, sut.PageIndex);
             Assert.AreEqual(25, sut.PageSize);

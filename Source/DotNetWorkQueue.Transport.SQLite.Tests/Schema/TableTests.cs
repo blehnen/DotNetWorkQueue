@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Schema
             var c = new Column("testing", ColumnTypes.Integer, true, null);
             var test = new Table("test");
             test.Columns.Add(c);
-            Assert.IsTrue(test.Columns.Items.Any(item => item.Name == "testing"));
+            Assert.Contains(item => item.Name == "testing", test.Columns.Items);
         }
         [TestMethod]
         public void Create_Script()

@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 
             var result = await handler.HandleAsync(new GetDashboardMessagesQuery(0, 25, null));
 
-            Assert.AreEqual(2, result.Count);
+            Assert.HasCount(2, result);
             Assert.AreEqual("1", result[0].QueueId);
             Assert.AreEqual("corr-1", result[0].CorrelationId);
         }

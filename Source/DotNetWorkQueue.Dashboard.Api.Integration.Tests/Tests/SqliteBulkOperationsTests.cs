@@ -116,12 +116,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 $"api/v1/dashboard/queues/{queueId}/messages/reset-all", null);
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadFromJsonAsync<BulkActionResponse>();
-            Assert.IsTrue(result.Count >= 1);
+            Assert.IsGreaterThanOrEqualTo(1, result.Count);
 
             // Verify waiting count increased
             var status = await server.Client.GetFromJsonAsync<QueueStatusResponse>(
                 $"api/v1/dashboard/queues/{queueId}/status");
-            Assert.IsTrue(status.Waiting >= 1);
+            Assert.IsGreaterThanOrEqualTo(1, status.Waiting);
         }
 
         // === Error Retries ===
@@ -164,7 +164,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // No retries for this message
             var retries = await server.Client.GetFromJsonAsync<List<ErrorRetryResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/messages/{messageId}/retries");
-            Assert.AreEqual(0, retries.Count);
+            Assert.IsEmpty(retries);
         }
 
         [TestMethod]
@@ -207,15 +207,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Get the error message ID
             var errors = await server.Client.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/errors");
-            Assert.IsTrue(errors.Items.Count > 0);
+            Assert.IsNotEmpty(errors.Items);
             var messageId = errors.Items[0].QueueId;
 
             // Check retries for this message
             var retries = await server.Client.GetFromJsonAsync<List<ErrorRetryResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/messages/{messageId}/retries");
-            Assert.IsTrue(retries.Count > 0);
+            Assert.IsNotEmpty(retries);
             Assert.IsFalse(string.IsNullOrEmpty(retries[0].ExceptionType));
-            Assert.IsTrue(retries[0].RetryCount >= 1);
+            Assert.IsGreaterThanOrEqualTo(1, retries[0].RetryCount);
         }
 
         // === Requeue single error then verify status returns to waiting ===
@@ -270,12 +270,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Verify status shows it back in Waiting
             var status = await server.Client.GetFromJsonAsync<QueueStatusResponse>(
                 $"api/v1/dashboard/queues/{queueId}/status");
-            Assert.IsTrue(status.Waiting >= 1);
+            Assert.IsGreaterThanOrEqualTo(1, status.Waiting);
 
             // Verify error count is reduced
             var errorsAfter = await server.Client.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/errors");
-            Assert.IsTrue(errorsAfter.Items.Count < errors.Items.Count);
+            Assert.IsLessThan(errors.Items.Count, errorsAfter.Items.Count);
         }
 
         // === Reset stale (single message) already tested in SqliteStaleTests,
@@ -405,14 +405,14 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // First page
             var page0 = await server.Client.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/errors?pageIndex=0&pageSize=2");
-            Assert.AreEqual(2, page0.Items.Count);
-            Assert.IsTrue(page0.TotalCount >= 3);
+            Assert.HasCount(2, page0.Items);
+            Assert.IsGreaterThanOrEqualTo(3, page0.TotalCount);
 
             // Second page
             var page1 = await server.Client.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/errors?pageIndex=1&pageSize=2");
-            Assert.IsTrue(page1.Items.Count > 0);
-            Assert.IsTrue(page1.Items.Count >= 1);
+            Assert.IsNotEmpty(page1.Items);
+            Assert.IsGreaterThanOrEqualTo(1, page1.Items.Count);
 
             // Error detail fields
             Assert.IsFalse(string.IsNullOrEmpty(page0.Items[0].LastException));

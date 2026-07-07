@@ -101,16 +101,16 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
                             var historyQuery = adminContainer.GetInstance<IQueryMessageHistory>();
 
                             var totalCount = historyQuery.GetCount(null);
-                            Assert.IsTrue(totalCount >= messageCount,
+                            Assert.IsGreaterThanOrEqualTo(messageCount, totalCount,
                                 $"Expected at least {messageCount} history records, got {totalCount}");
 
                             var completeCount = historyQuery.GetCount(MessageHistoryStatus.Complete);
-                            Assert.IsTrue(completeCount >= messageCount,
+                            Assert.IsGreaterThanOrEqualTo(messageCount, completeCount,
                                 $"Expected at least {messageCount} completed records, got {completeCount}");
 
                             var records = historyQuery.Get(0, 100, null);
                             Assert.IsNotNull(records);
-                            Assert.IsTrue(records.Count >= messageCount);
+                            Assert.IsGreaterThanOrEqualTo(messageCount, records.Count);
 
                             foreach (var record in records)
                             {

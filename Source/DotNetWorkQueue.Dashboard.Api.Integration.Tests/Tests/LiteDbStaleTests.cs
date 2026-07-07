@@ -87,7 +87,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages/stale?thresholdSeconds=1");
-            Assert.IsTrue(paged.Items.Count > 0);
+            Assert.IsNotEmpty(paged.Items);
         }
 
         [TestMethod]
@@ -97,7 +97,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             await DashboardPollingHelper.WaitForStaleAsync(_server.Client, _queueId);
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages/stale?thresholdSeconds=1");
-            Assert.IsTrue(paged.Items.Count > 0);
+            Assert.IsNotEmpty(paged.Items);
             var messageId = paged.Items[0].QueueId;
 
             var response = await _server.Client.PostAsync(

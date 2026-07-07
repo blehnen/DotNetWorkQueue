@@ -103,7 +103,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             // Verify server2 is healthy first
             var connections = await _server2.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
-            Assert.AreEqual(1, connections.Count);
+            Assert.HasCount(1, connections);
 
             // Dispose server2
             await _server2.DisposeAsync();
@@ -131,7 +131,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var connections = await _server1.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
-            Assert.AreEqual(1, connections.Count);
+            Assert.HasCount(1, connections);
             Assert.AreEqual(1, connections[0].QueueCount);
         }
 
@@ -151,7 +151,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var paged = await _server1.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{queueId}/messages?pageSize=100");
-            Assert.AreEqual(3, paged.Items.Count);
+            Assert.HasCount(3, paged.Items);
         }
 
         [TestMethod]

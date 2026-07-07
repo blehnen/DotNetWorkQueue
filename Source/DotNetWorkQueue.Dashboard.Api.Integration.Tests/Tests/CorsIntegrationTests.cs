@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             Assert.IsTrue(response.Headers.TryGetValues("Access-Control-Allow-Origin", out var origins),
                 "because the CORS middleware should have added the allow-origin header for the matching origin");
-            Assert.IsTrue(origins.Contains("https://example.com"));
+            Assert.Contains("https://example.com", origins);
         }
     }
 }

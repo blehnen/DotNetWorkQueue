@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
 
             var cut = RenderHistoryTab(api, snackbar, readOnly: true);
 
-            Assert.IsFalse(cut.Markup.Contains("Purge History"));
+            Assert.DoesNotContain("Purge History", cut.Markup);
         }
 
         [TestMethod]
@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
 
             var cut = RenderHistoryTab(api, snackbar);
 
-            Assert.IsFalse(cut.Markup.Contains("Purge History"));
+            Assert.DoesNotContain("Purge History", cut.Markup);
         }
 
         [TestMethod]

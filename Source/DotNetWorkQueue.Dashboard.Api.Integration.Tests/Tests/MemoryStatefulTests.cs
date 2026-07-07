@@ -58,11 +58,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 
             var connections = await _server.Client.GetFromJsonAsync<List<ConnectionResponse>>(
                 "api/v1/dashboard/connections");
-            Assert.AreEqual(1, connections.Count);
+            Assert.HasCount(1, connections);
 
             var queues = await _server.Client.GetFromJsonAsync<List<QueueInfoResponse>>(
                 $"api/v1/dashboard/connections/{connections[0].Id}/queues");
-            Assert.AreEqual(1, queues.Count);
+            Assert.HasCount(1, queues);
             _queueId = queues[0].Id;
 
             // Start blocking consumer with 2 workers — each picks up 1 message and blocks
@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages?status=1&pageSize=100");
-            Assert.AreEqual(2, paged.Items.Count);
+            Assert.HasCount(2, paged.Items);
         }
 
         [TestMethod]
@@ -113,7 +113,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages?pageSize=100");
-            Assert.AreEqual(5, paged.Items.Count);
+            Assert.HasCount(5, paged.Items);
         }
 
         [TestMethod]
@@ -121,7 +121,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages?status=1&pageSize=1");
-            Assert.IsTrue(paged.Items.Count > 0);
+            Assert.IsNotEmpty(paged.Items);
             var messageId = paged.Items[0].QueueId;
 
             var detail = await _server.Client.GetFromJsonAsync<MessageResponse>(
@@ -134,7 +134,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages?status=1&pageSize=1");
-            Assert.IsTrue(paged.Items.Count > 0);
+            Assert.IsNotEmpty(paged.Items);
             var messageId = paged.Items[0].QueueId;
 
             var body = await _server.Client.GetFromJsonAsync<MessageBodyResponse>(
@@ -147,7 +147,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<MessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/messages?status=1&pageSize=1");
-            Assert.IsTrue(paged.Items.Count > 0);
+            Assert.IsNotEmpty(paged.Items);
             var messageId = paged.Items[0].QueueId;
 
             var deleteResponse = await _server.Client.DeleteAsync(

@@ -40,13 +40,13 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Lua
             var sut = CreateSut();
 
             Assert.IsNotNull(sut.Script);
-            Assert.IsTrue(sut.Script.Contains("HEXISTS"));
-            Assert.IsTrue(sut.Script.Contains("HSET"));
-            Assert.IsTrue(sut.Script.Contains("@valueskey"));
-            Assert.IsTrue(sut.Script.Contains("@headerskey"));
-            Assert.IsTrue(sut.Script.Contains("@uuid"));
-            Assert.IsTrue(sut.Script.Contains("@body"));
-            Assert.IsTrue(sut.Script.Contains("@headers"));
+            Assert.Contains("HEXISTS", sut.Script);
+            Assert.Contains("HSET", sut.Script);
+            Assert.Contains("@valueskey", sut.Script);
+            Assert.Contains("@headerskey", sut.Script);
+            Assert.Contains("@uuid", sut.Script);
+            Assert.Contains("@body", sut.Script);
+            Assert.Contains("@headers", sut.Script);
         }
 
         [TestMethod]

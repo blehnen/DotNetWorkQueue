@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
             // slow CI hosts. If this proves flaky raise to 3000ms; DO NOT remove the
             // timing assertion -- it is the only integration-level pin against the
             // "retry decorator silently regressed" failure mode.
-            Assert.IsTrue(sw.ElapsedMilliseconds < 2000,
+            Assert.IsLessThan(2000, sw.ElapsedMilliseconds,
                 $"Caller-transaction Send took {sw.ElapsedMilliseconds}ms -- expected < 2000ms " +
                 "for single-attempt failure (3x retry chain would exceed this).");
 

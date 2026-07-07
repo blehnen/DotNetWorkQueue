@@ -96,7 +96,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
 
             convention.Apply(controllerModel);
 
-            Assert.AreEqual(1, (controllerModel.Filters.OfType<AuthorizeFilter>()).Count());
+            Assert.HasCount(1, controllerModel.Filters.OfType<AuthorizeFilter>());
         }
 
         [TestMethod]
@@ -110,7 +110,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
 
             convention.Apply(controllerModel);
 
-            Assert.IsFalse((controllerModel.Filters).Any());
+            Assert.IsEmpty(controllerModel.Filters);
         }
     }
 }

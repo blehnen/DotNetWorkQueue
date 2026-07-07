@@ -83,7 +83,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var status = await _server.Client.GetFromJsonAsync<QueueStatusResponse>(
                 $"api/v1/dashboard/queues/{_queueId}/status");
-            Assert.IsTrue(status.Error > 0);
+            Assert.IsGreaterThan(0, status.Error);
         }
 
         [TestMethod]
@@ -91,7 +91,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/errors");
-            Assert.IsTrue(paged.Items.Count > 0);
+            Assert.IsNotEmpty(paged.Items);
             // Redis does not store exception text, so LastException may be null
         }
 
@@ -102,11 +102,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
                 $"api/v1/dashboard/queues/{_queueId}/errors");
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             var result = await response.Content.ReadFromJsonAsync<DeleteAllResponse>();
-            Assert.IsTrue(result.Deleted > 0);
+            Assert.IsGreaterThan(0, result.Deleted);
 
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/errors");
-            Assert.AreEqual(0, paged.Items.Count);
+            Assert.IsEmpty(paged.Items);
         }
 
         [TestMethod]
@@ -114,7 +114,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
         {
             var paged = await _server.Client.GetFromJsonAsync<PagedResponse<ErrorMessageResponse>>(
                 $"api/v1/dashboard/queues/{_queueId}/errors");
-            Assert.IsTrue(paged.Items.Count > 0);
+            Assert.IsNotEmpty(paged.Items);
             var messageId = paged.Items[0].QueueId;
 
             var response = await _server.Client.PostAsync(

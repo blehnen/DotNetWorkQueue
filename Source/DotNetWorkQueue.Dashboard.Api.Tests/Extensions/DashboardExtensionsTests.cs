@@ -131,7 +131,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
                 .Where(sd => sd.ServiceType == typeof(Microsoft.Extensions.Hosting.IHostedService))
                 .ToList();
 
-            Assert.IsTrue(hostedServiceRegistrations.Count > 0,
+            Assert.IsNotEmpty(hostedServiceRegistrations,
                 "ConsumerPruningService should be registered as IHostedService");
         }
 
@@ -152,7 +152,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
                     && sd.ImplementationType == typeof(DotNetWorkQueue.Dashboard.Api.Services.ConsumerPruningService))
                 .ToList();
 
-            Assert.AreEqual(0, pruningServiceRegistrations.Count,
+            Assert.IsEmpty(pruningServiceRegistrations,
                 "ConsumerPruningService should not be registered when tracking is disabled");
         }
 
@@ -182,7 +182,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
                 // If PreloadAssemblies threw, we wouldn't get here
                 var provider = services.BuildServiceProvider();
                 var opts = provider.GetRequiredService<DashboardOptions>();
-                Assert.AreEqual(1, (opts.AssemblyPaths).Count());
+                Assert.HasCount(1, opts.AssemblyPaths);
                 Assert.AreEqual(pluginDir, (opts.AssemblyPaths).Single());
             }
             finally

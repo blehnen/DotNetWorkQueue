@@ -84,21 +84,21 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
             // to one of them.
             var forkStart = content.IndexOf("private async Task<long> HandleExternalTransactionAsync",
                 StringComparison.Ordinal);
-            Assert.IsTrue(forkStart >= 0, "HandleExternalTransactionAsync not found in source.");
+            Assert.IsGreaterThanOrEqualTo(0, forkStart, "HandleExternalTransactionAsync not found in source.");
             var forkEnd = content.IndexOf("\n        }\n", forkStart, StringComparison.Ordinal);
-            Assert.IsTrue(forkEnd >= 0,
+            Assert.IsGreaterThanOrEqualTo(0, forkEnd,
                 "Closing brace of HandleExternalTransactionAsync (column-8 '}' on its own line) not found.");
             var forkBody = content.Substring(forkStart, forkEnd - forkStart);
 
-            Assert.IsFalse(forkBody.Contains(".Commit()"),   "HandleExternalTransactionAsync must not call .Commit() on the caller's transaction.");
-            Assert.IsFalse(forkBody.Contains(".Rollback()"), "HandleExternalTransactionAsync must not call .Rollback() on the caller's transaction.");
-            Assert.IsFalse(forkBody.Contains(".Close()"),    "HandleExternalTransactionAsync must not call .Close() on the caller's connection.");
-            Assert.IsFalse(forkBody.Contains(".Dispose()"),  "HandleExternalTransactionAsync must not call .Dispose() on the caller's connection or transaction.");
+            Assert.DoesNotContain(".Commit()", forkBody,   "HandleExternalTransactionAsync must not call .Commit() on the caller's transaction.");
+            Assert.DoesNotContain(".Rollback()", forkBody, "HandleExternalTransactionAsync must not call .Rollback() on the caller's transaction.");
+            Assert.DoesNotContain(".Close()", forkBody,    "HandleExternalTransactionAsync must not call .Close() on the caller's connection.");
+            Assert.DoesNotContain(".Dispose()", forkBody,  "HandleExternalTransactionAsync must not call .Dispose() on the caller's connection or transaction.");
             // Async-specific lifecycle calls:
-            Assert.IsFalse(forkBody.Contains(".CommitAsync"),   "HandleExternalTransactionAsync must not call .CommitAsync on the caller's transaction.");
-            Assert.IsFalse(forkBody.Contains(".RollbackAsync"), "HandleExternalTransactionAsync must not call .RollbackAsync on the caller's transaction.");
-            Assert.IsFalse(forkBody.Contains(".CloseAsync"),    "HandleExternalTransactionAsync must not call .CloseAsync on the caller's connection.");
-            Assert.IsFalse(forkBody.Contains(".DisposeAsync"),  "HandleExternalTransactionAsync must not call .DisposeAsync on the caller's connection or transaction.");
+            Assert.DoesNotContain(".CommitAsync", forkBody,   "HandleExternalTransactionAsync must not call .CommitAsync on the caller's transaction.");
+            Assert.DoesNotContain(".RollbackAsync", forkBody, "HandleExternalTransactionAsync must not call .RollbackAsync on the caller's transaction.");
+            Assert.DoesNotContain(".CloseAsync", forkBody,    "HandleExternalTransactionAsync must not call .CloseAsync on the caller's connection.");
+            Assert.DoesNotContain(".DisposeAsync", forkBody,  "HandleExternalTransactionAsync must not call .DisposeAsync on the caller's connection or transaction.");
         }
 
         /// <summary>

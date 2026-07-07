@@ -80,7 +80,7 @@ namespace DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.T
                 Assert.IsTrue(fired, "node B must receive RemoteCountChanged from node A within 10 seconds");
 
                 // Node B's aggregate count should reflect node A's bump.
-                Assert.IsTrue(nodeB.Sync.GetCurrentTaskCount() >= 1,
+                Assert.IsGreaterThanOrEqualTo(1, nodeB.Sync.GetCurrentTaskCount(),
                     "node B should see node A's remote task count");
             }
         }
@@ -109,7 +109,7 @@ namespace DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.T
                     Assert.IsTrue(discovered, "node B must see node A's count before we test disposal");
 
                     var countBeforeDispose = nodeB.Sync.GetCurrentTaskCount();
-                    Assert.IsTrue(countBeforeDispose >= 1, "should have a remote count to decay");
+                    Assert.IsGreaterThanOrEqualTo(1, countBeforeDispose, "should have a remote count to decay");
 
                     // Dispose node A — node B should observe it drop off the remote list.
                     nodeA.Dispose();
@@ -125,7 +125,7 @@ namespace DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.T
                         Thread.Sleep(100);
                     }
 
-                    Assert.IsTrue(countAfterDispose < countBeforeDispose,
+                    Assert.IsLessThan(countBeforeDispose, countAfterDispose,
                         "node B's aggregate count should drop after node A is disposed (RemovedNode decay)");
                 }
                 finally

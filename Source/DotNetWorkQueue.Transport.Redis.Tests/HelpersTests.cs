@@ -13,8 +13,8 @@ namespace DotNetWorkQueue.Transport.Redis.Tests
             var jobs = Enumerable.Range(0, 100)
                   .Select(x => "test");
             var enumerable = jobs as IList<string> ?? jobs.ToList();
-            Assert.AreEqual(2, enumerable.Partition(50).Count());
-            Assert.AreEqual(10, enumerable.Partition(10).Count());
+            Assert.HasCount(2, enumerable.Partition(50));
+            Assert.HasCount(10, enumerable.Partition(10));
 
             jobs = Enumerable.Range(0, 87)
                  .Select(x => "test");
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests
             var i = 0;
             foreach (var p in part)
             {
-                Assert.AreEqual(i == 4 ? 7 : 20, p.Count());
+                Assert.HasCount(i == 4 ? 7 : 20, p);
                 i++;
             }
         }
