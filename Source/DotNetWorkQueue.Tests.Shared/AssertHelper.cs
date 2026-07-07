@@ -71,15 +71,9 @@ namespace DotNetWorkQueue.Tests.Shared
         /// <param name="assertion">The assertion to run against each element.</param>
         public static void AllSatisfy<T>(IEnumerable<T> collection, Action<T> assertion)
         {
-            if (collection == null)
-            {
-                throw new ArgumentNullException(nameof(collection));
-            }
+            ArgumentNullException.ThrowIfNull(collection);
 
-            if (assertion == null)
-            {
-                throw new ArgumentNullException(nameof(assertion));
-            }
+            ArgumentNullException.ThrowIfNull(assertion);
 
             var index = 0;
             foreach (var item in collection)

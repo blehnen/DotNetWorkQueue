@@ -110,8 +110,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Profile name cannot be null or empty.", nameof(name));
-            if (configure == null)
-                throw new ArgumentNullException(nameof(configure));
+            ArgumentNullException.ThrowIfNull(configure);
 
             InterceptorProfiles[name] = configure;
         }

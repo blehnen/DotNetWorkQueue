@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -92,7 +92,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 sb.Append(column);
                 if (i < columnsToCopy.Count - 1)
                 {
-                    sb.Append(",");
+                    sb.Append(',');
                 }
                 i++;
             }
@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 sb.Append(column);
                 if (i < columnsToCopy.Count - 1)
                 {
-                    sb.Append(",");
+                    sb.Append(',');
                 }
                 i++;
             }

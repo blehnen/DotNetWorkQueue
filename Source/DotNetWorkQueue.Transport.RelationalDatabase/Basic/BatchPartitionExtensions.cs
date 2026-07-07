@@ -44,8 +44,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is less than 1.</exception>
         public static IEnumerable<IReadOnlyList<T>> Partition<T>(this IReadOnlyList<T> source, int size)
         {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
             if (size < 1)
                 throw new ArgumentOutOfRangeException(nameof(size), size, "The chunk size must be at least 1.");
 

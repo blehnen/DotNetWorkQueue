@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 AddUserColumnsValues(builder, data);
             }
 
-            builder.Append(")"); //close the VALUES 
+            builder.Append(')'); //close the VALUES
 
             command.CommandText = builder.ToString();
 
@@ -115,7 +115,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 AddUserColumnsValues(sbMeta, data);
             }
 
-            sbMeta.Append(")"); //close the VALUES 
+            sbMeta.Append(')'); //close the VALUES
 
             command.CommandText = sbMeta.ToString();
 
@@ -157,12 +157,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             {
                 if (i == 0)
                 {
-                    command.Append(",");
+                    command.Append(',');
                 }
                 command.Append(metadata.Name);
                 if (i < data.AdditionalMetaData.Count - 1)
                 {
-                    command.Append(",");
+                    command.Append(',');
                 }
                 i++;
             }
@@ -180,12 +180,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             {
                 if (i == 0)
                 {
-                    command.Append(",");
+                    command.Append(',');
                 }
                 command.Append("@" + metadata.Name);
                 if (i < data.AdditionalMetaData.Count - 1)
                 {
-                    command.Append(",");
+                    command.Append(',');
                 }
                 i++;
             }
