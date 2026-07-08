@@ -19,4 +19,13 @@
   <ItemGroup Condition="$(MSBuildProjectName.EndsWith('Tests'))">
     <PackageReference Include="JunitXml.TestLogger" PrivateAssets="All" />
   </ItemGroup>
+
+  <!-- Coverlet (MSBuild integration) coverage config for test projects. Replaces
+       coverage.runsettings; set as MSBuild properties so the comma-separated Exclude
+       filters need no shell quoting. Only active when /p:CollectCoverage=true is passed. -->
+  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('Tests'))">
+    <CoverletOutputFormat>cobertura</CoverletOutputFormat>
+    <Exclude>[*.Tests]*,[*.IntegrationTests]*,[*.IntegrationTests.*]*,[DotNetWorkQueue.IntegrationTests.Shared]*,[DotNetWorkQueue.Tests.Shared]*</Exclude>
+    <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
+  </PropertyGroup>
 </Project>
