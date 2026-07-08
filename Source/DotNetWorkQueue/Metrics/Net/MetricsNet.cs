@@ -24,7 +24,7 @@ using System.Diagnostics.Metrics;
 namespace DotNetWorkQueue.Metrics.Net
 {
     /// <inheritdoc />
-    public class MetricsNet : IMetrics, IDisposable
+    public sealed class MetricsNet : IMetrics, IDisposable
     {
         private readonly Meter _meter;
         private readonly ConcurrentDictionary<string, CounterNet> _counters = new ConcurrentDictionary<string, CounterNet>();

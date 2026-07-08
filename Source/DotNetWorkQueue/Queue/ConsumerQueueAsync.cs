@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Queue
     /// <summary>
     /// Defines a queue that can process messages in an async fashion.
     /// </summary>
-    public class ConsumerQueueAsync : BaseQueue, IConsumerQueueAsync
+    public sealed class ConsumerQueueAsync : BaseQueue, IConsumerQueueAsync
     {
         private readonly QueueConsumerConfiguration _configuration;
         private readonly Lazy<IPrimaryWorker> _primaryWorker;
@@ -152,7 +152,7 @@ namespace DotNetWorkQueue.Queue
                 _stopWorker.StopPrimary(_primaryWorker.Value);
                 _primaryWorker.Value.Dispose();
             }
-            base.Dispose(true);
+            base.Dispose(disposing);
         }
     }
 }

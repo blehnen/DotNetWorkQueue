@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Queue
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.Queue.BaseQueue" />
     /// <seealso cref="DotNetWorkQueue.IConsumerMethodQueue" />
-    public class ConsumerMethodQueue : BaseQueue, IConsumerMethodQueue
+    public sealed class ConsumerMethodQueue : BaseQueue, IConsumerMethodQueue
     {
         private readonly IConsumerQueue _queue;
         private readonly IMessageMethodHandling _messageMethodHandling;
@@ -87,7 +87,7 @@ namespace DotNetWorkQueue.Queue
             _queue.Dispose();
             _messageMethodHandling.Dispose();
 
-            base.Dispose(true);
+            base.Dispose(disposing);
         }
     }
 }

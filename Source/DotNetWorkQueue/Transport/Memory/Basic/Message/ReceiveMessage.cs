@@ -60,28 +60,25 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
         /// </returns>
         public IReceivedMessageInternal GetMessage(IMessageContext context)
         {
-            while (true)
+            //if stopping, exit now
+            if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
             {
-                //if stopping, exit now
-                if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
-                {
-                    return null;
-                }
-
-                //ask for the next message
-                var receivedTransportMessage = _dataStorage.GetNextMessage(_configuration.Routes, TimeSpan.FromSeconds(5));
-
-                //if no message (null) run the no message action and return
-                if (receivedTransportMessage == null)
-                {
-                    return null;
-                }
-
-                //set the message ID on the context for later usage
-                context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.CorrelationId, receivedTransportMessage.Headers);
-
-                return receivedTransportMessage;
+                return null;
             }
+
+            //ask for the next message
+            var receivedTransportMessage = _dataStorage.GetNextMessage(_configuration.Routes, TimeSpan.FromSeconds(5));
+
+            //if no message (null) run the no message action and return
+            if (receivedTransportMessage == null)
+            {
+                return null;
+            }
+
+            //set the message ID on the context for later usage
+            context.SetMessageAndHeaders(receivedTransportMessage.MessageId, receivedTransportMessage.CorrelationId, receivedTransportMessage.Headers);
+
+            return receivedTransportMessage;
         }
     }
 }

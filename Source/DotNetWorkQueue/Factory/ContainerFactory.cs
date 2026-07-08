@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Factory
     /// </summary>
     /// <remarks><seealso cref="IContainer"/> cannot be injected into most IoC containers, as that's a circular reference. However, root factories
     /// sometimes need access to the container. This allows access to the container without <seealso cref="IContainer"/> being injected</remarks>
-    internal class ContainerFactory : IContainerFactory, IDisposable
+    internal sealed class ContainerFactory : IContainerFactory, IDisposable
     {
         private ContainerWrapper _containerWrapper;
         private int _disposeCount;

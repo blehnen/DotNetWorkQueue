@@ -21,7 +21,7 @@ using DotNetWorkQueue.Queue;
 
 namespace DotNetWorkQueue.Metrics.Decorator
 {
-    internal class QueueCreationDecorator : IQueueCreation
+    internal sealed class QueueCreationDecorator : IQueueCreation
     {
         private readonly IQueueCreation _handler;
         private readonly ITimer _createQueueTimer;

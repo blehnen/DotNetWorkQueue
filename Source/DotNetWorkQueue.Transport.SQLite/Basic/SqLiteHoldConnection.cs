@@ -23,7 +23,7 @@ using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
-    internal class SqLiteHoldConnection : IDisposable
+    internal sealed class SqLiteHoldConnection : IDisposable
     {
         private readonly IGetFileNameFromConnectionString _getFileNameFromConnection;
         private readonly IDbFactory _dbFactory;
@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
         #region IDisposable Support
         private bool _disposedValue; // To detect redundant calls
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!_disposedValue)
             {

@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Queue
     /// <summary>
     /// Allows workers to be paused, and suspend looking for work until awoken
     /// </summary>
-    internal class WorkerWaitForEventOrCancel : IWorkerWaitForEventOrCancel
+    internal sealed class WorkerWaitForEventOrCancel : IWorkerWaitForEventOrCancel
     {
         private readonly IWaitForEventOrCancelWorker _waitForEventOrCancel;
         private readonly IWorkerConfiguration _workerConfiguration;
@@ -93,7 +93,7 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         /// <param name="name">The name.</param>
         /// <exception cref="System.ObjectDisposedException"></exception>
-        protected void ThrowIfDisposed()
+        private void ThrowIfDisposed()
         {
             ObjectDisposedException.ThrowIf(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
         }

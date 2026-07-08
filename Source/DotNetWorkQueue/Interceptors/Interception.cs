@@ -87,11 +87,8 @@ namespace DotNetWorkQueue.Interceptors
 
         private IMessageInterceptor GetInterceptor(Type type)
         {
-            foreach (var interceptor in _interceptors.Where(interceptor => interceptor.BaseType == type))
-            {
-                return interceptor;
-            }
-            return _createdInterceptors.GetOrAdd(type, t => _interceptorFactory.Create(t));
+            var interceptor = _interceptors.FirstOrDefault(i => i.BaseType == type);
+            return interceptor ?? _createdInterceptors.GetOrAdd(type, t => _interceptorFactory.Create(t));
         }
     }
 }

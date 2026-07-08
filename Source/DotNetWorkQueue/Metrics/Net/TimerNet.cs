@@ -23,7 +23,7 @@ using System.Diagnostics.Metrics;
 
 namespace DotNetWorkQueue.Metrics.Net
 {
-    internal class TimerNet : ITimer, IDisposable
+    internal sealed class TimerNet : ITimer, IDisposable
     {
         private readonly Histogram<double> _histogram;
         private readonly KeyValuePair<string, object>[] _tags;

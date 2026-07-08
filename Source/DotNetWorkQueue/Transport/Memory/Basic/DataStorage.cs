@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.Transport.Memory.IDataStorage" />
     /// <seealso cref="DotNetWorkQueue.Transport.Memory.IDataStorageSendMessage" />
-    public class DataStorage : IDataStorage, IDataStorageSendMessage, IDisposable
+    public sealed class DataStorage : IDataStorage, IDataStorageSendMessage, IDisposable
     {
         //next item to de-queue
         private static readonly ConcurrentDictionary<IConnectionInformation, BlockingCollection<Guid>> Queues;
