@@ -30,6 +30,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
     /// </summary>
     public class PostgreSqlMessageQueueSchema
     {
+        private const string ColumnQueueId = "QueueID";
+        private const string ColumnStatus = "Status";
         private readonly ITableNameHelper _tableNameHelper;
         private readonly Lazy<PostgreSqlMessageQueueTransportOptions> _options;
 
@@ -83,14 +85,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         {
             //--main data table--
             var main = new Table(_tableNameHelper.QueueName);
-            var mainPrimaryKey = new Column("QueueID", ColumnTypes.Bigint, false) { Identity = true };
+            var mainPrimaryKey = new Column(ColumnQueueId, ColumnTypes.Bigint, false) { Identity = true };
 
             main.Columns.Add(mainPrimaryKey);
             main.Columns.Add(new Column("Body", ColumnTypes.Bytea, -1, false));
             main.Columns.Add(new Column("Headers", ColumnTypes.Bytea, -1, false));
 
             //add primary key constraint
-            main.Constraints.Add(new Constraint("PK_" + _tableNameHelper.QueueName, ConstraintType.PrimaryKey, "QueueID"));
+            main.Constraints.Add(new Constraint("PK_" + _tableNameHelper.QueueName, ConstraintType.PrimaryKey, ColumnQueueId));
             main.PrimaryKey.Unique = true;
             return main;
         }
@@ -114,14 +116,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         {
             //--Status Table --
             var status = new Table(_tableNameHelper.StatusName);
-            var mainPrimaryKey = new Column("QueueID", ColumnTypes.Bigint, false);
+            var mainPrimaryKey = new Column(ColumnQueueId, ColumnTypes.Bigint, false);
             status.Columns.Add(mainPrimaryKey);
 
             //add primary key constraint
-            status.Constraints.Add(new Constraint("PK_" + _tableNameHelper.StatusName, ConstraintType.PrimaryKey, "QueueID"));
+            status.Constraints.Add(new Constraint("PK_" + _tableNameHelper.StatusName, ConstraintType.PrimaryKey, ColumnQueueId));
             status.PrimaryKey.Unique = true;
 
-            status.Columns.Add(new Column("Status", ColumnTypes.Integer, false));
+            status.Columns.Add(new Column(ColumnStatus, ColumnTypes.Integer, false));
             status.Columns.Add(new Column("CorrelationID", ColumnTypes.Uuid, false));
 
             //add extra user columns
@@ -155,11 +157,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         {
             //--Meta Data Table --
             var meta = new Table(_tableNameHelper.MetaDataName);
-            var mainPrimaryKey = new Column("QueueID", ColumnTypes.Bigint, false);
+            var mainPrimaryKey = new Column(ColumnQueueId, ColumnTypes.Bigint, false);
             meta.Columns.Add(mainPrimaryKey);
 
             //add primary key constraint
-            meta.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataName, ConstraintType.PrimaryKey, "QueueID"));
+            meta.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataName, ConstraintType.PrimaryKey, ColumnQueueId));
             meta.PrimaryKey.Unique = true;
 
             if (_options.Value.EnablePriority)
@@ -171,7 +173,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             if (_options.Value.EnableStatus)
             {
-                meta.Columns.Add(new Column("Status", ColumnTypes.Integer, false));
+                meta.Columns.Add(new Column(ColumnStatus, ColumnTypes.Integer, false));
             }
             if (_options.Value.EnableDelayedProcessing)
             {
@@ -213,7 +215,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             var clusterIndex = new List<string>();
             if (_options.Value.EnableStatus)
             {
-                clusterIndex.Add("Status");
+                clusterIndex.Add(ColumnStatus);
             }
             if (_options.Value.EnablePriority)
             {
@@ -235,7 +237,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             if (clusterIndex.Count > 0)
             {
-                clusterIndex.Add("QueueID");
+                clusterIndex.Add(ColumnQueueId);
             }
 
             if (clusterIndex.Count > 0)
@@ -275,7 +277,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             };
             errorTracking.Columns.Add(errorTrackingPrimaryKey);
 
-            errorTracking.Columns.Add(new Column("QueueID", ColumnTypes.Bigint, false));
+            errorTracking.Columns.Add(new Column(ColumnQueueId, ColumnTypes.Bigint, false));
             errorTracking.Columns.Add(new Column("ExceptionType", ColumnTypes.Varchar, 500, false));
             errorTracking.Columns.Add(new Column("RetryCount", ColumnTypes.Integer, false));
 
@@ -283,7 +285,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             errorTracking.Constraints.Add(new Constraint("PK_" + _tableNameHelper.ErrorTrackingName, ConstraintType.PrimaryKey, "ErrorTrackingID"));
             errorTracking.PrimaryKey.Unique = true;
 
-            errorTracking.Constraints.Add(new Constraint($"IX_QueueID{_tableNameHelper.ErrorTrackingName}", ConstraintType.Index, "QueueID"));
+            errorTracking.Constraints.Add(new Constraint($"IX_QueueID{_tableNameHelper.ErrorTrackingName}", ConstraintType.Index, ColumnQueueId));
 
             foreach (var c in errorTracking.Constraints)
             {
@@ -331,9 +333,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             var primaryKey = new Column("HistoryID", ColumnTypes.Bigint, false) { Identity = true };
             history.Columns.Add(primaryKey);
 
-            history.Columns.Add(new Column("QueueID", ColumnTypes.Varchar, 100, false));
+            history.Columns.Add(new Column(ColumnQueueId, ColumnTypes.Varchar, 100, false));
             history.Columns.Add(new Column("CorrelationID", ColumnTypes.Varchar, 38, true));
-            history.Columns.Add(new Column("Status", ColumnTypes.Integer, false));
+            history.Columns.Add(new Column(ColumnStatus, ColumnTypes.Integer, false));
             history.Columns.Add(new Column("EnqueuedUtc", ColumnTypes.Timestamp, false));
             history.Columns.Add(new Column("StartedUtc", ColumnTypes.Timestamp, true));
             history.Columns.Add(new Column("CompletedUtc", ColumnTypes.Timestamp, true));
@@ -350,10 +352,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             history.PrimaryKey.Unique = true;
 
             // Index on QueueID for lookups by message — name must be unique per schema in PostgreSQL
-            history.Constraints.Add(new Constraint($"IX_{_tableNameHelper.HistoryName}_QueueID", ConstraintType.Index, "QueueID"));
+            history.Constraints.Add(new Constraint($"IX_{_tableNameHelper.HistoryName}_QueueID", ConstraintType.Index, ColumnQueueId));
             // Index on Status + CompletedUtc for purge queries and status filtering
             history.Constraints.Add(new Constraint($"IX_{_tableNameHelper.HistoryName}_Status_Completed", ConstraintType.Index,
-                new List<string> { "Status", "CompletedUtc" }));
+                new List<string> { ColumnStatus, "CompletedUtc" }));
 
             foreach (var c in history.Constraints)
             {

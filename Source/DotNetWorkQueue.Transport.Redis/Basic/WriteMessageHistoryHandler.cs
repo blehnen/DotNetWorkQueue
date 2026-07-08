@@ -25,6 +25,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// <inheritdoc />
     public class WriteMessageHistoryHandler : IWriteMessageHistory
     {
+        private const string FieldStatus = "Status";
+        private const string FieldStartedUtc = "StartedUtc";
+        private const string FieldCompletedUtc = "CompletedUtc";
+        private const string FieldDurationMs = "DurationMs";
         private readonly IRedisConnection _connection;
         private readonly RedisNames _redisNames;
         private readonly IBaseTransportOptions _options;
@@ -52,8 +56,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             db.HashSet(HistoryHashKey(queueId), new[]
             {
                 new HashEntry("QueueID", queueId), new HashEntry("CorrelationID", correlationId ?? ""),
-                new HashEntry("Status", (int)MessageHistoryStatus.Enqueued), new HashEntry("EnqueuedUtc", now.Ticks),
-                new HashEntry("StartedUtc", 0L), new HashEntry("CompletedUtc", 0L), new HashEntry("DurationMs", 0L),
+                new HashEntry(FieldStatus, (int)MessageHistoryStatus.Enqueued), new HashEntry("EnqueuedUtc", now.Ticks),
+                new HashEntry(FieldStartedUtc, 0L), new HashEntry(FieldCompletedUtc, 0L), new HashEntry(FieldDurationMs, 0L),
                 new HashEntry("ExceptionText", ""), new HashEntry("RetryCount", 0),
                 new HashEntry("Route", route ?? ""), new HashEntry("MessageType", messageType ?? ""),
             });
@@ -65,9 +69,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             if (!_options.EnableHistory) return;
             var db = GetDb();
-            var rawStatus = db.HashGet(HistoryHashKey(queueId), "Status");
+            var rawStatus = db.HashGet(HistoryHashKey(queueId), FieldStatus);
             if (!rawStatus.HasValue || (int)rawStatus != (int)MessageHistoryStatus.Enqueued) return;
-            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry("Status", (int)MessageHistoryStatus.Processing), new HashEntry("StartedUtc", DateTime.UtcNow.Ticks) });
+            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Processing), new HashEntry(FieldStartedUtc, DateTime.UtcNow.Ticks) });
         }
 
         /// <inheritdoc />
@@ -76,10 +80,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             if (!_options.EnableHistory) return;
             var db = GetDb();
             var now = DateTime.UtcNow;
-            var rawStarted = db.HashGet(HistoryHashKey(queueId), "StartedUtc");
+            var rawStarted = db.HashGet(HistoryHashKey(queueId), FieldStartedUtc);
             var startedTicks = rawStarted.HasValue ? (long)rawStarted : 0L;
             var durationMs = startedTicks > 0 ? (long)(now - new DateTime(startedTicks, DateTimeKind.Utc)).TotalMilliseconds : 0L;
-            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry("Status", (int)MessageHistoryStatus.Complete), new HashEntry("CompletedUtc", now.Ticks), new HashEntry("DurationMs", durationMs) });
+            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Complete), new HashEntry(FieldCompletedUtc, now.Ticks), new HashEntry(FieldDurationMs, durationMs) });
         }
 
         /// <inheritdoc />
@@ -88,10 +92,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             if (!_options.EnableHistory) return;
             var db = GetDb();
             var now = DateTime.UtcNow;
-            var rawStarted = db.HashGet(HistoryHashKey(queueId), "StartedUtc");
+            var rawStarted = db.HashGet(HistoryHashKey(queueId), FieldStartedUtc);
             var startedTicks = rawStarted.HasValue ? (long)rawStarted : 0L;
             var durationMs = startedTicks > 0 ? (long)(now - new DateTime(startedTicks, DateTimeKind.Utc)).TotalMilliseconds : 0L;
-            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry("Status", (int)MessageHistoryStatus.Error), new HashEntry("CompletedUtc", now.Ticks), new HashEntry("DurationMs", durationMs), new HashEntry("ExceptionText", exception ?? "") });
+            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Error), new HashEntry(FieldCompletedUtc, now.Ticks), new HashEntry(FieldDurationMs, durationMs), new HashEntry("ExceptionText", exception ?? "") });
         }
 
         /// <inheritdoc />
@@ -100,7 +104,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             if (!_options.EnableHistory) return;
             var db = GetDb();
             db.HashIncrement(HistoryHashKey(queueId), "RetryCount", 1);
-            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry("Status", (int)MessageHistoryStatus.Enqueued), new HashEntry("StartedUtc", 0L), new HashEntry("CompletedUtc", 0L), new HashEntry("DurationMs", 0L) });
+            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Enqueued), new HashEntry(FieldStartedUtc, 0L), new HashEntry(FieldCompletedUtc, 0L), new HashEntry(FieldDurationMs, 0L) });
         }
 
         /// <inheritdoc />
@@ -108,7 +112,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             if (!_options.EnableHistory) return;
             var db = GetDb();
-            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry("Status", (int)MessageHistoryStatus.Deleted), new HashEntry("CompletedUtc", DateTime.UtcNow.Ticks) });
+            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Deleted), new HashEntry(FieldCompletedUtc, DateTime.UtcNow.Ticks) });
         }
 
         /// <inheritdoc />
@@ -116,7 +120,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             if (!_options.EnableHistory) return;
             var db = GetDb();
-            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry("Status", (int)MessageHistoryStatus.Expired), new HashEntry("CompletedUtc", DateTime.UtcNow.Ticks) });
+            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Expired), new HashEntry(FieldCompletedUtc, DateTime.UtcNow.Ticks) });
         }
     }
 }

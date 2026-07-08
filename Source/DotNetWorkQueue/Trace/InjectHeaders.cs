@@ -33,6 +33,7 @@ namespace DotNetWorkQueue.Trace
     /// </summary>
     public static class TraceExtensions
     {
+        private const string MessageIdTagName = "MessageId";
         /// <summary>
         /// Injects the specified tracer.
         /// </summary>
@@ -168,7 +169,7 @@ namespace DotNetWorkQueue.Trace
         public static void AddMessageIdTag(this Activity span, IQueueOutputMessage message)
         {
             if (message.SentMessage.MessageId.HasValue)
-                span.SetTag("MessageId", message.SentMessage.MessageId.Id.Value.ToString());
+                span.SetTag(MessageIdTagName, message.SentMessage.MessageId.Id.Value.ToString());
         }
         /// <summary>
         /// Adds the message identifier tag.
@@ -178,7 +179,7 @@ namespace DotNetWorkQueue.Trace
         public static void AddMessageIdTag(this Activity span, IReceivedMessageInternal message)
         {
             if (message.MessageId.HasValue)
-                span.SetTag("MessageId", message.MessageId.Id.Value.ToString());
+                span.SetTag(MessageIdTagName, message.MessageId.Id.Value.ToString());
         }
         /// <summary>
         /// Adds the message identifier tag.
@@ -188,7 +189,7 @@ namespace DotNetWorkQueue.Trace
         public static void AddMessageIdTag(this Activity span, IMessageContext context)
         {
             if (context.MessageId.HasValue)
-                span.SetTag("MessageId", context.MessageId.Id.Value.ToString());
+                span.SetTag(MessageIdTagName, context.MessageId.Id.Value.ToString());
         }
         /// <summary>
         /// Adds the message identifier tag.
@@ -198,7 +199,7 @@ namespace DotNetWorkQueue.Trace
         public static void AddMessageIdTag(this Activity span, IMessageId id)
         {
             if (id != null && id.HasValue)
-                span.SetTag("MessageId", id.Id.Value.ToString());
+                span.SetTag(MessageIdTagName, id.Id.Value.ToString());
         }
         /// <summary>
         /// Adds the message identifier tag.
@@ -208,7 +209,7 @@ namespace DotNetWorkQueue.Trace
         public static void AddMessageIdTag(this Activity span, string id)
         {
             if (!string.IsNullOrEmpty(id))
-                span.SetTag("MessageId", id);
+                span.SetTag(MessageIdTagName, id);
         }
     }
 }

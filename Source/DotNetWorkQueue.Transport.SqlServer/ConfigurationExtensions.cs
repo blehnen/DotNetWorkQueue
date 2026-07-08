@@ -176,6 +176,9 @@ namespace DotNetWorkQueue.Transport.SqlServer
     /// </summary>
     public static class QueueQueueConsumerConfigurationExtensions
     {
+        private const string UserDequeueParamsFactoryKey = "userdequeueparamsfactory";
+        private const string UserDequeueParamsKey = "userdequeueparams";
+        private const string UserDequeueFactoryKey = "userdequeuefactory";
         /// <summary>
         /// Gets the user parameters for de-queue
         /// </summary>
@@ -184,11 +187,11 @@ namespace DotNetWorkQueue.Transport.SqlServer
         /// <remarks>The factory method will always be returned if set, even if the non-factory method is also set</remarks>
         public static List<SqlParameter> GetUserParameters(this QueueConsumerConfiguration configuration)
         {
-            if (configuration.AdditionalSettings.TryGetValue("userdequeueparamsfactory", out var dequeueParamsFactory))
+            if (configuration.AdditionalSettings.TryGetValue(UserDequeueParamsFactoryKey, out var dequeueParamsFactory))
             {
                 return ((Func<List<SqlParameter>>)dequeueParamsFactory).Invoke();
             }
-            if (configuration.AdditionalSettings.TryGetValue("userdequeueparams", out var dequeueParams))
+            if (configuration.AdditionalSettings.TryGetValue(UserDequeueParamsKey, out var dequeueParams))
             {
                 return (List<SqlParameter>)dequeueParams;
             }
@@ -202,7 +205,7 @@ namespace DotNetWorkQueue.Transport.SqlServer
         /// <remarks>The factory method will always be returned if set, even if the non-factory method is also set</remarks>
         public static string GetUserClause(this QueueConsumerConfiguration configuration)
         {
-            if (configuration.AdditionalSettings.TryGetValue("userdequeuefactory", out var dequeueClauseFactory))
+            if (configuration.AdditionalSettings.TryGetValue(UserDequeueFactoryKey, out var dequeueClauseFactory))
             {
                 return ((Func<string>)dequeueClauseFactory).Invoke();
             }
@@ -222,22 +225,22 @@ namespace DotNetWorkQueue.Transport.SqlServer
         /// <remarks>The delegate will fire every time the queue begins to look for an item to de-queue</remarks>
         public static void SetUserParametersAndClause(this QueueConsumerConfiguration configuration, Func<List<SqlParameter>> parameters, Func<string> whereClause)
         {
-            if (configuration.AdditionalSettings.ContainsKey("userdequeueparamsfactory"))
+            if (configuration.AdditionalSettings.ContainsKey(UserDequeueParamsFactoryKey))
             {
-                configuration.AdditionalSettings["userdequeueparamsfactory"] = parameters;
+                configuration.AdditionalSettings[UserDequeueParamsFactoryKey] = parameters;
             }
             else
             {
-                configuration.AdditionalSettings.Add("userdequeueparamsfactory", parameters);
+                configuration.AdditionalSettings.Add(UserDequeueParamsFactoryKey, parameters);
             }
 
-            if (configuration.AdditionalSettings.ContainsKey("userdequeuefactory"))
+            if (configuration.AdditionalSettings.ContainsKey(UserDequeueFactoryKey))
             {
-                configuration.AdditionalSettings["userdequeuefactory"] = whereClause;
+                configuration.AdditionalSettings[UserDequeueFactoryKey] = whereClause;
             }
             else
             {
-                configuration.AdditionalSettings.Add("userdequeuefactory", whereClause);
+                configuration.AdditionalSettings.Add(UserDequeueFactoryKey, whereClause);
             }
         }
 
@@ -248,14 +251,14 @@ namespace DotNetWorkQueue.Transport.SqlServer
         /// <param name="parameter">The parameter.</param>
         public static void AddUserParameter(this QueueConsumerConfiguration configuration, SqlParameter parameter)
         {
-            if (configuration.AdditionalSettings.TryGetValue("userdequeueparams", out var dequeueParams))
+            if (configuration.AdditionalSettings.TryGetValue(UserDequeueParamsKey, out var dequeueParams))
             {
                 ((List<SqlParameter>)dequeueParams).Add(parameter);
             }
             else
             {
                 var data = new List<SqlParameter> { parameter };
-                configuration.AdditionalSettings.Add("userdequeueparams", data);
+                configuration.AdditionalSettings.Add(UserDequeueParamsKey, data);
             }
         }
 
@@ -266,13 +269,13 @@ namespace DotNetWorkQueue.Transport.SqlServer
         /// <param name="parameters">The parameters.</param>
         public static void SetUserParameters(this QueueConsumerConfiguration configuration, List<SqlParameter> parameters)
         {
-            if (configuration.AdditionalSettings.ContainsKey("userdequeueparams"))
+            if (configuration.AdditionalSettings.ContainsKey(UserDequeueParamsKey))
             {
-                configuration.AdditionalSettings["userdequeueparams"] = parameters;
+                configuration.AdditionalSettings[UserDequeueParamsKey] = parameters;
             }
             else
             {
-                configuration.AdditionalSettings.Add("userdequeueparams", parameters);
+                configuration.AdditionalSettings.Add(UserDequeueParamsKey, parameters);
             }
         }
 
@@ -283,7 +286,7 @@ namespace DotNetWorkQueue.Transport.SqlServer
         /// <param name="whereClause">The where clause.</param>
         public static void SetUserWhereClause(this QueueConsumerConfiguration configuration, string whereClause)
         {
-            if (configuration.AdditionalSettings.ContainsKey("userdequeueparams"))
+            if (configuration.AdditionalSettings.ContainsKey(UserDequeueParamsKey))
             {
                 configuration.AdditionalSettings["userdequeue"] = whereClause;
             }

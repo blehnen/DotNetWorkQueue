@@ -30,6 +30,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
     /// </summary>
     public class SqlServerMessageQueueSchema
     {
+        private const string ColumnQueueId = "QueueID";
+        private const string ColumnStatus = "Status";
         private readonly ITableNameHelper _tableNameHelper;
         private readonly Lazy<SqlServerMessageQueueTransportOptions> _options;
         private readonly ISqlSchema _schema;
@@ -84,14 +86,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             //--main data table--
             var main = new Table(GetOwner(), _tableNameHelper.QueueName);
-            var mainPrimaryKey = new Column("QueueID", ColumnTypes.Bigint, false, null) { Identity = new Identity(1, 1) };
+            var mainPrimaryKey = new Column(ColumnQueueId, ColumnTypes.Bigint, false, null) { Identity = new Identity(1, 1) };
 
             main.Columns.Add(mainPrimaryKey);
             main.Columns.Add(new Column("Body", ColumnTypes.Varbinary, -1, false, null));
             main.Columns.Add(new Column("Headers", ColumnTypes.Varbinary, -1, false, null));
 
             //add primary key constraint
-            main.Constraints.Add(new Constraint("PK_" + _tableNameHelper.QueueName, ConstraintType.PrimaryKey, "QueueID"));
+            main.Constraints.Add(new Constraint("PK_" + _tableNameHelper.QueueName, ConstraintType.PrimaryKey, ColumnQueueId));
             main.PrimaryKey.Clustered = true;
             main.PrimaryKey.Unique = true;
             return main;
@@ -117,15 +119,15 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             //--Status Table --
             var status = new Table(GetOwner(), _tableNameHelper.StatusName);
-            var mainPrimaryKey = new Column("QueueID", ColumnTypes.Bigint, false, null);
+            var mainPrimaryKey = new Column(ColumnQueueId, ColumnTypes.Bigint, false, null);
             status.Columns.Add(mainPrimaryKey);
 
             //add primary key constraint
-            status.Constraints.Add(new Constraint("PK_" + _tableNameHelper.StatusName, ConstraintType.PrimaryKey, "QueueID"));
+            status.Constraints.Add(new Constraint("PK_" + _tableNameHelper.StatusName, ConstraintType.PrimaryKey, ColumnQueueId));
             status.PrimaryKey.Unique = true;
             status.PrimaryKey.Clustered = true;
 
-            status.Columns.Add(new Column("Status", ColumnTypes.Int, false, null));
+            status.Columns.Add(new Column(ColumnStatus, ColumnTypes.Int, false, null));
             status.Columns.Add(new Column("CorrelationID", ColumnTypes.Uniqueidentifier, false, null));
 
             if (!_options.Value.AdditionalColumnsOnMetaData)
@@ -159,11 +161,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             //--Meta Data Table --
             var meta = new Table(GetOwner(), _tableNameHelper.MetaDataName);
-            var mainPrimaryKey = new Column("QueueID", ColumnTypes.Bigint, false, null);
+            var mainPrimaryKey = new Column(ColumnQueueId, ColumnTypes.Bigint, false, null);
             meta.Columns.Add(mainPrimaryKey);
 
             //add primary key constraint
-            meta.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataName, ConstraintType.PrimaryKey, "QueueID"));
+            meta.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataName, ConstraintType.PrimaryKey, ColumnQueueId));
             meta.PrimaryKey.Unique = true;
 
             if (_options.Value.EnablePriority)
@@ -175,7 +177,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             if (_options.Value.EnableStatus)
             {
-                meta.Columns.Add(new Column("Status", ColumnTypes.Int, false, null));
+                meta.Columns.Add(new Column(ColumnStatus, ColumnTypes.Int, false, null));
             }
             if (_options.Value.EnableDelayedProcessing)
             {
@@ -218,7 +220,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             var clusterIndex = new List<string>();
             if (_options.Value.EnableStatus)
             {
-                clusterIndex.Add("Status");
+                clusterIndex.Add(ColumnStatus);
             }
             if (_options.Value.EnablePriority)
             {
@@ -240,7 +242,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             if (clusterIndex.Count > 0)
             {
-                clusterIndex.Add("QueueID");
+                clusterIndex.Add(ColumnQueueId);
                 var cluster = new Constraint("IX_DeQueue", ConstraintType.Index, clusterIndex)
                 {
                     Clustered = true,
@@ -281,7 +283,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             };
             errorTracking.Columns.Add(errorTrackingPrimaryKey);
 
-            errorTracking.Columns.Add(new Column("QueueID", ColumnTypes.Bigint, false, null));
+            errorTracking.Columns.Add(new Column(ColumnQueueId, ColumnTypes.Bigint, false, null));
             errorTracking.Columns.Add(new Column("ExceptionType", ColumnTypes.Varchar, 500, false, null));
             errorTracking.Columns.Add(new Column("RetryCount", ColumnTypes.Int, false, null));
 
@@ -290,7 +292,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             errorTracking.PrimaryKey.Clustered = true;
             errorTracking.PrimaryKey.Unique = true;
 
-            errorTracking.Constraints.Add(new Constraint("IX_QueueID", ConstraintType.Index, "QueueID"));
+            errorTracking.Constraints.Add(new Constraint("IX_QueueID", ConstraintType.Index, ColumnQueueId));
 
             foreach (var c in errorTracking.Constraints)
             {
@@ -339,9 +341,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             var primaryKey = new Column("HistoryID", ColumnTypes.Bigint, false, null) { Identity = new Identity(1, 1) };
             history.Columns.Add(primaryKey);
 
-            history.Columns.Add(new Column("QueueID", ColumnTypes.Nvarchar, 100, false, null));
+            history.Columns.Add(new Column(ColumnQueueId, ColumnTypes.Nvarchar, 100, false, null));
             history.Columns.Add(new Column("CorrelationID", ColumnTypes.Nvarchar, 38, true, null));
-            history.Columns.Add(new Column("Status", ColumnTypes.Int, false, null));
+            history.Columns.Add(new Column(ColumnStatus, ColumnTypes.Int, false, null));
             history.Columns.Add(new Column("EnqueuedUtc", ColumnTypes.Datetime, false, null));
             history.Columns.Add(new Column("StartedUtc", ColumnTypes.Datetime, true, null));
             history.Columns.Add(new Column("CompletedUtc", ColumnTypes.Datetime, true, null));
@@ -359,10 +361,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             history.PrimaryKey.Unique = true;
 
             // Index on QueueID for lookups by message — name must be unique per schema
-            history.Constraints.Add(new Constraint($"IX_{_tableNameHelper.HistoryName}_QueueID", ConstraintType.Index, "QueueID"));
+            history.Constraints.Add(new Constraint($"IX_{_tableNameHelper.HistoryName}_QueueID", ConstraintType.Index, ColumnQueueId));
             // Index on Status + CompletedUtc for purge queries and status filtering
             history.Constraints.Add(new Constraint($"IX_{_tableNameHelper.HistoryName}_Status_Completed", ConstraintType.Index,
-                new List<string> { "Status", "CompletedUtc" }));
+                new List<string> { ColumnStatus, "CompletedUtc" }));
 
             foreach (var c in history.Constraints)
             {
