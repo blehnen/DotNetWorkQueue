@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             tableNameHelper.HistoryName.Returns("TestHistory");
             var options = Substitute.For<IBaseTransportOptions>();
             options.EnableHistory.Returns(enabled);
-            return (new PurgeMessageHistoryHandler(factory, tableNameHelper, options), factory, options);
+            return (new PurgeMessageHistoryHandler(factory, tableNameHelper), factory, options);
         }
 
         private static (IDbConnection connection, IDbCommand command) SetupConnection(IDbConnectionFactory factory)

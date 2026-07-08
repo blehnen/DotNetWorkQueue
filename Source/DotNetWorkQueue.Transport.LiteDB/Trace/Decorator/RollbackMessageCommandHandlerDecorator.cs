@@ -30,17 +30,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.Trace.Decorator
     public class RollbackMessageCommandHandlerDecorator : ICommandHandler<RollbackMessageCommand<int>>
     {
         private readonly ICommandHandler<RollbackMessageCommand<int>> _handler;
-        private readonly ActivitySource _tracer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RollbackMessageCommandHandlerDecorator"/> class.
         /// </summary>
         /// <param name="handler">The handler.</param>
-        /// <param name="tracer">The tracer.</param>
-        public RollbackMessageCommandHandlerDecorator(ICommandHandler<RollbackMessageCommand<int>> handler, ActivitySource tracer)
+        public RollbackMessageCommandHandlerDecorator(ICommandHandler<RollbackMessageCommand<int>> handler)
         {
             _handler = handler;
-            _tracer = tracer;
         }
 
         /// <inheritdoc />

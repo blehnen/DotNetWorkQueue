@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -30,15 +29,12 @@ namespace DotNetWorkQueue.Queue
     {
         private readonly IMessageHandler _handler;
         private readonly MessageCancellationTracker _tracker;
-        private readonly ILogger _log;
 
         public MessageHandlerCancellationDecorator(IMessageHandler handler,
-            MessageCancellationTracker tracker,
-            ILogger log)
+            MessageCancellationTracker tracker)
         {
             _handler = handler;
             _tracker = tracker;
-            _log = log;
         }
 
         public void Handle(IReceivedMessageInternal message, IWorkerNotification workerNotification)
@@ -84,15 +80,12 @@ namespace DotNetWorkQueue.Queue
     {
         private readonly IMessageHandlerAsync _handler;
         private readonly MessageCancellationTracker _tracker;
-        private readonly ILogger _log;
 
         public MessageHandlerAsyncCancellationDecorator(IMessageHandlerAsync handler,
-            MessageCancellationTracker tracker,
-            ILogger log)
+            MessageCancellationTracker tracker)
         {
             _handler = handler;
             _tracker = tracker;
-            _log = log;
         }
 
         public async Task HandleAsync(IReceivedMessageInternal message, IWorkerNotification workerNotification)

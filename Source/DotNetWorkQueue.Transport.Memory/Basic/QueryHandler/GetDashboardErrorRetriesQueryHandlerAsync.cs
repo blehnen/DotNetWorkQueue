@@ -21,7 +21,6 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
-using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic.QueryHandler
 {
@@ -30,14 +29,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.QueryHandler
     /// </summary>
     internal class GetDashboardErrorRetriesQueryHandlerAsync : IQueryHandlerAsync<GetDashboardErrorRetriesQuery, IReadOnlyList<DashboardErrorRetry>>
     {
-        private readonly IDataStorage _dataStorage;
-
-        public GetDashboardErrorRetriesQueryHandlerAsync(IDataStorage dataStorage)
-        {
-            Guard.NotNull(() => dataStorage, dataStorage);
-            _dataStorage = dataStorage;
-        }
-
         public Task<IReadOnlyList<DashboardErrorRetry>> HandleAsync(GetDashboardErrorRetriesQuery query)
         {
             return Task.FromResult<IReadOnlyList<DashboardErrorRetry>>(new List<DashboardErrorRetry>());

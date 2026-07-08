@@ -20,8 +20,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using DotNetWorkQueue.Queue;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
@@ -35,7 +33,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var tracker = new MessageCancellationTracker();
             var innerHandler = Substitute.For<IMessageHandler>();
-            var decorator = new MessageHandlerCancellationDecorator(innerHandler, tracker, NullLogger.Instance);
+            var decorator = new MessageHandlerCancellationDecorator(innerHandler, tracker);
 
             var message = CreateMessage("set-cancel-1");
             var notification = CreateNotification();
@@ -55,7 +53,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var tracker = new MessageCancellationTracker();
             var innerHandler = Substitute.For<IMessageHandler>();
-            var decorator = new MessageHandlerCancellationDecorator(innerHandler, tracker, NullLogger.Instance);
+            var decorator = new MessageHandlerCancellationDecorator(innerHandler, tracker);
 
             var message = CreateMessage("unregister-success-1");
             var notification = CreateNotification();
@@ -73,7 +71,7 @@ namespace DotNetWorkQueue.Tests.Queue
             innerHandler.When(x => x.Handle(Arg.Any<IReceivedMessageInternal>(), Arg.Any<IWorkerNotification>()))
                 .Do(_ => throw new InvalidOperationException("test"));
 
-            var decorator = new MessageHandlerCancellationDecorator(innerHandler, tracker, NullLogger.Instance);
+            var decorator = new MessageHandlerCancellationDecorator(innerHandler, tracker);
             var message = CreateMessage("unregister-error-1");
             var notification = CreateNotification();
 
@@ -88,7 +86,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var tracker = new MessageCancellationTracker();
             var innerHandler = Substitute.For<IMessageHandler>();
-            var decorator = new MessageHandlerCancellationDecorator(innerHandler, tracker, NullLogger.Instance);
+            var decorator = new MessageHandlerCancellationDecorator(innerHandler, tracker);
 
             var message = CreateMessage("clear-after-1");
             var notification = CreateNotification();
@@ -103,7 +101,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var tracker = new MessageCancellationTracker();
             var innerHandler = Substitute.For<IMessageHandler>();
-            var decorator = new MessageHandlerCancellationDecorator(innerHandler, tracker, NullLogger.Instance);
+            var decorator = new MessageHandlerCancellationDecorator(innerHandler, tracker);
 
             var message = Substitute.For<IReceivedMessageInternal>();
             message.MessageId.Returns((IMessageId)null);

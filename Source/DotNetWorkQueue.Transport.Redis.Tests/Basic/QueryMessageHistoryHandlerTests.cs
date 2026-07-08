@@ -21,9 +21,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var connection = Substitute.For<IRedisConnection>();
             var connInfo = Substitute.For<IConnectionInformation>();
             var redisNames = Substitute.For<RedisNames>(connInfo);
-            var options = Substitute.For<IBaseTransportOptions>();
-            options.EnableHistory.Returns(true);
-            var handler = new QueryMessageHistoryHandler(connection, redisNames, options);
+            var handler = new QueryMessageHistoryHandler(connection, redisNames);
 
             try { handler.Get(0, 10, null); } catch (NullReferenceException) { }
             _ = connection.Received(1).Connection;
@@ -35,9 +33,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var connection = Substitute.For<IRedisConnection>();
             var connInfo = Substitute.For<IConnectionInformation>();
             var redisNames = Substitute.For<RedisNames>(connInfo);
-            var options = Substitute.For<IBaseTransportOptions>();
-            options.EnableHistory.Returns(true);
-            var handler = new QueryMessageHistoryHandler(connection, redisNames, options);
+            var handler = new QueryMessageHistoryHandler(connection, redisNames);
 
             try { handler.Get(0, 10, MessageHistoryStatus.Complete); } catch (NullReferenceException) { }
             _ = connection.Received(1).Connection;
@@ -49,9 +45,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var connection = Substitute.For<IRedisConnection>();
             var connInfo = Substitute.For<IConnectionInformation>();
             var redisNames = Substitute.For<RedisNames>(connInfo);
-            var options = Substitute.For<IBaseTransportOptions>();
-            options.EnableHistory.Returns(true);
-            var handler = new QueryMessageHistoryHandler(connection, redisNames, options);
+            var handler = new QueryMessageHistoryHandler(connection, redisNames);
 
             try { handler.GetByQueueId("q1"); } catch (NullReferenceException) { }
             _ = connection.Received(1).Connection;
@@ -63,9 +57,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var connection = Substitute.For<IRedisConnection>();
             var connInfo = Substitute.For<IConnectionInformation>();
             var redisNames = Substitute.For<RedisNames>(connInfo);
-            var options = Substitute.For<IBaseTransportOptions>();
-            options.EnableHistory.Returns(true);
-            var handler = new QueryMessageHistoryHandler(connection, redisNames, options);
+            var handler = new QueryMessageHistoryHandler(connection, redisNames);
 
             try { handler.GetCount(null); } catch (NullReferenceException) { }
             _ = connection.Received(1).Connection;
@@ -77,9 +69,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var connection = Substitute.For<IRedisConnection>();
             var connInfo = Substitute.For<IConnectionInformation>();
             var redisNames = Substitute.For<RedisNames>(connInfo);
-            var options = Substitute.For<IBaseTransportOptions>();
-            options.EnableHistory.Returns(true);
-            var handler = new QueryMessageHistoryHandler(connection, redisNames, options);
+            var handler = new QueryMessageHistoryHandler(connection, redisNames);
 
             try { handler.GetCount(MessageHistoryStatus.Error); } catch (NullReferenceException) { }
             _ = connection.Received(1).Connection;
@@ -91,8 +81,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var connection = Substitute.For<IRedisConnection>();
             var connInfo = Substitute.For<IConnectionInformation>();
             var redisNames = Substitute.For<RedisNames>(connInfo);
-            var options = Substitute.For<IBaseTransportOptions>();
-            var handler = new QueryMessageHistoryHandler(connection, redisNames, options);
+            var handler = new QueryMessageHistoryHandler(connection, redisNames);
             Assert.IsNotNull(handler);
         }
 
@@ -102,8 +91,8 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
         private class TestableQueryHandler : QueryMessageHistoryHandler
         {
             private readonly IDatabase _db;
-            public TestableQueryHandler(IRedisConnection connection, RedisNames redisNames, IBaseTransportOptions options, IDatabase db)
-                : base(connection, redisNames, options) { _db = db; }
+            public TestableQueryHandler(IRedisConnection connection, RedisNames redisNames, IDatabase db)
+                : base(connection, redisNames) { _db = db; }
             protected override IDatabase GetDb() => _db;
         }
 
@@ -114,10 +103,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var redisNames = Substitute.For<RedisNames>(connInfo);
             redisNames.Values.Returns("queue:test");
 
-            var options = Substitute.For<IBaseTransportOptions>();
-            options.EnableHistory.Returns(true);
-
-            return new TestableQueryHandler(connection, redisNames, options, db);
+            return new TestableQueryHandler(connection, redisNames, db);
         }
 
         [TestMethod]

@@ -21,7 +21,6 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
-using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic.QueryHandler
 {
@@ -30,14 +29,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.QueryHandler
     /// </summary>
     internal class GetDashboardStaleMessagesQueryHandlerAsync : IQueryHandlerAsync<GetDashboardStaleMessagesQuery, IReadOnlyList<DashboardMessage>>
     {
-        private readonly IDataStorage _dataStorage;
-
-        public GetDashboardStaleMessagesQueryHandlerAsync(IDataStorage dataStorage)
-        {
-            Guard.NotNull(() => dataStorage, dataStorage);
-            _dataStorage = dataStorage;
-        }
-
         public Task<IReadOnlyList<DashboardMessage>> HandleAsync(GetDashboardStaleMessagesQuery query)
         {
             return Task.FromResult<IReadOnlyList<DashboardMessage>>(new List<DashboardMessage>());

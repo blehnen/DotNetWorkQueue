@@ -43,7 +43,6 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         private bool? _messageExpirationEnabled;
         private readonly IHeaders _headers;
         private readonly Lazy<LiteDbMessageQueueTransportOptions> _options;
-        private readonly TransportConfigurationSend _configurationSend;
         private readonly ICommandHandler<SetJobLastKnownEventCommand> _sendJobStatus;
 
         private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses>
@@ -60,7 +59,6 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <param name="serializer">The serializer.</param>
         /// <param name="optionsFactory">The options factory.</param>
         /// <param name="headers">The headers.</param>
-        /// <param name="configurationSend">The configuration send.</param>
         /// <param name="sendJobStatus">The send job status.</param>
         /// <param name="jobExistsHandler">The job exists handler.</param>
         /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
@@ -71,7 +69,6 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             ICompositeSerialization serializer,
             ILiteDbMessageQueueTransportOptionsFactory optionsFactory,
             IHeaders headers,
-            TransportConfigurationSend configurationSend,
             ICommandHandler<SetJobLastKnownEventCommand> sendJobStatus,
             IQueryHandler<DoesJobExistQuery, QueueStatuses> jobExistsHandler,
             IJobSchedulerMetaData jobSchedulerMetaData,
@@ -82,7 +79,6 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             Guard.NotNull(() => serializer, serializer);
             Guard.NotNull(() => optionsFactory, optionsFactory);
             Guard.NotNull(() => headers, headers);
-            Guard.NotNull(() => configurationSend, configurationSend);
             Guard.NotNull(() => sendJobStatus, sendJobStatus);
             Guard.NotNull(() => jobExistsHandler, jobExistsHandler);
             Guard.NotNull(() => databaseExists, databaseExists);
@@ -92,7 +88,6 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             _serializer = serializer;
             _options = new Lazy<LiteDbMessageQueueTransportOptions>(optionsFactory.Create);
             _headers = headers;
-            _configurationSend = configurationSend;
             _sendJobStatus = sendJobStatus;
             _jobExistsHandler = jobExistsHandler;
             _jobSchedulerMetaData = jobSchedulerMetaData;

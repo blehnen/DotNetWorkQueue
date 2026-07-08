@@ -34,18 +34,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ITableNameHelper _tableNameHelper;
-        private readonly IBaseTransportOptions _options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PurgeMessageHistoryHandler"/> class.
         /// </summary>
         public PurgeMessageHistoryHandler(IDbConnectionFactory connectionFactory,
-            ITableNameHelper tableNameHelper,
-            IBaseTransportOptions options)
+            ITableNameHelper tableNameHelper)
         {
             _connectionFactory = connectionFactory;
             _tableNameHelper = tableNameHelper;
-            _options = options;
         }
 
         /// <inheritdoc />

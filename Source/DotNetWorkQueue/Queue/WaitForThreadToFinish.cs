@@ -18,8 +18,6 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Validation;
-using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -28,16 +26,6 @@ namespace DotNetWorkQueue.Queue
     /// </summary>
     public class WaitForThreadToFinish
     {
-        private readonly ILogger _log;
-        /// <summary>
-        /// Initializes a new instance of the <see cref="WaitForThreadToFinish"/> class.
-        /// </summary>
-        /// <param name="log">The log.</param>
-        public WaitForThreadToFinish(ILogger log)
-        {
-            Guard.NotNull(() => log, log);
-            _log = log;
-        }
         /// <summary>
         ///  Waits for specified worker task to finish, or until the timeout period has been reached.
         /// </summary>

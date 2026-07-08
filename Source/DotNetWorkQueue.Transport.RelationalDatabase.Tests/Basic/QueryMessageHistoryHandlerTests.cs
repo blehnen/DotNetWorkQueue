@@ -121,7 +121,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             options.EnableHistory.Returns(enabled);
             options.HistoryOptions.Returns(historyOptions);
             var pagination = new LimitOffsetPaginationSyntax();
-            return (new QueryMessageHistoryHandler(factory, tableNameHelper, options, pagination), factory, options);
+            return (new QueryMessageHistoryHandler(factory, tableNameHelper, pagination), factory, options);
         }
 
         private static (IDbConnection connection, IDbCommand command) SetupConnection(IDbConnectionFactory factory)

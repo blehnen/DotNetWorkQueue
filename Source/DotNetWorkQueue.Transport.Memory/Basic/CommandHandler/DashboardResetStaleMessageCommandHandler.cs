@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
-using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic.CommandHandler
 {
@@ -27,14 +26,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.CommandHandler
     /// </summary>
     internal class DashboardResetStaleMessageCommandHandler : ICommandHandlerWithOutput<DashboardResetStaleMessageCommand, long>
     {
-        private readonly IDataStorage _dataStorage;
-
-        public DashboardResetStaleMessageCommandHandler(IDataStorage dataStorage)
-        {
-            Guard.NotNull(() => dataStorage, dataStorage);
-            _dataStorage = dataStorage;
-        }
-
         public long Handle(DashboardResetStaleMessageCommand command)
         {
             return 0;
