@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Threading;
-using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Shared.Basic.Query
 {
@@ -33,7 +32,6 @@ namespace DotNetWorkQueue.Transport.Shared.Basic.Query
         /// <param name="cancellation">The cancellation.</param>
         public FindErrorMessagesToDeleteQuery(CancellationToken cancellation)
         {
-            Guard.NotNull(() => Cancellation, Cancellation);
             Cancellation = cancellation;
         }
         /// <summary>

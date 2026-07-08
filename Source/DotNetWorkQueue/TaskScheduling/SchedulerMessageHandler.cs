@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
@@ -71,10 +72,12 @@ namespace DotNetWorkQueue.TaskScheduling
             while (true)
             {
                 //verify that we are not canceling or stopping before trying to queue the item
-                //however, the transport must support rollbacks
+                //however, the transport must support rollbacks. ShouldHandle returns true or
+                //throws OperationCanceledException (which the consumer treats as a rollback);
+                //the canceled task below is a defensive non-null fallback if that contract changes.
                 if (!ShouldHandle(notifications))
                 {
-                    return null;
+                    return Task.FromCanceled(new CancellationToken(true));
                 }
 
                 if (taskFactory.TryStartNew(state => { WrappedFunction(message, notifications, functionToRun); }, new StateInformation(workGroup), task =>

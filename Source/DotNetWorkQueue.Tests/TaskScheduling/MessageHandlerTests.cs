@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
@@ -35,6 +37,32 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
                 Substitute.For<IWorkerNotification>(),
                 Action,
                 factory);
+        }
+
+        [TestMethod]
+        public void Handle_When_Worker_Stopping_Throws_OperationCanceled()
+        {
+            void Action(IReceivedMessage<FakeMessage> message, IWorkerNotification notification)
+            {
+            }
+
+            //worker is stopping and the transport supports rollback -> the item must not be
+            //queued. The handler must surface OperationCanceledException (the clean rollback
+            //path) rather than returning a null Task, which would NRE when the consumer awaits it.
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+            var cancel = Substitute.For<ICancelWork>();
+            cancel.Tokens.Returns(new List<CancellationToken> { cts.Token });
+
+            var notifications = Substitute.For<IWorkerNotification>();
+            notifications.TransportSupportsRollback.Returns(true);
+            notifications.WorkerStopping.Returns(cancel);
+
+            var test = Create();
+
+            Assert.ThrowsExactly<OperationCanceledException>(() =>
+                test.HandleAsync(Substitute.For<IWorkGroup>(), Substitute.For<IReceivedMessage<FakeMessage>>(),
+                    notifications, Action, Substitute.For<ITaskFactory>()));
         }
 
         private SchedulerMessageHandler Create()
