@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Logging.Decorator
             var records = _handler.Run(token);
             if (records > 0)
             {
-                _log.LogInformation($"Moved {records} records from the delayed queue to the pending queue");
+                _log.LogInformation("Moved {Records} records from the delayed queue to the pending queue", records);
             }
             return records;
         }

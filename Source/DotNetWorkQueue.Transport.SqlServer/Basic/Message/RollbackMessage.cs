@@ -128,7 +128,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             }
             catch (Exception e)
             {
-                _log.LogError($"Failed to rollback a transaction; this might be due to a DB timeout{System.Environment.NewLine}{e}");
+                _log.LogError("Failed to rollback a transaction; this might be due to a DB timeout{NewLine}{Exception}", System.Environment.NewLine, e);
 
                 //don't attempt to use the transaction again at this point.
                 connection.Transaction = null;

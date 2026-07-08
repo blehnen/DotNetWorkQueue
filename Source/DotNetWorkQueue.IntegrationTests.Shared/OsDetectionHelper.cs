@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             catch (Exception ex)
             {
                 // Handle exceptions (e.g., insufficient permissions to read registry)
-                logger?.LogError($"Error reading registry: {ex.Message}");
+                logger?.LogError("Error reading registry: {ErrorMessage}", ex.Message);
             }
 
             return false;

@@ -229,7 +229,7 @@ namespace DotNetWorkQueue.Queue
             {
                 WaitOnAsyncTask.Wait(() => _asyncTaskCount > 0,
                     () => _log.LogWarning(
-                        $"Unable to terminate because async requests have not finished. Current task count is {_asyncTaskCount}"));
+                        "Unable to terminate because async requests have not finished. Current task count is {AsyncTaskCount}", _asyncTaskCount));
             }
         }
 

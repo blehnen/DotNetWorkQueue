@@ -194,24 +194,24 @@ namespace DotNetWorkQueue.JobScheduler
                         if (result.Status == JobQueuedStatus.Success || result.Status == JobQueuedStatus.RequeuedDueToErrorStatus)
                         {
                             RaiseEnQueue(result);
-                            _queue.Logger.LogDebug($"job {this} queued");
+                            _queue.Logger.LogDebug("job {Job} queued", this);
                         }
                         else if (result.Status == JobQueuedStatus.AlreadyQueuedWaiting ||
                                  result.Status == JobQueuedStatus.AlreadyQueuedProcessing ||
                                  result.Status == JobQueuedStatus.AlreadyProcessed)
                         {
-                            _queue.Logger.LogWarning($"Failed to enqueue job {this}, the status is {result.Status}");
+                            _queue.Logger.LogWarning("Failed to enqueue job {Job}, the status is {Status}", this, result.Status);
                             RaiseNonFatalFailureEnQueue(result);
                         }
                         else if (result.SendingException != null)
                         {
-                            _queue.Logger.LogError($"An error has occurred adding job {this} into the queue{System.Environment.NewLine}{result.SendingException}");
+                            _queue.Logger.LogError("An error has occurred adding job {Job} into the queue{NewLine}{Exception}", this, System.Environment.NewLine, result.SendingException);
                             RaiseException(result.SendingException);
                         }
                     }
                     catch (Exception ex)
                     {
-                        _queue.Logger.LogError($"A fatal error has occurred trying to add job {this} into the queue{System.Environment.NewLine}{ex}");
+                        _queue.Logger.LogError("A fatal error has occurred trying to add job {Job} into the queue{NewLine}{Exception}", this, System.Environment.NewLine, ex);
                         RaiseException(ex);
                     }
                 }

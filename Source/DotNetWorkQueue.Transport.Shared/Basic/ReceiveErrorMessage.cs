@@ -117,7 +117,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
                 new MoveRecordToErrorQueueCommand<T>(exception, (T)context.MessageId.Id.Value, context));
             //we are done doing any processing - remove the messageID to block other actions
             context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);
-            _log.LogError($"Message with ID {message.MessageId} has failed and has been moved to the error queue{System.Environment.NewLine}{exception}");
+            _log.LogError("Message with ID {MessageId} has failed and has been moved to the error queue{NewLine}{Exception}", message.MessageId, System.Environment.NewLine, exception);
             return ReceiveMessagesErrorResult.Error;
         }
         #endregion
