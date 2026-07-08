@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
-using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic.CommandHandler
 {
@@ -28,14 +27,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.CommandHandler
     /// </summary>
     internal class DashboardUpdateMessageBodyCommandHandler : ICommandHandlerWithOutput<DashboardUpdateMessageBodyCommand, long>
     {
-        private readonly IDataStorage _dataStorage;
-
-        public DashboardUpdateMessageBodyCommandHandler(IDataStorage dataStorage)
-        {
-            Guard.NotNull(() => dataStorage, dataStorage);
-            _dataStorage = dataStorage;
-        }
-
         public long Handle(DashboardUpdateMessageBodyCommand command)
         {
             return 0;

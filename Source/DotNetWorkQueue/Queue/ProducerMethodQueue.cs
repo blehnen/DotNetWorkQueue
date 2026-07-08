@@ -33,25 +33,20 @@ namespace DotNetWorkQueue.Queue
     {
         private readonly IProducerQueue<MessageExpression> _queue;
         private readonly IExpressionSerializer _serializer;
-        private readonly ICompositeSerialization _compositeSerialization;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProducerMethodQueue" /> class.
         /// </summary>
         /// <param name="queue">The queue.</param>
         /// <param name="serializer">The serializer.</param>
-        /// <param name="compositeSerialization">The composite serialization.</param>
         public ProducerMethodQueue(IProducerQueue<MessageExpression> queue,
-            IExpressionSerializer serializer,
-            ICompositeSerialization compositeSerialization)
+            IExpressionSerializer serializer)
         {
             Guard.NotNull(() => queue, queue);
             Guard.NotNull(() => serializer, serializer);
-            Guard.NotNull(() => compositeSerialization, compositeSerialization);
 
             _queue = queue;
             _serializer = serializer;
-            _compositeSerialization = compositeSerialization;
         }
         /// <inheritdoc />
         public QueueProducerConfiguration Configuration => _queue.Configuration;

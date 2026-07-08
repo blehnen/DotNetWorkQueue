@@ -19,7 +19,6 @@
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
-using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic.QueryHandler
 {
@@ -28,14 +27,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.QueryHandler
     /// </summary>
     internal class GetDashboardErrorMessageCountQueryHandlerAsync : IQueryHandlerAsync<GetDashboardErrorMessageCountQuery, long>
     {
-        private readonly IDataStorage _dataStorage;
-
-        public GetDashboardErrorMessageCountQueryHandlerAsync(IDataStorage dataStorage)
-        {
-            Guard.NotNull(() => dataStorage, dataStorage);
-            _dataStorage = dataStorage;
-        }
-
         public Task<long> HandleAsync(GetDashboardErrorMessageCountQuery query)
         {
             return Task.FromResult(0L);

@@ -275,7 +275,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// Gets the default fatal exception delay time spans
         /// </summary>
         /// <returns></returns>
-        private IEnumerable<TimeSpan> ExceptionDelay()
+        private static IEnumerable<TimeSpan> ExceptionDelay()
         {
             var rc = new List<TimeSpan>(10)
             {
@@ -297,7 +297,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// Gets the default queue delay time spans
         /// </summary>
         /// <returns></returns>
-        private IEnumerable<TimeSpan> DefaultQueueDelay()
+        private static IEnumerable<TimeSpan> DefaultQueueDelay()
         {
             var rc = new List<TimeSpan>(21)
             {
@@ -330,7 +330,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// Setup the heart beat.
         /// </summary>
         /// <param name="container">The container.</param>
-        private void SetupHeartBeat(IContainer container)
+        private static void SetupHeartBeat(IContainer container)
         {
             var heartBeatConfiguration = container.GetInstance<IHeartBeatConfiguration>();
             heartBeatConfiguration.Time = TimeSpan.FromSeconds(30);
@@ -343,7 +343,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// Setup the message expiration.
         /// </summary>
         /// <param name="container">The container.</param>
-        private void SetupMessageExpiration(IContainer container)
+        private static void SetupMessageExpiration(IContainer container)
         {
             var configuration = container.GetInstance<IMessageExpirationConfiguration>();
             configuration.MonitorTime = TimeSpan.FromMinutes(1);

@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// Creates the main table schema
         /// </summary>
         /// <returns></returns>
-        private Schema.QueueTable CreateMainTable()
+        private static Schema.QueueTable CreateMainTable()
         {
             return new Schema.QueueTable();
         }
@@ -80,12 +80,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// Creates the configuration table schema.
         /// </summary>
         /// <returns></returns>
-        private Schema.ConfigurationTable CreateConfigurationTable()
+        private static Schema.ConfigurationTable CreateConfigurationTable()
         {
             return new Schema.ConfigurationTable();
         }
 
-        private Schema.StatusTable CreateStatusTable()
+        private static Schema.StatusTable CreateStatusTable()
         {
             return new StatusTable();
         }
@@ -93,7 +93,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// Creates the meta data table schema.
         /// </summary>
         /// <returns></returns>
-        private Schema.MetaDataTable CreateMetaDataTable()
+        private static Schema.MetaDataTable CreateMetaDataTable()
         {
             return new MetaDataTable();
         }
@@ -101,7 +101,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// Creates the error tracking table schema.
         /// </summary>
         /// <returns></returns>
-        private Schema.ErrorTrackingTable CreateErrorTrackingTable()
+        private static Schema.ErrorTrackingTable CreateErrorTrackingTable()
         {
             return new ErrorTrackingTable();
         }
@@ -109,7 +109,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// Creates the error table schema. This is a copy of the meta table, but with an exception column added. 
         /// </summary>
         /// <returns></returns>
-        private Schema.MetaDataErrorsTable CreateErrorTable()
+        private static Schema.MetaDataErrorsTable CreateErrorTable()
         {
             return new MetaDataErrorsTable();
         }

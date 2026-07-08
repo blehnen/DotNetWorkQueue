@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// Creates the main table schema
         /// </summary>
         /// <returns></returns>
-        private ITable CreateMainTable()
+        private static ITable CreateMainTable()
         {
             return new JobsTable();
         }

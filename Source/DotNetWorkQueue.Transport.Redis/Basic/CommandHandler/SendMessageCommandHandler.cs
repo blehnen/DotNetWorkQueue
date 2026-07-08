@@ -30,6 +30,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
     /// <inheritdoc />
     internal class SendMessageCommandHandler : ICommandHandlerWithOutput<SendMessageCommand, string>
     {
+        private const string EnqueueFailedError = "Failed to enqueue a record. The LUA enqueue script returned null";
         private readonly ICompositeSerialization _serializer;
         private readonly IHeaders _headers;
         private readonly EnqueueLua _enqueueLua;
@@ -158,7 +159,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 
             if (string.IsNullOrWhiteSpace(result))
             {
-                throw new DotNetWorkQueueException("Failed to enqueue a record. The LUA enqueue script returned null");
+                throw new DotNetWorkQueueException(EnqueueFailedError);
             }
             messageId = result;
             return messageId;
@@ -184,7 +185,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 
             if (string.IsNullOrWhiteSpace(result))
             {
-                throw new DotNetWorkQueueException("Failed to enqueue a record. The LUA enqueue script returned null");
+                throw new DotNetWorkQueueException(EnqueueFailedError);
             }
             messageId = result;
             return messageId;
@@ -212,7 +213,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 
             if (string.IsNullOrWhiteSpace(result))
             {
-                throw new DotNetWorkQueueException("Failed to enqueue a record. The LUA enqueue script returned null");
+                throw new DotNetWorkQueueException(EnqueueFailedError);
             }
             messageId = result;
             return messageId;
@@ -238,7 +239,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 
             if (string.IsNullOrWhiteSpace(result))
             {
-                throw new DotNetWorkQueueException("Failed to enqueue a record. The LUA enqueue script returned null");
+                throw new DotNetWorkQueueException(EnqueueFailedError);
             }
             messageId = result;
             return messageId;

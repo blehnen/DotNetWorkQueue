@@ -36,6 +36,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         private readonly SqlServerCommandStringCache _commandCache;
         private readonly ConcurrentDictionary<string, string> _rollbackDictionary;
         private readonly object _setupSqlLocker = new object();
+        private const string QueueIdParameter = "@QueueID";
+        private const string HeartBeatParameter = "@HeartBeat";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RollbackMessageCommandHandler" /> class.
@@ -73,16 +75,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                     using (var command = connection.CreateCommand())
                     {
                         command.Transaction = trans;
-                        command.Parameters.Add("@QueueID", SqlDbType.BigInt);
-                        command.Parameters["@QueueID"].Value = rollBackCommand.QueueId;
+                        command.Parameters.Add(QueueIdParameter, SqlDbType.BigInt);
+                        command.Parameters[QueueIdParameter].Value = rollBackCommand.QueueId;
 
                         if (_options.Value.EnableDelayedProcessing && rollBackCommand.IncreaseQueueDelay.HasValue)
                         {
                             if (rollBackCommand.LastHeartBeat.HasValue)
                             {
                                 command.CommandText = GetRollbackSql(false, true);
-                                command.Parameters.Add("@HeartBeat", SqlDbType.DateTime);
-                                command.Parameters["@HeartBeat"].Value = rollBackCommand.LastHeartBeat.Value;
+                                command.Parameters.Add(HeartBeatParameter, SqlDbType.DateTime);
+                                command.Parameters[HeartBeatParameter].Value = rollBackCommand.LastHeartBeat.Value;
                             }
                             else
                             {
@@ -99,8 +101,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                             if (rollBackCommand.LastHeartBeat.HasValue)
                             {
                                 command.CommandText = GetRollbackSql(false, true);
-                                command.Parameters.Add("@HeartBeat", SqlDbType.DateTime);
-                                command.Parameters["@HeartBeat"].Value = rollBackCommand.LastHeartBeat.Value;
+                                command.Parameters.Add(HeartBeatParameter, SqlDbType.DateTime);
+                                command.Parameters[HeartBeatParameter].Value = rollBackCommand.LastHeartBeat.Value;
                             }
                             else
                             {
@@ -118,8 +120,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                         using (var command = connection.CreateCommand())
                         {
                             command.Transaction = trans;
-                            command.Parameters.Add("@QueueID", SqlDbType.BigInt);
-                            command.Parameters["@QueueID"].Value = rollBackCommand.QueueId;
+                            command.Parameters.Add(QueueIdParameter, SqlDbType.BigInt);
+                            command.Parameters[QueueIdParameter].Value = rollBackCommand.QueueId;
                             command.Parameters.Add("@status", SqlDbType.Int);
                             command.Parameters["@status"].Value = Convert.ToInt16(QueueStatuses.Waiting);
                             command.CommandText =

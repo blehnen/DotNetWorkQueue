@@ -271,7 +271,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             init.SetDefaultsIfNeeded(container, "SqlServerMessageQueueTransportOptions", "SqlServerMessageQueueTransportOptions");
         }
 
-        private void SetupPolicy(IContainer container)
+        private static void SetupPolicy(IContainer container)
         {
             RetrySqlPolicyCreation.Register(container);
         }

@@ -31,17 +31,14 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
     public class RollbackMessageCommandHandlerDecorator : ICommandHandler<RollbackMessageCommand<string>>
     {
         private readonly ICommandHandler<RollbackMessageCommand<string>> _handler;
-        private readonly ActivitySource _tracer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RollbackMessageCommandHandlerDecorator"/> class.
         /// </summary>
         /// <param name="handler">The handler.</param>
-        /// <param name="tracer">The tracer.</param>
-        public RollbackMessageCommandHandlerDecorator(ICommandHandler<RollbackMessageCommand<string>> handler, ActivitySource tracer)
+        public RollbackMessageCommandHandlerDecorator(ICommandHandler<RollbackMessageCommand<string>> handler)
         {
             _handler = handler;
-            _tracer = tracer;
         }
 
         /// <inheritdoc />

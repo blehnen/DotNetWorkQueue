@@ -27,6 +27,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
     /// </summary>
     public class WriteMessageHistoryHandler : IWriteMessageHistory
     {
+        private const string QueueIdParameter = "@QueueID";
+        private const string StatusParameter = "@Status";
+        private const string CompletedUtcParameter = "@CompletedUtc";
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ITableNameHelper _tableNameHelper;
         private readonly IBaseTransportOptions _options;
@@ -57,9 +60,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                         (QueueID, CorrelationID, Status, EnqueuedUtc, RetryCount, Route, MessageType, Body, Headers)
                         VALUES (@QueueID, @CorrelationID, @Status, @EnqueuedUtc, 0, @Route, @MessageType, @Body, @Headers)";
 
-                    AddParameter(command, "@QueueID", DbType.String, queueId);
+                    AddParameter(command, QueueIdParameter, DbType.String, queueId);
                     AddParameter(command, "@CorrelationID", DbType.String, (object)correlationId ?? DBNull.Value);
-                    AddParameter(command, "@Status", DbType.Int32, (int)MessageHistoryStatus.Enqueued);
+                    AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Enqueued);
                     AddParameter(command, "@EnqueuedUtc", DbType.DateTime, DateTime.UtcNow);
                     AddParameter(command, "@Route", DbType.String, (object)route ?? DBNull.Value);
                     AddParameter(command, "@MessageType", DbType.String, (object)messageType ?? DBNull.Value);
@@ -84,9 +87,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                         SET Status = @Status, StartedUtc = @StartedUtc
                         WHERE QueueID = @QueueID AND Status = @PrevStatus";
 
-                    AddParameter(command, "@Status", DbType.Int32, (int)MessageHistoryStatus.Processing);
+                    AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Processing);
                     AddParameter(command, "@StartedUtc", DbType.DateTime, DateTime.UtcNow);
-                    AddParameter(command, "@QueueID", DbType.String, queueId);
+                    AddParameter(command, QueueIdParameter, DbType.String, queueId);
                     AddParameter(command, "@PrevStatus", DbType.Int32, (int)MessageHistoryStatus.Enqueued);
 
                     command.ExecuteNonQuery();
@@ -108,9 +111,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                         SET Status = @Status, CompletedUtc = @CompletedUtc
                         WHERE QueueID = @QueueID AND Status = @PrevStatus";
 
-                    AddParameter(command, "@Status", DbType.Int32, (int)MessageHistoryStatus.Complete);
-                    AddParameter(command, "@CompletedUtc", DbType.DateTime, now);
-                    AddParameter(command, "@QueueID", DbType.String, queueId);
+                    AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Complete);
+                    AddParameter(command, CompletedUtcParameter, DbType.DateTime, now);
+                    AddParameter(command, QueueIdParameter, DbType.String, queueId);
                     AddParameter(command, "@PrevStatus", DbType.Int32, (int)MessageHistoryStatus.Processing);
 
                     command.ExecuteNonQuery();
@@ -128,7 +131,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     var durationMs = startTime.HasValue ? (long)(now - startTime.Value).TotalMilliseconds : 0L;
 
                     AddParameter(command, "@DurationMs", DbType.Int64, durationMs);
-                    AddParameter(command, "@QueueID", DbType.String, queueId);
+                    AddParameter(command, QueueIdParameter, DbType.String, queueId);
 
                     command.ExecuteNonQuery();
                 }
@@ -153,11 +156,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                         SET Status = @Status, CompletedUtc = @CompletedUtc, DurationMs = @DurationMs, ExceptionText = @ExceptionText
                         WHERE QueueID = @QueueID AND (Status = @PrevStatus1 OR Status = @PrevStatus2)";
 
-                    AddParameter(command, "@Status", DbType.Int32, (int)MessageHistoryStatus.Error);
-                    AddParameter(command, "@CompletedUtc", DbType.DateTime, now);
+                    AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Error);
+                    AddParameter(command, CompletedUtcParameter, DbType.DateTime, now);
                     AddParameter(command, "@DurationMs", DbType.Int64, durationMs);
                     AddParameter(command, "@ExceptionText", DbType.String, (object)exception ?? DBNull.Value);
-                    AddParameter(command, "@QueueID", DbType.String, queueId);
+                    AddParameter(command, QueueIdParameter, DbType.String, queueId);
                     AddParameter(command, "@PrevStatus1", DbType.Int32, (int)MessageHistoryStatus.Processing);
                     AddParameter(command, "@PrevStatus2", DbType.Int32, (int)MessageHistoryStatus.Enqueued);
 
@@ -179,8 +182,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                         SET Status = @Status, RetryCount = RetryCount + 1, StartedUtc = NULL, CompletedUtc = NULL, DurationMs = NULL
                         WHERE QueueID = @QueueID";
 
-                    AddParameter(command, "@Status", DbType.Int32, (int)MessageHistoryStatus.Enqueued);
-                    AddParameter(command, "@QueueID", DbType.String, queueId);
+                    AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Enqueued);
+                    AddParameter(command, QueueIdParameter, DbType.String, queueId);
 
                     command.ExecuteNonQuery();
                 }
@@ -200,9 +203,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                         SET Status = @Status, CompletedUtc = @CompletedUtc
                         WHERE QueueID = @QueueID";
 
-                    AddParameter(command, "@Status", DbType.Int32, (int)MessageHistoryStatus.Deleted);
-                    AddParameter(command, "@CompletedUtc", DbType.DateTime, DateTime.UtcNow);
-                    AddParameter(command, "@QueueID", DbType.String, queueId);
+                    AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Deleted);
+                    AddParameter(command, CompletedUtcParameter, DbType.DateTime, DateTime.UtcNow);
+                    AddParameter(command, QueueIdParameter, DbType.String, queueId);
 
                     command.ExecuteNonQuery();
                 }
@@ -222,9 +225,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                         SET Status = @Status, CompletedUtc = @CompletedUtc
                         WHERE QueueID = @QueueID";
 
-                    AddParameter(command, "@Status", DbType.Int32, (int)MessageHistoryStatus.Expired);
-                    AddParameter(command, "@CompletedUtc", DbType.DateTime, DateTime.UtcNow);
-                    AddParameter(command, "@QueueID", DbType.String, queueId);
+                    AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Expired);
+                    AddParameter(command, CompletedUtcParameter, DbType.DateTime, DateTime.UtcNow);
+                    AddParameter(command, QueueIdParameter, DbType.String, queueId);
 
                     command.ExecuteNonQuery();
                 }
@@ -236,7 +239,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = $"SELECT StartedUtc FROM {_tableNameHelper.HistoryName} WHERE QueueID = @QueueID";
-                AddParameter(command, "@QueueID", DbType.String, queueId);
+                AddParameter(command, QueueIdParameter, DbType.String, queueId);
 
                 var result = command.ExecuteScalar();
                 if (result == null || result == DBNull.Value)

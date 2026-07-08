@@ -149,7 +149,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             }
         }
 
-        private DateTime? TrimMilliseconds(DateTime? dt)
+        private static DateTime? TrimMilliseconds(DateTime? dt)
         {
             if (!dt.HasValue)
                 return null;

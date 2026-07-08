@@ -171,7 +171,7 @@ namespace DotNetWorkQueue.IoC
         /// Default, Send, Receive
         /// </returns>
         /// <exception cref="DotNetWorkQueueException">A transport init module should inherit from ITransportInitSend, ITransportInitReceive or ITransportInitDuplex</exception>
-        private RegistrationTypes GetRegistrationType(ITransportInit registration)
+        private static RegistrationTypes GetRegistrationType(ITransportInit registration)
         {
             if (registration is ITransportInitDuplex ||
                 registration is ITransportInitReceive && registration is ITransportInitSend)

@@ -167,7 +167,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             configuration.Enabled = true;
         }
 
-        private void RegisterCommandsExplicit(IContainer container)
+        private static void RegisterCommandsExplicit(IContainer container)
         {
             container
                 .Register<IQueryHandler<GetQueueCountQuery, long>,
@@ -421,7 +421,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     DashboardUpdateMessageBodyPrepareHandler>(LifeStyles.Singleton);
         }
 
-        private void RegisterCommands(IContainer container, params Assembly[] target)
+        private static void RegisterCommands(IContainer container, params Assembly[] target)
         {
             //commands and decorators
             // Go look in all assemblies and register all implementations

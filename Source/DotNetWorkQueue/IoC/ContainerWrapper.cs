@@ -351,7 +351,7 @@ namespace DotNetWorkQueue.IoC
         /// <param name="lifeStyle">The life style.</param>
         /// <returns></returns>
         /// <exception cref="DotNetWorkQueueException"></exception>
-        private Lifestyle GetLifeStyle(LifeStyles lifeStyle)
+        private static Lifestyle GetLifeStyle(LifeStyles lifeStyle)
         {
             switch (lifeStyle)
             {

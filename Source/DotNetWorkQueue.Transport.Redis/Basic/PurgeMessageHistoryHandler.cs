@@ -27,17 +27,15 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     {
         private readonly IRedisConnection _connection;
         private readonly RedisNames _redisNames;
-        private readonly IBaseTransportOptions _options;
 
         private string HistoryHashKey(string queueId) => $"{_redisNames.Values}:history:{queueId}";
         private string HistoryIndexKey => $"{_redisNames.Values}:history:index";
 
         /// <inheritdoc />
-        public PurgeMessageHistoryHandler(IRedisConnection connection, RedisNames redisNames, IBaseTransportOptions options)
+        public PurgeMessageHistoryHandler(IRedisConnection connection, RedisNames redisNames)
         {
             _connection = connection;
             _redisNames = redisNames;
-            _options = options;
         }
 
         /// <summary>Returns the Redis database to use. Protected virtual to allow test seam injection.</summary>

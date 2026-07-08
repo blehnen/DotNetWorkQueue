@@ -18,8 +18,8 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
         {
             private readonly IDatabase _db;
 
-            public TestablePurgeMessageHistoryHandler(IRedisConnection connection, RedisNames redisNames, IBaseTransportOptions options, IDatabase db)
-                : base(connection, redisNames, options)
+            public TestablePurgeMessageHistoryHandler(IRedisConnection connection, RedisNames redisNames, IDatabase db)
+                : base(connection, redisNames)
             {
                 _db = db;
             }
@@ -35,10 +35,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var redisNames = Substitute.For<RedisNames>(connInfo);
             redisNames.Values.Returns("queue:test");
 
-            var options = Substitute.For<IBaseTransportOptions>();
-            options.EnableHistory.Returns(true);
-
-            return (new TestablePurgeMessageHistoryHandler(connection, redisNames, options, db), db);
+            return (new TestablePurgeMessageHistoryHandler(connection, redisNames, db), db);
         }
 
         [TestMethod]

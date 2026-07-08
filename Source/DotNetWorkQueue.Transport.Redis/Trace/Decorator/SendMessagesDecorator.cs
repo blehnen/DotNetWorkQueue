@@ -33,6 +33,8 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.ISendMessages" />
     public class SendMessagesDecorator : ISendMessages
     {
+        private const string SendMessageSpanName = "SendMessage";
+        private const string IsBatchTagName = "IsBatch";
         private readonly ISendMessages _handler;
         private readonly ActivitySource _tracer;
         private readonly IHeaders _headers;
@@ -62,11 +64,11 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
         /// <returns></returns>
         public IQueueOutputMessage Send(IMessage messageToSend, IAdditionalMessageData data)
         {
-            using (var scope = _tracer.StartActivity("SendMessage"))
+            using (var scope = _tracer.StartActivity(SendMessageSpanName))
             {
                 scope?.AddCommonTags(data, _connectionInformation);
                 scope?.Add(data);
-                scope?.SetTag("IsBatch", false);
+                scope?.SetTag(IsBatchTagName, false);
                 if (scope != null)
                     messageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 try
@@ -99,11 +101,11 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
         {
             foreach (var message in messages)
             {
-                using (var scope = _tracer.StartActivity("SendMessage"))
+                using (var scope = _tracer.StartActivity(SendMessageSpanName))
                 {
                     scope?.AddCommonTags(message.MessageData, _connectionInformation);
                     scope?.Add(message.MessageData);
-                    scope?.SetTag("IsBatch", true);
+                    scope?.SetTag(IsBatchTagName, true);
                     if (scope != null)
                         message.Message.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 }
@@ -120,11 +122,11 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
         public async Task<IQueueOutputMessage> SendAsync(IMessage messageToSend, IAdditionalMessageData data)
         {
             //lets add a bit more information to the active span if possible
-            using (var scope = _tracer.StartActivity("SendMessage"))
+            using (var scope = _tracer.StartActivity(SendMessageSpanName))
             {
                 scope?.AddCommonTags(data, _connectionInformation);
                 scope?.Add(data);
-                scope?.SetTag("IsBatch", false);
+                scope?.SetTag(IsBatchTagName, false);
                 if (scope?.Context != null)
                     messageToSend.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 try
@@ -157,11 +159,11 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
         {
             foreach (var message in messages)
             {
-                using (var scope = _tracer.StartActivity("SendMessage"))
+                using (var scope = _tracer.StartActivity(SendMessageSpanName))
                 {
                     scope?.AddCommonTags(message.MessageData, _connectionInformation);
                     scope?.Add(message.MessageData);
-                    scope?.SetTag("IsBatch", true);
+                    scope?.SetTag(IsBatchTagName, true);
                     if (scope?.Context != null)
                         message.Message.Inject(_tracer, scope.Context, _headers.StandardHeaders);
                 }

@@ -24,9 +24,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
     {
         private readonly ITimer _messageToBytesTimer;
         private readonly ITimer _bytesToMessageTimer;
-        private readonly ITimer _messageToStringTimer;
         private readonly IHistogram _resultSizeHistogram;
-        private readonly IHistogram _resultSizeStringHistogram;
         private readonly IInternalSerializer _handler;
 
         /// <summary>
@@ -42,9 +40,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
             var name = "InternalSerializer";
             _bytesToMessageTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ConvertBytesToTimer", Units.Calls);
             _messageToBytesTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ConvertToBytesTimer", Units.Calls);
-            _messageToStringTimer = metrics.Timer($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ConvertToStringTimer", Units.Calls);
             _resultSizeHistogram = metrics.Histogram($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ConvertToBytesHistogram", Units.Bytes);
-            _resultSizeStringHistogram = metrics.Histogram($"dotnetworkqueue.{connectionInformation.QueueName}.{name}.ConvertToStringHistogram", Units.Bytes);
             _handler = handler;
         }
 

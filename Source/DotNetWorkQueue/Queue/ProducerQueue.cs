@@ -247,7 +247,7 @@ namespace DotNetWorkQueue.Queue
         /// Checks that the message type is public and throws an exception if it is not
         /// </summary>
         /// <remarks>Might remove this requirement in the future; a bit tricky since we use dynamic types to avoid passing the message type all over the consumer queue implementations</remarks>
-        private void CheckMessageType()
+        private static void CheckMessageType()
         {
             var messageType = typeof(T);
             if (messageType.IsNotPublic)

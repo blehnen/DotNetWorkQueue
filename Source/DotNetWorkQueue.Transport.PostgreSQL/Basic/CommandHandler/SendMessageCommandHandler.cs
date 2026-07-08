@@ -36,6 +36,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
     /// <inheritdoc />
     internal class SendMessageCommandHandler : ICommandHandlerWithOutput<SendMessageCommand, long>
     {
+        private const string BodyParameter = "@body";
+        private const string HeadersParameter = "@headers";
         private readonly ITableNameHelper _tableNameHelper;
         private readonly ICompositeSerialization _serializer;
         private bool? _messageExpirationEnabled;
@@ -133,14 +135,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                                     Body = commandSend.MessageToSend.Body
                                 }, commandSend.MessageToSend.Headers);
 
-                            command.Parameters.Add("@body", NpgsqlDbType.Bytea, -1);
-                            command.Parameters["@body"].Value = serialization.Output;
+                            command.Parameters.Add(BodyParameter, NpgsqlDbType.Bytea, -1);
+                            command.Parameters[BodyParameter].Value = serialization.Output;
 
                             commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph,
                                 serialization.Graph);
 
-                            command.Parameters.Add("@headers", NpgsqlDbType.Bytea, -1);
-                            command.Parameters["@headers"].Value =
+                            command.Parameters.Add(HeadersParameter, NpgsqlDbType.Bytea, -1);
+                            command.Parameters[HeadersParameter].Value =
                                 _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers);
 
                             var id = Convert.ToInt64(command.ExecuteScalar());
@@ -234,14 +236,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                     new MessageBody { Body = commandSend.MessageToSend.Body },
                     commandSend.MessageToSend.Headers);
 
-                command.Parameters.Add("@body", NpgsqlDbType.Bytea, -1);
-                command.Parameters["@body"].Value = serialization.Output;
+                command.Parameters.Add(BodyParameter, NpgsqlDbType.Bytea, -1);
+                command.Parameters[BodyParameter].Value = serialization.Output;
 
                 commandSend.MessageToSend.SetHeader(
                     _headers.StandardHeaders.MessageInterceptorGraph, serialization.Graph);
 
-                command.Parameters.Add("@headers", NpgsqlDbType.Bytea, -1);
-                command.Parameters["@headers"].Value =
+                command.Parameters.Add(HeadersParameter, NpgsqlDbType.Bytea, -1);
+                command.Parameters[HeadersParameter].Value =
                     _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers);
 
                 id = Convert.ToInt64(command.ExecuteScalar());

@@ -37,7 +37,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ITableNameHelper _tableNameHelper;
-        private readonly IBaseTransportOptions _options;
         private readonly IDbPaginationSyntax _paginationSyntax;
 
         /// <summary>
@@ -45,12 +44,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// </summary>
         public QueryMessageHistoryHandler(IDbConnectionFactory connectionFactory,
             ITableNameHelper tableNameHelper,
-            IBaseTransportOptions options,
             IDbPaginationSyntax paginationSyntax)
         {
             _connectionFactory = connectionFactory;
             _tableNameHelper = tableNameHelper;
-            _options = options;
             _paginationSyntax = paginationSyntax;
         }
 
