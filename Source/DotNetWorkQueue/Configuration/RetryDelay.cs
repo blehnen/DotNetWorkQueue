@@ -107,7 +107,7 @@ namespace DotNetWorkQueue.Configuration
         /// </summary>
         /// <param name="exceptionType">Type of the exception.</param>
         /// <returns></returns>
-        private IEnumerable<Type> GetAllExceptionTypes(Type exceptionType)
+        private static IEnumerable<Type> GetAllExceptionTypes(Type exceptionType)
         {
             for (var current = exceptionType; current != null; current = current.BaseType)
                 yield return current;

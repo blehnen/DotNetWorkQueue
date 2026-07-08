@@ -280,7 +280,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             SetupPolicy(container);
         }
 
-        private void SetupPolicy(IContainer container)
+        private static void SetupPolicy(IContainer container)
         {
             RetrySqlPolicyCreation.Register(container);
         }

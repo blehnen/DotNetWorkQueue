@@ -139,7 +139,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             transportReceive.LockFeatures();
         }
 
-        private IEnumerable<TimeSpan> GetQueueDelay()
+        private static IEnumerable<TimeSpan> GetQueueDelay()
         {
             return new List<TimeSpan>(0);
         }

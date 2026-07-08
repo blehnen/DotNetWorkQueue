@@ -111,7 +111,7 @@ namespace DotNetWorkQueue.Messages
         /// <param name="action">The action.</param>
         /// <param name="receivedMessage">The received message.</param>
         /// <param name="workerNotification">The worker notification.</param>
-        private void HandleAction(Action<IReceivedMessage<MessageExpression>, IWorkerNotification> action, IReceivedMessage<MessageExpression> receivedMessage, IWorkerNotification workerNotification)
+        private static void HandleAction(Action<IReceivedMessage<MessageExpression>, IWorkerNotification> action, IReceivedMessage<MessageExpression> receivedMessage, IWorkerNotification workerNotification)
         {
             action.DynamicInvoke(receivedMessage, workerNotification);
         }
