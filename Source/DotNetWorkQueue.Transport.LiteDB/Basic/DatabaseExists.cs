@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
 
             var exist = File.Exists(fileName.FileName);
             if (!exist)
-                _logger.LogDebug($"database {fileName.FileName} was not found");
+                _logger.LogDebug("database {FileName} was not found", fileName.FileName);
             return exist;
         }
     }

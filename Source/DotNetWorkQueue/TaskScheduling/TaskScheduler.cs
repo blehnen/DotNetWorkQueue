@@ -143,10 +143,10 @@ namespace DotNetWorkQueue.TaskScheduling
 
             if (_logger.IsEnabled(LogLevel.Trace))
             {
-                _logger.Log(LogLevel.Trace, $"Task count for group {group.Name} is {current}");
+                _logger.Log(LogLevel.Trace, "Task count for group {GroupName} is {Current}", group.Name, current);
 
                 var queue = Interlocked.Read(ref _currentTaskCount);
-                _logger.Log(LogLevel.Trace, $"Task count is {queue} with the max being {_configuration.MaximumThreads}");
+                _logger.Log(LogLevel.Trace, "Task count is {Queue} with the max being {MaximumThreads}", queue, _configuration.MaximumThreads);
             }
         }
 
@@ -158,7 +158,7 @@ namespace DotNetWorkQueue.TaskScheduling
             var current = Interlocked.Increment(ref _currentTaskCount);
 
             if (_logger.IsEnabled(LogLevel.Trace))
-                _logger.Log(LogLevel.Trace, $"Task count is {current} with the max being {_configuration.MaximumThreads}");
+                _logger.Log(LogLevel.Trace, "Task count is {Current} with the max being {MaximumThreads}", current, _configuration.MaximumThreads);
         }
 
         /// <summary>
@@ -169,7 +169,7 @@ namespace DotNetWorkQueue.TaskScheduling
             var current = Interlocked.Decrement(ref _currentTaskCount);
 
             if (_logger.IsEnabled(LogLevel.Trace))
-                _logger.Log(LogLevel.Trace, $"Task count is {current} with the max being {_configuration.MaximumThreads}");
+                _logger.Log(LogLevel.Trace, "Task count is {Current} with the max being {MaximumThreads}", current, _configuration.MaximumThreads);
         }
 
         /// <summary>
@@ -181,10 +181,10 @@ namespace DotNetWorkQueue.TaskScheduling
             var current = Interlocked.Decrement(ref _groups[group].CurrentWorkItems);
             if (_logger.IsEnabled(LogLevel.Trace))
             {
-                _logger.Log(LogLevel.Trace, $"Task count for group {group.Name} is {current}");
+                _logger.Log(LogLevel.Trace, "Task count for group {GroupName} is {Current}", group.Name, current);
 
                 var queue = Interlocked.Read(ref _currentTaskCount);
-                _logger.Log(LogLevel.Trace, $"Task count is {queue} with the max being {_configuration.MaximumThreads}");
+                _logger.Log(LogLevel.Trace, "Task count is {Queue} with the max being {MaximumThreads}", queue, _configuration.MaximumThreads);
             }
         }
 

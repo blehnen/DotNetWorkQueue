@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Logging.Decorator
             var result = _handler.Handle(query);
             if (result != null && result.Expired)
             {
-                _log.LogDebug($"Message {result.MessageId} expired before it could be processed");
+                _log.LogDebug("Message {MessageId} expired before it could be processed", result.MessageId);
             }
             return result;
         }

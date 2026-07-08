@@ -137,32 +137,32 @@ namespace DotNetWorkQueue.Queue
 
         private void OnMessageCompleted(MessageCompleteNotification obj)
         {
-            _log.LogDebug($"HeartBeat processing completed {obj.MessageId}");
+            _log.LogDebug("HeartBeat processing completed {MessageId}", obj.MessageId);
         }
 
         private void OnMessageRollBack(RollBackNotification obj)
         {
-            _log.LogWarning($"Heart beat processing has triggered a rollback; rollbacks are not supported for heartbeats {System.Environment.NewLine}{obj.MessageId}{System.Environment.NewLine}{obj.Error}");
+            _log.LogWarning("Heart beat processing has triggered a rollback; rollbacks are not supported for heartbeats {NewLine}{MessageId}{NewLine2}{Error}", System.Environment.NewLine, obj.MessageId, System.Environment.NewLine, obj.Error);
         }
 
         private void OnPoisonMessage(PoisonMessageNotification obj)
         {
-            _log.LogWarning($"Heart beat processing has triggered a poison message {System.Environment.NewLine}{obj.MessageId}{System.Environment.NewLine}{obj.Error}");
+            _log.LogWarning("Heart beat processing has triggered a poison message {NewLine}{MessageId}{NewLine2}{Error}", System.Environment.NewLine, obj.MessageId, System.Environment.NewLine, obj.Error);
         }
 
         private void OnMessageMovedToErrorQueue(ErrorNotification obj)
         {
-            _log.LogError($"Heart beat processing has failed {System.Environment.NewLine}{obj.MessageId}{System.Environment.NewLine}{obj.Error}");
+            _log.LogError("Heart beat processing has failed {NewLine}{MessageId}{NewLine2}{Error}", System.Environment.NewLine, obj.MessageId, System.Environment.NewLine, obj.Error);
         }
 
         private void OnReceiveMessageError(ErrorReceiveNotification obj)
         {
-            _log.LogWarning($"Heart beat processing has failed to dequeue a message {System.Environment.NewLine}{obj.Error}");
+            _log.LogWarning("Heart beat processing has failed to dequeue a message {NewLine}{Error}", System.Environment.NewLine, obj.Error);
         }
 
         private void OnError(ErrorNotification obj)
         {
-            _log.LogError($"Heart beat processing has failed {System.Environment.NewLine}{obj.Error}");
+            _log.LogError("Heart beat processing has failed {NewLine}{Error}", System.Environment.NewLine, obj.Error);
         }
     }
 }

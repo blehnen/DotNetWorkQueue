@@ -160,7 +160,7 @@ namespace DotNetWorkQueue.Queue
                     var removed = _scheduler?.RemoveJob(_job.Name);
                     if (removed.HasValue && !removed.Value)
                     {
-                        _logger.LogWarning($"Failed to remove job {_job.Name} from the heartbeat scheduler");
+                        _logger.LogWarning("Failed to remove job {JobName} from the heartbeat scheduler", _job.Name);
                     }
                 }
                 lock (_cancelLocker)
@@ -205,19 +205,19 @@ namespace DotNetWorkQueue.Queue
                     if (status.LastHeartBeatTime.HasValue)
                     {
                         _context.WorkerNotification.HeartBeat.Status = status;
-                        _logger.LogTrace($"Set heartbeat for message {status.MessageId.Id.Value}");
+                        _logger.LogTrace("Set heartbeat for message {MessageId}", status.MessageId.Id.Value);
                     }
                     else
                     {
                         _logger.LogDebug(
-                            $"Failed to set heartbeat for message ID {status.MessageId.Id.Value}; since no exception was generated, this probably means that the record no longer exists");
+                            "Failed to set heartbeat for message ID {MessageId}; since no exception was generated, this probably means that the record no longer exists", status.MessageId.Id.Value);
                     }
                 }
             }
             catch (Exception error)
             {
                 _logger.LogError(
-                    $"An error has occurred while updating the heartbeat field for a record that is being processed{System.Environment.NewLine}{error}");
+                    "An error has occurred while updating the heartbeat field for a record that is being processed{NewLine}{Exception}", System.Environment.NewLine, error);
 
                 lock (_runningLocker)
                 {

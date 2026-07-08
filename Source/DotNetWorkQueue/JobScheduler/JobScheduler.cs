@@ -80,8 +80,8 @@ namespace DotNetWorkQueue.JobScheduler
         public void Start()
         {
             //log task time (from time factory) and local machine time to show differences..
-            _log.LogInformation($"Scheduler time is {_getTime.Create().GetCurrentUtcDate()}");
-            _log.LogInformation($"Local time is {DateTime.UtcNow}");
+            _log.LogInformation("Scheduler time is {SchedulerTime}", _getTime.Create().GetCurrentUtcDate());
+            _log.LogInformation("Local time is {LocalTime}", DateTime.UtcNow);
 
             Task.Run(PollAsync);
         }

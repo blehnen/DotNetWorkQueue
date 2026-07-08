@@ -109,7 +109,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 UseJitter = true,
                 OnRetry = args =>
                 {
-                    log.LogWarning($"An error has occurred; we will try to re-run the transaction in {args.RetryDelay.TotalMilliseconds} ms. An error has occurred {args.AttemptNumber + 1} times{System.Environment.NewLine}{args.Outcome.Exception}");
+                    log.LogWarning("An error has occurred; we will try to re-run the transaction in {RetryDelayMs} ms. An error has occurred {AttemptNumber} times{NewLine}{Exception}", args.RetryDelay.TotalMilliseconds, args.AttemptNumber + 1, System.Environment.NewLine, args.Outcome.Exception);
                     if (Activity.Current != null)
                     {
                         using (var scope = tracer.StartActivity("RetrySqlPolicy"))

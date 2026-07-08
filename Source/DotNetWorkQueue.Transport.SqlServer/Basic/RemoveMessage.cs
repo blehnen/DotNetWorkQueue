@@ -111,7 +111,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             }
             catch (Exception e)
             {
-                _log.LogError($"Failed to commit a transaction; this might be due to a DB timeout{System.Environment.NewLine}{e}");
+                _log.LogError("Failed to commit a transaction; this might be due to a DB timeout{NewLine}{Exception}", System.Environment.NewLine, e);
 
                 //don't attempt to use the transaction again at this point.
                 connection.Transaction = null;
@@ -131,7 +131,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 }
                 catch (Exception e)
                 {
-                    _log.LogWarning($"Failed to delete status table record for message {context.MessageId.Id.Value}; record may be orphaned{System.Environment.NewLine}{e}");
+                    _log.LogWarning("Failed to delete status table record for message {MessageId}; record may be orphaned{NewLine}{Exception}", context.MessageId.Id.Value, System.Environment.NewLine, e);
                 }
             }
             return count > 0 ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;

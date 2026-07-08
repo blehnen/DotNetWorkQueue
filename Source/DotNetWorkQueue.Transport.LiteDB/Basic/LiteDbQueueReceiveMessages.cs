@@ -123,7 +123,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         {
             if (!LoggedMissingDb && !_databaseExists.Exists())
             {
-                _log.LogWarning($"Database file {_getFileNameFromConnection.GetFileName(_configuration.TransportConfiguration.ConnectionInfo.ConnectionString).FileName} does not exist");
+                _log.LogWarning("Database file {FileName} does not exist", _getFileNameFromConnection.GetFileName(_configuration.TransportConfiguration.ConnectionInfo.ConnectionString).FileName);
                 LoggedMissingDb = true;
             }
 

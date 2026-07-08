@@ -78,7 +78,7 @@ namespace DotNetWorkQueue.Queue
             WorkerName = _nameFactory.Create();
             WorkerTask = Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning);
 
-            _log.LogDebug($"{WorkerName} created");
+            _log.LogDebug("{WorkerName} created", WorkerName);
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace DotNetWorkQueue.Queue
             if (WorkerTask == null)
                 return;
 
-            _log.LogDebug($"Stopping worker {WorkerName}");
+            _log.LogDebug("Stopping worker {WorkerName}", WorkerName);
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace DotNetWorkQueue.Queue
             {
                 WaitOnAsyncTask.Wait(() => MessageProcessing.AsyncTaskCount > 0,
                     () => _log.LogWarning(
-                        $"Unable to terminate because async requests have not finished. Current task count is {MessageProcessing.AsyncTaskCount}"));
+                        "Unable to terminate because async requests have not finished. Current task count is {AsyncTaskCount}", MessageProcessing.AsyncTaskCount));
             }
         }
     }
