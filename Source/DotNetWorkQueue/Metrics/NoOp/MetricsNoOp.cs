@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.Metrics.NoOp
 
         }
     }
-    internal class MetricsContextNoOp : IMetricsContext
+    internal sealed class MetricsContextNoOp : IMetricsContext
     {
         private readonly ITimer _timer = new TimerNoOp();
         private readonly ICounter _counter = new CounterNoOp();
@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.Metrics.NoOp
 
         }
     }
-    internal class TimerContextNoOp : ITimerContext
+    internal sealed class TimerContextNoOp : ITimerContext
     {
         public TimeSpan Elapsed => TimeSpan.Zero;
 
@@ -109,7 +109,7 @@ namespace DotNetWorkQueue.Metrics.NoOp
 
         }
     }
-    internal class TimerNoOp : ITimer, IDisposable
+    internal sealed class TimerNoOp : ITimer, IDisposable
     {
         private readonly ITimerContext _timerContext = new TimerContextNoOp();
 
@@ -193,7 +193,7 @@ namespace DotNetWorkQueue.Metrics.NoOp
 
         }
     }
-    internal class MetricsNoOp : IMetrics, IDisposable
+    internal sealed class MetricsNoOp : IMetrics, IDisposable
     {
         private readonly ITimer _timer = new TimerNoOp();
         private readonly ICounter _counter = new CounterNoOp();

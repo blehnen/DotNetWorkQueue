@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// Tracer for linq message handling
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.IMessageMethodHandling" />
-    public class MessageMethodHandlingDecorator : IMessageMethodHandling
+    public sealed class MessageMethodHandlingDecorator : IMessageMethodHandling
     {
         private readonly IMessageMethodHandling _handler;
         private readonly ActivitySource _tracer;

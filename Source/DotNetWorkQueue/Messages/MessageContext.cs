@@ -23,7 +23,7 @@ using System.Threading;
 
 namespace DotNetWorkQueue.Messages
 {
-    internal class MessageContext : IMessageContext
+    internal sealed class MessageContext : IMessageContext
     {
         private readonly Dictionary<string, object> _items = new Dictionary<string, object>();
         private int _disposeCount;

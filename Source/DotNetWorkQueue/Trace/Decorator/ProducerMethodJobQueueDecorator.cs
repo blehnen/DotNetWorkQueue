@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// 
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.IProducerMethodJobQueue" />
-    public class ProducerMethodJobQueueDecorator : IProducerMethodJobQueue
+    public sealed class ProducerMethodJobQueueDecorator : IProducerMethodJobQueue
     {
         private readonly ActivitySource _tracer;
         private readonly IProducerMethodJobQueue _handler;

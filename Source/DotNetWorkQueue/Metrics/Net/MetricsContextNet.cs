@@ -23,7 +23,7 @@ using System.Diagnostics.Metrics;
 
 namespace DotNetWorkQueue.Metrics.Net
 {
-    internal class MetricsContextNet : IMetricsContext
+    internal sealed class MetricsContextNet : IMetricsContext
     {
         private readonly Meter _meter;
         private readonly ConcurrentDictionary<string, CounterNet> _counters = new ConcurrentDictionary<string, CounterNet>();

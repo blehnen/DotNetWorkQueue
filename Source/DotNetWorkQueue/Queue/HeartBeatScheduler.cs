@@ -30,7 +30,7 @@ using System.Threading;
 namespace DotNetWorkQueue.Queue
 {
     /// <inheritdoc />
-    public class HeartBeatScheduler : IHeartBeatScheduler
+    public sealed class HeartBeatScheduler : IHeartBeatScheduler
     {
         private readonly IHeartBeatThreadPoolConfiguration _configuration;
         private readonly IGetTimeFactory _timeFactory;

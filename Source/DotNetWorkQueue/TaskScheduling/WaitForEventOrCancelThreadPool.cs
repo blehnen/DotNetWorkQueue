@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.TaskScheduling
     /// <summary>
     /// Allows a scheduler to indicate that it's full and cannot accept more work
     /// </summary>
-    internal class WaitForEventOrCancelThreadPool : IWaitForEventOrCancelThreadPool
+    internal sealed class WaitForEventOrCancelThreadPool : IWaitForEventOrCancelThreadPool
     {
         private readonly ConcurrentDictionary<IWorkGroup, IWaitForEventOrCancel> _waitForEventForGroups;
         private readonly Lazy<IWaitForEventOrCancel> _waitForEvent;
@@ -117,14 +117,14 @@ namespace DotNetWorkQueue.TaskScheduling
         /// </summary>
         /// <param name="name">The name.</param>
         /// <exception cref="System.ObjectDisposedException"></exception>
-        protected void ThrowIfDisposed()
+        private void ThrowIfDisposed()
         {
             ObjectDisposedException.ThrowIf(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
         }
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public virtual void Dispose()
+        public void Dispose()
         {
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 

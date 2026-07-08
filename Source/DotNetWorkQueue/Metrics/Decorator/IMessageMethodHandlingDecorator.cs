@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Metrics.Decorator
     /// Metrics for executing linq methods
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.IMessageMethodHandling" />
-    internal class MessageMethodHandlingDecorator : IMessageMethodHandling
+    internal sealed class MessageMethodHandlingDecorator : IMessageMethodHandling
     {
         private readonly IMessageMethodHandling _handler;
         private readonly ITimer _runMethodCompiledCodeTimer;

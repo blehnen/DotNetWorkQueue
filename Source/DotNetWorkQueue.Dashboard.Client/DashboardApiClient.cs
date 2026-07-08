@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Dashboard.Client
     /// <summary>
     /// Strongly-typed client for all DotNetWorkQueue Dashboard API endpoints.
     /// </summary>
-    public class DashboardApiClient : IDisposable
+    public sealed class DashboardApiClient : IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly bool _ownsHttpClient;

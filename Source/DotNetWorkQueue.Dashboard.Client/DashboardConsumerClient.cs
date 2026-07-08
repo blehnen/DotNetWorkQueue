@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Dashboard.Client
     /// Client that automatically registers a consumer with the Dashboard API,
     /// sends periodic heartbeats, and unregisters on disposal.
     /// </summary>
-    public class DashboardConsumerClient : IDisposable, IAsyncDisposable
+    public sealed class DashboardConsumerClient : IDisposable, IAsyncDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly bool _ownsHttpClient;

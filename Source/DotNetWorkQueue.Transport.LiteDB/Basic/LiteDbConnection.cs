@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
     /// Wraps a LiteDatabase. If direct/memory will leave the instance alone on dispose. If shared, database will be disposed.
     /// </summary>
     /// <seealso cref="System.IDisposable" />
-    public class LiteDbConnection : IDisposable
+    public sealed class LiteDbConnection : IDisposable
     {
         private readonly bool _shared;
 
