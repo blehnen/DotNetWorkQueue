@@ -18,7 +18,8 @@ namespace DotNetWorkQueue.Tests.Logging
         {
             var logger = new CapturingLogger();
             const string id = "msg-1";
-            logger.LogDebug("HeartBeat processing completed {MessageId}", id);
+            if (logger.IsEnabled(LogLevel.Debug))
+                logger.LogDebug("HeartBeat processing completed {MessageId}", id);
             Assert.AreEqual($"HeartBeat processing completed {id}", logger.LastMessage);
         }
 
@@ -28,7 +29,8 @@ namespace DotNetWorkQueue.Tests.Logging
             var logger = new CapturingLogger();
             const int count = 5;
             const string queue = "q1";
-            logger.LogInformation("Deleted {Count} error messages from {QueueName}", count, queue);
+            if (logger.IsEnabled(LogLevel.Information))
+                logger.LogInformation("Deleted {Count} error messages from {QueueName}", count, queue);
             Assert.AreEqual($"Deleted {count} error messages from {queue}", logger.LastMessage);
         }
 

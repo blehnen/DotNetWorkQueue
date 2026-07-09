@@ -53,7 +53,8 @@ namespace DotNetWorkQueue.Logging.Decorator
             var count = _handler.ClearMessages(cancelToken);
             if (count > 0)
             {
-                _log.LogInformation("Deleted {Count} error messages from {QueueName}", count, _connectionInfo.QueueName);
+                if (_log.IsEnabled(LogLevel.Information))
+                    _log.LogInformation("Deleted {Count} error messages from {QueueName}", count, _connectionInfo.QueueName);
             }
             return count;
         }

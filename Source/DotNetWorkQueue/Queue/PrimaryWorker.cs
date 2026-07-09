@@ -84,7 +84,8 @@ namespace DotNetWorkQueue.Queue
             WorkerName = _nameFactory.Create();
             WorkerTask = Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning);
 
-            _log.LogDebug("{WorkerName} created", WorkerName);
+            if (_log.IsEnabled(LogLevel.Debug))
+                _log.LogDebug("{WorkerName} created", WorkerName);
 
             _workerCollection.Start();
         }
@@ -98,7 +99,8 @@ namespace DotNetWorkQueue.Queue
 
             if (WorkerTask != null)
             {
-                _log.LogDebug("Stopping worker {WorkerName}", WorkerName);
+                if (_log.IsEnabled(LogLevel.Debug))
+                    _log.LogDebug("Stopping worker {WorkerName}", WorkerName);
             }
 
             _workerCollection.Stop();

@@ -87,7 +87,8 @@ namespace DotNetWorkQueue.Queue
                     throw new DotNetWorkQueueException("Start must only be called once");
                 }
 
-                _log.LogDebug("Initializing with {WorkerCount} workers", _workerConfiguration.WorkerCount);
+                if (_log.IsEnabled(LogLevel.Debug))
+                    _log.LogDebug("Initializing with {WorkerCount} workers", _workerConfiguration.WorkerCount);
                 CreateWorkers();
 
                 if (_workers == null || _workers.Count <= 0) return;

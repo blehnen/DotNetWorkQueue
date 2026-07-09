@@ -80,8 +80,11 @@ namespace DotNetWorkQueue.JobScheduler
         public void Start()
         {
             //log task time (from time factory) and local machine time to show differences..
-            _log.LogInformation("Scheduler time is {SchedulerTime}", _getTime.Create().GetCurrentUtcDate());
-            _log.LogInformation("Local time is {LocalTime}", DateTime.UtcNow);
+            if (_log.IsEnabled(LogLevel.Information))
+            {
+                _log.LogInformation("Scheduler time is {SchedulerTime}", _getTime.Create().GetCurrentUtcDate());
+                _log.LogInformation("Local time is {LocalTime}", DateTime.UtcNow);
+            }
 
             Task.Run(PollAsync);
         }
@@ -173,7 +176,8 @@ namespace DotNetWorkQueue.JobScheduler
                 _tasks.Add(name, job);
             }
 
-            _log.LogInformation("Job {JobName} scheduled: {ScheduleExpression} ({ScheduleDescription})", name, schedule.OriginalText, schedule.Description);
+            if (_log.IsEnabled(LogLevel.Information))
+                _log.LogInformation("Job {JobName} scheduled: {ScheduleExpression} ({ScheduleDescription})", name, schedule.OriginalText, schedule.Description);
 
             job.OnException += TaskOnOnException;
             job.OnEnQueue += JobOnOnEnQueue;
@@ -234,7 +238,8 @@ namespace DotNetWorkQueue.JobScheduler
                 _tasks.Add(name, job);
             }
 
-            _log.LogInformation("Job {JobName} scheduled: {ScheduleExpression} ({ScheduleDescription})", name, schedule.OriginalText, schedule.Description);
+            if (_log.IsEnabled(LogLevel.Information))
+                _log.LogInformation("Job {JobName} scheduled: {ScheduleExpression} ({ScheduleDescription})", name, schedule.OriginalText, schedule.Description);
 
             job.OnException += TaskOnOnException;
             job.OnEnQueue += JobOnOnEnQueue;

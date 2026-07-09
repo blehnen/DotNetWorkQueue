@@ -54,8 +54,9 @@ namespace DotNetWorkQueue.Logging.Decorator
             var count = _handler.Reset(cancelToken);
             if (count.Count > 0)
             {
-                _log.LogInformation(
-                   "Reset the status of {Count} records that where outside of the heartbeat window of {HeartBeatSeconds} seconds", count.Count, _configuration.HeartBeat.Time.TotalSeconds);
+                if (_log.IsEnabled(LogLevel.Information))
+                    _log.LogInformation(
+                       "Reset the status of {Count} records that where outside of the heartbeat window of {HeartBeatSeconds} seconds", count.Count, _configuration.HeartBeat.Time.TotalSeconds);
             }
             return count;
         }
