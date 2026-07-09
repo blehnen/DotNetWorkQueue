@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using DotNetWorkQueue.Validation;
 
@@ -50,6 +51,8 @@ namespace DotNetWorkQueue.Interceptors
         /// <param name="input">The input.</param>
         /// <param name="headers">the message headers</param>
         /// <returns></returns>
+        [SuppressMessage("Security", "S5547:Cipher algorithms should be robust",
+            Justification = "3DES is intentionally retained (see [Obsolete] on the type) so existing 3DES-encrypted messages remain decryptable. New code should use AesMessageInterceptor.")]
         public MessageInterceptorResult MessageToBytes(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
             Guard.NotNull(() => input, input);
@@ -68,6 +71,8 @@ namespace DotNetWorkQueue.Interceptors
         /// <param name="input">The input.</param>
         /// <param name="headers">the message headers</param>
         /// <returns></returns>
+        [SuppressMessage("Security", "S5547:Cipher algorithms should be robust",
+            Justification = "3DES is intentionally retained (see [Obsolete] on the type) so existing 3DES-encrypted messages remain decryptable. New code should use AesMessageInterceptor.")]
         public byte[] BytesToMessage(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
             Guard.NotNull(() => input, input);
