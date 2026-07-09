@@ -86,7 +86,8 @@ namespace DotNetWorkQueue.Time
                 var localTime = DateTime.UtcNow;
                 Offset = time - localTime;
                 ServerOffsetObtained = localTime;
-                Log.LogDebug("[{Name}] server difference is {OffsetMs} MS", Name, Offset.TotalMilliseconds);
+                if (Log.IsEnabled(LogLevel.Debug))
+                    Log.LogDebug("[{Name}] server difference is {OffsetMs} MS", Name, Offset.TotalMilliseconds);
             }
             return DateTime.UtcNow.Add(Offset);
         }

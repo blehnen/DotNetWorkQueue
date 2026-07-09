@@ -19,32 +19,38 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         }
         private static void OnMessageCompleted(ILogger log, MessageCompleteNotification obj)
         {
-            log.LogTrace("Processing completed {MessageId}", obj.MessageId);
+            if (log.IsEnabled(LogLevel.Trace))
+                log.LogTrace("Processing completed {MessageId}", obj.MessageId);
         }
 
         private static void OnMessageRollBack(ILogger log, RollBackNotification obj)
         {
-            log.LogTrace("Processing has triggered a rollback {NewLine}{MessageId}{NewLine2}{Error}", System.Environment.NewLine, obj.MessageId, System.Environment.NewLine, obj.Error);
+            if (log.IsEnabled(LogLevel.Trace))
+                log.LogTrace("Processing has triggered a rollback {NewLine}{MessageId}{NewLine2}{Error}", System.Environment.NewLine, obj.MessageId, System.Environment.NewLine, obj.Error);
         }
 
         private static void OnPoisonMessage(ILogger log, PoisonMessageNotification obj)
         {
-            log.LogTrace("Processing has triggered a poison message {NewLine}{MessageId}{NewLine2}{Error}", System.Environment.NewLine, obj.MessageId, System.Environment.NewLine, obj.Error);
+            if (log.IsEnabled(LogLevel.Trace))
+                log.LogTrace("Processing has triggered a poison message {NewLine}{MessageId}{NewLine2}{Error}", System.Environment.NewLine, obj.MessageId, System.Environment.NewLine, obj.Error);
         }
 
         private static void OnMessageMovedToErrorQueue(ILogger log, ErrorNotification obj)
         {
-            log.LogTrace("Processing has failed {NewLine}{MessageId}{NewLine2}{Error}", System.Environment.NewLine, obj.MessageId, System.Environment.NewLine, obj.Error);
+            if (log.IsEnabled(LogLevel.Trace))
+                log.LogTrace("Processing has failed {NewLine}{MessageId}{NewLine2}{Error}", System.Environment.NewLine, obj.MessageId, System.Environment.NewLine, obj.Error);
         }
 
         private static void OnReceiveMessageError(ILogger log, ErrorReceiveNotification obj)
         {
-            log.LogTrace("Processing has failed to dequeue a message {NewLine}{Error}", System.Environment.NewLine, obj.Error);
+            if (log.IsEnabled(LogLevel.Trace))
+                log.LogTrace("Processing has failed to dequeue a message {NewLine}{Error}", System.Environment.NewLine, obj.Error);
         }
 
         private static void OnError(ILogger log, ErrorNotification obj)
         {
-            log.LogTrace("Processing has failed {NewLine}{Error}", System.Environment.NewLine, obj.Error);
+            if (log.IsEnabled(LogLevel.Trace))
+                log.LogTrace("Processing has failed {NewLine}{Error}", System.Environment.NewLine, obj.Error);
         }
     }
 }

@@ -205,12 +205,14 @@ namespace DotNetWorkQueue.Queue
                     if (status.LastHeartBeatTime.HasValue)
                     {
                         _context.WorkerNotification.HeartBeat.Status = status;
-                        _logger.LogTrace("Set heartbeat for message {MessageId}", status.MessageId.Id.Value);
+                        if (_logger.IsEnabled(LogLevel.Trace))
+                            _logger.LogTrace("Set heartbeat for message {MessageId}", status.MessageId.Id.Value);
                     }
                     else
                     {
-                        _logger.LogDebug(
-                            "Failed to set heartbeat for message ID {MessageId}; since no exception was generated, this probably means that the record no longer exists", status.MessageId.Id.Value);
+                        if (_logger.IsEnabled(LogLevel.Debug))
+                            _logger.LogDebug(
+                                "Failed to set heartbeat for message ID {MessageId}; since no exception was generated, this probably means that the record no longer exists", status.MessageId.Id.Value);
                     }
                 }
             }

@@ -157,9 +157,10 @@ namespace DotNetWorkQueue.Dashboard.Api
                     var service = container.GetInstance<IQueueMaintenanceService>();
                     service.Start();
                     _maintenanceServices[kvp.Key] = service;
-                    _logger.LogInformation(
-                        "Started maintenance service for queue {QueueName} ({QueueId})",
-                        kvp.Value.QueueName, kvp.Key);
+                    if (_logger.IsEnabled(LogLevel.Information))
+                        _logger.LogInformation(
+                            "Started maintenance service for queue {QueueName} ({QueueId})",
+                            kvp.Value.QueueName, kvp.Key);
                 }
                 catch (Exception ex)
                 {

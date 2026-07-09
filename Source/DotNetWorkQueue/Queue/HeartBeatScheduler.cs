@@ -137,7 +137,8 @@ namespace DotNetWorkQueue.Queue
 
         private void OnMessageCompleted(MessageCompleteNotification obj)
         {
-            _log.LogDebug("HeartBeat processing completed {MessageId}", obj.MessageId);
+            if (_log.IsEnabled(LogLevel.Debug))
+                _log.LogDebug("HeartBeat processing completed {MessageId}", obj.MessageId);
         }
 
         private void OnMessageRollBack(RollBackNotification obj)

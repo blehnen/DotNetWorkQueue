@@ -471,13 +471,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
         /// </summary>
         private Type ResolveMessageBodyType(string portableName)
         {
-            _logger.LogDebug("Resolving message body type: {PortableName}", portableName);
+            if (_logger.IsEnabled(LogLevel.Debug))
+                _logger.LogDebug("Resolving message body type: {PortableName}", portableName);
 
             // Stage 1: already loaded in AppDomain
             var type = Type.GetType(portableName);
             if (type != null)
             {
-                _logger.LogDebug("Type resolved from AppDomain: {Type}", type.FullName);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                    _logger.LogDebug("Type resolved from AppDomain: {Type}", type.FullName);
                 return type;
             }
 
@@ -495,10 +497,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
             var resolved = TryLoadType(binPath, typeFullName);
             if (resolved != null)
             {
-                _logger.LogDebug("Type resolved from bin folder: {Path}", binPath);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                    _logger.LogDebug("Type resolved from bin folder: {Path}", binPath);
                 return resolved;
             }
-            _logger.LogDebug("Assembly not found in bin folder: {Path}", binPath);
+            if (_logger.IsEnabled(LogLevel.Debug))
+                _logger.LogDebug("Assembly not found in bin folder: {Path}", binPath);
 
             // Stage 3: try configured assembly paths
             foreach (var dir in _assemblyPaths)
@@ -507,10 +511,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
                 resolved = TryLoadType(pluginPath, typeFullName);
                 if (resolved != null)
                 {
-                    _logger.LogDebug("Type resolved from plugin path: {Path}", pluginPath);
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                        _logger.LogDebug("Type resolved from plugin path: {Path}", pluginPath);
                     return resolved;
                 }
-                _logger.LogDebug("Assembly not found in plugin path: {Path}", pluginPath);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                    _logger.LogDebug("Assembly not found in plugin path: {Path}", pluginPath);
             }
 
             _logger.LogWarning("Could not resolve type {PortableName}. Searched: bin={BinDir}, plugins=[{PluginDirs}]",

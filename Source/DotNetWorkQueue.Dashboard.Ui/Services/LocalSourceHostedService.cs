@@ -69,7 +69,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
             if (localSource != null)
             {
                 localSource.BaseUrl = address;
-                _logger.LogInformation("Local API source URL resolved to {Address}", address);
+                if (_logger.IsEnabled(LogLevel.Information))
+                    _logger.LogInformation("Local API source URL resolved to {Address}", address);
             }
 
             return Task.CompletedTask;
