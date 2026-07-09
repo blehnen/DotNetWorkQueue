@@ -56,6 +56,13 @@ jobs:
           # integration pipeline), not SonarCloud. sonar.coverage.exclusions=** tells Sonar
           # not to expect coverage data, so its "Coverage on New Code" gate condition does not
           # fail every PR (this workflow only builds; it does not run tests).
-          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"blehnen_DotNetWorkQueue" /o:"blehnen" /d:sonar.exclusions="**/*.png,**/*.ico,**/*.jpg,**/*.jpeg,**/*.gif,**/*.webp,**/*.woff,**/*.woff2,**/*.ttf,**/*.eot" /d:sonar.coverage.exclusions="**/*"
+          #
+          # sonar.cpd.exclusions excludes the relational SQL transports (SqlServer, PostgreSQL,
+          # SQLite) from copy-paste detection. These are deliberately-parallel implementations of
+          # the same relational pattern (all built on Transport.RelationalDatabase) and are
+          # ~27-32% self-similar by design, which is ~76% of the repo's total duplication. That
+          # intentional structure otherwise dominates the "Duplications on New Code" gate condition
+          # and fails routine PRs. Core, Redis, RelationalDatabase, and LiteDB keep full CPD signal.
+          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"blehnen_DotNetWorkQueue" /o:"blehnen" /d:sonar.exclusions="**/*.png,**/*.ico,**/*.jpg,**/*.jpeg,**/*.gif,**/*.webp,**/*.woff,**/*.woff2,**/*.ttf,**/*.eot" /d:sonar.coverage.exclusions="**/*" /d:sonar.cpd.exclusions="**/DotNetWorkQueue.Transport.SqlServer/**/*,**/DotNetWorkQueue.Transport.PostgreSQL/**/*,**/DotNetWorkQueue.Transport.SQLite/**/*"
           dotnet build "Source/DotNetWorkQueue.sln" -c Debug
           ${{ runner.temp }}\scanner\dotnet-sonarscanner end
