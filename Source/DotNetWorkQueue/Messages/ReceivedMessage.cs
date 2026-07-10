@@ -109,7 +109,7 @@ namespace DotNetWorkQueue.Messages
                 }
                 catch (Exception e)
                 {
-                    _logger.LogWarning("Failed to load the previous error messages {NewLine}{Exception}", System.Environment.NewLine, e);
+                    _logger.LogWarning(e, "Failed to load the previous error messages");
                 }
                 return _previousErrors;
             }

@@ -137,7 +137,7 @@ namespace DotNetWorkQueue.Queue
             catch (Exception ex) //not cool - one of the exception events threw an exception
             {
                 //there isn't a whole lot we can do here
-                _log.LogError("An error has occurred while trying to handle an exception{NewLine}{Exception}", System.Environment.NewLine, ex);
+                _log.LogError(ex, "An error has occurred while trying to handle an exception");
                 _consumerQueueErrorNotification.InvokeError(new ErrorReceiveNotification(ex));
             }
         }
@@ -167,8 +167,8 @@ namespace DotNetWorkQueue.Queue
                 catch (ReceiveMessageException e)
                 {
                     //an exception occurred trying to get the message from the transport
-                    _log.LogError(
-                        "An error has occurred while receiving a message from the transport{NewLine}{Exception}", System.Environment.NewLine, e);
+                    _log.LogError(e,
+                        "An error has occurred while receiving a message from the transport");
                     _consumerQueueErrorNotification.InvokeError(new ErrorReceiveNotification(e));
                     _seriousExceptionProcessBackOffHelper.Value.Wait();
                 }

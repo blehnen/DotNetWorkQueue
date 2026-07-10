@@ -218,8 +218,8 @@ namespace DotNetWorkQueue.Queue
             }
             catch (Exception error)
             {
-                _logger.LogError(
-                    "An error has occurred while updating the heartbeat field for a record that is being processed{NewLine}{Exception}", System.Environment.NewLine, error);
+                _logger.LogError(error,
+                    "An error has occurred while updating the heartbeat field for a record that is being processed");
 
                 lock (_runningLocker)
                 {

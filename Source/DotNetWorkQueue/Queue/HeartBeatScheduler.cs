@@ -143,27 +143,27 @@ namespace DotNetWorkQueue.Queue
 
         private void OnMessageRollBack(RollBackNotification obj)
         {
-            _log.LogWarning("Heart beat processing has triggered a rollback; rollbacks are not supported for heartbeats {NewLine}{MessageId}{NewLine2}{Error}", System.Environment.NewLine, obj.MessageId, System.Environment.NewLine, obj.Error);
+            _log.LogWarning(obj.Error, "Heart beat processing has triggered a rollback; rollbacks are not supported for heartbeats {MessageId}", obj.MessageId);
         }
 
         private void OnPoisonMessage(PoisonMessageNotification obj)
         {
-            _log.LogWarning("Heart beat processing has triggered a poison message {NewLine}{MessageId}{NewLine2}{Error}", System.Environment.NewLine, obj.MessageId, System.Environment.NewLine, obj.Error);
+            _log.LogWarning(obj.Error, "Heart beat processing has triggered a poison message {MessageId}", obj.MessageId);
         }
 
         private void OnMessageMovedToErrorQueue(ErrorNotification obj)
         {
-            _log.LogError("Heart beat processing has failed {NewLine}{MessageId}{NewLine2}{Error}", System.Environment.NewLine, obj.MessageId, System.Environment.NewLine, obj.Error);
+            _log.LogError(obj.Error, "Heart beat processing has failed {MessageId}", obj.MessageId);
         }
 
         private void OnReceiveMessageError(ErrorReceiveNotification obj)
         {
-            _log.LogWarning("Heart beat processing has failed to dequeue a message {NewLine}{Error}", System.Environment.NewLine, obj.Error);
+            _log.LogWarning(obj.Error, "Heart beat processing has failed to dequeue a message");
         }
 
         private void OnError(ErrorNotification obj)
         {
-            _log.LogError("Heart beat processing has failed {NewLine}{Error}", System.Environment.NewLine, obj.Error);
+            _log.LogError(obj.Error, "Heart beat processing has failed");
         }
     }
 }

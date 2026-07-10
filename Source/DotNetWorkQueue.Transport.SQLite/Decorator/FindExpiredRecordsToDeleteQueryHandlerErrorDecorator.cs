@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
             {
                 if (e.Message.Contains("abort due to ROLLBACK", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    _logger.LogWarning("The query has been aborted{NewLine}{Exception}", System.Environment.NewLine, e);
+                    _logger.LogWarning(e, "The query has been aborted");
                     return Enumerable.Empty<long>();
                 }
                 else
