@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.Queue
             }
             catch (Exception errorHandlingError)
             {
-                _log.LogError(exception,
+                _log.LogError(errorHandlingError,
                     "An error has occurred while trying to move message {MessageId} to the error queue", message.MessageId);
                 throw new DotNetWorkQueueException("An error has occurred in the error handling code",
                     errorHandlingError);
