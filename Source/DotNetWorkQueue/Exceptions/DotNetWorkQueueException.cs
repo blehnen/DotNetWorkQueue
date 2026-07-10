@@ -24,7 +24,6 @@ namespace DotNetWorkQueue.Exceptions
     /// Generic queue exception
     /// </summary>
     /// <remarks>When the queue encounters a non specific error, this exception is thrown.</remarks>
-    [Serializable]
     public class DotNetWorkQueueException : Exception
     {
         /// <summary>

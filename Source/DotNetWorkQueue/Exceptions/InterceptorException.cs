@@ -23,7 +23,6 @@ namespace DotNetWorkQueue.Exceptions
     /// <summary>
     /// An interceptor has thrown an exception.
     /// </summary>
-    [Serializable]
     public class InterceptorException : DotNetWorkQueueException
     {
         /// <summary>

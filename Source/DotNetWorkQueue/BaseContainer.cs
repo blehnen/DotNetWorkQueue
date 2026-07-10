@@ -48,7 +48,6 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Throws an exception if this instance has been disposed.
         /// </summary>
-        /// <param name="name">The name.</param>
         /// <exception cref="System.ObjectDisposedException"></exception>
         protected void ThrowIfDisposed()
         {

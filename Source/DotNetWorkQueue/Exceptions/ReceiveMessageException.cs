@@ -28,7 +28,6 @@ namespace DotNetWorkQueue.Exceptions
     /// The transport may not be responding. However, it's also possible that a message was
     /// de-queued, but failed to de-serialize
     /// </remarks>
-    [Serializable]
     public class ReceiveMessageException : DotNetWorkQueueException
     {
         /// <summary>

@@ -25,7 +25,6 @@ namespace DotNetWorkQueue.Exceptions
     /// An error has occurred while compiling code
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.Exceptions.DotNetWorkQueueException" />
-    [Serializable]
     public class CompileException : DotNetWorkQueueException
     {
         /// <summary>

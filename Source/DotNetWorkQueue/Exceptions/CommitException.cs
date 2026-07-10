@@ -28,7 +28,6 @@ namespace DotNetWorkQueue.Exceptions
     /// This means that the message was processed, but now the transport does not know this.
     /// The same exact message may be sent through for processing again at some point, depending on queue settings.
     /// </remarks>
-    [Serializable]
     public class CommitException : MessageException
     {
         /// <summary>
