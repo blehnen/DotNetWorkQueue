@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Queue
             get => null;
             set
             {
-
+                // no-op
             }
         }
 
@@ -61,6 +61,7 @@ namespace DotNetWorkQueue.Queue
             get => null;
             set
             {
+                // no-op
             }
         }
 
@@ -68,7 +69,7 @@ namespace DotNetWorkQueue.Queue
         public IMessageCancellation MessageCancellation
         {
             get => MessageCancellationNoOp.Instance;
-            set { }
+            set { /* no-op */ }
         }
     }
 }

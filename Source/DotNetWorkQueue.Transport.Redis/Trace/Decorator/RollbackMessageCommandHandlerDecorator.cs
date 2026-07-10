@@ -45,12 +45,9 @@ namespace DotNetWorkQueue.Transport.Redis.Trace.Decorator
         public void Handle(RollbackMessageCommand<string> command)
         {
             //lets add a bit more information to the active span if possible
-            if (Activity.Current != null)
-            {
-                if (command.IncreaseQueueDelay.HasValue)
-                    Activity.Current.SetTag("MessageDelay",
-                        command.IncreaseQueueDelay.Value.ToString());
-            }
+            if (Activity.Current != null && command.IncreaseQueueDelay.HasValue)
+                Activity.Current.SetTag("MessageDelay",
+                    command.IncreaseQueueDelay.Value.ToString());
             _handler.Handle(command);
         }
     }

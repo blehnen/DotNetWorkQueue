@@ -206,7 +206,7 @@ else if (!string.IsNullOrEmpty(_connectionDisplayName) || !string.IsNullOrEmpty(
                     }
                 }
             }
-            catch { }
+            catch { /* connection id lookup is best-effort */ }
         }
 
         // Build breadcrumbs with source slug prefix
@@ -268,7 +268,7 @@ else if (!string.IsNullOrEmpty(_connectionDisplayName) || !string.IsNullOrEmpty(
             var consumers = await Api.GetConsumersAsync(QueueId);
             _consumerCount = consumers.Count;
         }
-        catch { }
+        catch { /* counts are best-effort; keep prior values on failure */ }
     }
 
     private async Task ManualRefresh()
@@ -289,7 +289,7 @@ else if (!string.IsNullOrEmpty(_connectionDisplayName) || !string.IsNullOrEmpty(
             _staleCount = (await staleTask).TotalCount;
             _consumerCount = (await consumersTask).Count;
         }
-        catch { }
+        catch { /* counts are best-effort; keep prior values on failure */ }
     }
 
     private void OnTabChanged(int index)

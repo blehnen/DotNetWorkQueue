@@ -80,15 +80,15 @@ namespace DotNetWorkQueue.Messages
         /// Returns data set by <see cref="SetHeader{THeader}"/> 
         /// </summary>
         /// <typeparam name="THeader">data type</typeparam>
-        /// <param name="itemData">The property.</param>
+        /// <param name="property">The property.</param>
         /// <returns></returns>
-        public THeader GetHeader<THeader>(IMessageContextData<THeader> itemData)
+        public THeader GetHeader<THeader>(IMessageContextData<THeader> property)
             where THeader : class
         {
-            if (!_headers.TryGetValue(itemData.Name, out var value))
+            if (!_headers.TryGetValue(property.Name, out var value))
             {
-                value = itemData.Default;
-                _headers[itemData.Name] = value;
+                value = property.Default;
+                _headers[property.Name] = value;
             }
             return (THeader)value;
         }
@@ -96,12 +96,12 @@ namespace DotNetWorkQueue.Messages
         /// Allows additional information to be attached to a message, that is not part of the message body.
         /// </summary>
         /// <typeparam name="THeader">data type</typeparam>
-        /// <param name="itemData">The property.</param>
+        /// <param name="property">The property.</param>
         /// <param name="value">The value.</param>
-        public void SetHeader<THeader>(IMessageContextData<THeader> itemData, THeader value)
+        public void SetHeader<THeader>(IMessageContextData<THeader> property, THeader value)
             where THeader : class
         {
-            _headers[itemData.Name] = value;
+            _headers[property.Name] = value;
         }
 
         /// <summary>

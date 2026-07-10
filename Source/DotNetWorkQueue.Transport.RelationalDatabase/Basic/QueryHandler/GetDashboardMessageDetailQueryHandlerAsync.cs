@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                 using (var command = connection.CreateCommand())
                 {
                     _prepareQuery.Handle(query, command, CommandStringTypes.GetDashboardMessageDetail);
-                    using (var reader = await ((DbCommand)command).ExecuteReaderAsync().ConfigureAwait(false))
+                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
                     {
                         if (await reader.ReadAsync().ConfigureAwait(false))
                         {
@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                 using (var command = connection.CreateCommand())
                 {
                     _prepareQuery.Handle(query, command, CommandStringTypes.GetDashboardMessageDetailFromErrors);
-                    using (var reader = await ((DbCommand)command).ExecuteReaderAsync().ConfigureAwait(false))
+                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
                     {
                         if (await reader.ReadAsync().ConfigureAwait(false))
                         {

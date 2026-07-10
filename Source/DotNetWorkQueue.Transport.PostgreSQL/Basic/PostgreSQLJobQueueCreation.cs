@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         public PostgreSqlMessageQueueTransportOptions Options => _queueCreation.Options;
 
         /// <inheritdoc />
-        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, QueueConnection queueConnection, Action<IContainer> setOptions = null, bool enableRoute = false)
+        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, QueueConnection queueConnection, Action<IContainer> setOptions = null, bool enableRoutes = false)
         {
             if (_queueCreation.Options.AdditionalColumns.Count == 0)
             {
@@ -61,7 +61,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 { Unique = true };
                 _queueCreation.Options.AdditionalConstraints.Add(constraint);
             }
-            if (enableRoute)
+            if (enableRoutes)
             {
                 _queueCreation.Options.EnableRoute = true;
             }

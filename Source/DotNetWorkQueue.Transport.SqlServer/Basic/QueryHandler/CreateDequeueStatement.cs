@@ -62,12 +62,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         {
             userParams = null;
             var userQuery = _configuration.GetUserClause();
-            if ((routes == null || routes.Count == 0) && string.IsNullOrEmpty(userQuery))
+            if ((routes == null || routes.Count == 0) && string.IsNullOrEmpty(userQuery)
+                && _commandCache.Contains(DequeueKey))
             {
-                if (_commandCache.Contains(DequeueKey))
-                {
-                    return _commandCache.Get(DequeueKey).CommandText;
-                }
+                return _commandCache.Get(DequeueKey).CommandText;
             }
 
             var sb = new StringBuilder();

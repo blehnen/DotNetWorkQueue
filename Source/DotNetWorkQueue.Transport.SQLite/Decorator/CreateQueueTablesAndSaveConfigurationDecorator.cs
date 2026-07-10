@@ -59,9 +59,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
             if (!_databaseExists.Exists(_connectionInformation.ConnectionString))
             { //no db file, create
                 var fileName = _getFileNameFromConnection.GetFileName(_connectionInformation.ConnectionString);
-                using (File.Create(fileName.FileName))
-                {
-                }
+                File.Create(fileName.FileName).Dispose();
             }
 
             try

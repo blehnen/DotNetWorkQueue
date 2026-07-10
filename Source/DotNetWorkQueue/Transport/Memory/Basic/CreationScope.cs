@@ -45,10 +45,10 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <summary>
         /// Adds the scoped object.
         /// </summary>
-        /// <param name="input">The input.</param>
-        public void AddScopedObject(IClear input)
+        /// <param name="clear">The object to clear.</param>
+        public void AddScopedObject(IClear clear)
         {
-            _clears.Add(input);
+            _clears.Add(clear);
         }
 
         ///<inheritdoc/>

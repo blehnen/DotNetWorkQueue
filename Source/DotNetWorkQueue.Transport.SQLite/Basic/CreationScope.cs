@@ -48,13 +48,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <summary>
         /// Adds the scoped object.
         /// </summary>
-        /// <param name="input">The input.</param>
-        public void AddScopedObject(IClear input)
+        /// <param name="clear">The object to clear.</param>
+        public void AddScopedObject(IClear clear)
         {
             if (_clears == null)
                 _clears = new ConcurrentBag<IClear>();
 
-            _clears.Add(input);
+            _clears.Add(clear);
         }
 
         ///<inheritdoc/>
@@ -77,16 +77,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         {
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
-            if (disposing)
+            if (disposing && _disposables != null)
             {
-                if (_disposables != null)
+                foreach (var obj in _disposables)
                 {
-                    foreach (var obj in _disposables)
-                    {
-                        obj.Dispose();
-                    }
-                    _disposables = null;
+                    obj.Dispose();
                 }
+                _disposables = null;
             }
         }
         /// <summary>

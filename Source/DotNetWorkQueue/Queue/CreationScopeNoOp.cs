@@ -43,9 +43,8 @@ namespace DotNetWorkQueue.Queue
         /// <summary>
         /// Adds the scoped object.
         /// </summary>
-        /// <param name="disposable">The disposable.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public void AddScopedObject(IClear disposable)
+        /// <param name="clear">The object to clear.</param>
+        public void AddScopedObject(IClear clear)
         {
 
         }

@@ -57,11 +57,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Services
 
                     var staleThreshold = TimeSpan.FromSeconds(_options.ConsumerStaleThresholdSeconds);
                     var pruned = _registry.PruneStale(staleThreshold);
-                    if (pruned > 0)
-                    {
-                        if (_logger.IsEnabled(LogLevel.Information))
-                            _logger.LogInformation("Pruned {Count} stale consumer(s)", pruned);
-                    }
+                    if (pruned > 0 && _logger.IsEnabled(LogLevel.Information))
+                        _logger.LogInformation("Pruned {Count} stale consumer(s)", pruned);
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {

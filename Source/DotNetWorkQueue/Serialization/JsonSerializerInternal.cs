@@ -60,12 +60,12 @@ namespace DotNetWorkQueue.Serialization
         /// Converts an input class to bytes.
         /// </summary>
         /// <typeparam name="T">the input type</typeparam>
-        /// <param name="message">The message.</param>
+        /// <param name="data">The data.</param>
         /// <returns></returns>
-        public byte[] ConvertToBytes<T>(T message) where T : class
+        public byte[] ConvertToBytes<T>(T data) where T : class
         {
-            Guard.NotNull(() => message, message);
-            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message, _serializeSettings));
+            Guard.NotNull(() => data, data);
+            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data, _serializeSettings));
         }
 
         /// <summary>

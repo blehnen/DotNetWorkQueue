@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                 using (var command = connection.CreateCommand())
                 {
                     _prepareQuery.Handle(query, command, CommandStringTypes.GetDashboardStaleMessages);
-                    using (var reader = await ((DbCommand)command).ExecuteReaderAsync().ConfigureAwait(false))
+                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
                     {
                         while (await reader.ReadAsync().ConfigureAwait(false))
                         {

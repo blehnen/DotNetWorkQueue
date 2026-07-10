@@ -64,13 +64,10 @@ namespace DotNetWorkQueue.Queue
         /// <inheritdoc />
         public bool Cancel(string queueId)
         {
-            if (Tokens.TryGetValue(queueId, out var cts))
+            if (Tokens.TryGetValue(queueId, out var cts) && !cts.IsCancellationRequested)
             {
-                if (!cts.IsCancellationRequested)
-                {
-                    cts.Cancel();
-                    return true;
-                }
+                cts.Cancel();
+                return true;
             }
             return false;
         }

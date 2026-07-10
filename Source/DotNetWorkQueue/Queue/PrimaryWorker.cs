@@ -97,11 +97,8 @@ namespace DotNetWorkQueue.Queue
         {
             if (ShouldExit) return;
 
-            if (WorkerTask != null)
-            {
-                if (_log.IsEnabled(LogLevel.Debug))
-                    _log.LogDebug("Stopping worker {WorkerName}", WorkerName);
-            }
+            if (WorkerTask != null && _log.IsEnabled(LogLevel.Debug))
+                _log.LogDebug("Stopping worker {WorkerName}", WorkerName);
 
             _workerCollection.Stop();
             ShouldExit = true;

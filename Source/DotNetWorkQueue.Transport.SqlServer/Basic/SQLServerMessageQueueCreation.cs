@@ -193,7 +193,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             if (!disposing) return;
             if (Interlocked.Increment(ref _disposeCount) == 1)
             {
-
+                // nothing to dispose; increment marks the instance disposed for IsDisposed
             }
         }
 

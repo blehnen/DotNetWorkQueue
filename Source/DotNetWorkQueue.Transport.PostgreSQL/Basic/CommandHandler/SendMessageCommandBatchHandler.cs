@@ -154,7 +154,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         private QueueOutputMessages HandleExternalTransaction(RelationalSendMessageCommandBatch rel)
         {
             var npgsqlTransaction = (NpgsqlTransaction)rel.ExternalTransaction;
-            var npgsqlConn = (NpgsqlConnection)npgsqlTransaction.Connection;
+            var npgsqlConn = npgsqlTransaction.Connection;
 
             var messages = rel.Messages;
             var options = _options.Value;

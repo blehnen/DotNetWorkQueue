@@ -209,7 +209,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             // DbTransaction subtype via GuardSqlTransaction before construction.
             var relCommand = (RelationalSendMessageCommand)commandSend;
             var sqlTransaction = (SqlTransaction)relCommand.ExternalTransaction;
-            var sqlConn = (SqlConnection)sqlTransaction.Connection;
+            var sqlConn = sqlTransaction.Connection;
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
             var scheduledTime = DateTimeOffset.MinValue;

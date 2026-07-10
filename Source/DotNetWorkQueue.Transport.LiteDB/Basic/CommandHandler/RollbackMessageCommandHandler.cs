@@ -91,14 +91,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                         if (record != null)
                         {
                             var process = true;
-                            if (rollBackCommand.LastHeartBeat.HasValue)
+                            //heartbeat must match
+                            if (rollBackCommand.LastHeartBeat.HasValue &&
+                                TrimMilliseconds(record.HeartBeat) !=
+                                TrimMilliseconds(rollBackCommand.LastHeartBeat))
                             {
-                                //heartbeat must match
-                                if (TrimMilliseconds(record.HeartBeat) !=
-                                    TrimMilliseconds(rollBackCommand.LastHeartBeat))
-                                {
-                                    process = false;
-                                }
+                                process = false;
                             }
 
                             if (process)
