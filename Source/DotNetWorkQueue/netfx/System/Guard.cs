@@ -51,7 +51,10 @@ namespace DotNetWorkQueue.Validation
         /// <exception cref="System.ArgumentException">The <paramref name="value"/> is null.</exception>
         public static T NotNull<T>(Expression<Func<T>> reference, T value)
         {
-            if (value == null)
+            // ReferenceEquals rather than "value == null": T is unconstrained, so the == operator
+            // trips S2955. This is behavior-identical (value types box to a non-null reference; a
+            // null Nullable<T> boxes to null) while only checking for a genuine null reference.
+            if (ReferenceEquals(value, null))
                 throw new ArgumentNullException(GetParameterName(reference), "Parameter cannot be null.");
 
             return value;
