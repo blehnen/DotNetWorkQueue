@@ -116,7 +116,7 @@ namespace DotNetWorkQueue.Queue
                 }
                 catch (Exception e)
                 {
-                    _log.LogError("An error has occurred while disposing of a worker{NewLine}{Exception}", System.Environment.NewLine, e);
+                    _log.LogError(e, "An error has occurred while disposing of a worker");
                 }
             }
         }

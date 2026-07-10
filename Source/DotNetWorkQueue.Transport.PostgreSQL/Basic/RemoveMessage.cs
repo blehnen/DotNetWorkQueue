@@ -110,7 +110,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             }
             catch (Exception e)
             {
-                _log.LogError("Failed to commit a transaction; this might be due to a DB timeout{NewLine}{Exception}", System.Environment.NewLine, e);
+                _log.LogError(e, "Failed to commit a transaction; this might be due to a DB timeout");
 
                 //don't attempt to use the transaction again at this point.
                 connection.Transaction = null;
@@ -130,7 +130,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 }
                 catch (Exception e)
                 {
-                    _log.LogWarning("Failed to delete status table record for message {MessageId}; record may be orphaned{NewLine}{Exception}", context.MessageId.Id.Value, System.Environment.NewLine, e);
+                    _log.LogWarning(e, "Failed to delete status table record for message {MessageId}; record may be orphaned", context.MessageId.Id.Value);
                 }
             }
             return count > 0 ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;

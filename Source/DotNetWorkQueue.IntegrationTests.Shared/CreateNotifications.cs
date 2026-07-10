@@ -26,31 +26,31 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         private static void OnMessageRollBack(ILogger log, RollBackNotification obj)
         {
             if (log.IsEnabled(LogLevel.Trace))
-                log.LogTrace("Processing has triggered a rollback {NewLine}{MessageId}{NewLine2}{Error}", System.Environment.NewLine, obj.MessageId, System.Environment.NewLine, obj.Error);
+                log.LogTrace(obj.Error, "Processing has triggered a rollback {MessageId}", obj.MessageId);
         }
 
         private static void OnPoisonMessage(ILogger log, PoisonMessageNotification obj)
         {
             if (log.IsEnabled(LogLevel.Trace))
-                log.LogTrace("Processing has triggered a poison message {NewLine}{MessageId}{NewLine2}{Error}", System.Environment.NewLine, obj.MessageId, System.Environment.NewLine, obj.Error);
+                log.LogTrace(obj.Error, "Processing has triggered a poison message {MessageId}", obj.MessageId);
         }
 
         private static void OnMessageMovedToErrorQueue(ILogger log, ErrorNotification obj)
         {
             if (log.IsEnabled(LogLevel.Trace))
-                log.LogTrace("Processing has failed {NewLine}{MessageId}{NewLine2}{Error}", System.Environment.NewLine, obj.MessageId, System.Environment.NewLine, obj.Error);
+                log.LogTrace(obj.Error, "Processing has failed {MessageId}", obj.MessageId);
         }
 
         private static void OnReceiveMessageError(ILogger log, ErrorReceiveNotification obj)
         {
             if (log.IsEnabled(LogLevel.Trace))
-                log.LogTrace("Processing has failed to dequeue a message {NewLine}{Error}", System.Environment.NewLine, obj.Error);
+                log.LogTrace(obj.Error, "Processing has failed to dequeue a message");
         }
 
         private static void OnError(ILogger log, ErrorNotification obj)
         {
             if (log.IsEnabled(LogLevel.Trace))
-                log.LogTrace("Processing has failed {NewLine}{Error}", System.Environment.NewLine, obj.Error);
+                log.LogTrace(obj.Error, "Processing has failed");
         }
     }
 }

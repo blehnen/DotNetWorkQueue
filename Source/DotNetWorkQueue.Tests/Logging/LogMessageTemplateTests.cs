@@ -5,10 +5,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Tests.Logging
 {
     /// <summary>
-    /// Verifies that the structured-logging message templates introduced for CA2254/S2629
-    /// render to the same text the original string interpolation produced. Guards against a
-    /// placeholder/argument mismatch, which the logging framework would render silently
-    /// (no exception) rather than fail.
+    /// Verifies the structured-logging message templates: that placeholders render to the
+    /// expected text (guarding the CA2254/S2629 templating, which the framework renders
+    /// silently on a placeholder/argument mismatch rather than failing), and that exceptions
+    /// flow to the dedicated exception parameter rather than an inline {Exception} placeholder
+    /// (S6668).
     /// </summary>
     [TestClass]
     public class LogMessageTemplateTests
@@ -35,49 +36,50 @@ namespace DotNetWorkQueue.Tests.Logging
         }
 
         [TestMethod]
-        public void RepeatedNewLinePlaceholders_PreserveMultiLineOutput()
+        public void HeartbeatRollback_ExceptionToParameter_MessageIdPlaceholder()
         {
             var logger = new CapturingLogger();
-            var nl = Environment.NewLine;
             const string id = "id-1";
-            const string err = "boom";
-            logger.LogWarning(
-                "Heart beat processing has triggered a rollback; rollbacks are not supported for heartbeats {NewLine}{MessageId}{NewLine2}{Error}",
-                nl, id, nl, err);
+            var ex = new InvalidOperationException("boom");
+            logger.LogWarning(ex,
+                "Heart beat processing has triggered a rollback; rollbacks are not supported for heartbeats {MessageId}",
+                id);
             Assert.AreEqual(
-                $"Heart beat processing has triggered a rollback; rollbacks are not supported for heartbeats {nl}{id}{nl}{err}",
+                $"Heart beat processing has triggered a rollback; rollbacks are not supported for heartbeats {id}",
                 logger.LastMessage);
+            Assert.AreSame(ex, logger.LastException);
         }
 
         [TestMethod]
-        public void ExceptionArgument_RendersToStringInline()
+        public void ExceptionArgument_PassedToExceptionParameter()
         {
             var logger = new CapturingLogger();
-            var nl = Environment.NewLine;
             var ex = new InvalidOperationException("kaboom");
-            logger.LogError("An error has occurred while trying to rollback a message{NewLine}{Exception}", nl, ex);
-            Assert.AreEqual($"An error has occurred while trying to rollback a message{nl}{ex}", logger.LastMessage);
+            logger.LogError(ex, "An error has occurred while trying to rollback a message");
+            Assert.AreEqual("An error has occurred while trying to rollback a message", logger.LastMessage);
+            Assert.AreSame(ex, logger.LastException);
         }
 
         [TestMethod]
-        public void RetryTemplate_RendersInterpolatedEquivalent()
+        public void RetryTemplate_ExceptionToParameter_RendersPlaceholders()
         {
             var logger = new CapturingLogger();
-            var nl = Environment.NewLine;
             const double retryMs = 250d;
             const int attempt = 3;
             var ex = new TimeoutException("db");
-            logger.LogWarning(
-                "An error has occurred; we will try to re-run the transaction in {RetryDelayMs} ms. An error has occurred {AttemptNumber} times{NewLine}{Exception}",
-                retryMs, attempt, nl, ex);
+            logger.LogWarning(ex,
+                "An error has occurred; we will try to re-run the transaction in {RetryDelayMs} ms. An error has occurred {AttemptNumber} times",
+                retryMs, attempt);
             Assert.AreEqual(
-                $"An error has occurred; we will try to re-run the transaction in {retryMs} ms. An error has occurred {attempt} times{nl}{ex}",
+                $"An error has occurred; we will try to re-run the transaction in {retryMs} ms. An error has occurred {attempt} times",
                 logger.LastMessage);
+            Assert.AreSame(ex, logger.LastException);
         }
 
         private sealed class CapturingLogger : ILogger
         {
             public string LastMessage { get; private set; }
+            public Exception LastException { get; private set; }
             public IDisposable BeginScope<TState>(TState state) where TState : notnull => null;
             public bool IsEnabled(LogLevel logLevel) => true;
 
@@ -85,6 +87,7 @@ namespace DotNetWorkQueue.Tests.Logging
                 Func<TState, Exception, string> formatter)
             {
                 LastMessage = formatter(state, exception);
+                LastException = exception;
             }
         }
     }

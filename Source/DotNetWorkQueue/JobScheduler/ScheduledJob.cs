@@ -206,13 +206,13 @@ namespace DotNetWorkQueue.JobScheduler
                         }
                         else if (result.SendingException != null)
                         {
-                            _queue.Logger.LogError("An error has occurred adding job {Job} into the queue{NewLine}{Exception}", this, System.Environment.NewLine, result.SendingException);
+                            _queue.Logger.LogError(result.SendingException, "An error has occurred adding job {Job} into the queue", this);
                             RaiseException(result.SendingException);
                         }
                     }
                     catch (Exception ex)
                     {
-                        _queue.Logger.LogError("A fatal error has occurred trying to add job {Job} into the queue{NewLine}{Exception}", this, System.Environment.NewLine, ex);
+                        _queue.Logger.LogError(ex, "A fatal error has occurred trying to add job {Job} into the queue", this);
                         RaiseException(ex);
                     }
                 }
