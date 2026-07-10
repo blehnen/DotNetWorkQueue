@@ -208,7 +208,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             // DbTransaction subtype via GuardNpgsqlTransaction before construction.
             var relCommand = (RelationalSendMessageCommand)commandSend;
             var npgsqlTransaction = (NpgsqlTransaction)relCommand.ExternalTransaction;
-            var npgsqlConn = (NpgsqlConnection)npgsqlTransaction.Connection;
+            var npgsqlConn = npgsqlTransaction.Connection;
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
             var scheduledTime = DateTimeOffset.MinValue;

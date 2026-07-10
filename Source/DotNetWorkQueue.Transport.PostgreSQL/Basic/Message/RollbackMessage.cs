@@ -107,13 +107,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             //if transaction open, then just rollback the transaction
             if (connection.Connection == null || connection.Transaction == null) return;
 
-            if (_configuration.Options().EnableStatusTable)
+            if (_configuration.Options().EnableStatusTable &&
+                context.MessageId != null && context.MessageId.HasValue)
             {
-                if (context.MessageId != null && context.MessageId.HasValue)
-                {
-                    _setStatusCommandHandler.Handle(new SetStatusTableStatusCommand<long>((long)context.MessageId.Id.Value,
-                        QueueStatuses.Waiting));
-                }
+                _setStatusCommandHandler.Handle(new SetStatusTableStatusCommand<long>((long)context.MessageId.Id.Value,
+                    QueueStatuses.Waiting));
             }
             connection.Transaction.Rollback();
         }

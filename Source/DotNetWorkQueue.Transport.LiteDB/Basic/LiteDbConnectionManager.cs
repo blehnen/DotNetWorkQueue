@@ -111,18 +111,15 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (!_disposedValue && disposing)
             {
-                if (disposing)
+                lock (_createLocker)
                 {
-                    lock (_createLocker)
+                    if (_shouldDisposeDirectConnection || _shared)
                     {
-                        if (_shouldDisposeDirectConnection || _shared)
-                        {
-                            _db?.Dispose();
-                            _db = null;
-                            _disposedValue = true;
-                        }
+                        _db?.Dispose();
+                        _db = null;
+                        _disposedValue = true;
                     }
                 }
             }

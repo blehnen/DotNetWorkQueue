@@ -56,9 +56,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             if (fileName.IsInMemory) return true; //memory dbs always exist
 
             var exist = File.Exists(fileName.FileName);
-            if (!exist)
-                if (_logger.IsEnabled(LogLevel.Debug))
-                    _logger.LogDebug("database {FileName} was not found", fileName.FileName);
+            if (!exist && _logger.IsEnabled(LogLevel.Debug))
+                _logger.LogDebug("database {FileName} was not found", fileName.FileName);
             return exist;
         }
     }

@@ -131,11 +131,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
                         if (_logger.IsEnabled(LogLevel.Information))
                             _logger.LogInformation("Source '{SourceName}' is now Healthy", source.Name);
                     }
-                    else if (newState.Status == SourceHealthStatus.Unhealthy)
-                    {
-                        if (_logger.IsEnabled(LogLevel.Information))
-                            _logger.LogInformation("Source '{SourceName}' is now Unhealthy: {ErrorMessage}", source.Name, newState.ErrorMessage);
-                    }
+                    else if (newState.Status == SourceHealthStatus.Unhealthy && _logger.IsEnabled(LogLevel.Information))
+                        _logger.LogInformation("Source '{SourceName}' is now Unhealthy: {ErrorMessage}", source.Name, newState.ErrorMessage);
                 }
             }
         }

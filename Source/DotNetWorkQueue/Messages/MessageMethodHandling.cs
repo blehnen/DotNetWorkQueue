@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Messages
         /// </summary>
         /// <param name="receivedMessage">The received message.</param>
         /// <param name="workerNotification">The worker notification.</param>
-        private void HandleRawAction(IReceivedMessage<MessageExpression> receivedMessage,
+        private static void HandleRawAction(IReceivedMessage<MessageExpression> receivedMessage,
             IWorkerNotification workerNotification)
         {
             try

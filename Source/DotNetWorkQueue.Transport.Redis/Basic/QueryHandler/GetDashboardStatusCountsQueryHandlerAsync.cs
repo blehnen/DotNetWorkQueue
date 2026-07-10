@@ -43,9 +43,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         public Task<DashboardStatusCounts> HandleAsync(GetDashboardStatusCountsQuery query)
         {
             var db = _connection.Connection.GetDatabase();
-            var total = (long)db.HashLength(_redisNames.MetaData);
-            var processing = (long)db.SortedSetLength(_redisNames.Working);
-            var error = (long)db.ListLength(_redisNames.Error);
+            var total = db.HashLength(_redisNames.MetaData);
+            var processing = db.SortedSetLength(_redisNames.Working);
+            var error = db.ListLength(_redisNames.Error);
             var waiting = total - processing - error;
             return Task.FromResult(new DashboardStatusCounts
             {

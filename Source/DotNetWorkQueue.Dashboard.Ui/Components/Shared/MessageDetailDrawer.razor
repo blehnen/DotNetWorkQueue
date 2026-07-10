@@ -259,19 +259,19 @@
 
     private async Task LoadBody()
     {
-        try { _body = await Api.GetMessageBodyAsync(QueueId, MessageId!); } catch { }
+        try { _body = await Api.GetMessageBodyAsync(QueueId, MessageId!); } catch { /* best-effort; leave body unset on failure */ }
         _bodyLoading = false; StateHasChanged();
     }
 
     private async Task LoadHeaders()
     {
-        try { _headers = await Api.GetMessageHeadersAsync(QueueId, MessageId!); } catch { }
+        try { _headers = await Api.GetMessageHeadersAsync(QueueId, MessageId!); } catch { /* best-effort; leave headers unset on failure */ }
         _headersLoading = false; StateHasChanged();
     }
 
     private async Task LoadRetries()
     {
-        try { _retries = await Api.GetMessageRetriesAsync(QueueId, MessageId!); } catch { }
+        try { _retries = await Api.GetMessageRetriesAsync(QueueId, MessageId!); } catch { /* best-effort; leave retries unset on failure */ }
         StateHasChanged();
     }
 

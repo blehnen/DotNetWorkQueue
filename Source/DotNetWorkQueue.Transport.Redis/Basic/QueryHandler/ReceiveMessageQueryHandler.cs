@@ -104,20 +104,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
                 {
                     message = result[1];
                     headers = result[2];
-                    if (result[3].HasValue)
+                    if (result[3].HasValue &&
+                        result[3].TryParse(out long messageExpiration) &&
+                        messageExpiration - unixTimestamp < 0)
                     {
-                        if (result[3].TryParse(out long messageExpiration))
-                        {
-                            if (messageExpiration - unixTimestamp < 0)
-                            {
-                                //message has expired
-                                var allHeaders = _serializer.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headers);
-                                correlationId = (RedisQueueCorrelationIdSerialized)allHeaders[_redisHeaders.CorrelationId.Name];
-                                query.MessageContext.SetMessageAndHeaders(id, new RedisQueueCorrelationId(correlationId.Id), new ReadOnlyDictionary<string, object>(allHeaders));
-                                _removeMessage.Remove(query.MessageContext, RemoveMessageReason.Expired);
-                                return new RedisMessage(messageId, null, true);
-                            }
-                        }
+                        //message has expired
+                        var allHeaders = _serializer.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headers);
+                        correlationId = (RedisQueueCorrelationIdSerialized)allHeaders[_redisHeaders.CorrelationId.Name];
+                        query.MessageContext.SetMessageAndHeaders(id, new RedisQueueCorrelationId(correlationId.Id), new ReadOnlyDictionary<string, object>(allHeaders));
+                        _removeMessage.Remove(query.MessageContext, RemoveMessageReason.Expired);
+                        return new RedisMessage(messageId, null, true);
                     }
                 }
             }

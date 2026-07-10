@@ -63,7 +63,7 @@
                     StateHasChanged();
                 });
             }
-            catch (ObjectDisposedException) { }
+            catch (ObjectDisposedException) { /* timer fired after dispose; ignore */ }
         }, null, _intervalSeconds * 1000, _intervalSeconds * 1000);
     }
 

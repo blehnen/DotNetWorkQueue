@@ -42,12 +42,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         {
             userParams = null;
             var userQuery = configuration.GetUserClause();
-            if ((routes == null || routes.Count == 0) && string.IsNullOrEmpty(userQuery))
+            if ((routes == null || routes.Count == 0) && string.IsNullOrEmpty(userQuery)
+                && commandCache.Contains(DequeueKey))
             {
-                if (commandCache.Contains(DequeueKey))
-                {
-                    return commandCache.Get(DequeueKey).CommandText;
-                }
+                return commandCache.Get(DequeueKey).CommandText;
             }
 
             var sb = new StringBuilder();

@@ -367,20 +367,14 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 if (QueueData.TryGetValue(_connectionInformation, out var value))
                 {
                     var removed = value.TryRemove(id, out var item);
-                    if (item == null)
+                    if (item == null && QueueWorking.TryGetValue(_connectionInformation, out var valueQw))
                     {
-                        if (QueueWorking.TryGetValue(_connectionInformation, out var valueQw))
-                        {
-                            removed = valueQw.TryRemove(id, out item);
-                        }
+                        removed = valueQw.TryRemove(id, out item);
                     }
 
-                    if (item != null)
+                    if (item != null && Jobs.TryGetValue(_connectionInformation, out var valueJ))
                     {
-                        if (Jobs.TryGetValue(_connectionInformation, out var valueJ))
-                        {
-                            valueJ.TryRemove(item.JobName, out _);
-                        }
+                        valueJ.TryRemove(item.JobName, out _);
                     }
                     return removed;
                 }
@@ -419,15 +413,11 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 if (Complete)
                     return;
 
-                if (Jobs.TryGetValue(_connectionInformation, out var valueJ))
+                if (Jobs.TryGetValue(_connectionInformation, out var valueJ) &&
+                    valueJ.TryRemove(jobName, out var id) &&
+                    QueueData.TryGetValue(_connectionInformation, out var value))
                 {
-                    if (valueJ.TryRemove(jobName, out var id))
-                    {
-                        if(QueueData.TryGetValue(_connectionInformation, out var value))
-                        {
-                            value.TryRemove(id, out _);
-                        }
-                    }
+                    value.TryRemove(id, out _);
                 }
             }
         }
@@ -443,25 +433,19 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 if (Complete)
                     return QueueStatuses.NotQueued;
 
-                if (Jobs.TryGetValue(_connectionInformation, out var valueJ))
+                if (Jobs.TryGetValue(_connectionInformation, out var valueJ) &&
+                    valueJ.TryGetValue(jobName, out var id))
                 {
-                    if (valueJ.TryGetValue(jobName, out var id))
+                    if (QueueData.TryGetValue(_connectionInformation, out var valueQd) &&
+                        valueQd.TryGetValue(id, out _))
                     {
-                        if (QueueData.TryGetValue(_connectionInformation, out var valueQd))
-                        {
-                            if (valueQd.TryGetValue(id, out _))
-                            {
-                                return QueueStatuses.Waiting;
-                            }
-                        }
+                        return QueueStatuses.Waiting;
+                    }
 
-                        if(QueueWorking.TryGetValue(_connectionInformation, out var valueW))
-                        {
-                            if (valueW.TryGetValue(id, out _))
-                            {
-                                return QueueStatuses.Processing;
-                            }
-                        }
+                    if (QueueWorking.TryGetValue(_connectionInformation, out var valueW) &&
+                        valueW.TryGetValue(id, out _))
+                    {
+                        return QueueStatuses.Processing;
                     }
                 }
                 
@@ -605,21 +589,17 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 if (Complete)
                     return null;
 
-                if (QueueData.TryGetValue(_connectionInformation, out var valueQd))
+                if (QueueData.TryGetValue(_connectionInformation, out var valueQd) &&
+                    valueQd.TryGetValue(id, out var item))
                 {
-                    if (valueQd.TryGetValue(id, out var item))
-                    {
-                        return item;
-                    }
+                    return item;
                 }
 
-                if (QueueWorking.TryGetValue(_connectionInformation, out var valueQw))
+                if (QueueWorking.TryGetValue(_connectionInformation, out var valueQw) &&
+                    valueQw.TryGetValue(id, out var workingItem))
                 {
-                    if (valueQw.TryGetValue(id, out var item))
-                    {
-                        isProcessing = true;
-                        return item;
-                    }
+                    isProcessing = true;
+                    return workingItem;
                 }
 
                 return null;
@@ -652,28 +632,25 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
             Complete = true;
 
-            if (Queues.TryGetValue(_connectionInformation, out var value))
+            //explicitly remove items so that metrics are still calculated
+            if (Queues.TryGetValue(_connectionInformation, out var value) && !value.IsAddingCompleted)
             {
-                //explicitly remove items so that metrics are still calculated
-                if (!value.IsAddingCompleted)
+                if (QueueData.TryGetValue(_connectionInformation, out var valueQd))
                 {
-                    if (QueueData.TryGetValue(_connectionInformation, out var valueQd))
+                    while (value.TryTake(out var id))
                     {
-                        while (value.TryTake(out var id))
-                        {
-                            valueQd.TryRemove(id, out _);
-                        }
+                        valueQd.TryRemove(id, out _);
                     }
+                }
 
-                    if (Jobs.TryGetValue(_connectionInformation, out var valueJ))
-                    {
-                        valueJ.Clear();
-                    }
+                if (Jobs.TryGetValue(_connectionInformation, out var valueJ))
+                {
+                    valueJ.Clear();
+                }
 
-                    if (QueueWorking.TryGetValue(_connectionInformation, out var valueQw))
-                    {
-                        valueQw.Clear();
-                    }
+                if (QueueWorking.TryGetValue(_connectionInformation, out var valueQw))
+                {
+                    valueQw.Clear();
                 }
             }
             

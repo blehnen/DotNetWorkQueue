@@ -52,12 +52,9 @@ namespace DotNetWorkQueue.Logging.Decorator
         public List<ResetHeartBeatOutput> Reset(CancellationToken cancelToken)
         {
             var count = _handler.Reset(cancelToken);
-            if (count.Count > 0)
-            {
-                if (_log.IsEnabled(LogLevel.Information))
-                    _log.LogInformation(
-                       "Reset the status of {Count} records that where outside of the heartbeat window of {HeartBeatSeconds} seconds", count.Count, _configuration.HeartBeat.Time.TotalSeconds);
-            }
+            if (count.Count > 0 && _log.IsEnabled(LogLevel.Information))
+                _log.LogInformation(
+                   "Reset the status of {Count} records that where outside of the heartbeat window of {HeartBeatSeconds} seconds", count.Count, _configuration.HeartBeat.Time.TotalSeconds);
             return count;
         }
     }

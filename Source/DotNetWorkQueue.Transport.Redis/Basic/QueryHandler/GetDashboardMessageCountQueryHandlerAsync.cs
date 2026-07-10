@@ -43,18 +43,18 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         {
             var db = _connection.Connection.GetDatabase();
             if (!query.StatusFilter.HasValue)
-                return Task.FromResult((long)db.HashLength(_redisNames.MetaData));
+                return Task.FromResult(db.HashLength(_redisNames.MetaData));
 
             switch (query.StatusFilter.Value)
             {
                 case 1:
-                    return Task.FromResult((long)db.SortedSetLength(_redisNames.Working));
+                    return Task.FromResult(db.SortedSetLength(_redisNames.Working));
                 case 2:
-                    return Task.FromResult((long)db.ListLength(_redisNames.Error));
+                    return Task.FromResult(db.ListLength(_redisNames.Error));
                 default:
-                    var total = (long)db.HashLength(_redisNames.MetaData);
-                    var processing = (long)db.SortedSetLength(_redisNames.Working);
-                    var error = (long)db.ListLength(_redisNames.Error);
+                    var total = db.HashLength(_redisNames.MetaData);
+                    var processing = db.SortedSetLength(_redisNames.Working);
+                    var error = db.ListLength(_redisNames.Error);
                     var waiting = total - processing - error;
                     return Task.FromResult(waiting < 0 ? 0 : waiting);
             }

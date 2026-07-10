@@ -48,11 +48,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Logging.Decorator
         public long Run(CancellationToken token)
         {
             var records = _handler.Run(token);
-            if (records > 0)
-            {
-                if (_log.IsEnabled(LogLevel.Information))
-                    _log.LogInformation("Moved {Records} records from the delayed queue to the pending queue", records);
-            }
+            if (records > 0 && _log.IsEnabled(LogLevel.Information))
+                _log.LogInformation("Moved {Records} records from the delayed queue to the pending queue", records);
             return records;
         }
     }

@@ -77,16 +77,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         {
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
-            if (disposing)
+            if (disposing && _disposables != null)
             {
-                if (_disposables != null)
+                foreach (var obj in _disposables)
                 {
-                    foreach (var obj in _disposables)
-                    {
-                        obj.Dispose();
-                    }
-                    _disposables = null;
+                    obj.Dispose();
                 }
+                _disposables = null;
             }
         }
         /// <summary>

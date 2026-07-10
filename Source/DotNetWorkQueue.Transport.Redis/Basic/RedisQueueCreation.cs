@@ -120,7 +120,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             if (Interlocked.Increment(ref _disposeCount) == 1)
             {
-
+                // nothing to dispose; increment marks the instance disposed for IsDisposed
             }
         }
 

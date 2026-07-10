@@ -152,7 +152,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         private QueueOutputMessages HandleExternalTransaction(RelationalSendMessageCommandBatch rel)
         {
             var sqlTransaction = (SqlTransaction)rel.ExternalTransaction;
-            var sqlConn = (SqlConnection)sqlTransaction.Connection;
+            var sqlConn = sqlTransaction.Connection;
 
             var messages = rel.Messages;
             var options = _options.Value;

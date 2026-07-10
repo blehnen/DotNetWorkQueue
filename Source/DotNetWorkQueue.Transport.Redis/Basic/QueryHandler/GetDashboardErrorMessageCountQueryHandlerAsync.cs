@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         public Task<long> HandleAsync(GetDashboardErrorMessageCountQuery query)
         {
             var db = _connection.Connection.GetDatabase();
-            return Task.FromResult((long)db.ListLength(_redisNames.Error));
+            return Task.FromResult(db.ListLength(_redisNames.Error));
         }
     }
 }
