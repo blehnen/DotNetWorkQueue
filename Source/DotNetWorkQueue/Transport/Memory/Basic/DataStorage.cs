@@ -134,7 +134,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         }
 
         /// <inheritdoc />
-        public Guid SendMessage(IMessage messageToSend, IAdditionalMessageData data)
+        public Guid SendMessage(IMessage message, IAdditionalMessageData inputData)
         {
             if (Complete)
                 return Guid.Empty;
@@ -144,22 +144,22 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 if (Complete)
                     return Guid.Empty;
 
-                var jobName = _jobSchedulerMetaData.GetJobName(data);
+                var jobName = _jobSchedulerMetaData.GetJobName(inputData);
                 var scheduledTime = DateTimeOffset.MinValue;
                 var eventTime = DateTimeOffset.MinValue;
                 if (!string.IsNullOrWhiteSpace(jobName))
                 {
-                    scheduledTime = _jobSchedulerMetaData.GetScheduledTime(data);
-                    eventTime = _jobSchedulerMetaData.GetEventTime(data);
+                    scheduledTime = _jobSchedulerMetaData.GetScheduledTime(inputData);
+                    eventTime = _jobSchedulerMetaData.GetEventTime(inputData);
                 }
 
                 if (string.IsNullOrWhiteSpace(jobName) || DoesJobExist(jobName, scheduledTime) == QueueStatuses.NotQueued)
                 {
                     var newItem = new QueueItem
                     {
-                        Body = messageToSend.Body,
-                        CorrelationId = (Guid)data.CorrelationId.Id.Value,
-                        Headers = messageToSend.Headers,
+                        Body = message.Body,
+                        CorrelationId = (Guid)inputData.CorrelationId.Id.Value,
+                        Headers = message.Headers,
                         Id = Guid.NewGuid(),
                         QueuedDateTime = DateTime.UtcNow,
                         JobEventTime = eventTime,

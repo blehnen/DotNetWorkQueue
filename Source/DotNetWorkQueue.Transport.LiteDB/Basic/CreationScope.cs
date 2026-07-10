@@ -48,13 +48,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <summary>
         /// Adds the scoped object.
         /// </summary>
-        /// <param name="clear">The object to clear.</param>
-        public void AddScopedObject(IClear clear)
+        /// <param name="input">The input.</param>
+        public void AddScopedObject(IClear input)
         {
             if (_clears == null)
                 _clears = new ConcurrentBag<IClear>();
 
-            _clears.Add(clear);
+            _clears.Add(input);
         }
 
         ///<inheritdoc/>

@@ -61,17 +61,17 @@ namespace DotNetWorkQueue.Messages
         }
 
         /// <inheritdoc/>
-        public T Get<T>(IMessageContextData<T> property)
+        public T Get<T>(IMessageContextData<T> itemData)
             where T : class
         {
             //code may obtain user items if we are in the middle of disposing, but have not cleared the items yet
             if (IsDisposed && _items.Count == 0)
                 ThrowIfDisposed();
 
-            if (!_items.TryGetValue(property.Name, out var value))
+            if (!_items.TryGetValue(itemData.Name, out var value))
             {
-                value = property.Default;
-                _items[property.Name] = value;
+                value = itemData.Default;
+                _items[itemData.Name] = value;
             }
             return (T)value;
         }

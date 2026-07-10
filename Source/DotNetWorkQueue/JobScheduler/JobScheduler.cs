@@ -93,7 +93,7 @@ namespace DotNetWorkQueue.JobScheduler
             string jobName,
             QueueConnection queueConnection,
             string schedule,
-            Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> job,
+            Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun,
             string route = null,
             Action<QueueProducerConfiguration> producerConfiguration = null,
             bool autoRun = true,
@@ -105,15 +105,15 @@ namespace DotNetWorkQueue.JobScheduler
             Guard.NotNullOrEmpty(() => schedule, schedule);
             Guard.IsValid(() => jobName, jobName, i => i.Length < 256,
               "The job name length must be 255 characters or less");
-            return AddTaskImpl<TTransportInit, TQueue>(jobName, queueConnection, new JobSchedule(schedule, GetCurrentOffset, window), autoRun, window, job, route, rawExpression, producerConfiguration);
+            return AddTaskImpl<TTransportInit, TQueue>(jobName, queueConnection, new JobSchedule(schedule, GetCurrentOffset, window), autoRun, window, actionToRun, route, rawExpression, producerConfiguration);
         }
         /// <inheritdoc />
         public IScheduledJob AddUpdateJob<TTransportInit>(
-            IJobQueueCreation queueCreator,
-            string jobName,
+            IJobQueueCreation jobQueueCreation,
+            string jobname,
             QueueConnection queueConnection,
             string schedule,
-            Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> job,
+            Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> actionToRun,
             string route = null,
             Action<QueueProducerConfiguration> producerConfiguration = null,
             bool autoRun = true,
@@ -122,9 +122,9 @@ namespace DotNetWorkQueue.JobScheduler
              where TTransportInit : ITransportInit, new()
         {
             Guard.NotNullOrEmpty(() => schedule, schedule);
-            Guard.IsValid(() => jobName, jobName, i => i.Length < 256,
+            Guard.IsValid(() => jobname, jobname, i => i.Length < 256,
               "The job name length must be 255 characters or less");
-            return AddTaskImpl<TTransportInit>(queueCreator, jobName, queueConnection, new JobSchedule(schedule, GetCurrentOffset, window), autoRun, window, job, route, rawExpression, producerConfiguration);
+            return AddTaskImpl<TTransportInit>(jobQueueCreation, jobname, queueConnection, new JobSchedule(schedule, GetCurrentOffset, window), autoRun, window, actionToRun, route, rawExpression, producerConfiguration);
         }
         /// <summary>
         /// Adds the task

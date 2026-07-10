@@ -54,9 +54,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         public LiteDbMessageQueueTransportOptions Options => _queueCreation.Options;
 
         /// <inheritdoc />
-        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, QueueConnection queueConnection, Action<IContainer> setOptions = null, bool enableRoutes = false)
+        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService, QueueConnection queueConnection, Action<IContainer> setOptions = null, bool enableRoute = false)
         {
-            if (enableRoutes)
+            if (enableRoute)
             {
                 _queueCreation.Options.EnableRoute = true;
             }
