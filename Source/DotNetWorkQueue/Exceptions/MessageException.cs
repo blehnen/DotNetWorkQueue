@@ -25,7 +25,6 @@ namespace DotNetWorkQueue.Exceptions
     /// An error has occurred while processing a message in user code
     /// </summary>
     /// <remarks>This exception is generated when user message handling code throws an unhanded exception</remarks>
-    [Serializable]
     public class MessageException : DotNetWorkQueueException
     {
         /// <summary>

@@ -24,7 +24,6 @@ namespace DotNetWorkQueue.Exceptions
     /// An exception thrown from <see cref="IJobScheduler"/>
     /// </summary>
     /// <seealso cref="DotNetWorkQueue.Exceptions.DotNetWorkQueueException" />
-    [Serializable]
     public class JobSchedulerException : DotNetWorkQueueException
     {
         /// <summary>

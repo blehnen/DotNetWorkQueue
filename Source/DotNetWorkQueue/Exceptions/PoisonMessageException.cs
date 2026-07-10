@@ -28,7 +28,6 @@ namespace DotNetWorkQueue.Exceptions
     /// When possible, all 'standard' data is included with the exception. Transport specific data is generally not included.
     /// For instance, user defined columns from the SQL server transport are not included.
     /// </remarks>
-    [Serializable]
     public class PoisonMessageException : MessageException
     {
         /// <summary>
