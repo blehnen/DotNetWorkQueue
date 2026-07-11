@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Queue
             };
         }
 
-        private class MonitorTimespanWrapper : IMonitorTimespan
+        private sealed class MonitorTimespanWrapper : IMonitorTimespan
         {
             public MonitorTimespanWrapper(TimeSpan monitorTime) { MonitorTime = monitorTime; }
             public TimeSpan MonitorTime { get; set; }

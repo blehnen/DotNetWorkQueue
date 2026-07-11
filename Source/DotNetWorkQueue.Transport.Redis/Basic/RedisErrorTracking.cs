@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <returns></returns>
         public int GetExceptionCount(string exceptionType)
         {
-            return !Errors.ContainsKey(exceptionType) ? 0 : Errors[exceptionType];
+            return Errors.TryGetValue(exceptionType, out var count) ? count : 0;
         }
 
         /// <summary>

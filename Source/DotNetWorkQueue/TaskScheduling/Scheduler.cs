@@ -167,7 +167,7 @@ namespace DotNetWorkQueue.TaskScheduling
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
             //let the scheduler know we are leaving
-            if (_taskFactory.IsValueCreated && _taskFactory?.Value.Scheduler != null && _schedulerId.HasValue)
+            if (_taskFactory.IsValueCreated && _taskFactory.Value.Scheduler != null && _schedulerId.HasValue)
             {
                 _taskFactory.Value.Scheduler.UnSubscribe(_schedulerId.Value);
             }

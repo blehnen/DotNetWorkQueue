@@ -80,7 +80,7 @@
     private List<ErrorMessageResponse>? _errors;
     private long _totalCount;
     private int _pageIndex;
-    private int _pageSize = 25;
+    private readonly int _pageSize = 25;
     private int _lastRefreshVersion;
     private bool _loading = true;
     private bool _confirmDeleteAll;
@@ -155,5 +155,10 @@
         catch (Exception ex) { Snackbar.Add($"Failed: {ex.Message}", Severity.Error); }
     }
 
-    private static string TruncateId(string? id) => string.IsNullOrEmpty(id) ? "-" : (id.Length > 12 ? id[..12] + "..." : id);
+    private static string TruncateId(string? id)
+    {
+        if (string.IsNullOrEmpty(id))
+            return "-";
+        return id.Length > 12 ? id[..12] + "..." : id;
+    }
 }

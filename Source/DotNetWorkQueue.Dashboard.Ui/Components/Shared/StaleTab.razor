@@ -74,7 +74,7 @@
     private List<MessageResponse>? _messages;
     private long _totalCount;
     private int _pageIndex;
-    private int _pageSize = 25;
+    private readonly int _pageSize = 25;
     private int _thresholdSeconds = 60;
     private int _lastRefreshVersion;
     private bool _loading = true;
@@ -126,7 +126,12 @@
         else Snackbar.Add("Failed to reset.", Severity.Error);
     }
 
-    private static string TruncateId(string? id) => string.IsNullOrEmpty(id) ? "-" : (id.Length > 12 ? id[..12] + "..." : id);
+    private static string TruncateId(string? id)
+    {
+        if (string.IsNullOrEmpty(id))
+            return "-";
+        return id.Length > 12 ? id[..12] + "..." : id;
+    }
     private static string FormatDate(DateTimeOffset? dt) => dt == null || dt.Value == DateTimeOffset.MinValue ? "-" : dt.Value.LocalDateTime.ToString("G");
     private static string GetStatusName(int? s) => s switch { 0 => "Waiting", 1 => "Processing", 2 => "Error", 3 => "Processed", _ => "Unknown" };
 }

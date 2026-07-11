@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
     /// <summary>
     /// Shared constants for the retry decorators
     /// </summary>
-    public class RetryConstants
+    public static class RetryConstants
     {
         /// <summary>
         /// The retry count

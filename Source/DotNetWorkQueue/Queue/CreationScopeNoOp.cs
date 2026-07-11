@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Queue
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing) return;
-            if (Interlocked.Increment(ref _disposeCount) != 1) return;
+            Interlocked.Increment(ref _disposeCount);
         }
 
         /// <summary>

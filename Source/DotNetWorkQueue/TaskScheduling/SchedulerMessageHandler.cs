@@ -73,7 +73,7 @@ namespace DotNetWorkQueue.TaskScheduling
             {
                 //verify that we are not canceling or stopping before trying to queue the item
                 //however, the transport must support rollbacks. ShouldHandle returns true or
-                //throws OperationCanceledException (which the consumer treats as a rollback);
+                //throws OperationCanceledException, which the consumer treats as a rollback.
                 //the canceled task below is a defensive non-null fallback if that contract changes.
                 if (!ShouldHandle(notifications))
                 {

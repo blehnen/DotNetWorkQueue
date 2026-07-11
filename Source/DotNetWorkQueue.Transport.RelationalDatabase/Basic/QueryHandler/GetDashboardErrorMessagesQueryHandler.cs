@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             message.Id = _readColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorMessages, columnIndex++, reader);
             message.QueueId = _readColumn.ReadAsInt64(CommandStringTypes.GetDashboardErrorMessages, columnIndex++, reader).ToString();
             message.LastException = _readColumn.ReadAsString(CommandStringTypes.GetDashboardErrorMessages, columnIndex++, reader);
-            message.LastExceptionDate = _readColumn.ReadAsDateTimeOffset(CommandStringTypes.GetDashboardErrorMessages, columnIndex++, reader);
+            message.LastExceptionDate = _readColumn.ReadAsDateTimeOffset(CommandStringTypes.GetDashboardErrorMessages, columnIndex, reader);
 
             return message;
         }

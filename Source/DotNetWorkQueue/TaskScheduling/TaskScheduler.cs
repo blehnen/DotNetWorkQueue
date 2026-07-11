@@ -310,7 +310,7 @@ namespace DotNetWorkQueue.TaskScheduling
             ThrowIfDisposed();
 
             var group = new WorkGroup(name, concurrencyLevel);
-            var groupWithItem = _groups.GetOrAdd(group, _ => new WorkGroupWithItem(group, _metrics.Counter(
+            var groupWithItem = _groups.GetOrAdd(group, g => new WorkGroupWithItem(g, _metrics.Counter(
                 $"dotnetworkqueue.work group {name}", Units.Items)));
             return groupWithItem.GroupInfo;
         }

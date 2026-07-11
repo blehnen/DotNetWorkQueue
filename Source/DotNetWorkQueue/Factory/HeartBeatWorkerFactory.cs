@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Factory
         private readonly IHeartBeatConfiguration _configuration;
         private readonly ISendHeartBeat _sendHeartBeat;
         private readonly IHeartBeatScheduler _scheduler;
-        private readonly ILogger _logFactory;
+        private readonly ILogger _log;
         private readonly IWorkerHeartBeatNotificationFactory _heartBeatNotificationFactory;
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Factory
             _configuration = configuration;
             _sendHeartBeat = sendHeartBeat;
             _scheduler = scheduler;
-            _logFactory = logFactory;
+            _log = logFactory;
             _heartBeatNotificationFactory = heartBeatNotificationFactory;
         }
 
@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Factory
             IHeartBeatWorker hb;
             if (_configuration.Enabled)
             {
-                hb = new HeartBeatWorker(_configuration, context, _sendHeartBeat, _scheduler, _logFactory,
+                hb = new HeartBeatWorker(_configuration, context, _sendHeartBeat, _scheduler, _log,
                     _heartBeatNotificationFactory);
             }
             else

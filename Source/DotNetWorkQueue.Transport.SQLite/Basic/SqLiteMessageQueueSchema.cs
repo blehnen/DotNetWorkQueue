@@ -276,10 +276,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             errorTracking.Columns.Add(new Column("ExceptionType", ColumnTypes.Text, 500, false, null));
             errorTracking.Columns.Add(new Column("RetryCount", ColumnTypes.Integer, false, null));
 
-            //add primary key constraint
-            //errorTracking.Constraints.Add(new Constraint("PK_" + _tableNameHelper.ErrorTrackingName, ConstraintType.PrimaryKey, "ErrorTrackingID"));
-            //errorTracking.PrimaryKey.Unique = true;
-
             errorTracking.Constraints.Add(new Constraint("IX_QueueID", ConstraintType.Index, ColumnQueueId));
 
             foreach (var c in errorTracking.Constraints)
@@ -305,10 +301,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             }
             metaErrors.Columns.Add(new Column("LastException", ColumnTypes.Text, -1, true, null));
             metaErrors.Columns.Add(new Column("LastExceptionDate", ColumnTypes.Integer, true, null));
-
-            //add primary key constraint
-            //metaErrors.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataErrorsName, ConstraintType.PrimaryKey, "ID"));
-            //metaErrors.PrimaryKey.Unique = true;
 
             //NOTE no indexes are copied from the meta table
             foreach (var c in metaErrors.Constraints)

@@ -33,7 +33,6 @@ namespace DotNetWorkQueue.Queue
 
         private readonly object _shouldWorkLocker = new object();
         private readonly object _startedLocker = new object();
-        private ConsumerQueueNotifications _consumerQueueNotifications;
         private readonly IConsumerQueueNotification _consumerQueueNotification;
         private readonly IConsumerQueueErrorNotification _consumerQueueErrorNotification;
 
@@ -147,9 +146,8 @@ namespace DotNetWorkQueue.Queue
         /// <param name="notifications"></param>
         protected void SetupNotifications(ConsumerQueueNotifications notifications)
         {
-            _consumerQueueNotifications = notifications;
-            _consumerQueueErrorNotification.Sub(_consumerQueueNotifications);
-            _consumerQueueNotification.Sub(_consumerQueueNotifications);
+            _consumerQueueErrorNotification.Sub(notifications);
+            _consumerQueueNotification.Sub(notifications);
         }
 
         #region IDispose, IIsDisposed

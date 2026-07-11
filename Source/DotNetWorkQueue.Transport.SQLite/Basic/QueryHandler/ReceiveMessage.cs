@@ -214,8 +214,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                 additionalCommands.Add($" update {statusTableName} set status = {Convert.ToInt16(QueueStatuses.Processing)} where {statusTableName}.QueueID = (select {tempName}.QueueID from {tempName} LIMIT 1);");
             }
 
-            //will drop when the connection closes
-            //additionalCommands.Add($"drop table {tempName};");
+            //the temp table drops automatically when the connection closes
 
             return new CommandString(sb.ToString(), additionalCommands);
         }

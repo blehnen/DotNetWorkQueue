@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
         public void Rollback(IMessageContext context)
         {
             var connection = context.Get(_headers.Connection);
-            if (connection?.IsDisposed == false && connection?.Connection != null && connection.Transaction != null)
+            if (connection?.IsDisposed == false && connection.Connection != null && connection.Transaction != null)
             {
                 RollbackForTransaction(context);
                 return;

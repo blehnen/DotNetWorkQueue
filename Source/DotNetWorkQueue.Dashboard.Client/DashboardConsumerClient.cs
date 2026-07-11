@@ -288,7 +288,7 @@ namespace DotNetWorkQueue.Dashboard.Client
             GC.SuppressFinalize(this);
         }
 
-        private class RegistrationResult
+        private sealed class RegistrationResult
         {
             public Guid ConsumerId { get; set; }
             public int HeartbeatIntervalSeconds { get; set; }

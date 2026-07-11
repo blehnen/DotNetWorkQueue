@@ -102,7 +102,7 @@
     private List<HistoryResponse>? _records;
     private long _totalCount;
     private int _pageIndex;
-    private int _pageSize = 25;
+    private readonly int _pageSize = 25;
     private int? _statusFilter;
     private int _lastRefreshVersion;
     private bool _loading = true;
@@ -174,5 +174,10 @@
         return $"{ms / 60000.0:F1}m";
     }
 
-    private static string TruncateId(string? id) => string.IsNullOrEmpty(id) ? "-" : (id.Length > 12 ? id[..12] + "..." : id);
+    private static string TruncateId(string? id)
+    {
+        if (string.IsNullOrEmpty(id))
+            return "-";
+        return id.Length > 12 ? id[..12] + "..." : id;
+    }
 }
