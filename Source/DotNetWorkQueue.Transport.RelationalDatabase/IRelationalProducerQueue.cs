@@ -62,6 +62,19 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         IQueueOutputMessage Send(TMessage message, IAdditionalMessageData data, DbTransaction transaction);
 
         /// <summary>
+        /// Sends a batch of messages inside the caller-supplied transaction.
+        /// </summary>
+        /// <param name="messages">The batch of messages.</param>
+        /// <param name="transaction">Caller-supplied transaction.</param>
+        /// <returns>The queue output messages describing the send results.</returns>
+        /// <remarks>
+        /// Batch type is <see cref="List{T}"/> to match the existing
+        /// <see cref="IProducerQueue{TMessage}"/> shape; PROJECT.md spec used
+        /// <c>IEnumerable</c>, deviation flagged for verifier in PLAN-2.2.
+        /// </remarks>
+        IQueueOutputMessages Send(List<QueueMessage<TMessage, IAdditionalMessageData>> messages, DbTransaction transaction);
+
+        /// <summary>
         /// Async variant of <see cref="Send(TMessage, DbTransaction)"/>.
         /// </summary>
         /// <param name="message">The message.</param>
@@ -77,19 +90,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="transaction">Caller-supplied transaction.</param>
         /// <returns>A task producing the queue output message describing the send result.</returns>
         Task<IQueueOutputMessage> SendAsync(TMessage message, IAdditionalMessageData data, DbTransaction transaction);
-
-        /// <summary>
-        /// Sends a batch of messages inside the caller-supplied transaction.
-        /// </summary>
-        /// <param name="messages">The batch of messages.</param>
-        /// <param name="transaction">Caller-supplied transaction.</param>
-        /// <returns>The queue output messages describing the send results.</returns>
-        /// <remarks>
-        /// Batch type is <see cref="List{T}"/> to match the existing
-        /// <see cref="IProducerQueue{TMessage}"/> shape; PROJECT.md spec used
-        /// <c>IEnumerable</c>, deviation flagged for verifier in PLAN-2.2.
-        /// </remarks>
-        IQueueOutputMessages Send(List<QueueMessage<TMessage, IAdditionalMessageData>> messages, DbTransaction transaction);
 
         /// <summary>
         /// Async batch send inside the caller-supplied transaction.

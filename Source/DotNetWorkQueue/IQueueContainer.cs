@@ -56,13 +56,6 @@ namespace DotNetWorkQueue
         IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection);
 
         /// <summary>
-        /// Creates an async consumer queue that uses a task scheduler. The default task factory will be used.
-        /// </summary>
-        /// <param name="queueConnection">Queue and connection information.</param>
-        /// <returns></returns>
-        IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection);
-
-        /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
         /// </summary>
         /// <param name="queueConnection">Queue and connection information.</param>
@@ -75,17 +68,24 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="factory">The task factory.</param>
+        /// <param name="workGroup">The work group.</param>
         /// <returns></returns>
-        IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection, ITaskFactory factory);
+        IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection, ITaskFactory factory, IWorkGroup workGroup);
+
+        /// <summary>
+        /// Creates an async consumer queue that uses a task scheduler. The default task factory will be used.
+        /// </summary>
+        /// <param name="queueConnection">Queue and connection information.</param>
+        /// <returns></returns>
+        IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection);
 
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
         /// </summary>
         /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="factory">The task factory.</param>
-        /// <param name="workGroup">The work group.</param>
         /// <returns></returns>
-        IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection, ITaskFactory factory, IWorkGroup workGroup);
+        IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection, ITaskFactory factory);
 
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler

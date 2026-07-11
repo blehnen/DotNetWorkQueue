@@ -73,16 +73,16 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             => SendWithExternalTransaction(message, data, transaction);
 
         /// <inheritdoc />
+        public IQueueOutputMessages Send(List<QueueMessage<T, IAdditionalMessageData>> messages, DbTransaction transaction)
+            => SendWithExternalTransactionBatch(messages, transaction);
+
+        /// <inheritdoc />
         public Task<IQueueOutputMessage> SendAsync(T message, DbTransaction transaction)
             => SendWithExternalTransactionAsync(message, null, transaction);
 
         /// <inheritdoc />
         public Task<IQueueOutputMessage> SendAsync(T message, IAdditionalMessageData data, DbTransaction transaction)
             => SendWithExternalTransactionAsync(message, data, transaction);
-
-        /// <inheritdoc />
-        public IQueueOutputMessages Send(List<QueueMessage<T, IAdditionalMessageData>> messages, DbTransaction transaction)
-            => SendWithExternalTransactionBatch(messages, transaction);
 
         /// <inheritdoc />
         public Task<IQueueOutputMessages> SendAsync(List<QueueMessage<T, IAdditionalMessageData>> messages, DbTransaction transaction)

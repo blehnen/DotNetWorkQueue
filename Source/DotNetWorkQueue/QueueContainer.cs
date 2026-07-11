@@ -140,6 +140,37 @@ namespace DotNetWorkQueue
         }
 
         /// <summary>
+        /// Creates an async consumer queue that uses a task scheduler
+        /// </summary>
+        /// <param name="queueConnection">Queue and connection information.</param>
+        /// <param name="factory">The task factory.</param>
+        /// <returns></returns>
+        public IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection, ITaskFactory factory)
+        {
+            ThrowIfDisposed();
+
+            Guard.NotNull(() => queueConnection, queueConnection);
+
+            return CreateConsumerQueueSchedulerInternal(queueConnection, factory, null, false);
+        }
+
+        /// <summary>
+        /// Creates an async consumer queue that uses a task scheduler
+        /// </summary>
+        /// <param name="queueConnection">Queue and connection information.</param>
+        /// <param name="factory">The task factory.</param>
+        /// <param name="workGroup">The work group.</param>
+        /// <returns></returns>
+        public IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection, ITaskFactory factory, IWorkGroup workGroup)
+        {
+            ThrowIfDisposed();
+
+            Guard.NotNull(() => queueConnection, queueConnection);
+
+            return CreateConsumerQueueSchedulerInternal(queueConnection, factory, workGroup, false);
+        }
+
+        /// <summary>
         /// Creates an async consumer queue that uses a task scheduler. The default task factory will be used.
         /// </summary>
         /// <param name="queueConnection">Queue and connection information.</param>
@@ -163,20 +194,6 @@ namespace DotNetWorkQueue
         /// <param name="queueConnection">Queue and connection information.</param>
         /// <param name="factory">The task factory.</param>
         /// <returns></returns>
-        public IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection, ITaskFactory factory)
-        {
-            ThrowIfDisposed();
-
-            Guard.NotNull(() => queueConnection, queueConnection);
-
-            return CreateConsumerQueueSchedulerInternal(queueConnection, factory, null, false);
-        }
-        /// <summary>
-        /// Creates an async consumer queue that uses a task scheduler
-        /// </summary>
-        /// <param name="queueConnection">Queue and connection information.</param>
-        /// <param name="factory">The task factory.</param>
-        /// <returns></returns>
         public IConsumerMethodQueueScheduler CreateConsumerMethodQueueScheduler(QueueConnection queueConnection, ITaskFactory factory)
         {
             ThrowIfDisposed();
@@ -185,6 +202,7 @@ namespace DotNetWorkQueue
 
             return CreateConsumerMethodQueueSchedulerInternal(queueConnection, factory, null, false);
         }
+
         /// <summary>
         /// Creates an async consumer queue that uses a task scheduler
         /// </summary>
@@ -199,21 +217,6 @@ namespace DotNetWorkQueue
             Guard.NotNull(() => queueConnection, queueConnection);
 
             return CreateConsumerMethodQueueSchedulerInternal(queueConnection, factory, workGroup, false);
-        }
-        /// <summary>
-        /// Creates an async consumer queue that uses a task scheduler
-        /// </summary>
-        /// <param name="queueConnection">Queue and connection information.</param>
-        /// <param name="factory">The task factory.</param>
-        /// <param name="workGroup">The work group.</param>
-        /// <returns></returns>
-        public IConsumerQueueScheduler CreateConsumerQueueScheduler(QueueConnection queueConnection, ITaskFactory factory, IWorkGroup workGroup)
-        {
-            ThrowIfDisposed();
-
-            Guard.NotNull(() => queueConnection, queueConnection);
-
-            return CreateConsumerQueueSchedulerInternal(queueConnection, factory, workGroup, false);
         }
 
         /// <summary>

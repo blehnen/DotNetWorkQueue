@@ -106,6 +106,15 @@ namespace DotNetWorkQueue
         IContainer Register(Type openGenericServiceType, IEnumerable<Type> implementationTypes, LifeStyles lifeStyle);
 
         /// <summary>
+        /// Registers the specified service type.
+        /// </summary>
+        /// <param name="serviceType">Type of the service.</param>
+        /// <param name="instanceCreator">The instance creator.</param>
+        /// <param name="lifestyle">The lifestyle.</param>
+        /// <returns></returns>
+        IContainer Register(Type serviceType, Func<object> instanceCreator, LifeStyles lifestyle);
+
+        /// <summary>
         /// Registers a singleton that will not be scoped and disposed of with the container.
         /// </summary>
         /// <typeparam name="TConcrete">The type of the concrete.</typeparam>
@@ -133,15 +142,6 @@ namespace DotNetWorkQueue
         IContainer RegisterDecorator<TService, TDecorator>(LifeStyles lifestyle)
             where TService : class
             where TDecorator : class, TService;
-
-        /// <summary>
-        /// Registers the specified service type.
-        /// </summary>
-        /// <param name="serviceType">Type of the service.</param>
-        /// <param name="instanceCreator">The instance creator.</param>
-        /// <param name="lifestyle">The lifestyle.</param>
-        /// <returns></returns>
-        IContainer Register(Type serviceType, Func<object> instanceCreator, LifeStyles lifestyle);
 
         /// <summary>
         /// Registers the implementation type as a fall back if no other registration has been made

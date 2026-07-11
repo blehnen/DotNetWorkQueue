@@ -280,6 +280,21 @@ The queue uses dynamic instances to run the user delegate and the queue cannot c
         /// <summary>
         /// Sends the specified message.
         /// </summary>
+        /// <param name="messages">The messages.</param>
+        /// <returns></returns>
+        private IQueueOutputMessages InternalSend(List<QueueMessage<T, IAdditionalMessageData>> messages)
+        {
+            Guard.NotNull(() => messages, messages);
+
+            var newMessages = InternalSendPrepare(messages);
+
+            //send the message to the transport
+            return _sendMessages.Send(newMessages.ToList());
+        }
+
+        /// <summary>
+        /// Sends the specified message.
+        /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="data">The data.</param>
         /// <returns></returns>
@@ -297,21 +312,6 @@ The queue uses dynamic instances to run the user delegate and the queue cannot c
 
             //send the message to the transport
             return await _sendMessages.SendAsync(messageToSend, data).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Sends the specified message.
-        /// </summary>
-        /// <param name="messages">The messages.</param>
-        /// <returns></returns>
-        private IQueueOutputMessages InternalSend(List<QueueMessage<T, IAdditionalMessageData>> messages)
-        {
-            Guard.NotNull(() => messages, messages);
-
-            var newMessages = InternalSendPrepare(messages);
-
-            //send the message to the transport
-            return _sendMessages.Send(newMessages.ToList());
         }
 
         /// <summary>

@@ -165,34 +165,6 @@ namespace DotNetWorkQueue.IoC
         }
 
         /// <summary>
-        /// Registers the implementation type as a fall back if no other registration has been made
-        /// </summary>
-        /// <param name="serviceType">Type of the service.</param>
-        /// <param name="implementationType">Type of the implementation.</param>
-        /// <param name="lifestyle">The lifestyle.</param>
-        /// <returns></returns>
-        public IContainer RegisterConditional(Type serviceType, Type implementationType, LifeStyles lifestyle)
-        {
-            _container.RegisterConditional(serviceType, implementationType, GetLifeStyle(lifestyle), c => !c.Handled);
-            return this;
-        }
-
-        /// <summary>
-        /// Registers the conditional.
-        /// </summary>
-        /// <typeparam name="TService">The type of the service.</typeparam>
-        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
-        /// <param name="lifestyle">The lifestyle.</param>
-        /// <returns></returns>
-        public IContainer RegisterConditional<TService, TImplementation>(LifeStyles lifestyle)
-            where TService : class
-            where TImplementation : class, TService
-        {
-            _container.RegisterConditional<TService, TImplementation>(GetLifeStyle(lifestyle), c => !c.Handled);
-            return this;
-        }
-
-        /// <summary>
         /// Registers the service with the specified life style.
         /// </summary>
         /// <typeparam name="TConcrete">The type of the concrete implementation.</typeparam>
@@ -254,6 +226,34 @@ namespace DotNetWorkQueue.IoC
         public IContainer Register(Type openGenericServiceType, IEnumerable<Type> implementationTypes, LifeStyles lifeStyle)
         {
             _container.Register(openGenericServiceType, implementationTypes, GetLifeStyle(lifeStyle));
+            return this;
+        }
+
+        /// <summary>
+        /// Registers the implementation type as a fall back if no other registration has been made
+        /// </summary>
+        /// <param name="serviceType">Type of the service.</param>
+        /// <param name="implementationType">Type of the implementation.</param>
+        /// <param name="lifestyle">The lifestyle.</param>
+        /// <returns></returns>
+        public IContainer RegisterConditional(Type serviceType, Type implementationType, LifeStyles lifestyle)
+        {
+            _container.RegisterConditional(serviceType, implementationType, GetLifeStyle(lifestyle), c => !c.Handled);
+            return this;
+        }
+
+        /// <summary>
+        /// Registers the conditional.
+        /// </summary>
+        /// <typeparam name="TService">The type of the service.</typeparam>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="lifestyle">The lifestyle.</param>
+        /// <returns></returns>
+        public IContainer RegisterConditional<TService, TImplementation>(LifeStyles lifestyle)
+            where TService : class
+            where TImplementation : class, TService
+        {
+            _container.RegisterConditional<TService, TImplementation>(GetLifeStyle(lifestyle), c => !c.Handled);
             return this;
         }
 
