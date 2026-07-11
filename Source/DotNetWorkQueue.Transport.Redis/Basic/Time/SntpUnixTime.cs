@@ -17,9 +17,12 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading;
 using DotNetWorkQueue.Logging;
 using GuerrillaNtp;
 using Microsoft.Extensions.Logging;
+using Polly;
+using Polly.Retry;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Time
 {
@@ -31,6 +34,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
         private readonly object _getTime = new object();
         private long _millisecondsDifference;
         private readonly NtpClient _ntpClient;
+        private readonly ResiliencePipeline _queryPipeline;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SntpUnixTime" /> class.
@@ -41,6 +45,24 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
             : base(log, configuration)
         {
             _ntpClient = new NtpClient(configuration.Server, configuration.TimeOut, configuration.Port);
+
+            //a single UDP query to a public NTP pool can be silently dropped or rate-limited, surfacing
+            //as a socket timeout. Retry a few times with jittered backoff so a transient loss doesn't fail.
+            _queryPipeline = new ResiliencePipelineBuilder()
+                .AddRetry(new RetryStrategyOptions
+                {
+                    ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                    MaxRetryAttempts = 3,
+                    Delay = TimeSpan.FromMilliseconds(250),
+                    BackoffType = DelayBackoffType.Exponential,
+                    UseJitter = true,
+                    OnRetry = args =>
+                    {
+                        Log.LogWarning(args.Outcome.Exception, "NTP query failed; retrying in {RetryDelayMs} ms (attempt {AttemptNumber})", args.RetryDelay.TotalMilliseconds, args.AttemptNumber + 1);
+                        return default;
+                    }
+                })
+                .Build();
         }
 
         /// <summary>
@@ -59,15 +81,29 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
         {
             if (!TimeExpired()) return (long)(DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
 
-            lock (_getTime)
+            //Serialize refreshes so only one thread queries the NTP server at a time - a burst of
+            //concurrent queries is exactly what public pools rate-limit. But other threads must not
+            //block behind the (retry-wrapped, so potentially multi-second on an outage) query: on a
+            //warm cache they serve the last-known offset instead. Only the very first (cold) call,
+            //which has no cached value yet, waits for the query to complete.
+            var lockTaken = false;
+            try
             {
-                if (!TimeExpired())
-                    return (long)(DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
+                if (ServerOffsetObtained == default)
+                    Monitor.Enter(_getTime, ref lockTaken);
+                else
+                    Monitor.TryEnter(_getTime, ref lockTaken);
 
-                var clock = _ntpClient.Query();
-                _millisecondsDifference = (long)clock.CorrectionOffset.TotalMilliseconds;
-
-                ServerOffsetObtained = DateTime.UtcNow;
+                if (lockTaken && TimeExpired())
+                {
+                    var clock = _queryPipeline.Execute(() => _ntpClient.Query());
+                    _millisecondsDifference = (long)clock.CorrectionOffset.TotalMilliseconds;
+                    ServerOffsetObtained = DateTime.UtcNow;
+                }
+            }
+            finally
+            {
+                if (lockTaken) Monitor.Exit(_getTime);
             }
             return (long)(DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
         }
