@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading;
 using DotNetWorkQueue.Logging;
 using GuerrillaNtp;
 using Microsoft.Extensions.Logging;
@@ -80,15 +81,29 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
         {
             if (!TimeExpired()) return (long)(DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
 
-            lock (_getTime)
+            //Serialize refreshes so only one thread queries the NTP server at a time - a burst of
+            //concurrent queries is exactly what public pools rate-limit. But other threads must not
+            //block behind the (retry-wrapped, so potentially multi-second on an outage) query: on a
+            //warm cache they serve the last-known offset instead. Only the very first (cold) call,
+            //which has no cached value yet, waits for the query to complete.
+            var lockTaken = false;
+            try
             {
-                if (!TimeExpired())
-                    return (long)(DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
+                if (ServerOffsetObtained == default)
+                    Monitor.Enter(_getTime, ref lockTaken);
+                else
+                    Monitor.TryEnter(_getTime, ref lockTaken);
 
-                var clock = _queryPipeline.Execute(() => _ntpClient.Query());
-                _millisecondsDifference = (long)clock.CorrectionOffset.TotalMilliseconds;
-
-                ServerOffsetObtained = DateTime.UtcNow;
+                if (lockTaken && TimeExpired())
+                {
+                    var clock = _queryPipeline.Execute(() => _ntpClient.Query());
+                    _millisecondsDifference = (long)clock.CorrectionOffset.TotalMilliseconds;
+                    ServerOffsetObtained = DateTime.UtcNow;
+                }
+            }
+            finally
+            {
+                if (lockTaken) Monitor.Exit(_getTime);
             }
             return (long)(DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
         }
