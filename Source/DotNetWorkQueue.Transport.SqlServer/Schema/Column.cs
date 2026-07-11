@@ -234,7 +234,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Schema
         public Column Clone(bool newDefaultName)
         {
             var newName = Guid.NewGuid().ToString("n");
-            Column rc = this.Default != null ? new Column {Default = Default.Clone(newDefaultName ? $"default_{newName}" : null)} : new Column();
+            var clonedDefaultName = newDefaultName ? $"default_{newName}" : null;
+            Column rc = this.Default != null ? new Column {Default = Default.Clone(clonedDefaultName)} : new Column();
             if (Identity != null)
             {
                 rc.Identity = Identity.Clone();

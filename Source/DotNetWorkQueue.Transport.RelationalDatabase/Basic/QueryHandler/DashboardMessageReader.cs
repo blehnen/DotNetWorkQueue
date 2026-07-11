@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             if (options.EnableMessageExpiration)
                 message.ExpirationTime = readColumn.ReadAsDateTimeOffset(commandType, columnIndex++, reader);
             if (options.EnableRoute)
-                message.Route = readColumn.ReadAsString(commandType, columnIndex++, reader);
+                message.Route = readColumn.ReadAsString(commandType, columnIndex, reader);
 
             return message;
         }

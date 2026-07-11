@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
     /// <summary>
     /// Shared constants for the retry decorators
     /// </summary>
-    internal class RetryConstants
+    internal static class RetryConstants
     {
         /// <summary>
         /// The retry count

@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Factory
     /// sometimes need access to the container. This allows access to the container without <seealso cref="IContainer"/> being injected</remarks>
     internal sealed class ContainerFactory : IContainerFactory, IDisposable
     {
-        private ContainerWrapper _containerWrapper;
+        private readonly ContainerWrapper _containerWrapper;
         private int _disposeCount;
         /// <summary>
         /// Initializes a new instance of the <see cref="ContainerFactory"/> class.

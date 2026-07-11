@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Services
 
         private IDashboardApiClient CreateClient(string slug)
         {
-            var source = _sourceRegistry.GetBySlug(slug)
+            _ = _sourceRegistry.GetBySlug(slug)
                 ?? throw new KeyNotFoundException($"No API source configured with slug '{slug}'");
 
             var httpClient = _httpClientFactory.CreateClient(slug);

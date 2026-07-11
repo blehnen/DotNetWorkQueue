@@ -68,28 +68,26 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             }
 
             // Filtered: scan in batches since status is in the hash, not the sorted set score
+            const int batchSize = 100;
+            var filteredResults = new List<MessageHistoryRecord>();
+            var skip = pageIndex * pageSize;
+            var skipped = 0;
+            long batchStart = 0;
+            while (true)
             {
-                const int batchSize = 100;
-                var results = new List<MessageHistoryRecord>();
-                var skip = pageIndex * pageSize;
-                var skipped = 0;
-                long batchStart = 0;
-                while (true)
+                var members = db.SortedSetRangeByRank(HistoryIndexKey, batchStart, batchStart + batchSize - 1, Order.Descending);
+                if (members.Length == 0) break;
+                foreach (var member in members)
                 {
-                    var members = db.SortedSetRangeByRank(HistoryIndexKey, batchStart, batchStart + batchSize - 1, Order.Descending);
-                    if (members.Length == 0) break;
-                    foreach (var member in members)
-                    {
-                        var record = LoadRecord(db, member.ToString());
-                        if (record == null || record.Status != statusFilter.Value) continue;
-                        if (skipped < skip) { skipped++; continue; }
-                        results.Add(record);
-                        if (results.Count >= pageSize) return results;
-                    }
-                    batchStart += batchSize;
+                    var record = LoadRecord(db, member.ToString());
+                    if (record == null || record.Status != statusFilter.Value) continue;
+                    if (skipped < skip) { skipped++; continue; }
+                    filteredResults.Add(record);
+                    if (filteredResults.Count >= pageSize) return filteredResults;
                 }
-                return results;
+                batchStart += batchSize;
             }
+            return filteredResults;
         }
 
         /// <inheritdoc />
@@ -133,7 +131,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private static string GetString(Dictionary<string, RedisValue> dict, string key)
         { return dict.TryGetValue(key, out var val) ? val.ToString() : ""; }
         private static long GetLong(Dictionary<string, RedisValue> dict, string key)
-        { if (dict.TryGetValue(key, out var val) && val.TryParse(out long result)) return result; return 0L; }
+        {
+            if (dict.TryGetValue(key, out var val) && val.TryParse(out long result))
+                return result;
+            return 0L;
+        }
         private static string NullIfEmpty(string value) => string.IsNullOrEmpty(value) ? null : value;
     }
 }

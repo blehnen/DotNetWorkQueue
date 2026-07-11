@@ -48,6 +48,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             if (size < 1)
                 throw new ArgumentOutOfRangeException(nameof(size), size, "The chunk size must be at least 1.");
 
+            return PartitionIterator(source, size);
+        }
+
+        private static IEnumerable<IReadOnlyList<T>> PartitionIterator<T>(IReadOnlyList<T> source, int size)
+        {
             for (var start = 0; start < source.Count; start += size)
             {
                 var count = Math.Min(size, source.Count - start);

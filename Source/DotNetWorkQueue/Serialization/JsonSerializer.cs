@@ -83,7 +83,7 @@ namespace DotNetWorkQueue.Serialization
         /// A wrapper class to avoid issues with being passed a dictionary as the top level object
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        private class SerializationWrapper<T>
+        private sealed class SerializationWrapper<T>
         {
             /// <summary>
             /// Gets or sets the message.

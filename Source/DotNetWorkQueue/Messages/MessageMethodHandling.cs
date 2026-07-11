@@ -142,7 +142,7 @@ namespace DotNetWorkQueue.Messages
         {
             if (!disposing) return;
 
-            if (Interlocked.Increment(ref _disposeCount) != 1) return;
+            Interlocked.Increment(ref _disposeCount);
         }
 
         /// <summary>

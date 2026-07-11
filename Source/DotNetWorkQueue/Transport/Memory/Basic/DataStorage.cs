@@ -37,27 +37,27 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
     public sealed class DataStorage : IDataStorage, IDataStorageSendMessage, IDisposable
     {
         //next item to de-queue
-        private static readonly ConcurrentDictionary<IConnectionInformation, BlockingCollection<Guid>> Queues;
+        private static readonly ConcurrentDictionary<IConnectionInformation, BlockingCollection<Guid>> Queues = new();
 
         //actual data
-        private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>> QueueData;
+        private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>> QueueData = new();
 
         //jobs
-        private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<string, Guid>> Jobs;
+        private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<string, Guid>> Jobs = new();
 
         //working set
-        private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>> QueueWorking;
+        private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>> QueueWorking = new();
 
         //error count per queue
-        private static readonly ConcurrentDictionary<IConnectionInformation, IncrementWrapper> ErrorCounts;
+        private static readonly ConcurrentDictionary<IConnectionInformation, IncrementWrapper> ErrorCounts = new();
 
         //dequeue count
-        private static readonly ConcurrentDictionary<IConnectionInformation, IncrementWrapper> DequeueCounts;
+        private static readonly ConcurrentDictionary<IConnectionInformation, IncrementWrapper> DequeueCounts = new();
 
         //saved transport options per queue
-        private static readonly ConcurrentDictionary<IConnectionInformation, TransportOptions> SavedOptions;
+        private static readonly ConcurrentDictionary<IConnectionInformation, TransportOptions> SavedOptions = new();
 
-        private static readonly IMemoryCache JobLastEventCache;
+        private static readonly IMemoryCache JobLastEventCache = new MemoryCache(new MemoryCacheOptions());
 
         private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
         private readonly IConnectionInformation _connectionInformation;
@@ -95,22 +95,6 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             DequeueCounts.GetOrAdd(_connectionInformation, _ => new IncrementWrapper());
             Jobs.GetOrAdd(_connectionInformation, _ => new ConcurrentDictionary<string, Guid>());
             QueueWorking.GetOrAdd(_connectionInformation, _ => new ConcurrentDictionary<Guid, QueueItem>());
-        }
-
-        /// <summary>
-        /// Initializes the <see cref="DataStorage"/> class.
-        /// </summary>
-        static DataStorage()
-        {
-            Queues = new ConcurrentDictionary<IConnectionInformation, BlockingCollection<Guid>>();
-            QueueData = new ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>>();
-            ErrorCounts = new ConcurrentDictionary<IConnectionInformation, IncrementWrapper>();
-            DequeueCounts = new ConcurrentDictionary<IConnectionInformation, IncrementWrapper>();
-            Jobs = new ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<string, Guid>>();
-            QueueWorking = new ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>>();
-            SavedOptions = new ConcurrentDictionary<IConnectionInformation, TransportOptions>();
-
-            JobLastEventCache = new MemoryCache(new MemoryCacheOptions());
         }
 
         private bool Complete
@@ -730,7 +714,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             }
         }
 
-        private class IncrementWrapper
+        private sealed class IncrementWrapper
         {
             public IncrementWrapper()
             {

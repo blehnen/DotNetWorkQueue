@@ -49,6 +49,11 @@ namespace DotNetWorkQueue.IoC
     public class ComponentRegistration
     {
         /// <summary>
+        /// Prevents a default instance of the <see cref="ComponentRegistration"/> class from being created; all members are static.
+        /// </summary>
+        private ComponentRegistration() { }
+
+        /// <summary>
         /// Registers the defaults implementations.
         /// </summary>
         /// <param name="container">The container.</param>

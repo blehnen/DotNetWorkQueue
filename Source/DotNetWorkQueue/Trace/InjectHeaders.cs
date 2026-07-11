@@ -44,11 +44,8 @@ namespace DotNetWorkQueue.Trace
         public static void Inject(this IMessage message, ActivitySource tracer, ActivityContext context,
             IStandardHeaders headers)
         {
-            var mapping = Propagators.DefaultTextMapPropagator; ;
+            var mapping = Propagators.DefaultTextMapPropagator;
             mapping.Inject(new PropagationContext(context, Baggage.Current), message.Headers, InjectTraceContextIntoBasicProperties);
-
-            //tracer.Inject(context, BuiltinFormats.TextMap, mapping);
-            //message.SetHeader(headers.TraceSpan, mapping);
         }
 
         private static void InjectTraceContextIntoBasicProperties(IDictionary<string, object> props, string key, string value)
