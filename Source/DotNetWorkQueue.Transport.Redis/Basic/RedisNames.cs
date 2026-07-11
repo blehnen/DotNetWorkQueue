@@ -28,6 +28,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     {
         private readonly IConnectionInformation _connectionInformation;
         private readonly Dictionary<string, string> _names;
+        private volatile bool _namesLoaded;
         private const string QueuePrefix = "{YADNQ_";
         #region Constructor
         /// <summary>
@@ -335,10 +336,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
         private void BuildListIfNeeded()
         {
-            if (_names.Count == 17) return; //don't return unless all names are loaded
+            if (_namesLoaded) return; //flag is only set after every name has been added, so it can't drift from the entry count
             lock (_names)
             {
-                if (_names.Count != 0) return;
+                if (_namesLoaded) return;
                 _names.Add("Notification", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Notifications"));
                 _names.Add("Pending", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Pending"));
                 _names.Add("Working", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Working"));
@@ -356,6 +357,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 _names.Add("Route", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Routes"));
                 _names.Add("Configuration", string.Concat(QueuePrefix, _connectionInformation.QueueName, "_}Configuration"));
                 _names.Add("JobEvent", string.Concat(QueuePrefix, "}JobEvent"));  //NOTE - not part of a queue
+                _namesLoaded = true;
             }
         }
     }

@@ -20,6 +20,8 @@ using System;
 using DotNetWorkQueue.Logging;
 using GuerrillaNtp;
 using Microsoft.Extensions.Logging;
+using Polly;
+using Polly.Retry;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Time
 {
@@ -31,6 +33,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
         private readonly object _getTime = new object();
         private long _millisecondsDifference;
         private readonly NtpClient _ntpClient;
+        private readonly ResiliencePipeline _queryPipeline;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SntpUnixTime" /> class.
@@ -41,6 +44,24 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
             : base(log, configuration)
         {
             _ntpClient = new NtpClient(configuration.Server, configuration.TimeOut, configuration.Port);
+
+            //a single UDP query to a public NTP pool can be silently dropped or rate-limited, surfacing
+            //as a socket timeout. Retry a few times with jittered backoff so a transient loss doesn't fail.
+            _queryPipeline = new ResiliencePipelineBuilder()
+                .AddRetry(new RetryStrategyOptions
+                {
+                    ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                    MaxRetryAttempts = 3,
+                    Delay = TimeSpan.FromMilliseconds(250),
+                    BackoffType = DelayBackoffType.Exponential,
+                    UseJitter = true,
+                    OnRetry = args =>
+                    {
+                        Log.LogWarning(args.Outcome.Exception, "NTP query failed; retrying in {RetryDelayMs} ms (attempt {AttemptNumber})", args.RetryDelay.TotalMilliseconds, args.AttemptNumber + 1);
+                        return default;
+                    }
+                })
+                .Build();
         }
 
         /// <summary>
@@ -64,7 +85,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
                 if (!TimeExpired())
                     return (long)(DateTime.UtcNow - UnixEpoch).TotalMilliseconds + _millisecondsDifference;
 
-                var clock = _ntpClient.Query();
+                var clock = _queryPipeline.Execute(() => _ntpClient.Query());
                 _millisecondsDifference = (long)clock.CorrectionOffset.TotalMilliseconds;
 
                 ServerOffsetObtained = DateTime.UtcNow;
