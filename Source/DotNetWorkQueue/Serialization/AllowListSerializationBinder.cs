@@ -61,6 +61,20 @@ namespace DotNetWorkQueue.Serialization
         }
 
         /// <summary>
+        /// Adds a type to the allow list using its <see cref="Type.FullName"/>.
+        /// Subsequent attempts to deserialize this type will succeed.
+        /// This method is not thread-safe with concurrent <see cref="BindToType"/> calls.
+        /// Call during application startup before any deserialization occurs.
+        /// </summary>
+        /// <param name="type">The type to allow.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
+        public void AddAllowedType(Type type)
+        {
+            Guard.NotNull(() => type, type);
+            AddAllowedType(type.FullName);
+        }
+
+        /// <summary>
         /// Adds multiple type names to the allow list. Subsequent attempts to deserialize these types will succeed.
         /// This method is not thread-safe with concurrent <see cref="BindToType"/> calls.
         /// Call during application startup before any deserialization occurs.
@@ -74,20 +88,6 @@ namespace DotNetWorkQueue.Serialization
             {
                 AddAllowedType(typeName);
             }
-        }
-
-        /// <summary>
-        /// Adds a type to the allow list using its <see cref="Type.FullName"/>.
-        /// Subsequent attempts to deserialize this type will succeed.
-        /// This method is not thread-safe with concurrent <see cref="BindToType"/> calls.
-        /// Call during application startup before any deserialization occurs.
-        /// </summary>
-        /// <param name="type">The type to allow.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
-        public void AddAllowedType(Type type)
-        {
-            Guard.NotNull(() => type, type);
-            AddAllowedType(type.FullName);
         }
 
         /// <summary>
