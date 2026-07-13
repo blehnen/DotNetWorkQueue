@@ -93,6 +93,7 @@ namespace DotNetWorkQueue.TaskScheduling
 
         /// <inheritdoc />
         [SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations", Justification = "need to throw exception if scheduler is not running")]
+        [SuppressMessage("Major Code Smell", "S2372:Exceptions should not be thrown from property getters", Justification = "need to throw exception if scheduler is not running")]
         public override RoomForNewTaskResult RoomForNewTask
         {
             get
