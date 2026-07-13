@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DotNetWorkQueue.Messages;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
@@ -36,14 +37,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             IReadOnlyList<QueueMessage<IMessage, IAdditionalMessageData>> messages,
             IJobSchedulerMetaData jobSchedulerMetaData)
         {
-            foreach (var m in messages)
+            if (messages.Any(m => !string.IsNullOrWhiteSpace(jobSchedulerMetaData.GetJobName(m.MessageData))))
             {
-                if (!string.IsNullOrWhiteSpace(jobSchedulerMetaData.GetJobName(m.MessageData)))
-                {
-                    throw new NotSupportedException(
-                        "Batch send does not support scheduled jobs; send scheduled jobs individually " +
-                        "via Send(message).");
-                }
+                throw new NotSupportedException(
+                    "Batch send does not support scheduled jobs; send scheduled jobs individually " +
+                    "via Send(message).");
             }
         }
     }
