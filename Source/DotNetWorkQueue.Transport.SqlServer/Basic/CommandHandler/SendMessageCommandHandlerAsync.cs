@@ -120,8 +120,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 
             using (var connection = new SqlConnection(_configurationSend.ConnectionInfo.ConnectionString))
             {
-                connection.Open();
-                using (var trans = connection.BeginTransaction())
+                await connection.OpenAsync().ConfigureAwait(false);
+                using (var trans = (SqlTransaction)await connection.BeginTransactionAsync().ConfigureAwait(false))
                 {
                     if (string.IsNullOrWhiteSpace(jobName) || _jobExistsHandler.Handle(new DoesJobExistQuery<SqlConnection, SqlTransaction>(jobName, scheduledTime, connection, trans)) ==
                         QueueStatuses.NotQueued)
@@ -178,7 +178,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                                 throw new DotNetWorkQueueException(
                                     "Failed to insert record - the ID of the new record returned by SQL server was 0");
                             }
-                            trans.Commit();
+                            await trans.CommitAsync().ConfigureAwait(false);
                             return id;
                         }
                     }

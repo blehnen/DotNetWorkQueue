@@ -169,4 +169,4 @@ app.MapGet("/auth/logout", async (HttpContext ctx) =>
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.Run();
+await app.RunAsync();

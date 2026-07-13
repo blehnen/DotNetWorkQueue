@@ -121,8 +121,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 
             using (var connection = new NpgsqlConnection(_configurationSend.ConnectionInfo.ConnectionString))
             {
-                connection.Open();
-                using (var trans = connection.BeginTransaction())
+                await connection.OpenAsync().ConfigureAwait(false);
+                using (var trans = await connection.BeginTransactionAsync().ConfigureAwait(false))
                 {
                     if (string.IsNullOrWhiteSpace(jobName) || _jobExistsHandler.Handle(new DoesJobExistQuery<NpgsqlConnection, NpgsqlTransaction>(jobName, scheduledTime, connection, trans)) ==
                         QueueStatuses.NotQueued)
@@ -179,7 +179,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                                 throw new DotNetWorkQueueException(
                                     "Failed to insert record - the ID of the new record returned by the server was 0");
                             }
-                            trans.Commit();
+                            await trans.CommitAsync().ConfigureAwait(false);
                             return id;
                         }
                     }
