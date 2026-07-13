@@ -37,14 +37,13 @@ RUN dotnet publish "Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboar
 # Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 
-# Install SQLite native library (required by the SQLite transport)
+# Install the SQLite native library (required by the SQLite transport) and create the
+# libdl.so symlink the System.Data.SQLite native loader expects — on glibc 2.34+ dlopen
+# lives in libc directly, so libdl.so may be absent. Kept in one RUN to avoid extra layers.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libsqlite3-0 \
-    && rm -rf /var/lib/apt/lists/*
-
-# System.Data.SQLite native loader expects libdl.so, but on glibc 2.34+
-# dlopen is in libc directly. Create the symlink it needs.
-RUN if [ ! -e /usr/lib/x86_64-linux-gnu/libdl.so ]; then \
+    && rm -rf /var/lib/apt/lists/* \
+    && if [ ! -e /usr/lib/x86_64-linux-gnu/libdl.so ]; then \
         ln -s /usr/lib/x86_64-linux-gnu/libdl.so.2 /usr/lib/x86_64-linux-gnu/libdl.so 2>/dev/null || \
         ln -s /lib/x86_64-linux-gnu/libc.so.6 /usr/lib/x86_64-linux-gnu/libdl.so; \
     fi

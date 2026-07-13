@@ -1,4 +1,5 @@
-﻿using DotNetWorkQueue.Notifications;
+﻿using System.Diagnostics.CodeAnalysis;
+using DotNetWorkQueue.Notifications;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -23,6 +24,7 @@ namespace DotNetWorkQueue.Queue
             _notifications?.ReceiveMessageError?.Invoke(error);
         }
 
+        [SuppressMessage("Major Code Smell", "S4144:Methods should not have identical implementations", Justification = "distinct domain events (error raised vs. moved to error queue); kept separate so they can diverge without touching callers")]
         public void InvokeMovedToErrorQueue(ErrorNotification error)
         {
             _metrics.IncrementErrored();
