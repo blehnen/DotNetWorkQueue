@@ -146,6 +146,45 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
             Assert.AreEqual(0, c.PoisonMessages);
         }
 
+        [TestMethod]
+        public async Task Heartbeat_With_Omitted_Metrics_Stores_Zero()
+        {
+            var registration = await RegisterAndDeserialize("M1", 1000);
+
+            // Post a heartbeat body that OMITS the metric counters entirely (absent, not
+            // zero-valued). The nullable model + controller coalescing must treat them as zero.
+            var response = await _server.Client.PostAsJsonAsync(
+                "api/v1/dashboard/consumers/heartbeat",
+                new { ConsumerId = registration.ConsumerId });
+
+            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
+
+            var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
+                "api/v1/dashboard/consumers");
+            var c = consumers![0];
+            Assert.AreEqual(0, c.MessagesProcessed);
+            Assert.AreEqual(0, c.MessagesErrored);
+            Assert.AreEqual(0, c.MessagesRolledBack);
+            Assert.AreEqual(0, c.PoisonMessages);
+        }
+
+        [TestMethod]
+        public async Task Register_With_Omitted_ProcessId_Defaults_To_Zero()
+        {
+            // Omit ProcessId entirely; nullable model + coalescing stores 0.
+            var response = await _server.Client.PostAsJsonAsync(
+                "api/v1/dashboard/consumers/register",
+                new { QueueName = "testQueue", MachineName = "MNOPID" });
+
+            Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
+
+            var consumers = await _server.Client.GetFromJsonAsync<List<ConsumerInfoResponse>>(
+                "api/v1/dashboard/consumers");
+            var c = consumers![0];
+            Assert.AreEqual("MNOPID", c.MachineName);
+            Assert.AreEqual(0, c.ProcessId);
+        }
+
         // === Unregister ===
 
         [TestMethod]

@@ -17,29 +17,32 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace DotNetWorkQueue.Dashboard.Api.Models
 {
     /// <summary>
     /// Request model for sending a consumer heartbeat.
     /// </summary>
+    /// <remarks>
+    /// Value-type members are nullable so the model binder can distinguish an omitted field
+    /// from a posted default; the controller coalesces each to its prior default, preserving
+    /// the released wire behavior (a missing counter counts as zero).
+    /// </remarks>
     public class ConsumerHeartbeatRequest
     {
         /// <summary>Gets or sets the consumer identifier returned from registration.</summary>
-        [Required]
-        public Guid ConsumerId { get; set; }
+        public Guid? ConsumerId { get; set; }
 
         /// <summary>Gets or sets the running total of successfully processed messages since consumer start.</summary>
-        public long MessagesProcessed { get; set; }
+        public long? MessagesProcessed { get; set; }
 
         /// <summary>Gets or sets the running total of messages that threw exceptions since consumer start.</summary>
-        public long MessagesErrored { get; set; }
+        public long? MessagesErrored { get; set; }
 
         /// <summary>Gets or sets the running total of messages rolled back since consumer start.</summary>
-        public long MessagesRolledBack { get; set; }
+        public long? MessagesRolledBack { get; set; }
 
         /// <summary>Gets or sets the running total of poison messages since consumer start.</summary>
-        public long PoisonMessages { get; set; }
+        public long? PoisonMessages { get; set; }
     }
 }

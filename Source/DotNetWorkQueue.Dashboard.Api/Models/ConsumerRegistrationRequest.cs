@@ -33,8 +33,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Models
         [Required]
         public string MachineName { get; set; }
 
-        /// <summary>Gets or sets the process ID of the consumer.</summary>
-        public int ProcessId { get; set; }
+        /// <summary>Gets or sets the process ID of the consumer. Omitted (or null) is treated as 0.</summary>
+        public int? ProcessId { get; set; }
 
         /// <summary>Gets or sets an optional friendly name for this consumer instance.</summary>
         public string FriendlyName { get; set; }

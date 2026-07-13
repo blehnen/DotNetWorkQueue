@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
             var consumerId = _registry.Register(
                 request.QueueName,
                 request.MachineName,
-                request.ProcessId,
+                request.ProcessId ?? 0,
                 request.FriendlyName);
 
             var response = new ConsumerRegistrationResponse
@@ -83,7 +83,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Controllers
             if (!_options.EnableConsumerTracking)
                 return NotFound();
 
-            if (_registry.Heartbeat(request.ConsumerId, request.MessagesProcessed, request.MessagesErrored, request.MessagesRolledBack, request.PoisonMessages))
+            if (_registry.Heartbeat(request.ConsumerId ?? Guid.Empty, request.MessagesProcessed ?? 0, request.MessagesErrored ?? 0, request.MessagesRolledBack ?? 0, request.PoisonMessages ?? 0))
                 return NoContent();
 
             return NotFound();
