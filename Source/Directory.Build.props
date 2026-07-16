@@ -1,0 +1,45 @@
+<Project>
+
+  <!--
+    SPIKE-ONLY BUILD HARNESS (issue #165) — NOT part of the 0.6.6 product tree.
+    See .shipyard/phases/3/CONTEXT-3.md decisions F1 and F4.
+  -->
+
+  <!--
+    F1 — net4x reference assemblies.
+
+    The 0.6.6 base targets net461/net472/net48, which cannot compile on Linux without
+    .NET Framework reference assemblies. The base never referenced them because it was
+    built on Windows/AppVeyor in 2022.
+
+    Microsoft.NETFramework.ReferenceAssemblies is a build-only meta-package: it selects the
+    correct per-TFM reference assemblies and is a no-op for non-.NETFramework targets, so it
+    is safe to reference unconditionally. PrivateAssets="all" keeps it out of any produced
+    package — it never ships.
+
+    NOTE: intentionally NOT conditioned on '$(TargetFrameworkIdentifier)'. Directory.Build.props
+    is imported before the SDK resolves that property, so such a condition would silently
+    never match.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!--
+    F4 rung 2 — LangVersion.
+
+    EMPIRICAL RESULT: rung 1 (port as-is) FAILED with
+        CS8370: Feature 'init-only setters' is not available in C# 7.3. Please use language
+                version 9.0 or greater.
+    The base sets no LangVersion and has no Directory.Build.props, so net48/net472/net461/
+    netstandard2.0 defaulted to C# 7.3 while #164's code is C# 9+.
+
+    ⚠️ THIS IS A REQUIRED BUILD-CONFIG CHANGE TO 0.6.6.1 — it must be disclosed in the
+    write-up, not silently absorbed. It permits newer syntax; it does not alter dependencies
+    or the shipped API surface.
+  -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+</Project>

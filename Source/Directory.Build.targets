@@ -1,0 +1,19 @@
+<Project>
+
+  <!--
+    SPIKE-ONLY BUILD HARNESS (issue #165) — NOT part of the 0.6.6 product tree.
+    See .shipyard/phases/3/CONTEXT-3.md decision F4.
+
+    Links the IsExternalInit polyfill into builds whose runtime lacks the type, so that
+    #164's C# 9 init-only setters compile. net5.0/net6.0 supply it natively and MUST be
+    excluded, or the duplicate definition risks CS0436.
+
+    This lives in Directory.Build.targets (imported LAST) rather than Directory.Build.props
+    (imported FIRST) specifically because $(TargetFramework) is not yet resolved at .props
+    time — a TFM condition there would silently never match.
+  -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461' OR '$(TargetFramework)' == 'net472' OR '$(TargetFramework)' == 'net48' OR '$(TargetFramework)' == 'netstandard2.0'">
+    <Compile Include="$(MSBuildThisFileDirectory)IsExternalInit.cs" Link="Properties/IsExternalInit.cs" />
+  </ItemGroup>
+
+</Project>

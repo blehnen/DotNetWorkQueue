@@ -82,17 +82,20 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md </PackageRel
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
-  </ItemGroup>
+  <!--
+    SPIKE (#165): the three conditional System.Data.SqlClient 4.8.2 ItemGroups that were here
+    (netstandard2.0 / net5.0 / net6.0) are removed. They duplicated the unconditional 4.8.3
+    reference below, which already applies to every TFM.
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
-  </ItemGroup>
+    A 2022 SDK tolerated the duplicate; a modern SDK raises NU1504, and the base's
+    TreatWarningsAsErrors=true (Release) escalates it to an error — so the base cannot
+    Release-build on a current SDK without this fix. Pre-existing wart, NOT caused by the
+    batch backport.
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-		<PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
-	</ItemGroup>
+    Removing 4.8.2 (rather than 4.8.3) is the FIDELITY-PRESERVING choice: the published
+    0.6.6 SqlServer package declares System.Data.SqlClient 4.8.3 for ALL six TFM groups,
+    so 4.8.3 is what actually shipped. This reproduces the published dependency graph exactly.
+  -->
 
   <ItemGroup>
     <None Include="..\DotNetWorkQueue\DotNetWorkQueue.licenseheader" Link="DotNetWorkQueue.licenseheader" />
