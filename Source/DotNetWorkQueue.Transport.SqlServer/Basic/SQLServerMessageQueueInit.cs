@@ -21,6 +21,7 @@ using System.Data.SqlClient;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
+using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
@@ -30,6 +31,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Factory;
@@ -175,6 +177,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.RegisterDecorator(
                 typeof(ICommandHandlerWithOutputAsync<SendMessageCommand, long>),
                 typeof(DotNetWorkQueue.Transport.SqlServer.Trace.Decorator.SendMessageCommandHandlerAsyncDecorator), LifeStyles.Singleton);
+
+            //true bulk-insert batch send handlers; override the relational no-op fallback so
+            //SendMessages<long> dispatches batches to a real handler for SQL Server
+            container.Register<ISendMessageBatchSupport>(() => new SendMessageBatchSupport(true), LifeStyles.Singleton);
+            container.Register<ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages>,
+                SendMessageCommandBatchHandler>(LifeStyles.Singleton);
+            container.Register<ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages>,
+                SendMessageCommandBatchHandlerAsync>(LifeStyles.Singleton);
 
             //query exists custom handler for SQL server
             container
