@@ -1,3 +1,9 @@
+###0.6.6.1 2026-07-17
+* SQL Server transport: back-port of true bulk-insert batch send from the 0.9.x line (#164/#207), for consumers who cannot move off 0.6.6. `Send(List<>)` now inserts in a single chunked transaction; measured ~12.5x throughput improvement for a 500-message batch (loop 4707 ms -> batch 377 ms) on net48 + System.Data.SqlClient 4.8.3.
+* Behavior change: batch `Send(List<>)` goes from parallel / unordered / per-message isolation to single-transaction / chunked / ordered / all-or-nothing. The public API is unchanged and source-compatible; the runtime semantics are not.
+* Dependency graph matches published 0.6.6 exactly. System.Data.SqlClient stays at 4.8.3 (known advisory GHSA-98g6-xh36-x2p7) deliberately, so 0.6.6.1 holds existing 0.6.6 exposure constant rather than increasing it.
+* Ships four packages only: DotNetWorkQueue, Transport.Shared, Transport.RelationalDatabase, Transport.SqlServer. SQLite, PostgreSQL, LiteDb, Redis and AppMetrics are unchanged and stay at 0.6.6 -- Transport.SQLite is deliberately not rebuilt so its System.Data.SQLite.Core 1.0.115.5 is untouched. Do not pair Transport.LiteDb 0.6.6 with Transport.Shared 0.6.6.1.
+
 ###0.6.6 2022-04-29
 * Fix issue with custom default constraints in the SQL server transport
 
