@@ -17,7 +17,6 @@ env:
 
 jobs:
   build:
-    name: Build, pack, and (optionally) upload NuGet packages
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
