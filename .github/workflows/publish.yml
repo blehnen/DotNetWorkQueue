@@ -68,72 +68,9 @@ jobs:
   build-pack:
     name: Build, pack, and upload NuGet packages
     needs: verify-gate
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: |
-            8.0.x
-            10.0.x
-
-      - name: Restore
-        run: dotnet restore Source/DotNetWorkQueueNoTests.sln
-
-      - name: Build
-        run: dotnet build Source/DotNetWorkQueueNoTests.sln -c Release -p:CI=true --no-restore
-
-      - name: Pack (solution)
-        run: dotnet pack Source/DotNetWorkQueueNoTests.sln -c Release -p:CI=true --no-build -o deploy/
-
-      - name: Pack (Dashboard.Ui -- Web SDK not auto-packed by solution)
-        run: dotnet pack Source/DotNetWorkQueue.Dashboard.Ui/DotNetWorkQueue.Dashboard.Ui.csproj -c Release -p:CI=true --no-build -o deploy/
-
-      - name: Assert package counts (12 nupkg + 12 snupkg)
-        run: |
-          set -euo pipefail
-          nupkg_count=$(ls deploy/*.nupkg 2>/dev/null | wc -l)
-          snupkg_count=$(ls deploy/*.snupkg 2>/dev/null | wc -l)
-          echo "nupkg_count=${nupkg_count} snupkg_count=${snupkg_count}"
-          if [[ "${nupkg_count}" -ne 12 ]]; then
-            echo "::error::Expected 12 .nupkg files in deploy/, got ${nupkg_count}"
-            ls -la deploy/ || true
-            exit 1
-          fi
-          if [[ "${snupkg_count}" -ne 12 ]]; then
-            echo "::error::Expected 12 .snupkg files in deploy/, got ${snupkg_count}"
-            ls -la deploy/ || true
-            exit 1
-          fi
-
-      - name: Job summary
-        run: |
-          {
-            echo "## Build-pack summary"
-            echo ""
-            echo "- Tag/ref: ${{ github.ref_name }}"
-            echo "- SHA: ${{ github.sha }}"
-            echo "- Packages: 12 .nupkg + 12 .snupkg"
-            echo ""
-            echo "### Packed files"
-            echo ""
-            echo '```'
-            ls -la deploy/ | sed 's/^/    /'
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: nuget-packages
-          path: deploy/*
-          retention-days: 90
-          if-no-files-found: error
+    uses: ./.github/workflows/build-pack.yml
+    with:
+      upload_artifacts: true
 
   publish:
     name: Push to NuGet.org and create GitHub Release
