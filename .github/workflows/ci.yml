@@ -70,3 +70,7 @@ jobs:
 
       - name: Integration Tests - TaskScheduler Distributed
         run: dotnet test "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" --no-build -c Debug
+
+  build-release:
+    name: build-release
+    uses: ./.github/workflows/build-pack.yml
