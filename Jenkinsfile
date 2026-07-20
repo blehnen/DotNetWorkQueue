@@ -454,13 +454,12 @@ pipeline {
         }
 
         stage('Codecov Upload') {
-            // Only upload coverage when the build is clean. A failed stage above
-            // marks currentBuild.currentResult as FAILURE, which skips this step
-            // while still letting the local HTML report (above) publish for the
-            // failed build's coverage view.
-            when {
-                expression { currentBuild.currentResult == 'SUCCESS' }
-            }
+            // Upload coverage whenever a merged Cobertura report exists — regardless of
+            // whether a flaky stage flipped currentBuild.currentResult to FAILURE via
+            // catchError. Codecov is informational, not a build gate; gating the upload
+            // on build SUCCESS caused Codecov to silently skip uploads on any flaky run
+            // and drift stale behind master. The `if [ ! -f ... ]` guard below makes the
+            // step a no-op when no report was produced.
             agent { label 'docker' }
             steps {
                 script {
