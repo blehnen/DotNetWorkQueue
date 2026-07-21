@@ -41,11 +41,17 @@ coverage:
   status:
     project:
       default:
-        # Allow a 2% drift before failing the project status check.
-        # NOTE: this ratcheting `auto` baseline hardens to `target: 90%, threshold: 1%`
-        # in Phase 2c once remediation coverage is banked. See docs/code-coverage.md.
+        # Ratchet: never drop below the parent commit. `auto` with a 0% threshold means
+        # any decrease fails, so coverage can go up or stay flat but never slide.
+        #
+        # The previous 2% threshold is what let coverage drift downward unnoticed --
+        # `auto` rebaselines each merge, so 2% of slack compounded. 0% removes the slack
+        # without having to guess a fixed number.
+        #
+        # This hardens to `target: 90%` once Dashboard.Ui is covered; that project alone
+        # is the whole gap between today's ~87.5% and the 90% goal. See docs/code-coverage.md.
         target: auto
-        threshold: 2%
+        threshold: 0%
     patch:
       default:
         # Hard, non-ratcheting floor: new/changed lines in a PR must be >=90% covered.
