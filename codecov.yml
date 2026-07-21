@@ -31,15 +31,23 @@ ignore:
   - "Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/**"
   - "Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/**"
   - "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/**"
+  # Dashboard UI + remaining test-support / distributed-scheduler test projects
+  - "Source/DotNetWorkQueue.Dashboard.Ui.Tests/**"
+  - "Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/**"
+  - "Source/DotNetWorkQueue.Tests.Shared.Tests/**"
+  - "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/**"
 
 coverage:
   status:
     project:
       default:
         # Allow a 2% drift before failing the project status check.
+        # NOTE: this ratcheting `auto` baseline hardens to `target: 90%, threshold: 1%`
+        # in Phase 2c once remediation coverage is banked. See docs/code-coverage.md.
         target: auto
         threshold: 2%
     patch:
       default:
-        target: auto
-        threshold: 2%
+        # Hard, non-ratcheting floor: new/changed lines in a PR must be >=90% covered.
+        # No threshold — a hard target intentionally omits "close enough" slack.
+        target: 90%
