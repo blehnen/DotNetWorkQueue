@@ -32,13 +32,20 @@ Codecov to Codecov.
 
 | Check | Rule | Status |
 |---|---|---|
-| `patch` | new/changed lines in a PR must be **≥90%** covered | live |
-| `project` | `auto` + **0% threshold** — coverage may rise or stay flat, but **never drop below the parent commit** | live |
+| `patch` | new/changed lines in a PR must be **≥90%** covered | live, **required** |
+| `project` | `auto` + **0.5% threshold** — coverage must not fall below the parent commit by more than the measurement noise floor | live, **required** |
 
-The 0% threshold is the anti-erosion mechanism. The previous `auto` + **2%** allowed 2
+The tight threshold is the anti-erosion mechanism. The original `auto` + **2%** allowed 2
 points of slack per merge, and because `auto` rebaselines to the prior commit every time,
 that slack compounded downward silently. `patch` grades only the lines a PR touches, so it
 never punishes a PR for pre-existing debt.
+
+**Why 0.5% and not 0%:** the measurement is not deterministic. Commit `78bf5839` was
+observed reporting 29,373 hits and later 29,512 (+0.41 points) with no code change —
+repeat uploads are unioned, and the integration suite covers slightly different paths run
+to run. A 0% threshold converts that noise into spurious failures on a *required* check.
+Real regressions are far larger (the Dashboard.Ui shortfall is ~2.5 points), so 0.5% still
+catches what matters.
 
 `project` hardens to a fixed **`target: 90%`** once Dashboard.Ui is covered (see below).
 
