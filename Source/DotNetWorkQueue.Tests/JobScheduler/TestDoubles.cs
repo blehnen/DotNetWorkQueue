@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
 
@@ -47,5 +48,35 @@ namespace DotNetWorkQueue.Tests.JobScheduler
         }
 
         public bool IsRelationalTransport => false;
+    }
+
+    /// <summary>
+    /// A queue-creation type used only to satisfy the <c>TQueue : class, IJobQueueCreation</c>
+    /// constraint on the two-generic <c>AddUpdateJob</c> overload.
+    /// </summary>
+    /// <remarks>
+    /// The scheduler passes this type straight through to <see cref="IJobQueue"/>, which is
+    /// substituted in these tests, so no member is ever invoked.
+    /// </remarks>
+    internal class NoOpJobQueueCreation : IJobQueueCreation
+    {
+        public QueueCreationResult CreateJobSchedulerQueue(Action<IContainer> registerService,
+            QueueConnection queueConnection, Action<IContainer> setOptions = null, bool enableRoutes = false)
+        {
+            return new QueueCreationResult(QueueCreationStatus.Success);
+        }
+
+        public QueueRemoveResult RemoveQueue()
+        {
+            return new QueueRemoveResult(QueueRemoveStatus.Success);
+        }
+
+        public ICreationScope Scope => null;
+
+        public bool IsDisposed => false;
+
+        public void Dispose()
+        {
+        }
     }
 }
