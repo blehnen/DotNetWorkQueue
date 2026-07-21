@@ -32,7 +32,8 @@
          Excluded by file because Program.cs uses top-level statements: the generated Program
          class lives in the global namespace, so the [ExcludeFromCodeCoverage] partial needed to
          attach the attribute cannot be namespaced, which trips csharpsquid:S3903/S1118.
-         Dashboard.Ui/Program.cs is the only Program.cs in the repo. See docs/code-coverage.md. -->
-    <ExcludeByFile>**/Program.cs</ExcludeByFile>
+         Scoped to this one project rather than **/Program.cs so a Program.cs added to any other
+         project in future is NOT silently dropped from coverage. See docs/code-coverage.md. -->
+    <ExcludeByFile>**/DotNetWorkQueue.Dashboard.Ui/Program.cs</ExcludeByFile>
   </PropertyGroup>
 </Project>

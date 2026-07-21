@@ -56,13 +56,22 @@ Codecov is informational, not a build gate, so a flaky stage no longer suppresse
   and middleware pipeline). It is exercised only by the E2E suite, which does not collect
   coverage, and is an explicit non-goal to unit test.
 
-  It is excluded via Coverlet's `ExcludeByFile` (`**/Program.cs`) rather than an
-  `[ExcludeFromCodeCoverage]` attribute. `Program.cs` uses top-level statements, so the
+  It is excluded via Coverlet's `ExcludeByFile`, scoped to exactly that one file:
+
+  ```xml
+  <ExcludeByFile>**/DotNetWorkQueue.Dashboard.Ui/Program.cs</ExcludeByFile>
+  ```
+
+  **Why not `[ExcludeFromCodeCoverage]`:** `Program.cs` uses top-level statements, so the
   generated `Program` class lives in the **global namespace**; the partial class needed to
   attach the attribute therefore cannot be namespaced, which trips `csharpsquid:S3903`
   ("move into a named namespace" — reported as a *bug*) and `S1118`. Neither is fixable
   without breaking the exclusion, so the file-glob approach avoids the construct entirely.
-  `Dashboard.Ui/Program.cs` is the only `Program.cs` in the repo, so the glob is unambiguous.
+
+  **Why the path is scoped, not `**/Program.cs`:** a bare filename glob would also match any
+  `Program.cs` added to another project later — silently dropping real code from coverage,
+  which is exactly the erosion this policy exists to prevent. Excluding anything further is a
+  deliberate decision that belongs in this file, not a side effect of a filename.
 
 ## Maintainer verification checklist (Codecov UI only)
 
