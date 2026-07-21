@@ -41,17 +41,23 @@ coverage:
   status:
     project:
       default:
-        # Ratchet: never drop below the parent commit. `auto` with a 0% threshold means
-        # any decrease fails, so coverage can go up or stay flat but never slide.
+        # Ratchet: coverage may rise or stay flat, but must not slide below the parent
+        # commit by more than the measurement noise floor.
         #
-        # The previous 2% threshold is what let coverage drift downward unnoticed --
-        # `auto` rebaselines each merge, so 2% of slack compounded. 0% removes the slack
-        # without having to guess a fixed number.
+        # The original 2% threshold is what let coverage drift downward unnoticed --
+        # `auto` rebaselines each merge, so 2% of slack compounded silently.
         #
-        # This hardens to `target: 90%` once Dashboard.Ui is covered; that project alone
-        # is the whole gap between today's ~87.5% and the 90% goal. See docs/code-coverage.md.
+        # 0.5% rather than 0%: the same commit has been observed reporting different
+        # totals (78bf5839 read 29,373 then 29,512 hits -- +0.41 points) because repeat
+        # uploads are unioned and the integration suite covers slightly different paths
+        # run to run. A 0% threshold turns that noise into spurious failures. Real
+        # regressions are far larger than 0.5% (the Dashboard.Ui shortfall is ~2.5
+        # points), so this still catches what it needs to.
+        #
+        # Hardens to `target: 90%` once Dashboard.Ui is covered -- that project alone is
+        # the whole gap between today's ~87.5% and the goal. See docs/code-coverage.md.
         target: auto
-        threshold: 0%
+        threshold: 0.5%
     patch:
       default:
         # Hard, non-ratcheting floor: new/changed lines in a PR must be >=90% covered.
