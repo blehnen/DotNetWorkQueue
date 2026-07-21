@@ -48,6 +48,22 @@ merged PRs.
 merged `Cobertura.xml` exists (an `if [ ! -f … ]` guard makes it a no-op otherwise).
 Codecov is informational, not a build gate, so a flaky stage no longer suppresses it.
 
+## Excluded from coverage
+
+- **Test assemblies** — stripped at collection time by the Coverlet `Exclude` filter in
+  `Source/Directory.Build.props`, so they never reach the report or Codecov.
+- **`Source/DotNetWorkQueue.Dashboard.Ui/Program.cs`** — Blazor host bootstrap (DI registration
+  and middleware pipeline). It is exercised only by the E2E suite, which does not collect
+  coverage, and is an explicit non-goal to unit test.
+
+  It is excluded via Coverlet's `ExcludeByFile` (`**/Program.cs`) rather than an
+  `[ExcludeFromCodeCoverage]` attribute. `Program.cs` uses top-level statements, so the
+  generated `Program` class lives in the **global namespace**; the partial class needed to
+  attach the attribute therefore cannot be namespaced, which trips `csharpsquid:S3903`
+  ("move into a named namespace" — reported as a *bug*) and `S1118`. Neither is fixable
+  without breaking the exclusion, so the file-glob approach avoids the construct entirely.
+  `Dashboard.Ui/Program.cs` is the only `Program.cs` in the repo, so the glob is unambiguous.
+
 ## Maintainer verification checklist (Codecov UI only)
 
 Codecov data cannot be exported; confirm health from the UI:
