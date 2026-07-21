@@ -45,6 +45,8 @@ namespace DotNetWorkQueue.Tests.JobScheduler
         private const string EveryMinute = "* * * * *";
         private static readonly DateTime UtcNow = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
         private static readonly TimeSpan EventTimeout = TimeSpan.FromSeconds(10);
+        private static readonly string[] SingleJobName = { "aJob" };
+        private static readonly string[] TwoJobNames = { "first", "second" };
 
         private static void NoOpAction()
         {
@@ -123,7 +125,7 @@ namespace DotNetWorkQueue.Tests.JobScheduler
 
             Assert.AreEqual("aJob", job.Name);
             Assert.IsFalse(job.IsScheduleRunning, "autoRun was false");
-            CollectionAssert.AreEquivalent(new[] { "aJob" },
+            CollectionAssert.AreEquivalent(SingleJobName,
                 harness.Scheduler.GetAllJobs().Select(x => x.Name).ToArray());
         }
 
@@ -146,7 +148,7 @@ namespace DotNetWorkQueue.Tests.JobScheduler
             var replacement = AddJob(harness, "aJob");
 
             Assert.AreNotSame(original, replacement);
-            Assert.AreEqual(1, harness.Scheduler.GetAllJobs().Count());
+            Assert.HasCount(1, harness.Scheduler.GetAllJobs().ToArray());
             Assert.IsFalse(original.IsAttached, "the replaced job is detached");
         }
 
@@ -159,7 +161,7 @@ namespace DotNetWorkQueue.Tests.JobScheduler
                 "aJob", new QueueConnection("aQueue", "aConnection"), EveryMinute, Action, autoRun: false);
 
             Assert.AreEqual("aJob", job.Name);
-            Assert.AreEqual(1, harness.Scheduler.GetAllJobs().Count());
+            Assert.HasCount(1, harness.Scheduler.GetAllJobs().ToArray());
         }
 
         [TestMethod]
@@ -189,7 +191,7 @@ namespace DotNetWorkQueue.Tests.JobScheduler
             AddJob(harness, "first");
             AddJob(harness, "second");
 
-            CollectionAssert.AreEquivalent(new[] { "first", "second" },
+            CollectionAssert.AreEquivalent(TwoJobNames,
                 harness.Scheduler.GetAllJobs().Select(x => x.Name).ToArray());
         }
 
