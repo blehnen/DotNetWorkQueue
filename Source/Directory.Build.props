@@ -27,5 +27,13 @@
     <CoverletOutputFormat>cobertura</CoverletOutputFormat>
     <Exclude>[*.Tests]*,[*.IntegrationTests]*,[*.IntegrationTests.*]*,[DotNetWorkQueue.IntegrationTests.Shared]*,[DotNetWorkQueue.Tests.Shared]*</Exclude>
     <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
+    <!-- Blazor host bootstrap (DI registration + middleware pipeline). Exercised only by the
+         E2E suite, which does not collect coverage, and an explicit non-goal to unit test.
+         Excluded by file because Program.cs uses top-level statements: the generated Program
+         class lives in the global namespace, so the [ExcludeFromCodeCoverage] partial needed to
+         attach the attribute cannot be namespaced, which trips csharpsquid:S3903/S1118.
+         Scoped to this one project rather than **/Program.cs so a Program.cs added to any other
+         project in future is NOT silently dropped from coverage. See docs/code-coverage.md. -->
+    <ExcludeByFile>**/DotNetWorkQueue.Dashboard.Ui/Program.cs</ExcludeByFile>
   </PropertyGroup>
 </Project>
