@@ -83,7 +83,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
 
             var cut = RenderMessagesTab(api);
             var select = cut.FindComponent<MudSelect<int?>>();
-            await cut.InvokeAsync(async () => await select.Instance.SelectOption(2));
+            await cut.InvokeAsync(() => select.Instance.ValueChanged.InvokeAsync(2));
 
             api.Received(1).GetMessagesAsync(TestQueueId, 0, 25, 2);
         }

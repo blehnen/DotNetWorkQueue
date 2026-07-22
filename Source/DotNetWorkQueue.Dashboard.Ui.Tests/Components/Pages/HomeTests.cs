@@ -112,17 +112,23 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
         {
             var sources = TwoSources();
             var clients = RegisterDependenciesWithPerSourceClients(sources);
-            clients["primary"].GetConnectionsAsync()
-                .Returns<Task<List<ConnectionResponse>>>(_ => throw new InvalidOperationException("boom"));
+            // A single stub that throws once then succeeds — re-stubbing after the throw is
+            // configured would re-invoke the throwing setup on the substitute.
+            var callCount = 0;
+            clients["primary"].GetConnectionsAsync().Returns<Task<List<ConnectionResponse>>>(_ =>
+            {
+                callCount++;
+                if (callCount == 1) throw new InvalidOperationException("boom");
+                return Task.FromResult(new List<ConnectionResponse>
+                {
+                    new() { Id = Guid.NewGuid(), DisplayName = "Conn1", QueueCount = 1 }
+                });
+            });
 
             var cut = Render<Home>(ps => ps.Add(p => p.SourceSlug, "primary"));
 
             StringAssert.Contains(cut.Markup, "Failed to load connections: boom");
 
-            clients["primary"].GetConnectionsAsync().Returns(new List<ConnectionResponse>
-            {
-                new() { Id = Guid.NewGuid(), DisplayName = "Conn1", QueueCount = 1 }
-            });
             cut.Find("button").Click();
 
             StringAssert.Contains(cut.Markup, "Conn1");

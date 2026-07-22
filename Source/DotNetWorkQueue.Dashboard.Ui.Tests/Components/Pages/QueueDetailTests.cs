@@ -212,7 +212,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
             var api = CreateDefaultApi();
             var cut = RenderPage(api);
 
-            cut.FindAll("div.mud-paper")[0].Click();
+            cut.FindAll(StatusCardSelector)[0].Click();
 
             api.Received().GetMessagesAsync(TestQueueId, 0, 25, 0);
             Assert.AreEqual(0, GetActiveTab(cut));
@@ -224,7 +224,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
             var api = CreateDefaultApi();
             var cut = RenderPage(api);
 
-            cut.FindAll("div.mud-paper")[2].Click();
+            cut.FindAll(StatusCardSelector)[2].Click();
 
             Assert.AreEqual(1, GetActiveTab(cut));
         }
@@ -312,9 +312,15 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
                 (nameof(QueueDetail.QueueId), TestQueueId));
         }
 
+        /// <summary>
+        /// The four clickable status cards. Plain "div.mud-paper" also matches the two
+        /// popover containers MudPopoverProvider renders ahead of the page content.
+        /// </summary>
+        private const string StatusCardSelector = "div.mud-paper.mud-elevation-2";
+
         private static int GetActiveTab(IRenderedComponent<IComponent> cut) =>
             (int)typeof(QueueDetail)
                 .GetField("_activeTab", BindingFlags.NonPublic | BindingFlags.Instance)!
-                .GetValue(cut.Instance)!;
+                .GetValue(cut.FindComponent<QueueDetail>().Instance)!;
     }
 }
