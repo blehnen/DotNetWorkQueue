@@ -222,5 +222,74 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
             await sut.PollAllSourcesAsync(CancellationToken.None);
             Assert.IsNotEmpty(logger.ReceivedCalls());
         }
+
+        [TestMethod]
+        public async Task PollAsync_Writes_Transition_Messages_When_Information_Enabled()
+        {
+            var source = CreateSource("Local", "http://localhost:5000");
+            var (sut, multiClient, _, logger) = CreateSut(source);
+            logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
+            var shouldThrow = false;
+            var apiClient = Substitute.For<IDashboardApiClient>();
+            apiClient.GetSettingsAsync().Returns<Models.DashboardSettingsResponse?>(_ =>
+            {
+                if (shouldThrow) throw new HttpRequestException("Connection refused");
+                return new Models.DashboardSettingsResponse();
+            });
+            multiClient.GetClientForSource(source.Slug).Returns(apiClient);
+
+            await sut.PollAllSourcesAsync(CancellationToken.None);
+            shouldThrow = true;
+            await sut.PollAllSourcesAsync(CancellationToken.None);
+
+            // One Log call for Unknown -> Healthy, one for Healthy -> Unhealthy.
+            Assert.HasCount(2, logger.ReceivedCalls().Where(c => c.GetMethodInfo().Name == nameof(ILogger.Log)));
+        }
+
+        [TestMethod]
+        public async Task PollAsync_StopsImmediately_WhenCancellationAlreadyRequested()
+        {
+            var source = CreateSource("Local", "http://localhost:5000");
+            var (sut, multiClient, _, _) = CreateSut(source);
+
+            // A call that never completes, so WaitAsync observes the cancelled token
+            // instead of returning the already-completed result.
+            var never = new TaskCompletionSource<Models.DashboardSettingsResponse?>();
+            var apiClient = Substitute.For<IDashboardApiClient>();
+            apiClient.GetSettingsAsync().Returns(never.Task);
+            multiClient.GetClientForSource(source.Slug).Returns(apiClient);
+
+            using var cts = new CancellationTokenSource();
+            await cts.CancelAsync();
+            await sut.PollAllSourcesAsync(cts.Token);
+
+            Assert.IsEmpty(sut.GetAllHealth());
+        }
+
+        [TestMethod]
+        public async Task ExecuteAsync_PollsOnStartup_AndExitsGracefullyOnStop()
+        {
+            var source = CreateSource("Local", "http://localhost:5000");
+            var (sut, multiClient, _, _) = CreateSut(source);
+
+            // Signalled by the startup poll, so the assertions below can't race it.
+            var polled = new TaskCompletionSource();
+            var apiClient = Substitute.For<IDashboardApiClient>();
+            apiClient.GetSettingsAsync().Returns(_ =>
+            {
+                polled.TrySetResult();
+                return Task.FromResult<Models.DashboardSettingsResponse?>(new Models.DashboardSettingsResponse());
+            });
+            multiClient.GetClientForSource(source.Slug).Returns(apiClient);
+
+            await sut.StartAsync(CancellationToken.None);
+            await polled.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            await sut.StopAsync(CancellationToken.None);
+
+            Assert.AreEqual(SourceHealthStatus.Healthy, sut.GetHealth(source.Slug).Status);
+            Assert.IsNotNull(sut.ExecuteTask);
+            Assert.IsTrue(sut.ExecuteTask!.IsCompleted);
+        }
     }
 }

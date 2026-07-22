@@ -2,6 +2,9 @@
 
   <PropertyGroup>
     <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
+    <!-- The component under test is Nullable=enable, so its nullable signatures leak into
+         test code. "annotations" lets tests use ? without turning on nullable warnings. -->
+    <Nullable>annotations</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
