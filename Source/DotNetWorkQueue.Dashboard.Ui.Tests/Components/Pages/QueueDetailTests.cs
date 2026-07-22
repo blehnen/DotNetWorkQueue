@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -29,6 +29,7 @@ using DotNetWorkQueue.Dashboard.Ui.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MudBlazor;
 using NSubstitute;
 
 namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
@@ -257,6 +258,86 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
             var updatedDrawer = cut.FindComponent<MessageDetailDrawer>().Instance;
             Assert.IsFalse(updatedDrawer.Open);
             Assert.IsNull(updatedDrawer.MessageId);
+        }
+
+        [TestMethod]
+        public void ShowsSpinner_WhileInitialLoadIsInFlight()
+        {
+            var gate = new TaskCompletionSource<QueueStatusResponse?>();
+            var api = CreateDefaultApi();
+            api.GetQueueStatusAsync(Arg.Any<Guid>()).Returns(gate.Task);
+
+            var cut = RenderPage(api);
+
+            StringAssert.Contains(cut.Markup, "mud-progress-circular");
+
+            gate.SetResult(new QueueStatusResponse { Waiting = 1 });
+            cut.WaitForAssertion(() => StringAssert.Contains(cut.Markup, "Waiting"));
+        }
+
+        [TestMethod]
+        public async Task TabChange_UpdatesActiveTab()
+        {
+            var api = CreateDefaultApi();
+
+            var cut = RenderPage(api);
+            var tabs = cut.FindComponent<MudTabs>();
+            await cut.InvokeAsync(() => tabs.Instance.ActivePanelIndexChanged.InvokeAsync(4));
+
+            Assert.AreEqual(4, GetActiveTab(cut));
+        }
+
+        [TestMethod]
+        public async Task RefreshCounts_ViaTabDataChanged_RefetchesStatusStaleAndConsumers()
+        {
+            var api = CreateDefaultApi();
+
+            var cut = RenderPage(api);
+            var drawer = cut.FindComponent<MessageDetailDrawer>();
+            await cut.InvokeAsync(() => drawer.Instance.OnDataChanged.InvokeAsync());
+
+            api.Received(2).GetQueueStatusAsync(TestQueueId);
+            api.Received(2).GetStaleMessagesAsync(TestQueueId, 60, 0, 1);
+            api.Received(2).GetConsumersAsync(TestQueueId);
+        }
+
+        [TestMethod]
+        public async Task RefreshCounts_SwallowsFailures_AndKeepsPriorValues()
+        {
+            var callCount = 0;
+            var api = CreateDefaultApi(waiting: 9);
+            api.GetQueueStatusAsync(Arg.Any<Guid>()).Returns<Task<QueueStatusResponse?>>(_ =>
+            {
+                callCount++;
+                if (callCount > 1) throw new InvalidOperationException("refresh boom");
+                return Task.FromResult<QueueStatusResponse?>(new QueueStatusResponse { Waiting = 9 });
+            });
+
+            var cut = RenderPage(api);
+            var drawer = cut.FindComponent<MessageDetailDrawer>();
+            await cut.InvokeAsync(() => drawer.Instance.OnDataChanged.InvokeAsync());
+
+            Assert.DoesNotContain("refresh boom", cut.Markup);
+            StringAssert.Contains(cut.Markup, "9");
+        }
+
+        [TestMethod]
+        public void ManualRefresh_SwallowsFailures_AndKeepsPriorValues()
+        {
+            var callCount = 0;
+            var api = CreateDefaultApi(waiting: 9);
+            api.GetQueueStatusAsync(Arg.Any<Guid>()).Returns<Task<QueueStatusResponse?>>(_ =>
+            {
+                callCount++;
+                if (callCount > 1) throw new InvalidOperationException("manual boom");
+                return Task.FromResult<QueueStatusResponse?>(new QueueStatusResponse { Waiting = 9 });
+            });
+
+            var cut = RenderPage(api);
+            cut.Find("button[aria-label='Refresh']").Click();
+
+            Assert.DoesNotContain("manual boom", cut.Markup);
+            StringAssert.Contains(cut.Markup, "9");
         }
 
         private static IDashboardApiClient CreateDefaultApi(long waiting = 0, long processing = 0, long error = 0, long total = 0)

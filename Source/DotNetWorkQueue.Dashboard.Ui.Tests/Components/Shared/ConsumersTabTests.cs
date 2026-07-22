@@ -145,6 +145,79 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
             api.Received(2).GetConsumersAsync(TestQueueId);
         }
 
+        [TestMethod]
+        public void ShowsSpinner_WhileLoadIsInFlight()
+        {
+            var gate = new TaskCompletionSource<List<ConsumerInfoResponse>>();
+            var api = Substitute.For<IDashboardApiClient>();
+            api.GetConsumersAsync(Arg.Any<Guid?>()).Returns(gate.Task);
+
+            var cut = RenderConsumersTab(api);
+
+            StringAssert.Contains(cut.Markup, "mud-progress-circular");
+
+            gate.SetResult(new List<ConsumerInfoResponse>());
+            cut.WaitForAssertion(() =>
+                StringAssert.Contains(cut.Markup, "No consumers currently connected to this queue."));
+        }
+
+        [TestMethod]
+        public void FormatsUptimeInDays_WhenConsumerRegisteredOverADayAgo()
+        {
+            var api = Substitute.For<IDashboardApiClient>();
+            api.GetConsumersAsync(TestQueueId).Returns(new List<ConsumerInfoResponse>
+            {
+                new()
+                {
+                    ConsumerId = Guid.NewGuid(),
+                    FriendlyName = "long-running",
+                    MachineName = "machine-c",
+                    RegisteredAt = DateTimeOffset.Now.AddDays(-2).AddHours(-3),
+                    LastHeartbeat = DateTimeOffset.UtcNow
+                }
+            });
+
+            var cut = RenderConsumersTab(api);
+
+            StringAssert.Contains(cut.Markup, "2d 3h");
+        }
+
+        [TestMethod]
+        public void FormatsUptimeInMinutes_WhenConsumerRegisteredRecently()
+        {
+            var api = Substitute.For<IDashboardApiClient>();
+            api.GetConsumersAsync(TestQueueId).Returns(new List<ConsumerInfoResponse>
+            {
+                new()
+                {
+                    ConsumerId = Guid.NewGuid(),
+                    FriendlyName = "just-started",
+                    MachineName = "machine-d",
+                    RegisteredAt = DateTimeOffset.Now.AddMinutes(-5),
+                    LastHeartbeat = DateTimeOffset.UtcNow
+                }
+            });
+
+            var cut = RenderConsumersTab(api);
+
+            StringAssert.Contains(cut.Markup, "5m");
+        }
+
+        [TestMethod]
+        public void RefreshVersionChange_ReloadsConsumers()
+        {
+            var api = Substitute.For<IDashboardApiClient>();
+            api.GetConsumersAsync(TestQueueId).Returns(new List<ConsumerInfoResponse>());
+
+            var tab = RenderConsumersTab(api).FindComponent<ConsumersTab>();
+            tab.Render(ps => ps
+                .Add(p => p.QueueId, TestQueueId)
+                .Add(p => p.Api, api)
+                .Add(p => p.RefreshVersion, 1));
+
+            api.Received(2).GetConsumersAsync(TestQueueId);
+        }
+
         private IRenderedComponent<Microsoft.AspNetCore.Components.IComponent> RenderConsumersTab(IDashboardApiClient api)
         {
             return RenderWithMudProvider<ConsumersTab>(

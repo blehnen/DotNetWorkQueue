@@ -23,6 +23,8 @@ using Bunit;
 using DotNetWorkQueue.Dashboard.Ui.Components.Shared;
 using DotNetWorkQueue.Dashboard.Ui.Models;
 using DotNetWorkQueue.Dashboard.Ui.Services;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MudBlazor;
 using NSubstitute;
@@ -84,6 +86,134 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
             var cut = RenderMessagesTab(api);
             var select = cut.FindComponent<MudSelect<int?>>();
             await cut.InvokeAsync(() => select.Instance.ValueChanged.InvokeAsync(2));
+
+            api.Received(1).GetMessagesAsync(TestQueueId, 0, 25, 2);
+        }
+
+        [TestMethod]
+        public void TruncatesLongQueueId_AndRendersDashWhenMissing()
+        {
+            var api = Substitute.For<IDashboardApiClient>();
+            api.GetMessagesAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int?>())
+                .Returns(new PagedResponse<MessageResponse>
+                {
+                    Items = new List<MessageResponse>
+                    {
+                        new() { QueueId = "0123456789abcdef", Status = 1, QueuedDateTime = DateTimeOffset.UtcNow },
+                        new() { QueueId = null, Status = 3 }
+                    },
+                    TotalCount = 2
+                });
+
+            var cut = RenderMessagesTab(api);
+
+            StringAssert.Contains(cut.Markup, "0123456789ab...");
+            StringAssert.Contains(cut.Markup, "Processing");
+            StringAssert.Contains(cut.Markup, "Processed");
+        }
+
+        [TestMethod]
+        public void RendersDelayedChip_ForFutureScheduledWaitingMessage()
+        {
+            var api = Substitute.For<IDashboardApiClient>();
+            api.GetMessagesAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int?>())
+                .Returns(new PagedResponse<MessageResponse>
+                {
+                    Items = new List<MessageResponse>
+                    {
+                        new()
+                        {
+                            QueueId = "delayed-1",
+                            Status = 0,
+                            QueuedDateTime = DateTimeOffset.UtcNow,
+                            QueueProcessTime = DateTimeOffset.Now.AddHours(1)
+                        }
+                    },
+                    TotalCount = 1
+                });
+
+            var cut = RenderWithMudProvider<MessagesTab>(
+                (nameof(MessagesTab.QueueId), TestQueueId),
+                (nameof(MessagesTab.Api), api),
+                (nameof(MessagesTab.Features), new QueueFeaturesResponse { EnableDelayedProcessing = true }));
+
+            StringAssert.Contains(cut.Markup, "Delayed");
+            StringAssert.Contains(cut.Markup, "Scheduled");
+        }
+
+        [TestMethod]
+        public async Task ChangingPage_RequeriesWithZeroBasedIndex()
+        {
+            var api = CreateApiWithMessages(totalCount: 60);
+
+            var cut = RenderMessagesTab(api);
+            var pagination = cut.FindComponent<MudPagination>();
+            await cut.InvokeAsync(() => pagination.Instance.SelectedChanged.InvokeAsync(3));
+
+            api.Received(1).GetMessagesAsync(TestQueueId, 2, 25, null);
+        }
+
+        [TestMethod]
+        public async Task RowClick_RaisesOnMessageSelected_WithQueueId()
+        {
+            var api = CreateApiWithMessages();
+            string? selected = null;
+
+            var cut = RenderWithMudProvider<MessagesTab>(
+                (nameof(MessagesTab.QueueId), TestQueueId),
+                (nameof(MessagesTab.Api), api),
+                (nameof(MessagesTab.OnMessageSelected), EventCallback.Factory.Create<string>(this, s => selected = s)));
+
+            var table = cut.FindComponent<MudTable<MessageResponse>>();
+            await cut.InvokeAsync(() => table.Instance.OnRowClick.InvokeAsync(
+                new TableRowClickEventArgs<MessageResponse>(new MouseEventArgs(), null!, new MessageResponse { QueueId = "abc-123" })));
+
+            Assert.AreEqual("abc-123", selected);
+        }
+
+        [TestMethod]
+        public async Task RowClick_Ignored_WhenMessageHasNoQueueId()
+        {
+            var api = CreateApiWithMessages();
+            string? selected = null;
+
+            var cut = RenderWithMudProvider<MessagesTab>(
+                (nameof(MessagesTab.QueueId), TestQueueId),
+                (nameof(MessagesTab.Api), api),
+                (nameof(MessagesTab.OnMessageSelected), EventCallback.Factory.Create<string>(this, s => selected = s)));
+
+            var table = cut.FindComponent<MudTable<MessageResponse>>();
+            await cut.InvokeAsync(() => table.Instance.OnRowClick.InvokeAsync(
+                new TableRowClickEventArgs<MessageResponse>(new MouseEventArgs(), null!, new MessageResponse())));
+
+            Assert.IsNull(selected);
+        }
+
+        [TestMethod]
+        public void RefreshVersionChange_ReloadsMessages()
+        {
+            var api = CreateApiWithMessages();
+
+            var tab = RenderMessagesTab(api).FindComponent<MessagesTab>();
+            tab.Render(ps => ps
+                .Add(p => p.QueueId, TestQueueId)
+                .Add(p => p.Api, api)
+                .Add(p => p.RefreshVersion, 1));
+
+            api.Received(2).GetMessagesAsync(TestQueueId, 0, 25, null);
+        }
+
+        [TestMethod]
+        public void StatusFilterVersionChange_AppliesNewFilterFromFirstPage()
+        {
+            var api = CreateApiWithMessages();
+
+            var tab = RenderMessagesTab(api).FindComponent<MessagesTab>();
+            tab.Render(ps => ps
+                .Add(p => p.QueueId, TestQueueId)
+                .Add(p => p.Api, api)
+                .Add(p => p.StatusFilter, 2)
+                .Add(p => p.StatusFilterVersion, 1));
 
             api.Received(1).GetMessagesAsync(TestQueueId, 0, 25, 2);
         }
