@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Linq;
+using System.Threading.Tasks;
 using Bunit;
 using Bunit.TestDoubles;
 using DotNetWorkQueue.Dashboard.Ui.Components.Pages;
@@ -76,62 +77,62 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
         }
 
         [TestMethod]
-        public void SubmitButton_PostsCredentials_WhenBothFieldsFilled()
+        public async Task SubmitButton_PostsCredentials_WhenBothFieldsFilled()
         {
             Services.AddSingleton(new DashboardAuthConfig { IsEnabled = true });
             var invocation = JSInterop.SetupVoid("dashboardSubmitLogin", "/auth/login", "alice", "s3cret");
 
             var cut = Render<Login>();
-            SetCredentials(cut, "alice", "s3cret");
+            await SetCredentials(cut, "alice", "s3cret");
             cut.Find("button").Click();
 
             Assert.HasCount(1, invocation.Invocations);
         }
 
         [TestMethod]
-        public void SubmitButton_DoesNothing_WhenCredentialsIncomplete()
+        public async Task SubmitButton_DoesNothing_WhenCredentialsIncomplete()
         {
             Services.AddSingleton(new DashboardAuthConfig { IsEnabled = true });
             var invocation = JSInterop.SetupVoid("dashboardSubmitLogin", _ => true);
 
             var cut = Render<Login>();
-            SetCredentials(cut, "alice", "   ");
+            await SetCredentials(cut, "alice", "   ");
             cut.Find("button").Click();
 
             Assert.HasCount(0, invocation.Invocations);
         }
 
         [TestMethod]
-        public void EnterKey_SubmitsCredentials()
+        public async Task EnterKey_SubmitsCredentials()
         {
             Services.AddSingleton(new DashboardAuthConfig { IsEnabled = true });
             var invocation = JSInterop.SetupVoid("dashboardSubmitLogin", "/auth/login", "bob", "hunter2");
 
             var cut = Render<Login>();
-            SetCredentials(cut, "bob", "hunter2");
+            await SetCredentials(cut, "bob", "hunter2");
             cut.FindAll("input")[0].KeyDown(new KeyboardEventArgs { Key = "Enter" });
 
             Assert.HasCount(1, invocation.Invocations);
         }
 
         [TestMethod]
-        public void NonEnterKey_DoesNotSubmit()
+        public async Task NonEnterKey_DoesNotSubmit()
         {
             Services.AddSingleton(new DashboardAuthConfig { IsEnabled = true });
             var invocation = JSInterop.SetupVoid("dashboardSubmitLogin", _ => true);
 
             var cut = Render<Login>();
-            SetCredentials(cut, "bob", "hunter2");
+            await SetCredentials(cut, "bob", "hunter2");
             cut.FindAll("input")[0].KeyDown(new KeyboardEventArgs { Key = "a" });
 
             Assert.HasCount(0, invocation.Invocations);
         }
 
-        private static void SetCredentials(IRenderedComponent<Login> cut, string username, string password)
+        private static async Task SetCredentials(IRenderedComponent<Login> cut, string username, string password)
         {
             var fields = cut.FindComponents<MudTextField<string>>();
-            cut.InvokeAsync(() => fields[0].Instance.ValueChanged.InvokeAsync(username));
-            cut.InvokeAsync(() => fields[1].Instance.ValueChanged.InvokeAsync(password));
+            await cut.InvokeAsync(() => fields[0].Instance.ValueChanged.InvokeAsync(username));
+            await cut.InvokeAsync(() => fields[1].Instance.ValueChanged.InvokeAsync(password));
         }
     }
 }

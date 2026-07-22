@@ -273,11 +273,18 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Services
             var source = CreateSource("Local", "http://localhost:5000");
             var (sut, multiClient, _, _) = CreateSut(source);
 
+            // Signalled by the startup poll, so the assertions below can't race it.
+            var polled = new TaskCompletionSource();
             var apiClient = Substitute.For<IDashboardApiClient>();
-            apiClient.GetSettingsAsync().Returns(Task.FromResult<Models.DashboardSettingsResponse?>(new Models.DashboardSettingsResponse()));
+            apiClient.GetSettingsAsync().Returns(_ =>
+            {
+                polled.TrySetResult();
+                return Task.FromResult<Models.DashboardSettingsResponse?>(new Models.DashboardSettingsResponse());
+            });
             multiClient.GetClientForSource(source.Slug).Returns(apiClient);
 
             await sut.StartAsync(CancellationToken.None);
+            await polled.Task.WaitAsync(TimeSpan.FromSeconds(10));
             await sut.StopAsync(CancellationToken.None);
 
             Assert.AreEqual(SourceHealthStatus.Healthy, sut.GetHealth(source.Slug).Status);

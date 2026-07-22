@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -282,8 +282,9 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
             var cut = RenderDrawer(api);
             ClickButton(cut, "Edit Body");
 
-            var field = cut.FindComponent<MudTextField<string>>();
-            StringAssert.Contains(field.Instance.Value, "\"a\": 1");
+            // Read the editor's rendered content rather than MudTextField.Value, which the
+            // MudBlazor analyzer (MUD0012) forbids reading from outside the component.
+            StringAssert.Contains(cut.Find("textarea").TextContent, "\"a\": 1");
             StringAssert.Contains(cut.Markup, "Cancel");
         }
 
@@ -311,7 +312,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
             await cut.InvokeAsync(() => field.Instance.ValueChanged.InvokeAsync("   "));
             ClickButton(cut, "Save");
 
-            api.DidNotReceive().UpdateMessageBodyAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<EditMessageBodyRequest>());
+            await api.DidNotReceive().UpdateMessageBodyAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<EditMessageBodyRequest>());
         }
 
         [TestMethod]
@@ -390,7 +391,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
 
             api.Received(1).DeleteMessageAsync(TestQueueId, TestMessageId);
             Assert.IsTrue(dataChanged);
-            Assert.AreEqual(false, openChanged);
+            Assert.IsNotNull(openChanged);
+            Assert.IsFalse(openChanged.Value);
         }
 
         [TestMethod]
@@ -504,7 +506,8 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
             var cut = RenderDrawer(api, onOpenChanged: v => openChanged = v);
             cut.FindAll("button")[0].Click();
 
-            Assert.AreEqual(false, openChanged);
+            Assert.IsNotNull(openChanged);
+            Assert.IsFalse(openChanged.Value);
         }
 
         [TestMethod]

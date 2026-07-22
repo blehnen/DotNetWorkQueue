@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -201,7 +201,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
             var select = cut.FindComponent<MudSelect<int?>>();
             await cut.InvokeAsync(() => select.Instance.ValueChanged.InvokeAsync(3));
 
-            api.Received(1).GetHistoryAsync(TestQueueId, 0, 25, 3);
+            await api.Received(1).GetHistoryAsync(TestQueueId, 0, 25, 3);
         }
 
         [TestMethod]
@@ -214,7 +214,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
             var pagination = cut.FindComponent<MudPagination>();
             await cut.InvokeAsync(() => pagination.Instance.SelectedChanged.InvokeAsync(3));
 
-            api.Received(1).GetHistoryAsync(TestQueueId, 2, 25, null);
+            await api.Received(1).GetHistoryAsync(TestQueueId, 2, 25, null);
         }
 
         [TestMethod]

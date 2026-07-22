@@ -231,13 +231,13 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
         }
 
         [TestMethod]
-        public void OpenMessageDrawer_ViaMessagesTabCallback_OpensDrawerWithMessageId()
+        public async Task OpenMessageDrawer_ViaMessagesTabCallback_OpensDrawerWithMessageId()
         {
             var api = CreateDefaultApi();
             var cut = RenderPage(api);
 
             var messagesTab = cut.FindComponent<MessagesTab>();
-            cut.InvokeAsync(() => messagesTab.Instance.OnMessageSelected.InvokeAsync("msg-123"));
+            await cut.InvokeAsync(() => messagesTab.Instance.OnMessageSelected.InvokeAsync("msg-123"));
 
             var drawer = cut.FindComponent<MessageDetailDrawer>().Instance;
             Assert.IsTrue(drawer.Open);
@@ -245,15 +245,15 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
         }
 
         [TestMethod]
-        public void ClosingDrawer_ViaOpenChangedCallback_ClearsSelectedMessage()
+        public async Task ClosingDrawer_ViaOpenChangedCallback_ClearsSelectedMessage()
         {
             var api = CreateDefaultApi();
             var cut = RenderPage(api);
             var messagesTab = cut.FindComponent<MessagesTab>();
-            cut.InvokeAsync(() => messagesTab.Instance.OnMessageSelected.InvokeAsync("msg-123"));
+            await cut.InvokeAsync(() => messagesTab.Instance.OnMessageSelected.InvokeAsync("msg-123"));
 
             var drawer = cut.FindComponent<MessageDetailDrawer>();
-            cut.InvokeAsync(() => drawer.Instance.OpenChanged.InvokeAsync(false));
+            await cut.InvokeAsync(() => drawer.Instance.OpenChanged.InvokeAsync(false));
 
             var updatedDrawer = cut.FindComponent<MessageDetailDrawer>().Instance;
             Assert.IsFalse(updatedDrawer.Open);
@@ -296,9 +296,9 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
             var drawer = cut.FindComponent<MessageDetailDrawer>();
             await cut.InvokeAsync(() => drawer.Instance.OnDataChanged.InvokeAsync());
 
-            api.Received(2).GetQueueStatusAsync(TestQueueId);
-            api.Received(2).GetStaleMessagesAsync(TestQueueId, 60, 0, 1);
-            api.Received(2).GetConsumersAsync(TestQueueId);
+            await api.Received(2).GetQueueStatusAsync(TestQueueId);
+            await api.Received(2).GetStaleMessagesAsync(TestQueueId, 60, 0, 1);
+            await api.Received(2).GetConsumersAsync(TestQueueId);
         }
 
         [TestMethod]

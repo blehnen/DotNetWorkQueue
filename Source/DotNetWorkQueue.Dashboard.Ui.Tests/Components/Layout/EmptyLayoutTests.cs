@@ -37,8 +37,10 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Layout
                     builder.CloseElement();
                 })));
 
-            StringAssert.Contains(cut.Markup, "layout-body-marker");
-            StringAssert.Contains(cut.Markup, "mud-theme-dark");
+            // Assert against the themed wrapper's inner HTML, not the whole markup, so the
+            // test fails if the body is ever rendered outside it.
+            var themed = cut.Find("div.mud-theme-dark");
+            StringAssert.Contains(themed.InnerHtml, "layout-body-marker");
         }
     }
 }
