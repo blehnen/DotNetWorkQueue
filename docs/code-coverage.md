@@ -11,7 +11,7 @@ pipeline merges the 13 coverage-bearing stages with ReportGenerator into
 stripped at collection time by the Coverlet `Exclude` filter in
 `Source/Directory.Build.props`.
 
-### Codecov and the ReportGenerator badge will never agree — by design
+### Codecov and the ReportGenerator badge will never agree, by design
 
 They differ by ~2.5 points, permanently, because they treat **partially covered lines**
 differently:
@@ -33,7 +33,7 @@ Codecov to Codecov.
 | Check | Rule | Status |
 |---|---|---|
 | `patch` | new/changed lines in a PR must be **≥90%** covered | live, **required** |
-| `project` | `auto` + **0.5% threshold** — coverage must not fall below the parent commit by more than the measurement noise floor | live, **required** |
+| `project` | `auto` + **0.5% threshold**: coverage must not fall below the parent commit by more than the measurement noise floor | live, **required** |
 
 The tight threshold is the anti-erosion mechanism. The original `auto` + **2%** allowed 2
 points of slack per merge, and because `auto` rebaselines to the prior commit every time,
@@ -41,8 +41,7 @@ that slack compounded downward silently. `patch` grades only the lines a PR touc
 never punishes a PR for pre-existing debt.
 
 **Why 0.5% and not 0%:** the measurement is not deterministic. Commit `78bf5839` was
-observed reporting 29,373 hits and later 29,512 (+0.41 points) with no code change —
-repeat uploads are unioned, and the integration suite covers slightly different paths run
+observed reporting 29,373 hits and later 29,512 (+0.41 points) with no code change. Repeat uploads are unioned, and the integration suite covers slightly different paths run
 to run. A 0% threshold converts that noise into spurious failures on a *required* check.
 Real regressions are far larger (the Dashboard.Ui shortfall is ~2.5 points), so 0.5% still
 catches what matters.
@@ -65,16 +64,16 @@ the ~87.5% it reports now. Every other project is still ≈90%.
 
 **Consequence for planning:** covering the transports or core more heavily moves the
 Codecov number very little, because that code is already exercised by the integration
-suite. Reaching 90% requires Dashboard.Ui specifically — roughly **+755 hits**, which is
+suite. Reaching 90% requires Dashboard.Ui specifically, roughly **+755 hits**, which is
 Dashboard.Ui going from 23.6% to ~90%. A cheaper secondary lever is the 867 partial
 lines: those are already-executed lines missing branch coverage, so an extra assertion
 often converts one to a full hit.
 
 ## Excluded from coverage
 
-- **Test assemblies** — stripped at collection time by the Coverlet `Exclude` filter in
+- **Test assemblies**: stripped at collection time by the Coverlet `Exclude` filter in
   `Source/Directory.Build.props`, so they never reach the report or Codecov.
-- **`Source/DotNetWorkQueue.Dashboard.Ui/Program.cs`** — Blazor host bootstrap (DI registration
+- **`Source/DotNetWorkQueue.Dashboard.Ui/Program.cs`**: Blazor host bootstrap (DI registration
   and middleware pipeline). It is exercised only by the E2E suite, which does not collect
   coverage, and is an explicit non-goal to unit test.
 
@@ -87,11 +86,11 @@ often converts one to a full hit.
   **Why not `[ExcludeFromCodeCoverage]`:** `Program.cs` uses top-level statements, so the
   generated `Program` class lives in the **global namespace**; the partial class needed to
   attach the attribute therefore cannot be namespaced, which trips `csharpsquid:S3903`
-  ("move into a named namespace" — reported as a *bug*) and `S1118`. Neither is fixable
+  ("move into a named namespace", reported as a *bug*) and `S1118`. Neither is fixable
   without breaking the exclusion, so the file-glob approach avoids the construct entirely.
 
   **Why the path is scoped, not `**/Program.cs`:** a bare filename glob would also match any
-  `Program.cs` added to another project later — silently dropping real code from coverage,
+  `Program.cs` added to another project later, silently dropping real code from coverage,
   which is exactly the erosion this policy exists to prevent. Excluding anything further is a
   deliberate decision that belongs in this file, not a side effect of a filename.
 
@@ -100,7 +99,7 @@ often converts one to a full hit.
 Codecov's public API answers most questions directly, no token required:
 
 ```bash
-# master totals — note `hits`, `partials` and `lines` separately
+# master totals: note `hits`, `partials` and `lines` separately
 curl -s "https://api.codecov.io/api/v2/github/blehnen/repos/DotNetWorkQueue/branches/master/" \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['head_commit']['totals'])"
 
@@ -115,7 +114,7 @@ curl -s "https://api.codecov.io/api/v2/github/blehnen/repos/DotNetWorkQueue/cove
 
 1. **Compare like with like.** Badge (ReportGenerator) vs Codecov will differ by ~2.5
    points because of partials. This is not a defect.
-2. **Check the processed commit** — Codecov's `head_commit.commitid` should be at or near
+2. **Check the processed commit.** Codecov's `head_commit.commitid` should be at or near
    master `HEAD`. If it lags, an upload was missed.
 3. **Look for commits with no coverage data.** A build whose stages flaked can still
    upload a *partial* merge: ReportGenerator silently skips any missing stash

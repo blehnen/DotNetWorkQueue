@@ -13,7 +13,7 @@ handler, then commits or rolls back on its own. That is the right default for at
 delivery, but it precludes the inbox pattern because the handler has no way to enlist its own
 writes on the dequeue transaction. `IRelationalWorkerNotification` is the opt-in surface that
 fixes this: a derived interface that exposes the active `DbTransaction` to the handler. The
-library still owns the transaction's lifecycle — the handler enlists writes on it, the library
+library still owns the transaction's lifecycle: the handler enlists writes on it, the library
 commits on successful return or rolls back on throw.
 
 This is the **dual** of the outbox pattern. The outbox (producer-side) lets the caller own the
@@ -107,8 +107,8 @@ consumer.Start<OrderProcessedEvent>((message, workerNotification) =>
     cmd.Parameters.Add(new SqlParameter("@ts", DateTime.UtcNow));
     cmd.ExecuteNonQuery();
 
-    // Returning normally signals success — library commits both the dequeue and
-    // the business INSERT atomically. Throw to signal failure — library rolls
+    // Returning normally signals success; the library commits both the dequeue and
+    // the business INSERT atomically. Throw to signal failure; the library rolls
     // back both atomically.
 }, null);
 
@@ -116,7 +116,7 @@ consumer.Start<OrderProcessedEvent>((message, workerNotification) =>
 Thread.Sleep(Timeout.Infinite);
 ```
 
-If the handler throws (for any reason — your assertion, a SQL exception, an unrelated bug), the
+If the handler throws for any reason (your assertion, a SQL exception, an unrelated bug), the
 library rolls back the entire transaction. The queue row stays available for redelivery and your
 business write never lands. If the handler returns normally, the library commits both. There is
 no third state.
@@ -149,7 +149,7 @@ consumer.Start<OrderProcessedEvent>(async (message, workerNotification) =>
 
 `relational.Transaction` is the abstract `DbTransaction` so `await`-friendly APIs on the base
 class work directly. Do not cast to `SqlTransaction` and call `CommitAsync` /
-`RollbackAsync` / `DisposeAsync` — the library owns the lifecycle.
+`RollbackAsync` / `DisposeAsync`; the library owns the lifecycle.
 
 ### PostgreSQL note
 
@@ -171,10 +171,10 @@ The library owns the connection and transaction exposed via `IRelationalWorkerNo
 - Returning normally from the handler signals success: the library commits the dequeue and any
   business writes the handler made on the transaction.
 - Throwing signals failure: the library rolls back the dequeue and any business writes.
-- The handler MUST NOT stash the `DbTransaction` or `DbConnection` references past return — the
+- The handler MUST NOT stash the `DbTransaction` or `DbConnection` references past return; the
   library disposes them in the cleanup phase, after which the references are invalid.
 - The handler MUST NOT pass `DbTransaction` to another thread. `DbTransaction` is not
-  thread-safe — same rule as the rest of ADO.NET.
+  thread-safe, the same rule as the rest of ADO.NET.
 
 ### Commit / Rollback Semantics
 
@@ -186,7 +186,7 @@ The library commits or rolls back on these two events:
    dequeue row remains available for redelivery; your business writes never land.
 
 If a transient SQL error occurs mid-handler (deadlock, connection drop), throwing the SQL
-exception is the right response — the library rolls back, the message redelivers, and your retry
+exception is the right response: the library rolls back, the message redelivers, and your retry
 policy decides whether to drop the message into the error queue. Do not catch and swallow:
 catching without rethrowing tells the library the handler succeeded, which commits whatever the
 transaction is in at that moment.
@@ -213,7 +213,7 @@ changed after the queue exists without recreating it.
 | Condition                                                            | Cast result | What it means                                       |
 |----------------------------------------------------------------------|-------------|-----------------------------------------------------|
 | SqlServer or PG, `EnableHoldTransactionUntilMessageCommitted = true` | `true`      | Use `relational.Transaction` for business writes    |
-| SqlServer or PG, `EnableHoldTransactionUntilMessageCommitted = false`| `false`     | Inbox capability is disabled — option must be set   |
+| SqlServer or PG, `EnableHoldTransactionUntilMessageCommitted = false`| `false`     | Inbox capability is disabled; option must be set    |
 | SQLite (any option setting)                                          | `false`     | Inbox is structurally non-viable on SQLite          |
 | Memory, Redis, LiteDb (any option setting)                           | `false`     | Non-relational transports never implement inbox     |
 
@@ -247,7 +247,7 @@ re-creating an existing queue. For PostgreSQL, substitute `PostgreSqlMessageQueu
 - **Not supported:** Memory, Redis, LiteDb. These transports do not have a relational
   `DbTransaction` to expose; the capability interface is never implemented.
 
-- **Not supported — SQLite.** SQLite uses single-writer / `BEGIN EXCLUSIVE`-on-write
+- **Not supported, SQLite.** SQLite uses single-writer / `BEGIN EXCLUSIVE`-on-write
   concurrency. Holding the dequeue transaction for the duration of a user handler would block
   every other writer on the queue table, including the worker's own next dequeue attempt,
   producing a worker deadlock. The `EnableHoldTransactionUntilMessageCommitted` property is
@@ -272,5 +272,5 @@ re-creating an existing queue. For PostgreSQL, substitute `PostgreSqlMessageQueu
 | Retry semantics          | Library retry policies apply                     | Caller-owned (library retry is bypassed)       |
 
 Both patterns share `EnableHoldTransactionUntilMessageCommitted` semantics on the producer
-side for non-outbox sends — the inbox option enables the consumer's hold-transaction window
+side for non-outbox sends; the inbox option enables the consumer's hold-transaction window
 specifically. See PROJECT.md §Functional for the authoritative contract language.

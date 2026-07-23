@@ -61,7 +61,7 @@ For each Docker host, create a cloud entry:
   - **Remote Filing System Root**: `/home/jenkins`
   - **Connect method**: Attach Docker container
 
-All hosts should use the same `docker` label so the Jenkinsfile can request any available agent. If you have multiple hosts, list the preferred host first — Jenkins tries clouds top-to-bottom.
+All hosts should use the same `docker` label so the Jenkinsfile can request any available agent. If you have multiple hosts, list the preferred host first; Jenkins tries clouds top-to-bottom.
 
 The pipeline runs 13 integration test stages in parallel, so you need at least 13 agent slots across all hosts for maximum parallelism. Fewer slots will work but stages will queue.
 
@@ -123,7 +123,7 @@ A Multibranch Pipeline automatically builds `master` and every open PR.
    - **Script Path**: `Jenkinsfile`
 6. Under **Scan Multibranch Pipeline Triggers**:
    - Check **Periodically if not otherwise run**
-   - **Interval**: 5 minutes (or use a webhook for instant triggers — see below)
+   - **Interval**: 5 minutes (or use a webhook for instant triggers, see below)
 7. Click **Save**
 
 Jenkins will immediately scan the repo and create jobs for `master` and any open PRs.
@@ -165,7 +165,7 @@ Note: These services may not respond to curl properly, but the connection attemp
 
 1. Go to the `DotNetWorkQueue` job
 2. Click **Build Now** (or **Scan Multibranch Pipeline Now** for the first scan)
-3. Monitor Stage 1 (Build & Unit Tests) — should complete in ~2 min
+3. Monitor Stage 1 (Build & Unit Tests); should complete in ~2 min
 4. If Stage 1 passes, Stage 2 starts up to 13 parallel integration test agents
 5. Stage 3 merges coverage and uploads to Codecov
 
@@ -174,12 +174,12 @@ Note: These services may not respond to curl properly, but the connection attemp
 | Symptom | Likely Cause | Fix |
 |---------|-------------|-----|
 | "No nodes with label docker" | Docker cloud not configured or hosts unreachable | Check cloud config, verify Docker TCP is open |
-| "docker: not found" in pipeline | Using `docker { image }` agent syntax | Use `agent { label 'docker' }` — the cloud provisions the container |
+| "docker: not found" in pipeline | Using `docker { image }` agent syntax | Use `agent { label 'docker' }`; the cloud provisions the container |
 | Java version error in agent | JRE in Docker image older than Jenkins master | Match the JRE version in the [dotnetworkqueue-ci](https://github.com/blehnen/dotnetworkqueue-ci) image to your Jenkins master |
 | Connection string errors | Credentials not created or wrong ID | Verify credential IDs match Jenkinsfile: `sqlserver-connstring`, `postgresql-connstring`, `redis-connstring`, `codecov-token` |
 | `connectionstring.txt` not found | File written to wrong path | Connection strings must be in `bin/Debug/net10.0/` (written after build) |
-| SQLite `libdl.so` errors | Missing native library symlink | Pull the latest [dotnetworkqueue-ci](https://github.com/blehnen/dotnetworkqueue-ci) image — it includes the fix |
-| Test host crash (ObjectDisposedException) | Timer callback race on Linux | Fixed in `BaseMonitor.cs` — ensure you have the latest code |
+| SQLite `libdl.so` errors | Missing native library symlink | Pull the latest [dotnetworkqueue-ci](https://github.com/blehnen/dotnetworkqueue-ci) image; it includes the fix |
+| Test host crash (ObjectDisposedException) | Timer callback race on Linux | Fixed in `BaseMonitor.cs`; ensure you have the latest code |
 | Coverage upload fails | codecov-token not set or wrong CLI syntax | Verify credential exists; Jenkinsfile uses `codecov upload-process` subcommand |
 | Build takes too long | NuGet restore downloading on every run | Consider mounting a NuGet cache volume |
 

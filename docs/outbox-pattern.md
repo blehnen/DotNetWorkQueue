@@ -134,11 +134,11 @@ await transaction.CommitAsync();
 Two notes on the async form:
 
 - `await using` on the transaction calls `DisposeAsync()` when the scope exits. If the
-  transaction has not been committed by then, the runtime rolls it back — same semantics as
+  transaction has not been committed by then, the runtime rolls it back, the same semantics as
   the synchronous form, just async-friendly.
 - `BeginTransactionAsync()` returns the abstract `DbTransaction`. SqlServer-specific code that
   needs `SqlTransaction` (like the `cmd.Transaction = ...` line above) requires the cast.
-  `relationalProducer.SendAsync(...)` accepts the abstract `DbTransaction` directly — no cast needed.
+  `relationalProducer.SendAsync(...)` accepts the abstract `DbTransaction` directly, no cast needed.
 
 To enqueue multiple messages atomically inside one transaction, the batch overloads accept an
 `IEnumerable<T>`:
@@ -165,13 +165,13 @@ catch
 The batch path performs a true multi-row **body** insert inside the supplied transaction for each
 chunk; the per-message metadata (and status) rows are still written one per message afterward, all
 on the same transaction. Because the caller owns the transaction, the path is fail-fast: on any
-failure it **throws** so you can roll back — it does not report per-message errors. (Catch the
+failure it **throws** so you can roll back; it does not report per-message errors. (Catch the
 exception and call `transaction.Rollback()`, as above.) The all-or-nothing guarantee holds for the
 whole batch. `SendAsync(batch, transaction)` is the async equivalent.
 
 > The caller-supplied-transaction batch overload is implemented for **SQL Server** and
 > **PostgreSQL**. Other transports throw `InvalidOperationException` (SQLite is single-writer, so
-> holding a transaction open across a batch is non-viable — use the standalone `Send(List<T>)`
+> holding a transaction open across a batch is non-viable, so use the standalone `Send(List<T>)`
 > outbox path there instead).
 >
 > Note: this throw-on-failure behavior is specific to the caller-transaction batch path
