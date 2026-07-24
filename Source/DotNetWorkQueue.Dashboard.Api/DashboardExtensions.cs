@@ -173,7 +173,7 @@ namespace DotNetWorkQueue.Dashboard.Api
                     if (string.IsNullOrEmpty(connectionString))
                         throw new ArgumentException($"Dashboard connection '{displayName}' must specify a ConnectionString.");
 
-                    AddConnectionByTransport(options, transport, connectionString, displayName!, queues, interceptorOptions);
+                    AddConnectionByTransport(options, transport, connectionString, displayName, queues, interceptorOptions);
                 }
             });
         }
