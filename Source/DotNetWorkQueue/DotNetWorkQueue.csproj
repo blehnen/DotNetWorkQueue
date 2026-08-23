@@ -4,7 +4,7 @@
     <TargetFrameworks>net6.0;net48;net5.0;netstandard2.0;net472;net461</TargetFrameworks>
     <Authors>Brian Lehnen</Authors>
     <Company />
-    <Version>0.6.6.1</Version>
+    <Version>0.6.6.2</Version>
     <Description>Work queue for dot net 4.6.1, 4.7.2, 4.8, dot net standard 2.0, dot net 5 and dot net 6
 
 SQL server, SQLite, Redis and PostgreSQL transports are available.</Description>
@@ -159,4 +159,29 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
       <HintPath>..\..\Lib\JpLabs.DynamicCode\JpLabs.DynamicCode.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <!--
+    Pack the bundled private assemblies into lib/<tfm>/.
+
+    These three are consumed as plain <Reference> + <HintPath> items above. That resolves at
+    compile time and copies the DLL to bin, but SDK-style pack NEVER places HintPath references
+    into the package - it packs only the project's own output plus PackageReference dependencies.
+    0.6.6.1 shipped without them and fails at Container.Verify() for every consumer (issue #216).
+
+    JpLabs.DynamicCode is referenced unconditionally but 0.6.6 only shipped it for net4x, so the
+    condition below reproduces 0.6.6's package layout exactly rather than widening scope here.
+  -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeBundledAssembliesInPackage</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+
+  <Target Name="IncludeBundledAssembliesInPackage">
+    <ItemGroup>
+      <BuildOutputInPackage Include="..\..\Lib\Schyntax\$(TargetFramework)\Schyntax.dll" />
+      <BuildOutputInPackage Include="..\..\Lib\Aq.ExpressionJsonSerializer\$(TargetFramework)\Aq.ExpressionJsonSerializer.dll" />
+      <BuildOutputInPackage Include="..\..\Lib\JpLabs.DynamicCode\JpLabs.DynamicCode.dll"
+                            Condition="$(TargetFramework.StartsWith('net4'))" />
+    </ItemGroup>
+  </Target>
+
 </Project>

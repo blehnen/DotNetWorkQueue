@@ -1,3 +1,9 @@
+###0.6.6.2 2026-08-23
+* Packaging fix. 0.6.6.1 shipped without the three bundled private assemblies that 0.6.6 carries inside `lib/` -- `Aq.ExpressionJsonSerializer.dll`, `JpLabs.DynamicCode.dll` and `Schyntax.dll` -- and never declared them as NuGet dependencies. Every consumer of 0.6.6.1 failed at `Container.Verify()` with `FileNotFoundException` for `Aq.ExpressionJsonSerializer`, whether or not they used LINQ or expression serialization (#216).
+* Cause: the three assemblies are consumed as plain `<Reference>` + `<HintPath>` items. That resolves at compile time and copies to `bin`, but SDK-style `pack` never places `HintPath` references into the package, so the build was green and the package was broken.
+* `lib/**` now reproduces 0.6.6's assembly set exactly, verified by diffing the packed `.nupkg` against `dotnetworkqueue.0.6.6.nupkg`. Dependency graph and all library code are unchanged from 0.6.6.1.
+* **Anyone on 0.6.6.1 must upgrade.** 0.6.6.1 cannot construct a container.
+
 ###0.6.6.1 2026-07-17
 * SQL Server transport: back-port of true bulk-insert batch send from the 0.9.x line (#164/#207), for consumers who cannot move off 0.6.6. `Send(List<>)` now inserts in a single chunked transaction; measured ~12.5x throughput improvement for a 500-message batch (loop 4707 ms -> batch 377 ms) on net48 + System.Data.SqlClient 4.8.3.
 * Behavior change: batch `Send(List<>)` goes from parallel / unordered / per-message isolation to single-transaction / chunked / ordered / all-or-nothing. The public API is unchanged and source-compatible; the runtime semantics are not.
