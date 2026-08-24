@@ -132,13 +132,20 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </summary>
         internal void Return(string connectionString, SQLiteConnection connection)
         {
-            if (connection.State != ConnectionState.Open || Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0)
+            //A connection carrying an open transaction would hand that transaction to the next
+            //renter. AutoCommit is false exactly while a transaction is open, so this catches a
+            //caller that disposed the connection before the transaction.
+            if (connection.State != ConnectionState.Open || !connection.AutoCommit)
             {
                 Safely(connection.Dispose);
                 return;
             }
 
             var bag = _pool.GetOrAdd(connectionString, _ => new ConcurrentBag<SQLiteConnection>());
+
+            //Count is a snapshot, so this can overshoot by roughly the number of threads returning
+            //at once. That is deliberate: the cap exists to bound the pool, not to hold an exact
+            //size, and a lock here would sit on every operation.
             if (bag.Count >= MaxPooledPerConnectionString)
             {
                 Safely(connection.Dispose);
@@ -146,12 +153,28 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             }
 
             bag.Add(connection);
+
+            //Add first, then re-check disposal. Dispose may have drained the pool between the
+            //checks above and this add; without this a connection returned during disposal would
+            //survive it and hold the database file open.
+            if (IsDisposed)
+                DrainAll();
         }
+
+        private bool IsDisposed => Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0;
 
         private void ThrowIfDisposed()
         {
-            if (Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0)
-                throw new ObjectDisposedException(nameof(DbFactory));
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
+        }
+
+        private void DrainAll()
+        {
+            foreach (var bag in _pool.Values)
+            {
+                while (bag.TryTake(out var connection))
+                    Safely(connection.Dispose);
+            }
         }
 
         /// <summary>
@@ -160,15 +183,22 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </summary>
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Releases the pooled connections.
+        /// </summary>
+        /// <param name="disposing">true when called from <see cref="Dispose()"/>.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            //the flag is raised even on the finalizer path so a concurrent Return stops pooling
             if (Interlocked.Increment(ref _disposeCount) != 1)
                 return;
 
-            foreach (var bag in _pool.Values)
-            {
-                while (bag.TryTake(out var connection))
-                    Safely(connection.Dispose);
-            }
-            _pool.Clear();
+            if (disposing)
+                DrainAll();
         }
 
         /// <summary>

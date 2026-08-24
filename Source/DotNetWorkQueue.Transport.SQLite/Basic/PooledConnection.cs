@@ -99,7 +99,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <inheritdoc />
         public string ConnectionString
         {
-            get => Inner.ConnectionString;
+            //the string this connection was rented for; the provider may normalise its own copy
+            get => _connectionString;
             set => throw new NotSupportedException(
                 "The connection string of a pooled connection cannot be changed; request a new connection instead.");
         }

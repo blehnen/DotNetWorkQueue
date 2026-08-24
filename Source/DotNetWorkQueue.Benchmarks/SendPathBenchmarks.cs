@@ -1,3 +1,21 @@
+﻿// ---------------------------------------------------------------------
+//This file is part of DotNetWorkQueue
+//Copyright © 2015-2026 Brian Lehnen
+//
+//This library is free software; you can redistribute it and/or
+//modify it under the terms of the GNU Lesser General Public
+//License as published by the Free Software Foundation; either
+//version 2.1 of the License, or (at your option) any later version.
+//
+//This library is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//Lesser General Public License for more details.
+//
+//You should have received a copy of the GNU Lesser General Public
+//License along with this library; if not, write to the Free Software
+//Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+// ---------------------------------------------------------------------
 using System.Data;
 using System.Data.SQLite;
 using System.Reflection;
@@ -57,9 +75,6 @@ namespace DotNetWorkQueue.Benchmarks
         private const int PayloadBytes = 256;
 
         private string _dir;
-        private string _rawPath;
-        private string _shapePath;
-        private string _shapePerSendPath;
 
         private SQLiteConnection _rawConnection;
         private SQLiteConnection _shapeConnection;
@@ -116,8 +131,7 @@ namespace DotNetWorkQueue.Benchmarks
         public void SetupForShapeHeld()
         {
             SetupCommon();
-            _shapePath = Path.Combine(_dir, "shape.db");
-            _shapeConnection = Open(_shapePath, pooling: false);
+            _shapeConnection = Open(Path.Combine(_dir, "shape.db"), pooling: false);
             Execute(_shapeConnection, ShapeSchema);
         }
 
@@ -125,9 +139,9 @@ namespace DotNetWorkQueue.Benchmarks
         public void SetupForShapePerSend()
         {
             SetupCommon();
-            _shapePerSendPath = Path.Combine(_dir, "shape-persend.db");
-            _shapePerSendConnectionString = ConnectionString(_shapePerSendPath, pooling: true);
-            using var seed = Open(_shapePerSendPath, pooling: true);
+            var shapePerSendPath = Path.Combine(_dir, "shape-persend.db");
+            _shapePerSendConnectionString = ConnectionString(shapePerSendPath, pooling: true);
+            using var seed = Open(shapePerSendPath, pooling: true);
             Execute(seed, ShapeSchema);
         }
 
@@ -159,7 +173,10 @@ namespace DotNetWorkQueue.Benchmarks
 
             //pooled connections hold the file handles open
             SQLiteConnection.ClearAllPools();
-            try { Directory.Delete(_dir, true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+            //best-effort; a database still held open is not worth failing a benchmark run over
+            try { Directory.Delete(_dir, true); }
+            catch (IOException) { /* leave the temp directory behind */ }
+            catch (UnauthorizedAccessException) { /* leave the temp directory behind */ }
         }
 
         // ---------------------------------------------------------------- the ladder
@@ -189,7 +206,7 @@ namespace DotNetWorkQueue.Benchmarks
         /// Minus <see cref="RawTable_DnwqShape_HeldConnection"/>, this is the cost of acquiring and
         /// releasing a pooled connection per send — what the transport does today.
         /// </summary>
-        [Benchmark(Description = "raw table, DNWQ shape + pooled connection per send")]
+        [Benchmark(Description = "BASELINE (provider pool): raw table, DNWQ shape + connection per send")]
         public void RawTable_DnwqShape_ConnectionPerSend()
         {
             using var connection = new SQLiteConnection(_shapePerSendConnectionString);
@@ -198,7 +215,7 @@ namespace DotNetWorkQueue.Benchmarks
         }
 
         /// <summary>Connection acquisition alone, with no work done on it.</summary>
-        [Benchmark(Description = "pooled connection open + close, no work")]
+        [Benchmark(Description = "BASELINE (provider pool): connection open + close, no work")]
         public void PooledConnection_OpenClose()
         {
             using var connection = new SQLiteConnection(_shapePerSendConnectionString);
@@ -277,8 +294,7 @@ namespace DotNetWorkQueue.Benchmarks
 
         private void SetupRawTable()
         {
-            _rawPath = Path.Combine(_dir, "raw.db");
-            _rawConnection = Open(_rawPath, pooling: false);
+            _rawConnection = Open(Path.Combine(_dir, "raw.db"), pooling: false);
             Execute(_rawConnection,
                 "CREATE TABLE outbox(id INTEGER PRIMARY KEY AUTOINCREMENT, body TEXT NOT NULL, created_utc INTEGER NOT NULL);");
         }
@@ -328,6 +344,11 @@ namespace DotNetWorkQueue.Benchmarks
         /// configured instances with their decorators and interceptor graph rather than a
         /// hand-built approximation that could drift from what the send path actually uses.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3011:Reflection should not be used to increase accessibility of classes, methods, or fields",
+            Justification = "Deliberate, and confined to a benchmark that is never shipped. Reading the live serializer out of the " +
+                            "send chain is the point: it measures the configured instances with their decorators and interceptor " +
+                            "graph, rather than a hand-built approximation that could silently drift from the real send path. " +
+                            "It throws with an explanatory message if the layout changes.")]
         private static ICompositeSerialization ReflectSerializer(IProducerQueue<Event> producer)
         {
             const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;

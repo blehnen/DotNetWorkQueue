@@ -1,3 +1,21 @@
+﻿// ---------------------------------------------------------------------
+//This file is part of DotNetWorkQueue
+//Copyright © 2015-2026 Brian Lehnen
+//
+//This library is free software; you can redistribute it and/or
+//modify it under the terms of the GNU Lesser General Public
+//License as published by the Free Software Foundation; either
+//version 2.1 of the License, or (at your option) any later version.
+//
+//This library is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//Lesser General Public License for more details.
+//
+//You should have received a copy of the GNU Lesser General Public
+//License along with this library; if not, write to the Free Software
+//Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+// ---------------------------------------------------------------------
 using BenchmarkDotNet.Running;
 
 namespace DotNetWorkQueue.Benchmarks
@@ -62,7 +80,7 @@ namespace DotNetWorkQueue.Benchmarks
             var dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pooltest-" + System.Guid.NewGuid().ToString("N"));
             System.IO.Directory.CreateDirectory(dir);
 
-            double Time(string label, string path, bool pooling, bool holdOne, int n)
+            void Time(string label, string path, bool pooling, bool holdOne, int n)
             {
                 var cs = $"Data Source={path};Version=3;Synchronous=NORMAL;" + (pooling ? "Pooling=True;" : "");
                 using (var seed = new System.Data.SQLite.SQLiteConnection(cs))
@@ -83,7 +101,6 @@ namespace DotNetWorkQueue.Benchmarks
                 System.Data.SQLite.SQLiteConnection.ClearAllPools();
                 var us = sw.Elapsed.TotalMilliseconds * 1000 / n;
                 System.Console.WriteLine($"  {label,-52} {us,10:F1} us/open-close");
-                return us;
             }
 
             System.Console.WriteLine("open+close a connection, no work done on it:\n");
@@ -91,7 +108,8 @@ namespace DotNetWorkQueue.Benchmarks
             Time("pooling ON,  one connection held open", System.IO.Path.Combine(dir, "b.db"), true, true, 2000);
             Time("pooling OFF, no other connection held", System.IO.Path.Combine(dir, "c.db"), false, false, 200);
             Time("pooling OFF, one connection held open", System.IO.Path.Combine(dir, "d.db"), false, true, 200);
-            try { System.IO.Directory.Delete(dir, true); } catch { }
+            //best-effort cleanup of a temp directory; a file still held open is not worth failing over
+            try { System.IO.Directory.Delete(dir, true); } catch (System.IO.IOException) { }
         }
     }
 }

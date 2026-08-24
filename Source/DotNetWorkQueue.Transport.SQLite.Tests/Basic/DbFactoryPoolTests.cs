@@ -166,6 +166,34 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         }
 
         [TestMethod]
+        public void AConnectionDisposedBeforeItsTransaction_IsNotReturnedToThePool()
+        {
+            //Regression guard. A connection carrying an open transaction would hand that
+            //transaction to the next renter. AutoCommit is false exactly while one is open, so
+            //such a connection is discarded rather than pooled.
+            using var factory = Create();
+            var connectionString = NewDatabase();
+
+            var leaked = factory.CreateConnection(connectionString, false);
+            var transaction = leaked.BeginTransaction();
+            using (var cmd = leaked.CreateCommand())
+            {
+                cmd.Transaction = transaction;
+                cmd.CommandText = "INSERT INTO t(id) VALUES (NULL)";
+                cmd.ExecuteNonQuery();
+            }
+            leaked.Dispose();   //disposed before the transaction was committed or rolled back
+
+            using var next = factory.CreateConnection(connectionString, false);
+            using var check = next.CreateCommand();
+            check.CommandText = "SELECT COUNT(*) FROM t";
+
+            //a renter inheriting the open transaction would see the uncommitted row
+            Assert.AreEqual(0L, Convert.ToInt64(check.ExecuteScalar()),
+                "the next renter must not inherit an uncommitted transaction");
+        }
+
+        [TestMethod]
         public void DisposingARentedConnectionTwice_IsSafe()
         {
             using var factory = Create();
