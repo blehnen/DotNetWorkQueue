@@ -129,6 +129,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             //exactly as they passed it, so a connection string we misjudge still fails the way it
             //would have without us.
             var trimmed = connectionString.TrimEnd();
+            //EndsWith(char) is netstandard2.1+; this line targets net461 upward
             var separator = trimmed.EndsWith(";", StringComparison.Ordinal) ? string.Empty : ";";
             return trimmed + separator + PoolingKeyword + "=True;";
         }
