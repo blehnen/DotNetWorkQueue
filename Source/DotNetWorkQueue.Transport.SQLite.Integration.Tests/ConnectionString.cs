@@ -46,24 +46,47 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
         {
             if (!string.IsNullOrWhiteSpace(_fileName))
             {
-                try
-                {
-                    File.Delete(_fileName);
-                }
-                catch
+                //The transport enables connection pooling by default, and a pooled connection keeps
+                //the database file handle open. Without this, both deletes below fail and the
+                //failure is swallowed, silently leaking a database file per test.
+                SQLiteConnection.ClearAllPools();
+
+                //WAL leaves -wal and -shm beside the database; deleting only the database leaks them.
+                if (!TryDeleteWithSiblings())
                 {
                     Thread.Sleep(3000);
-                    try
+                    if (!TryDeleteWithSiblings())
                     {
-                        File.Delete(_fileName);
-                    }
-                    catch
-                    {
-                        // ignored
+                        //Do not swallow this. A leaked file per test across the parallel CI stages
+                        //fills the agent disk, and it is invisible if nothing reports it.
+                        Console.WriteLine($"WARNING: could not delete test database '{_fileName}'. " +
+                                          "A connection is still holding it open.");
                     }
                 }
             }
             GC.SuppressFinalize(this);
+        }
+
+        private bool TryDeleteWithSiblings()
+        {
+            var deletedAll = true;
+            foreach (var file in new[] { _fileName, _fileName + "-wal", _fileName + "-shm", _fileName + "-journal" })
+            {
+                if (!File.Exists(file)) continue;
+                try
+                {
+                    File.Delete(file);
+                }
+                catch (IOException)
+                {
+                    deletedAll = false;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    deletedAll = false;
+                }
+            }
+            return deletedAll;
         }
     }
 }
