@@ -16,6 +16,9 @@
     <!-- TaskScheduling -->
     <PackageVersion Include="DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler" Version="0.5.0" />
 
+    <!-- Benchmarks (DotNetWorkQueue.Benchmarks; not shipped) -->
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+
     <!-- Build tooling -->
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.300" />
 

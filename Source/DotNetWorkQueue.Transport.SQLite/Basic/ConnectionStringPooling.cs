@@ -129,7 +129,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             //exactly as they passed it, so a connection string we misjudge still fails the way it
             //would have without us.
             var trimmed = connectionString.TrimEnd();
-            var separator = trimmed.EndsWith(";", StringComparison.Ordinal) ? string.Empty : ";";
+            var separator = trimmed.EndsWith(';') ? string.Empty : ";";
             return trimmed + separator + PoolingKeyword + "=True;";
         }
     }
