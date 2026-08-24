@@ -132,5 +132,22 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
 
             Assert.AreEqual(first, second);
         }
+
+        [TestMethod]
+        public void Apply_StaysCorrectBeyondTheCacheCap()
+        {
+            //The cache is bounded so a caller generating connection strings dynamically cannot
+            //grow it for the life of the process. Past the cap entries are simply rebuilt, so the
+            //answers must stay correct rather than degrade.
+            for (var i = 0; i < 300; i++)
+            {
+                var unique = $@"Data Source=c:\test\cap-{i}.db3;Version=3;";
+
+                var result = ConnectionStringPooling.Apply(unique, false);
+
+                StringAssert.StartsWith(result, unique);
+                Assert.IsTrue(PoolingOf(result), $"pooling should still be enabled for entry {i}");
+            }
+        }
     }
 }

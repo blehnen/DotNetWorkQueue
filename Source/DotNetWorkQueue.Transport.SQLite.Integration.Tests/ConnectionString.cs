@@ -11,6 +11,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
     public class IntegrationConnectionInfo : IDisposable
     {
         private readonly string _fileName;
+        private int _disposeCount;
 
         public IntegrationConnectionInfo(bool inMemory)
         {
@@ -44,6 +45,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
         [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Not needed")]
         public void Dispose()
         {
+            //Dispose now has a process-wide side effect (clearing the connection pool), and these
+            //fixtures are used from parallel test runs, so guard against running it twice.
+            if (Interlocked.Increment(ref _disposeCount) != 1)
+                return;
+
             if (!string.IsNullOrWhiteSpace(_fileName))
             {
                 //The transport enables connection pooling by default, and a pooled connection keeps
