@@ -65,31 +65,35 @@ measures the configured instances rather than a hand-built approximation that co
 decorator layout or private field names change, it throws with an explanatory message rather than
 silently measuring the wrong thing.
 
-## ⚠️ Unresolved: connection open/close reads ~30x high in this project
+## ⚠️ Do not run these from a WSL drive mount
 
-`PooledConnection_OpenClose` reports **~20 ms** per pooled open+close. A standalone project doing
-the identical loop, on the same machine with the same `System.Data.SQLite` 1.0.119, reports
-**~0.6 ms**. Until that is explained, **do not trust any figure from this harness that involves
-connection acquisition** — which is most of them.
+**Resolved trap, guarded at runtime.** The repository lives on `/mnt/f`, a Windows drive mounted
+into WSL. .NET memory-maps assemblies, and page faults against drvfs/9p are slow enough to impose
+a uniform floor on every operation in the process. The identical binaries measured:
 
-Ruled out so far:
-- **BenchmarkDotNet.** `--selftest` runs the same loop as a plain `for` in this project's own
-  process, outside BDN, and reproduces ~19.4 ms.
-- **Working directory.** Same binary run from `/mnt/f` (a Windows drive mount) and from `/tmp`
-  (Linux ext4): 19.66 ms and 19.72 ms.
-- **The database path.** The database is on `/tmp` in both cases.
-- **`MemoryDiagnoser` / inter-iteration GC** defeating the connection pool: removing the
-  attribute changes nothing.
-- **Shared `[GlobalSetup]`** building unrelated fixtures in the measured process: setup is now
-  scoped per benchmark, which changed nothing (but was worth fixing anyway).
-- **Native interop and runtime config.** Both projects ship the same `runtimes/*/native` layout
-  and byte-identical `runtimeconfig.json`.
+| assemblies loaded from | pooled connection open+close |
+|---|---|
+| `/mnt/f` (Windows drive mount) | **19,798 us** |
+| `/tmp` (native ext4) | **569 us** |
 
-The remaining difference between the two projects is that this one references
-`DotNetWorkQueue` and `DotNetWorkQueue.Transport.SQLite`. The next diagnostic is to add those
-references to the standalone project and see whether it slows down — if it does, something in
-the library's load affects `System.Data.SQLite` behaviour, which would be worth knowing
-independently of benchmarking.
+A 35x error, uniform across pooled and unpooled variants alike — which is exactly why it looked
+like a real result rather than an artifact. It was found only by copying the binaries to a native
+path; changing the *working* directory does nothing, because it is the assemblies' location that
+matters, not the process's cwd.
 
-Note that the allocation column is the corroborating signal: ~103 KB per open/close is a full
-connection construction, not a pool reuse.
+`Program.Main` now prints a red banner and the correct command whenever it detects assemblies
+under `/mnt/`. To get valid numbers on WSL:
+
+```bash
+dotnet build -c Release Source/DotNetWorkQueue.Benchmarks
+cp -r Source/DotNetWorkQueue.Benchmarks/bin/Release/net10.0/. /tmp/bench/
+cd /tmp/bench && dotnet ./DotNetWorkQueue.Benchmarks.dll --job short --filter '*' --inProcess
+```
+
+`--inProcess` is needed when running from a copied output directory, because BenchmarkDotNet's
+default toolchain wants to generate and compile a project.
+
+This does not affect Windows, where the repository is on a real NTFS volume with no translation
+layer. It also did not affect the earlier scratch measurements, whose build output happened to
+live under `/tmp`.
+
