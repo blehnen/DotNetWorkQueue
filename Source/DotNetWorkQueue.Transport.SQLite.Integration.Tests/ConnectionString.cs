@@ -78,7 +78,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
             var deletedAll = true;
             foreach (var file in new[] { _fileName, _fileName + "-wal", _fileName + "-shm", _fileName + "-journal" })
             {
-                if (!File.Exists(file)) continue;
+                //No File.Exists guard: Delete is a no-op for a file that is not there, and a
+                //missing directory surfaces as DirectoryNotFoundException, which derives from
+                //IOException and is handled below. Checking first would only add a syscall and a
+                //window in which the answer could change.
                 try
                 {
                     File.Delete(file);
