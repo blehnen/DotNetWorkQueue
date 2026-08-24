@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Data.SQLite;
 using System.Linq;
 using System.Threading;
 using DotNetWorkQueue.Queue;
@@ -129,11 +130,23 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <summary>
         /// Attempts to delete an existing queue
         /// </summary>
-        /// <remarks>Any data in the queue will be lost. Will cause exceptions in any producer/consumer that is connected</remarks>
+        /// <remarks>
+        /// <para>Any data in the queue will be lost. Will cause exceptions in any producer/consumer that is connected</para>
+        /// <para>
+        /// Pooled connections keep the database file handle open, so this releases them once the
+        /// tables are gone. Without it a caller that deletes the database file immediately after
+        /// removing the queue — a common pattern in tests — fails on a locked file.
+        /// </para>
+        /// </remarks>
         /// <returns></returns>
         public QueueRemoveResult RemoveQueue()
         {
-            return QueueExists ? RemoveQueueInternal() : new QueueRemoveResult(QueueRemoveStatus.DoesNotExist);
+            if (!QueueExists)
+                return new QueueRemoveResult(QueueRemoveStatus.DoesNotExist);
+
+            var result = RemoveQueueInternal();
+            SQLiteConnection.ClearAllPools();
+            return result;
         }
 
         /// <summary>

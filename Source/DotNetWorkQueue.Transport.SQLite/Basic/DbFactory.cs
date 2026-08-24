@@ -41,7 +41,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <inheritdoc />
         public IDbConnection CreateConnection(string connectionString, bool forMemoryHold)
         {
-            return new SQLiteConnection(connectionString);
+            //System.Data.SQLite does not pool by default. The transport opens a connection per
+            //operation, and in WAL mode closing the last connection checkpoints the log, so an
+            //unpooled connection makes every send pay a checkpoint. See ConnectionStringPooling.
+            return new SQLiteConnection(ConnectionStringPooling.Apply(connectionString, forMemoryHold));
         }
 
         /// <inheritdoc />
