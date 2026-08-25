@@ -41,6 +41,28 @@ namespace DotNetWorkQueue.Transport.SQLite
         IDbCommand CreateCommand(IDbConnection connection);
 
         /// <summary>
+        /// Creates a command for the supplied text, reusing the statements SQLite compiled for it
+        /// on this connection where the implementation can.
+        /// </summary>
+        /// <remarks>
+        /// System.Data.SQLite compiles a command's statements on first execution and keeps them on
+        /// the command object, so a command created per operation recompiles every time. On the
+        /// dequeue script, whose text is long and has several statements, that measured 27,389 ns
+        /// and 22,144 B per dequeue against 4,458 ns and 552 B when the command is reused.
+        /// Implementations that cannot reuse anything simply return a new command, which is what
+        /// the default below does.
+        /// </remarks>
+        /// <param name="connection">The connection.</param>
+        /// <param name="commandText">The command text.</param>
+        /// <returns></returns>
+        IDbCommand CreateCommand(IDbConnection connection, string commandText)
+        {
+            var command = CreateCommand(connection);
+            command.CommandText = commandText;
+            return command;
+        }
+
+        /// <summary>
         /// Creates a new instance of <seealso cref="ISQLiteTransactionWrapper"/>
         /// </summary>
         /// <param name="connection"></param>

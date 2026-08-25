@@ -19,3 +19,6 @@
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("DotNetWorkQueue.Transport.SQLite.Tests")]
+
+//the benchmark harness measures the real SQL generator rather than a copy of it that could drift
+[assembly: InternalsVisibleTo("DotNetWorkQueue.Benchmarks")]

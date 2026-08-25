@@ -40,6 +40,26 @@ rungs is the cost of what the upper rung adds:
 `MemoryDiagnoser` is on, so the allocation columns are as informative as the timings — allocation
 is often where hidden work shows up that latency alone hides.
 
+## ReceivePathBenchmarks
+
+Decomposes a single SQLite dequeue. Every rung runs against an **empty** queue: a dequeue consumes
+the row it finds, so a populated queue would make each iteration depend on what the last one left
+behind, which BenchmarkDotNet cannot control. An empty poll still runs the whole script and simply
+finds nothing, so it measures everything except materialising a row and the follow-up status
+commands — and it is a real workload in its own right, since an idle consumer does exactly this.
+
+`SQLiteCommand.Prepare()` is a no-op in System.Data.SQLite — statements compile lazily on
+execution — so preparation cannot be timed on its own. The fresh-versus-reused pair measures it
+where it actually happens.
+
+| benchmark | isolates |
+|---|---|
+| generate the dequeue SQL | the `StringBuilder` script the transport rebuilds per dequeue |
+| dequeue, fresh command | a dequeue as the transport performs it today |
+| dequeue, command from the factory cache | the same acquired through `DbFactory` and its per-connection command cache — *against the row above* = what the cache delivers. Neither row opens a transaction or goes through `BuildDequeueCommand`, so the ratio is the meaningful part, not the absolute |
+| dequeue, command reused, parameters rebuilt | *minus the row above* = generating the script and recompiling its statements |
+| dequeue, command reused | the same with parameters kept too — the ceiling, for comparison |
+
 ## Findings
 
 Measured on net10, WSL2/ext4, ShortRun, `Synchronous=NORMAL`. Absolute values are local; the
@@ -50,6 +70,8 @@ relationships between rows are the durable result.
 | Parsing the connection string was the single largest allocation on the send path | `DatabaseExists` alone was 7,238 ns / 20.2 KB. A send parsed twice — once for the existence check, once when creating a connection — so caching the parse took the whole send from 101.0 to 81.5 us and from 63.2 KB to 22.8 KB |
 | The separate `SELECT last_insert_rowid()` round trip is **not** worth removing | `INSERT … RETURNING` measured 43,770 ns against 43,642 ns for the round trip — inside the noise band. It saves 896 B and nothing else. Do not re-derive this |
 | Statement preparation is real, and roughly 2.4 us per statement | Reusing the command objects, which is what lets System.Data.SQLite keep a prepared statement, took the three-statement shape from 43,642 to 36,445 ns and from 5,600 to 2,432 B |
+| Statement compilation dominates a dequeue, far more than a send | An empty-queue dequeue costs 27,389 ns and 22,144 B with a fresh command and 4,458 ns and 552 B with the command reused - 6.1x and 40x. Only 536 ns of the saving is building the SQL; the rest is recompiling the script |
+| Keeping the compiled statement is enough; the parameters do not matter | Reusing the command but rebuilding its parameters each time measured 4,458 ns against 4,230 ns for keeping them - 99% of the win. Callers can keep using CreateParameter |
 
 ## Why this exists
 
