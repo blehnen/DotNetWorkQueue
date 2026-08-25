@@ -22,6 +22,7 @@ using System.Data.SQLite;
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite;
 using DotNetWorkQueue.Transport.SQLite.Basic;
@@ -48,6 +49,15 @@ namespace DotNetWorkQueue.Benchmarks
     /// pair below measures it where it actually happens.
     /// </para>
     /// </remarks>
+    /// <summary>
+    /// <see cref="DbFactory"/> resolves a transaction wrapper from the container. These rungs begin
+    /// their transactions on the connection directly, so nothing is ever resolved.
+    /// </summary>
+    internal sealed class NoContainerFactory : IContainerFactory
+    {
+        public IContainer Create() => null;
+    }
+
     [MemoryDiagnoser]
     public class ReceivePathBenchmarks
     {
@@ -66,6 +76,7 @@ namespace DotNetWorkQueue.Benchmarks
         private QueueConsumerConfiguration _configuration;
 
         private SQLiteConnection _connection;
+        private IDbFactory _dbFactory;
         private SQLiteCommand _reusedCommand;
 
         [GlobalSetup]
@@ -100,6 +111,9 @@ namespace DotNetWorkQueue.Benchmarks
             _connection = new SQLiteConnection(_connectionString);
             _connection.Open();
 
+            //the transport's own factory, so one rung measures the plumbing that actually ships
+            _dbFactory = new DbFactory(new NoContainerFactory());
+
             _reusedCommand = _connection.CreateCommand();
             _reusedCommand.CommandText = GenerateSql().CommandText;
             _reusedCommand.Parameters.Add(CurrentDateTimeParam, DbType.Int64).Value = DateTime.UtcNow.Ticks;
@@ -111,6 +125,7 @@ namespace DotNetWorkQueue.Benchmarks
         [GlobalCleanup]
         public void Cleanup()
         {
+            (_dbFactory as IDisposable)?.Dispose();
             _reusedCommand?.Dispose();
             _connection?.Dispose();
             _consumer?.Dispose();
@@ -141,6 +156,29 @@ namespace DotNetWorkQueue.Benchmarks
             using var command = _connection.CreateCommand();
             command.CommandText = GenerateSql().CommandText;
             command.Parameters.Add(CurrentDateTimeParam, DbType.Int64).Value = DateTime.UtcNow.Ticks;
+            using var reader = command.ExecuteReader();
+            return reader.Read() ? reader[0] : null;
+        }
+
+        /// <summary>
+        /// The same dequeue through the transport's own plumbing: a pooled connection from
+        /// <see cref="DbFactory"/> and a command asked of the factory rather than the connection.
+        /// This is what a consumer runs, so it is the rung that says whether the reuse the pair
+        /// below promises is actually being delivered.
+        /// </summary>
+        [Benchmark(Description = "dequeue an empty queue, through the transport plumbing")]
+        public object Dequeue_ThroughTransportPlumbing()
+        {
+            using var connection = _dbFactory.CreateConnection(_connectionString, false);
+            connection.Open();
+            using var command = _dbFactory.CreateCommand(connection, GenerateSql().CommandText);
+
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = CurrentDateTimeParam;
+            parameter.DbType = DbType.Int64;
+            parameter.Value = DateTime.UtcNow.Ticks;
+            command.Parameters.Add(parameter);
+
             using var reader = command.ExecuteReader();
             return reader.Read() ? reader[0] : null;
         }

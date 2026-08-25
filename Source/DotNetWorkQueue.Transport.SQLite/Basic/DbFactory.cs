@@ -56,8 +56,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         private readonly IContainer _container;
         private readonly IGetFileNameFromConnectionString _getFileName = new GetFileNameFromConnectionString();
 
-        private readonly ConcurrentDictionary<string, ConcurrentBag<SQLiteConnection>> _pool =
-            new ConcurrentDictionary<string, ConcurrentBag<SQLiteConnection>>(StringComparer.Ordinal);
+        private readonly ConcurrentDictionary<string, ConcurrentBag<PooledConnectionEntry>> _pool =
+            new ConcurrentDictionary<string, ConcurrentBag<PooledConnectionEntry>>(StringComparer.Ordinal);
 
         private int _disposeCount;
 
@@ -93,6 +93,19 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         }
 
         /// <inheritdoc />
+        public IDbCommand CreateCommand(IDbConnection connection, string commandText)
+        {
+            //A pooled connection keeps the statements SQLite compiled for each of its commands;
+            //anything else gets the plain behaviour of the interface default.
+            if (connection is PooledConnection pooled)
+                return pooled.CreateCommand(commandText);
+
+            var command = connection.CreateCommand();
+            command.CommandText = commandText;
+            return command;
+        }
+
+        /// <inheritdoc />
         public ISQLiteTransactionWrapper CreateTransaction(IDbConnection connection)
         {
             var transaction = _container.GetInstance<ISQLiteTransactionWrapper>();
@@ -100,13 +113,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             return transaction;
         }
 
-        private SQLiteConnection Rent(string connectionString)
+        private PooledConnectionEntry Rent(string connectionString)
         {
             if (_pool.TryGetValue(connectionString, out var bag) && bag.TryTake(out var pooled))
             {
                 //A connection can go stale while it sits in the pool. Verify before handing it
                 //out, so a broken one costs one construction rather than a failed operation.
-                if (pooled.State == ConnectionState.Open)
+                if (pooled.Connection.State == ConnectionState.Open)
                     return pooled;
 
                 Safely(pooled.Dispose);
@@ -122,7 +135,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 connection.Dispose();
                 throw;
             }
-            return connection;
+            return new PooledConnectionEntry(connection);
         }
 
         /// <summary>
@@ -130,29 +143,29 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// open, or that arrives after this factory has been disposed, is disposed rather than
         /// kept, so a broken connection cannot poison the next caller.
         /// </summary>
-        internal void Return(string connectionString, SQLiteConnection connection)
+        internal void Return(string connectionString, PooledConnectionEntry entry)
         {
             //A connection carrying an open transaction would hand that transaction to the next
             //renter. AutoCommit is false exactly while a transaction is open, so this catches a
             //caller that disposed the connection before the transaction.
-            if (connection.State != ConnectionState.Open || !connection.AutoCommit)
+            if (entry.Connection.State != ConnectionState.Open || !entry.Connection.AutoCommit)
             {
-                Safely(connection.Dispose);
+                Safely(entry.Dispose);
                 return;
             }
 
-            var bag = _pool.GetOrAdd(connectionString, _ => new ConcurrentBag<SQLiteConnection>());
+            var bag = _pool.GetOrAdd(connectionString, _ => new ConcurrentBag<PooledConnectionEntry>());
 
             //Count is a snapshot, so this can overshoot by roughly the number of threads returning
             //at once. That is deliberate: the cap exists to bound the pool, not to hold an exact
             //size, and a lock here would sit on every operation.
             if (bag.Count >= MaxPooledPerConnectionString)
             {
-                Safely(connection.Dispose);
+                Safely(entry.Dispose);
                 return;
             }
 
-            bag.Add(connection);
+            bag.Add(entry);
 
             //Add first, then re-check disposal. Dispose may have drained the pool between the
             //checks above and this add; without this a connection returned during disposal would
@@ -172,8 +185,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         {
             foreach (var bag in _pool.Values)
             {
-                while (bag.TryTake(out var connection))
-                    Safely(connection.Dispose);
+                while (bag.TryTake(out var entry))
+                    Safely(entry.Dispose);
             }
         }
 

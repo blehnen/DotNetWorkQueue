@@ -91,19 +91,26 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                 return null;
             }
 
+            //Built per dequeue, not cached: the user clause and its parameters may come from a
+            //caller-supplied factory that is meant to be consulted every time. When the text does
+            //not vary - the normal case - the connection recognises it and reuses the statements it
+            //already compiled for it, which is where the cost actually was.
+            var commandString = GetDeQueueCommand(_tableNameHelper.MetaDataName, _tableNameHelper.QueueName,
+                _tableNameHelper.StatusName, query.Routes, out var userParameters);
+
             using (var connection = _dbFactory.CreateConnection(_connectionInformation.ConnectionString, false))
             {
                 connection.Open();
                 using (var transaction = _dbFactory.CreateTransaction(connection).BeginTransaction())
                 {
-                    using (var selectCommand = connection.CreateCommand())
+                    //asking the factory for the command, rather than the connection, is what lets a
+                    //pooled connection hand back the statements it already compiled for this text
+                    using (var selectCommand = _dbFactory.CreateCommand(connection, commandString.CommandText))
                     {
                         selectCommand.Transaction = transaction;
-                        CommandString commandString =
-                                  GetDeQueueCommand(_tableNameHelper.MetaDataName, _tableNameHelper.QueueName,
-                                    _tableNameHelper.StatusName, query.Routes, out var userParameters);
 
-                        _buildDequeueCommand.BuildCommand(selectCommand, commandString, _options.Value, query.Routes, userParameters);
+                        _buildDequeueCommand.BuildCommand(selectCommand, commandString, _options.Value,
+                            query.Routes, userParameters);
                         using (var reader = selectCommand.ExecuteReader())
                         {
                             return _messageDeQueue.HandleMessage(connection, transaction, reader, commandString);
@@ -119,9 +126,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// <param name="statusTableName">Name of the status table.</param>
         /// <param name="routes">The routes.</param>
         /// <param name="userParameters">Optional user params for user de-queue</param>
-        /// <returns>
-        ///   <br />
-        /// </returns>
         private CommandString GetDeQueueCommand(string metaTableName, string queueTableName, string statusTableName, List<string> routes, out List<SQLiteParameter> userParameters)
         {
             return ReceiveMessage.GetDeQueueCommand(metaTableName, queueTableName, statusTableName, _options.Value, _configuration, routes, out userParameters);
