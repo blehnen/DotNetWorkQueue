@@ -48,6 +48,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </summary>
         private const int MaxCachedConnectionStrings = 128;
 
+        /// <summary>Guards admission to <see cref="Parsed"/> so the cap above cannot be exceeded.</summary>
+        private static readonly object Admission = new object();
+
         /// <summary>
         /// Gets the full path and file name of a DB. In memory databases will instead set the <seealso cref="ConnectionStringInfo.IsInMemory"/> flag to true.
         /// </summary>
@@ -65,10 +68,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             var result = Parse(connectionString);
 
-            //Count is a snapshot, so this can overshoot slightly under concurrency. That is fine:
-            //the point is a bound, not an exact one.
-            if (Parsed.Count < MaxCachedConnectionStrings)
-                Parsed.TryAdd(connectionString, result);
+            //Admission is serialised so the cap is an actual bound rather than an approximate one.
+            //This runs only when the lookup above missed, which after warm-up is never, so it costs
+            //nothing on the path that matters.
+            lock (Admission)
+            {
+                if (Parsed.Count < MaxCachedConnectionStrings)
+                    Parsed.TryAdd(connectionString, result);
+            }
 
             return result;
         }

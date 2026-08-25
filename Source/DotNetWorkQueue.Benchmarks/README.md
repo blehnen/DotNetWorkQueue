@@ -42,7 +42,7 @@ is often where hidden work shows up that latency alone hides.
 
 ## Findings
 
-Measured on net10, WSL2/ext4, ShortRun, `Synchronous=Off`. Absolute values are local; the
+Measured on net10, WSL2/ext4, ShortRun, `Synchronous=NORMAL`. Absolute values are local; the
 relationships between rows are the durable result.
 
 | finding | evidence |
