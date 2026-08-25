@@ -34,12 +34,19 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route.Implementation
                     Assert.IsTrue(result.Success, result.ErrorMessage);
                     scope = oCreation.Scope;
 
+                    //Heartbeat settings match the rest of the suite (update every 10s, dead at
+                    //30s, swept at 35s) rather than the far tighter 3s/10s/12s used before. This
+                    //test runs several consumers against one database, and on SQLite every
+                    //heartbeat write queues behind the single write lock along with the dequeue
+                    //updates and the deletes. Tight timings there buy nothing - the subject here
+                    //is message routing, not the heartbeat - and cost a leftover row when a
+                    //commit is still waiting on that lock as the consumer shuts down.
                     var routeTest = new RouteMultiTestsShared();
                     routeTest.RunTest<TTransportInit, FakeMessageA>(queueConnection,
                         true, messageCount, logProvider, generateData, verify, false,
                         GenerateRoutes(routeCount, 1), GenerateRoutes(routeCount, routeCount + 1), runtime,
-                        timeOut, readerCount, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), oCreation.Scope,
-                        "*/3 * * * * *", enableChaos);
+                        timeOut, readerCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35), oCreation.Scope,
+                        "*/10 * * * * *", enableChaos);
 
                     verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, 0, false, false);
                 }
