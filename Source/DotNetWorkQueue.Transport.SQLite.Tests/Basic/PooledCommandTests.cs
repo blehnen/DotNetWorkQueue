@@ -117,7 +117,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             }
 
             using var second = factory.CreateCommand(connection, "SELECT @a");
-            Assert.AreEqual(0, second.Parameters.Count);
+            Assert.IsEmpty(second.Parameters);
         }
 
         [TestMethod]
@@ -174,13 +174,46 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             using var connection = (PooledConnection)factory.CreateConnection(connectionString, false);
 
             using var held = factory.CreateCommand(connection, Insert);
+            var marker = held.CreateParameter();
+            marker.ParameterName = "@unused";
+            marker.Value = 1;
+            held.Parameters.Add(marker);
+
             using var second = factory.CreateCommand(connection, Insert);
 
+            //if the pool had handed the same physical command out twice, they would share this
+            Assert.IsEmpty(second.Parameters,
+                "the second request must not have been given the command already in use");
+
             second.ExecuteNonQuery();
-            held.ExecuteNonQuery();
 
             using var count = factory.CreateCommand(connection, Count);
-            Assert.AreEqual(2L, Convert.ToInt64(count.ExecuteScalar()));
+            Assert.AreEqual(1L, Convert.ToInt64(count.ExecuteScalar()));
+        }
+
+        [TestMethod]
+        public void SettingsDoNotCarryOverBetweenCallers()
+        {
+            //a caller is free to change these; the next one must not inherit them
+            using var factory = CreateFactory();
+            var connectionString = NewDatabase();
+            using var connection = (PooledConnection)factory.CreateConnection(connectionString, false);
+
+            int defaultTimeout;
+            UpdateRowSource defaultRowSource;
+            using (var first = factory.CreateCommand(connection, Count))
+            {
+                defaultTimeout = first.CommandTimeout;
+                defaultRowSource = first.UpdatedRowSource;
+
+                first.CommandTimeout = defaultTimeout + 120;
+                first.UpdatedRowSource = UpdateRowSource.Both;
+            }
+
+            using var second = factory.CreateCommand(connection, Count);
+
+            Assert.AreEqual(defaultTimeout, second.CommandTimeout);
+            Assert.AreEqual(defaultRowSource, second.UpdatedRowSource);
         }
 
         [TestMethod]

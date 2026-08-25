@@ -69,14 +69,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <inheritdoc />
         public string CommandText
         {
-            get => Inner.CommandText;
+            //the text this command was rented for, which is also how it is filed
+            get => _commandText;
 
             //Assigning the same text would discard the compiled statements this type exists to keep,
             //so it is ignored. A different text would leave the command filed under a key that no
             //longer describes it, so it is refused rather than silently corrupting the cache.
             set
             {
-                if (string.Equals(Inner.CommandText, value, StringComparison.Ordinal))
+                if (string.Equals(_commandText, value, StringComparison.Ordinal))
                     return;
 
                 throw new NotSupportedException(
@@ -151,17 +152,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         }
 
         /// <summary>
-        /// Releases the command back to the connection that owns it. The parameters a caller added
-        /// are cleared and the transaction detached, so the next caller sees a command in the state
-        /// a freshly created one would be in - except that its statements are already compiled.
+        /// Releases the command back to the connection that owns it, which returns it to the state
+        /// a freshly created one would be in - parameters cleared, transaction detached, settings
+        /// back to their originals - except that its statements are already compiled.
         /// </summary>
         public void Dispose()
         {
             if (Interlocked.Increment(ref _disposeCount) != 1)
                 return;
 
-            _command.Parameters.Clear();
-            _command.Transaction = null;
             _owner.Release(_commandText);
         }
     }

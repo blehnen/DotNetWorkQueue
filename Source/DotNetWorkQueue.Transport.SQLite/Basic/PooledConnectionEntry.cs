@@ -50,8 +50,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </summary>
         private const int MaxCommandsPerConnection = 16;
 
-        private readonly Dictionary<string, SQLiteCommand> _commands =
-            new Dictionary<string, SQLiteCommand>(StringComparer.Ordinal);
+        private readonly Dictionary<string, CachedCommand> _commands =
+            new Dictionary<string, CachedCommand>(StringComparer.Ordinal);
 
         private readonly HashSet<string> _inUse = new HashSet<string>(StringComparer.Ordinal);
 
@@ -76,23 +76,32 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             if (Volatile.Read(ref _disposeCount) != 0 || string.IsNullOrEmpty(commandText) || _inUse.Contains(commandText))
                 return Uncached(commandText);
 
-            if (!_commands.TryGetValue(commandText, out var command))
+            if (!_commands.TryGetValue(commandText, out var cached))
             {
                 if (_commands.Count >= MaxCommandsPerConnection)
                     return Uncached(commandText);
 
-                command = Connection.CreateCommand();
-                command.CommandText = commandText;
-                _commands.Add(commandText, command);
+                var created = Connection.CreateCommand();
+                created.CommandText = commandText;
+
+                //recorded now, before any caller has touched them
+                cached = new CachedCommand(created);
+                _commands.Add(commandText, cached);
             }
 
             _inUse.Add(commandText);
-            return new PooledCommand(this, commandText, command);
+            return new PooledCommand(this, commandText, cached.Command);
         }
 
-        /// <summary>Marks a command as available again; called when the caller disposes it.</summary>
+        /// <summary>
+        /// Returns a command to the state a freshly created one would be in - except that its
+        /// statements are already compiled - and marks it available again.
+        /// </summary>
         internal void Release(string commandText)
         {
+            if (_commands.TryGetValue(commandText, out var cached))
+                cached.Reset();
+
             _inUse.Remove(commandText);
         }
 
@@ -112,13 +121,44 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             if (Interlocked.Increment(ref _disposeCount) != 1)
                 return;
 
-            foreach (var command in _commands.Values)
-                Safely(command.Dispose);
+            foreach (var cached in _commands.Values)
+                Safely(cached.Command.Dispose);
 
             _commands.Clear();
             _inUse.Clear();
 
             Safely(Connection.Dispose);
+        }
+
+        /// <summary>
+        /// A cached command together with the settings it had before any caller saw it. A caller is
+        /// free to change <see cref="IDbCommand.CommandTimeout"/> and the rest; without recording
+        /// the originals here, the next caller would inherit whatever the last one left.
+        /// </summary>
+        private sealed class CachedCommand
+        {
+            private readonly int _commandTimeout;
+            private readonly UpdateRowSource _updatedRowSource;
+            private readonly CommandType _commandType;
+
+            internal CachedCommand(SQLiteCommand command)
+            {
+                Command = command;
+                _commandTimeout = command.CommandTimeout;
+                _updatedRowSource = command.UpdatedRowSource;
+                _commandType = command.CommandType;
+            }
+
+            internal SQLiteCommand Command { get; }
+
+            internal void Reset()
+            {
+                Command.Parameters.Clear();
+                Command.Transaction = null;
+                Command.CommandTimeout = _commandTimeout;
+                Command.UpdatedRowSource = _updatedRowSource;
+                Command.CommandType = _commandType;
+            }
         }
 
         /// <summary>

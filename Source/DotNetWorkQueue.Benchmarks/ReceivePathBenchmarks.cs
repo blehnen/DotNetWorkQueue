@@ -132,7 +132,18 @@ namespace DotNetWorkQueue.Benchmarks
             _container?.Dispose();
             _creation?.Dispose();
             SQLiteConnection.ClearAllPools();
-            try { Directory.Delete(_dir, true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+            try
+            {
+                Directory.Delete(_dir, true);
+            }
+            catch (IOException)
+            {
+                //a scratch directory that outlives the run is harmless
+            }
+            catch (UnauthorizedAccessException)
+            {
+                //a scratch directory that outlives the run is harmless
+            }
         }
 
         private CommandString GenerateSql() =>
@@ -161,12 +172,18 @@ namespace DotNetWorkQueue.Benchmarks
         }
 
         /// <summary>
-        /// The same dequeue through the transport's own plumbing: a pooled connection from
-        /// <see cref="DbFactory"/> and a command asked of the factory rather than the connection.
-        /// This is what a consumer runs, so it is the rung that says whether the reuse the pair
-        /// below promises is actually being delivered.
+        /// The same dequeue acquired the way the transport acquires it: a pooled connection from
+        /// <see cref="DbFactory"/> and a command asked of the factory rather than of the connection.
+        /// Measured against <see cref="Dequeue_FreshCommand"/>, which acquires its command the old
+        /// way and is otherwise identical, this says whether the reuse is actually being delivered.
         /// </summary>
-        [Benchmark(Description = "dequeue an empty queue, through the transport plumbing")]
+        /// <remarks>
+        /// This is not a whole consumer dequeue. <c>ReceiveMessageQueryHandler.Handle</c> also opens
+        /// a transaction and goes through <c>BuildDequeueCommand</c>, neither of which is here, so
+        /// the number is command acquisition and execution only. Both rungs omit the same things,
+        /// so the ratio between them is the meaningful part.
+        /// </remarks>
+        [Benchmark(Description = "dequeue an empty queue, command from the factory cache")]
         public object Dequeue_ThroughTransportPlumbing()
         {
             using var connection = _dbFactory.CreateConnection(_connectionString, false);

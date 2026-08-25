@@ -56,6 +56,7 @@ where it actually happens.
 |---|---|
 | generate the dequeue SQL | the `StringBuilder` script the transport rebuilds per dequeue |
 | dequeue, fresh command | a dequeue as the transport performs it today |
+| dequeue, command from the factory cache | the same acquired through `DbFactory` and its per-connection command cache — *against the row above* = what the cache delivers. Neither row opens a transaction or goes through `BuildDequeueCommand`, so the ratio is the meaningful part, not the absolute |
 | dequeue, command reused, parameters rebuilt | *minus the row above* = generating the script and recompiling its statements |
 | dequeue, command reused | the same with parameters kept too — the ceiling, for comparison |
 
