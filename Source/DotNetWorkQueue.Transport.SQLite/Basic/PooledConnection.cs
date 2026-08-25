@@ -51,18 +51,29 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     {
         private readonly DbFactory _owner;
         private readonly string _connectionString;
-        private SQLiteConnection _connection;
+        private PooledConnectionEntry _entry;
         private int _disposeCount;
 
-        internal PooledConnection(DbFactory owner, string connectionString, SQLiteConnection connection)
+        internal PooledConnection(DbFactory owner, string connectionString, PooledConnectionEntry entry)
         {
             _owner = owner;
             _connectionString = connectionString;
-            _connection = connection;
+            _entry = entry;
         }
 
-        private SQLiteConnection Inner =>
-            _connection ?? throw new ObjectDisposedException(nameof(PooledConnection));
+        private PooledConnectionEntry Entry =>
+            _entry ?? throw new ObjectDisposedException(nameof(PooledConnection));
+
+        private SQLiteConnection Inner => Entry.Connection;
+
+        /// <summary>
+        /// A command for <paramref name="commandText"/>, reusing the statements SQLite compiled for
+        /// it on this connection. See <see cref="PooledCommand"/> for why that matters.
+        /// </summary>
+        internal IDbCommand CreateCommand(string commandText) => Entry.CreateCommand(commandText);
+
+        /// <summary>How many distinct commands this connection is holding compiled statements for.</summary>
+        internal int CachedCommandCount => Entry.CachedCommandCount;
 
         /// <summary>
         /// No-op. A pooled connection is handed out already open; callers still call
@@ -112,7 +123,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         public string Database => Inner.Database;
 
         /// <inheritdoc />
-        public ConnectionState State => _connection?.State ?? ConnectionState.Closed;
+        public ConnectionState State => _entry?.Connection.State ?? ConnectionState.Closed;
 
         /// <summary>
         /// Returns the underlying connection to the pool rather than closing it. A connection that
@@ -124,11 +135,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             if (Interlocked.Increment(ref _disposeCount) != 1)
                 return;
 
-            var connection = Interlocked.Exchange(ref _connection, null);
-            if (connection == null)
+            var entry = Interlocked.Exchange(ref _entry, null);
+            if (entry == null)
                 return;
 
-            _owner.Return(_connectionString, connection);
+            _owner.Return(_connectionString, entry);
         }
     }
 }
