@@ -19,7 +19,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
-using System.Security.Cryptography;
 using System.Text;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
@@ -239,8 +238,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// </remarks>
         private static string TempTableName(string metaTableName)
         {
-            var hash = MD5.HashData(Encoding.UTF8.GetBytes(metaTableName));
-            return "I" + Convert.ToHexString(hash).ToLower();
+            //The meta table name is already a valid identifier - it is used unquoted throughout
+            //these statements - so it needs no hashing to become one. The previous name hashed a
+            //GUID only because a GUID is not a legal identifier.
+            return metaTableName + "TempDequeue";
         }
     }
 }

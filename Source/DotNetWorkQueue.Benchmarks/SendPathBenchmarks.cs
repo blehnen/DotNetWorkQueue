@@ -79,6 +79,13 @@ namespace DotNetWorkQueue.Benchmarks
         private SQLiteConnection _rawConnection;
         private SQLiteConnection _shapeConnection;
         private SQLiteConnection _returningConnection;
+        //named so the shape rungs, which all bind the same parameters, share one definition
+        private const string BodyParam = "@Body";
+        private const string HeadersParam = "@Headers";
+        private const string QueueIdParam = "@QueueID";
+        private const string CorrelationIdParam = "@CorrelationID";
+        private const string CurrentDateParam = "@CurrentDate";
+
         private SQLiteConnection _reuseConnection;
         private SQLiteCommand _reuseBody;
         private SQLiteCommand _reuseId;
@@ -157,8 +164,8 @@ namespace DotNetWorkQueue.Benchmarks
 
             _reuseBody = _reuseConnection.CreateCommand();
             _reuseBody.CommandText = "Insert into q (Body, Headers) VALUES (@Body, @Headers); ";
-            _reuseBody.Parameters.Add("@Body", DbType.Binary);
-            _reuseBody.Parameters.Add("@Headers", DbType.Binary);
+            _reuseBody.Parameters.Add(BodyParam, DbType.Binary);
+            _reuseBody.Parameters.Add(HeadersParam, DbType.Binary);
 
             _reuseId = _reuseConnection.CreateCommand();
             _reuseId.CommandText = "SELECT last_insert_rowid();";
@@ -166,9 +173,9 @@ namespace DotNetWorkQueue.Benchmarks
             _reuseMeta = _reuseConnection.CreateCommand();
             _reuseMeta.CommandText =
                 "Insert into qmeta (QueueID, CorrelationID, QueuedDateTime) VALUES (@QueueID, @CorrelationID, @CurrentDate)";
-            _reuseMeta.Parameters.Add("@QueueID", DbType.Int64);
-            _reuseMeta.Parameters.Add("@CorrelationID", DbType.String);
-            _reuseMeta.Parameters.Add("@CurrentDate", DbType.Int64);
+            _reuseMeta.Parameters.Add(QueueIdParam, DbType.Int64);
+            _reuseMeta.Parameters.Add(CorrelationIdParam, DbType.String);
+            _reuseMeta.Parameters.Add(CurrentDateParam, DbType.Int64);
         }
 
         [GlobalSetup(Targets = new[] { nameof(RawTable_DnwqShape_ConnectionPerSend), nameof(PooledConnection_OpenClose) })]
@@ -258,8 +265,8 @@ namespace DotNetWorkQueue.Benchmarks
             {
                 cmd.Transaction = tx;
                 cmd.CommandText = "Insert into q (Body, Headers) VALUES (@Body, @Headers) RETURNING QueueID;";
-                cmd.Parameters.Add("@Body", DbType.Binary).Value = _body;
-                cmd.Parameters.Add("@Headers", DbType.Binary).Value = _headerBytes;
+                cmd.Parameters.Add(BodyParam, DbType.Binary).Value = _body;
+                cmd.Parameters.Add(HeadersParam, DbType.Binary).Value = _headerBytes;
                 id = Convert.ToInt64(cmd.ExecuteScalar());
             }
             using (var cmd = _returningConnection.CreateCommand())
@@ -267,9 +274,9 @@ namespace DotNetWorkQueue.Benchmarks
                 cmd.Transaction = tx;
                 cmd.CommandText =
                     "Insert into qmeta (QueueID, CorrelationID, QueuedDateTime) VALUES (@QueueID, @CorrelationID, @CurrentDate)";
-                cmd.Parameters.Add("@QueueID", DbType.Int64).Value = id;
-                cmd.Parameters.Add("@CorrelationID", DbType.String).Value = Guid.NewGuid().ToString();
-                cmd.Parameters.Add("@CurrentDate", DbType.Int64).Value = DateTime.UtcNow.Ticks;
+                cmd.Parameters.Add(QueueIdParam, DbType.Int64).Value = id;
+                cmd.Parameters.Add(CorrelationIdParam, DbType.String).Value = Guid.NewGuid().ToString();
+                cmd.Parameters.Add(CurrentDateParam, DbType.Int64).Value = DateTime.UtcNow.Ticks;
                 cmd.ExecuteNonQuery();
             }
             tx.Commit();
@@ -287,17 +294,17 @@ namespace DotNetWorkQueue.Benchmarks
             using var tx = _reuseConnection.BeginTransaction();
 
             _reuseBody.Transaction = tx;
-            _reuseBody.Parameters["@Body"].Value = _body;
-            _reuseBody.Parameters["@Headers"].Value = _headerBytes;
+            _reuseBody.Parameters[BodyParam].Value = _body;
+            _reuseBody.Parameters[HeadersParam].Value = _headerBytes;
             _reuseBody.ExecuteNonQuery();
 
             _reuseId.Transaction = tx;
             var id = Convert.ToInt64(_reuseId.ExecuteScalar());
 
             _reuseMeta.Transaction = tx;
-            _reuseMeta.Parameters["@QueueID"].Value = id;
-            _reuseMeta.Parameters["@CorrelationID"].Value = Guid.NewGuid().ToString();
-            _reuseMeta.Parameters["@CurrentDate"].Value = DateTime.UtcNow.Ticks;
+            _reuseMeta.Parameters[QueueIdParam].Value = id;
+            _reuseMeta.Parameters[CorrelationIdParam].Value = Guid.NewGuid().ToString();
+            _reuseMeta.Parameters[CurrentDateParam].Value = DateTime.UtcNow.Ticks;
             _reuseMeta.ExecuteNonQuery();
 
             tx.Commit();
@@ -369,8 +376,8 @@ namespace DotNetWorkQueue.Benchmarks
             {
                 cmd.Transaction = tx;
                 cmd.CommandText = "Insert into q (Body, Headers) VALUES (@Body, @Headers); ";
-                cmd.Parameters.Add("@Body", DbType.Binary).Value = _body;
-                cmd.Parameters.Add("@Headers", DbType.Binary).Value = _headerBytes;
+                cmd.Parameters.Add(BodyParam, DbType.Binary).Value = _body;
+                cmd.Parameters.Add(HeadersParam, DbType.Binary).Value = _headerBytes;
                 cmd.ExecuteNonQuery();
             }
             using (var cmd = connection.CreateCommand())
@@ -385,9 +392,9 @@ namespace DotNetWorkQueue.Benchmarks
                 cmd.Transaction = tx;
                 cmd.CommandText =
                     "Insert into qmeta (QueueID, CorrelationID, QueuedDateTime) VALUES (@QueueID, @CorrelationID, @CurrentDate)";
-                cmd.Parameters.Add("@QueueID", DbType.Int64).Value = id;
-                cmd.Parameters.Add("@CorrelationID", DbType.String).Value = Guid.NewGuid().ToString();
-                cmd.Parameters.Add("@CurrentDate", DbType.Int64).Value = DateTime.UtcNow.Ticks;
+                cmd.Parameters.Add(QueueIdParam, DbType.Int64).Value = id;
+                cmd.Parameters.Add(CorrelationIdParam, DbType.String).Value = Guid.NewGuid().ToString();
+                cmd.Parameters.Add(CurrentDateParam, DbType.Int64).Value = DateTime.UtcNow.Ticks;
                 cmd.ExecuteNonQuery();
             }
             tx.Commit();
