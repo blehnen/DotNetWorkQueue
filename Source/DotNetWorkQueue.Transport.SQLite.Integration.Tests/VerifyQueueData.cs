@@ -4,8 +4,10 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using System;
+using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #endregion
@@ -205,8 +207,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
             AllTablesRecordCount(recordCount, ignoreMeta, ignoreErrorTracking);
         }
 
-        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
-        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query Ok")]
         private void AllTablesRecordCount(int recordCount, bool ignoreMeta, bool ignoreErrorTracking)
         {
             using (var conn = new SQLiteConnection(_connection.ConnectionString))
@@ -215,55 +215,75 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
                 using (var command = conn.CreateCommand())
                 {
                     if (!ignoreMeta)
-                    {
-                        command.CommandText = $"select count(*) from {_tableNameHelper.MetaDataName}";
-                        using (var reader = command.ExecuteReader())
-                        {
-                            Assert.IsTrue(reader.Read());
-                            var records = reader.GetInt32(0);
-                            Assert.AreEqual(recordCount, records);
-                        }
-                    }
+                        AssertRecordCount(command, _tableNameHelper.MetaDataName, recordCount);
 
                     if (!ignoreErrorTracking)
-                    {
-                        command.CommandText = $"select count(*) from {_tableNameHelper.ErrorTrackingName}";
-                        using (var reader = command.ExecuteReader())
-                        {
-                            Assert.IsTrue(reader.Read());
-                            var records = reader.GetInt32(0);
-                            Assert.AreEqual(recordCount, records);
-                        }
-                    }
+                        AssertRecordCount(command, _tableNameHelper.ErrorTrackingName, recordCount);
 
-                    command.CommandText = $"select count(*) from {_tableNameHelper.MetaDataErrorsName}";
-                    using (var reader = command.ExecuteReader())
-                    {
-                        Assert.IsTrue(reader.Read());
-                        var records = reader.GetInt32(0);
-                        Assert.AreEqual(recordCount, records);
-                    }
-
-                    command.CommandText = $"select count(*) from {_tableNameHelper.QueueName}";
-                    using (var reader = command.ExecuteReader())
-                    {
-                        Assert.IsTrue(reader.Read());
-                        var records = reader.GetInt32(0);
-                        Assert.AreEqual(recordCount, records);
-                    }
+                    AssertRecordCount(command, _tableNameHelper.MetaDataErrorsName, recordCount);
+                    AssertRecordCount(command, _tableNameHelper.QueueName, recordCount);
 
                     if (_options.EnableStatusTable)
-                    {
-                        command.CommandText = $"select count(*) from {_tableNameHelper.StatusName}";
-                        using (var reader = command.ExecuteReader())
-                        {
-                            Assert.IsTrue(reader.Read());
-                            var records = reader.GetInt32(0);
-                            Assert.AreEqual(recordCount, records);
-                        }
-                    }
+                        AssertRecordCount(command, _tableNameHelper.StatusName, recordCount);
                 }
             }
+        }
+
+        /// <summary>
+        /// A bare count mismatch says nothing about which message survived, and these failures are
+        /// intermittent and load dependent - the run that produced one is long gone by the time
+        /// anyone looks at it. Dump the surviving rows with the failure so a single occurrence is
+        /// enough to diagnose.
+        /// </summary>
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query Ok")]
+        private static void AssertRecordCount(IDbCommand command, string tableName, int expected)
+        {
+            command.CommandText = $"select count(*) from {tableName}";
+            int records;
+            using (var reader = command.ExecuteReader())
+            {
+                Assert.IsTrue(reader.Read());
+                records = reader.GetInt32(0);
+            }
+
+            if (records == expected)
+                return;
+
+            Assert.Fail($"Expected {expected} record(s) in {tableName}, found {records}.{Environment.NewLine}" +
+                        DumpRows(command, tableName));
+        }
+
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query Ok")]
+        private static string DumpRows(IDbCommand command, string tableName, int maxRows = 10)
+        {
+            var output = new StringBuilder();
+            command.CommandText = $"select * from {tableName} limit {maxRows}";
+            using (var reader = command.ExecuteReader())
+            {
+                var row = 0;
+                while (reader.Read())
+                {
+                    var columns = new string[reader.FieldCount];
+                    for (var i = 0; i < reader.FieldCount; i++)
+                        columns[i] = $"{reader.GetName(i)}={Describe(reader, i)}";
+
+                    output.AppendLine($"  row {++row}: {string.Join(", ", columns)}");
+                }
+
+                if (row == 0)
+                    output.AppendLine("  <no rows>");
+            }
+            return output.ToString();
+        }
+
+        private static string Describe(IDataRecord reader, int ordinal)
+        {
+            if (reader.IsDBNull(ordinal))
+                return "<null>";
+
+            //the message body is a blob; its bytes are noise here, its presence is not
+            var value = reader.GetValue(ordinal);
+            return value is byte[] bytes ? $"<{bytes.Length} bytes>" : value.ToString();
         }
     }
     public class VerifyErrorCounts
