@@ -72,6 +72,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </summary>
         private const int MaxCachedConnectionStrings = 128;
 
+        /// <summary>Guards admission to <see cref="Rewritten"/> so the cap above cannot be exceeded.</summary>
+        private static readonly object Admission = new object();
+
         /// <summary>
         /// Returns <paramref name="connectionString"/> with pooling enabled, unless the caller
         /// already expressed a preference, the database is in-memory, or the connection is being
@@ -92,10 +95,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             var result = Build(connectionString);
 
-            //Count is a snapshot, so this can overshoot slightly under concurrency. That is fine:
-            //the point is a bound, not an exact one.
-            if (Rewritten.Count < MaxCachedConnectionStrings)
-                Rewritten.TryAdd(connectionString, result);
+            //Admission is serialised so the cap is an actual bound rather than an approximate one.
+            //This runs only when the lookup above missed, which after warm-up is never, so it costs
+            //nothing on the path that matters.
+            lock (Admission)
+            {
+                if (Rewritten.Count < MaxCachedConnectionStrings)
+                    Rewritten.TryAdd(connectionString, result);
+            }
 
             return result;
         }
