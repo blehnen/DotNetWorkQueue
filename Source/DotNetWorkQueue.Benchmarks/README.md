@@ -28,6 +28,8 @@ rungs is the cost of what the upper rung adds:
 |---|---|
 | raw table, 1 statement | the floor: a hand-written narrow outbox table |
 | raw table, DNWQ statement shape (held connection) | *minus the row above* = the write transaction, i.e. the "critical section" |
+| raw table, DNWQ shape using `INSERT … RETURNING` | *minus the row above* = the separate `last_insert_rowid()` round trip |
+| raw table, DNWQ shape with commands reused | *minus the held-connection row* = building commands and re-preparing statements |
 | raw table, DNWQ shape + pooled connection per send | *minus the row above* = connection lifecycle |
 | pooled connection open + close, no work | connection acquisition alone |
 | DatabaseExists check | the existence check the send path runs per message |
@@ -37,6 +39,17 @@ rungs is the cost of what the upper rung adds:
 
 `MemoryDiagnoser` is on, so the allocation columns are as informative as the timings — allocation
 is often where hidden work shows up that latency alone hides.
+
+## Findings
+
+Measured on net10, WSL2/ext4, ShortRun, `Synchronous=Off`. Absolute values are local; the
+relationships between rows are the durable result.
+
+| finding | evidence |
+|---|---|
+| Parsing the connection string was the single largest allocation on the send path | `DatabaseExists` alone was 7,238 ns / 20.2 KB. A send parsed twice — once for the existence check, once when creating a connection — so caching the parse took the whole send from 101.0 to 81.5 us and from 63.2 KB to 22.8 KB |
+| The separate `SELECT last_insert_rowid()` round trip is **not** worth removing | `INSERT … RETURNING` measured 43,770 ns against 43,642 ns for the round trip — inside the noise band. It saves 896 B and nothing else. Do not re-derive this |
+| Statement preparation is real, and roughly 2.4 us per statement | Reusing the command objects, which is what lets System.Data.SQLite keep a prepared statement, took the three-statement shape from 43,642 to 36,445 ns and from 5,600 to 2,432 B |
 
 ## Why this exists
 

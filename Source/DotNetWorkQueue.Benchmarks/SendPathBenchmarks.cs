@@ -78,6 +78,11 @@ namespace DotNetWorkQueue.Benchmarks
 
         private SQLiteConnection _rawConnection;
         private SQLiteConnection _shapeConnection;
+        private SQLiteConnection _returningConnection;
+        private SQLiteConnection _reuseConnection;
+        private SQLiteCommand _reuseBody;
+        private SQLiteCommand _reuseId;
+        private SQLiteCommand _reuseMeta;
         private string _shapePerSendConnectionString;
 
         private QueueCreationContainer<SqLiteMessageQueueInit> _sqliteCreation;
@@ -135,6 +140,37 @@ namespace DotNetWorkQueue.Benchmarks
             Execute(_shapeConnection, ShapeSchema);
         }
 
+        [GlobalSetup(Target = nameof(RawTable_DnwqShape_Returning))]
+        public void SetupForShapeReturning()
+        {
+            SetupCommon();
+            _returningConnection = Open(Path.Combine(_dir, "returning.db"), pooling: false);
+            Execute(_returningConnection, ShapeSchema);
+        }
+
+        [GlobalSetup(Target = nameof(RawTable_DnwqShape_ReusedCommands))]
+        public void SetupForShapeReuse()
+        {
+            SetupCommon();
+            _reuseConnection = Open(Path.Combine(_dir, "reuse.db"), pooling: false);
+            Execute(_reuseConnection, ShapeSchema);
+
+            _reuseBody = _reuseConnection.CreateCommand();
+            _reuseBody.CommandText = "Insert into q (Body, Headers) VALUES (@Body, @Headers); ";
+            _reuseBody.Parameters.Add("@Body", DbType.Binary);
+            _reuseBody.Parameters.Add("@Headers", DbType.Binary);
+
+            _reuseId = _reuseConnection.CreateCommand();
+            _reuseId.CommandText = "SELECT last_insert_rowid();";
+
+            _reuseMeta = _reuseConnection.CreateCommand();
+            _reuseMeta.CommandText =
+                "Insert into qmeta (QueueID, CorrelationID, QueuedDateTime) VALUES (@QueueID, @CorrelationID, @CurrentDate)";
+            _reuseMeta.Parameters.Add("@QueueID", DbType.Int64);
+            _reuseMeta.Parameters.Add("@CorrelationID", DbType.String);
+            _reuseMeta.Parameters.Add("@CurrentDate", DbType.Int64);
+        }
+
         [GlobalSetup(Targets = new[] { nameof(RawTable_DnwqShape_ConnectionPerSend), nameof(PooledConnection_OpenClose) })]
         public void SetupForShapePerSend()
         {
@@ -170,6 +206,11 @@ namespace DotNetWorkQueue.Benchmarks
             _memoryCreation?.Dispose();
             _rawConnection?.Dispose();
             _shapeConnection?.Dispose();
+            _returningConnection?.Dispose();
+            _reuseBody?.Dispose();
+            _reuseId?.Dispose();
+            _reuseMeta?.Dispose();
+            _reuseConnection?.Dispose();
 
             //pooled connections hold the file handles open
             SQLiteConnection.ClearAllPools();
@@ -201,6 +242,66 @@ namespace DotNetWorkQueue.Benchmarks
         /// </summary>
         [Benchmark(Description = "raw table, DNWQ statement shape (held connection)")]
         public void RawTable_DnwqShape_HeldConnection() => DnwqShape(_shapeConnection);
+
+        /// <summary>
+        /// The same shape with <c>INSERT … RETURNING QueueID</c> in place of the separate
+        /// <c>SELECT last_insert_rowid()</c>. Minus <see cref="RawTable_DnwqShape_HeldConnection"/>,
+        /// this is what the extra round trip costs. The batch send path already uses RETURNING, so
+        /// the SQLite version floor it needs is established.
+        /// </summary>
+        [Benchmark(Description = "raw table, DNWQ shape using INSERT ... RETURNING")]
+        public void RawTable_DnwqShape_Returning()
+        {
+            using var tx = _returningConnection.BeginTransaction();
+            long id;
+            using (var cmd = _returningConnection.CreateCommand())
+            {
+                cmd.Transaction = tx;
+                cmd.CommandText = "Insert into q (Body, Headers) VALUES (@Body, @Headers) RETURNING QueueID;";
+                cmd.Parameters.Add("@Body", DbType.Binary).Value = _body;
+                cmd.Parameters.Add("@Headers", DbType.Binary).Value = _headerBytes;
+                id = Convert.ToInt64(cmd.ExecuteScalar());
+            }
+            using (var cmd = _returningConnection.CreateCommand())
+            {
+                cmd.Transaction = tx;
+                cmd.CommandText =
+                    "Insert into qmeta (QueueID, CorrelationID, QueuedDateTime) VALUES (@QueueID, @CorrelationID, @CurrentDate)";
+                cmd.Parameters.Add("@QueueID", DbType.Int64).Value = id;
+                cmd.Parameters.Add("@CorrelationID", DbType.String).Value = Guid.NewGuid().ToString();
+                cmd.Parameters.Add("@CurrentDate", DbType.Int64).Value = DateTime.UtcNow.Ticks;
+                cmd.ExecuteNonQuery();
+            }
+            tx.Commit();
+        }
+
+        /// <summary>
+        /// The same shape again, but with the command objects built once and only their parameter
+        /// values reassigned. System.Data.SQLite caches a prepared statement inside the command
+        /// object, so minus <see cref="RawTable_DnwqShape_HeldConnection"/> this is what building
+        /// commands and re-preparing statements costs on every send.
+        /// </summary>
+        [Benchmark(Description = "raw table, DNWQ shape with commands reused (no re-prepare)")]
+        public void RawTable_DnwqShape_ReusedCommands()
+        {
+            using var tx = _reuseConnection.BeginTransaction();
+
+            _reuseBody.Transaction = tx;
+            _reuseBody.Parameters["@Body"].Value = _body;
+            _reuseBody.Parameters["@Headers"].Value = _headerBytes;
+            _reuseBody.ExecuteNonQuery();
+
+            _reuseId.Transaction = tx;
+            var id = Convert.ToInt64(_reuseId.ExecuteScalar());
+
+            _reuseMeta.Transaction = tx;
+            _reuseMeta.Parameters["@QueueID"].Value = id;
+            _reuseMeta.Parameters["@CorrelationID"].Value = Guid.NewGuid().ToString();
+            _reuseMeta.Parameters["@CurrentDate"].Value = DateTime.UtcNow.Ticks;
+            _reuseMeta.ExecuteNonQuery();
+
+            tx.Commit();
+        }
 
         /// <summary>
         /// Minus <see cref="RawTable_DnwqShape_HeldConnection"/>, this is the cost of acquiring and
