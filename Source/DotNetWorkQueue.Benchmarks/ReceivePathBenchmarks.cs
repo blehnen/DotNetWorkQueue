@@ -78,6 +78,7 @@ namespace DotNetWorkQueue.Benchmarks
         private SQLiteConnection _connection;
         private IDbFactory _dbFactory;
         private SQLiteCommand _reusedCommand;
+        private string _cachedSql;
 
         [GlobalSetup]
         public void Setup()
@@ -114,8 +115,11 @@ namespace DotNetWorkQueue.Benchmarks
             //the transport's own factory, so one rung measures the plumbing that actually ships
             _dbFactory = new DbFactory(new NoContainerFactory());
 
+            //the handler caches the script; generating it per dequeue is the old shape
+            _cachedSql = GenerateSql().CommandText;
+
             _reusedCommand = _connection.CreateCommand();
-            _reusedCommand.CommandText = GenerateSql().CommandText;
+            _reusedCommand.CommandText = _cachedSql;
             _reusedCommand.Parameters.Add(CurrentDateTimeParam, DbType.Int64).Value = DateTime.UtcNow.Ticks;
 
             //the first execution compiles the statements; every rung should measure a warm database
@@ -148,7 +152,7 @@ namespace DotNetWorkQueue.Benchmarks
 
         private CommandString GenerateSql() =>
             ReceiveMessage.GetDeQueueCommand(_tableNames.MetaDataName, _tableNames.QueueName,
-                _tableNames.StatusName, _options, _configuration, null, out _);
+                _tableNames.StatusName, _options, null, null);
 
         /// <summary>
         /// Building the dequeue script. The transport does this on every dequeue, unlike the body
@@ -189,6 +193,28 @@ namespace DotNetWorkQueue.Benchmarks
             using var connection = _dbFactory.CreateConnection(_connectionString, false);
             connection.Open();
             using var command = _dbFactory.CreateCommand(connection, GenerateSql().CommandText);
+
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = CurrentDateTimeParam;
+            parameter.DbType = DbType.Int64;
+            parameter.Value = DateTime.UtcNow.Ticks;
+            command.Parameters.Add(parameter);
+
+            using var reader = command.ExecuteReader();
+            return reader.Read() ? reader[0] : null;
+        }
+
+        /// <summary>
+        /// What the transport does now: the script cached rather than rebuilt, and the command
+        /// asked of the factory so its compiled statements come back too. Against the rung above,
+        /// which rebuilds the script, this is what caching the script is worth.
+        /// </summary>
+        [Benchmark(Description = "dequeue an empty queue, script and command both cached")]
+        public object Dequeue_ScriptAndCommandCached()
+        {
+            using var connection = _dbFactory.CreateConnection(_connectionString, false);
+            connection.Open();
+            using var command = _dbFactory.CreateCommand(connection, _cachedSql);
 
             var parameter = command.CreateParameter();
             parameter.ParameterName = CurrentDateTimeParam;

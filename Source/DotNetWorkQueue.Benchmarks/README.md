@@ -56,8 +56,9 @@ where it actually happens.
 | benchmark | isolates |
 |---|---|
 | generate the dequeue SQL | the `StringBuilder` script the transport rebuilds per dequeue |
-| dequeue, fresh command | a dequeue as the transport performs it today |
+| dequeue, fresh command | a dequeue as the transport performed it before any of the caching |
 | dequeue, command from the factory cache | the same acquired through `DbFactory` and its per-connection command cache — *against the row above* = what the cache delivers. Neither row opens a transaction or goes through `BuildDequeueCommand`, so the ratio is the meaningful part, not the absolute |
+| dequeue, script and command both cached | what the transport does now — *against the row above* = what caching the generated SQL is worth |
 | dequeue, command reused, parameters rebuilt | *minus the row above* = generating the script and recompiling its statements |
 | dequeue, command reused | the same with parameters kept too — the ceiling, for comparison |
 
@@ -99,6 +100,24 @@ was measured. A single send recompiles three statements, which is why it gains t
 Turn `EnableStatusTable` on and a batch recompiles two per message, so the gap would narrow.
 
 
+### Caching the dequeue script
+
+| rung | time | allocated |
+|---|---|---|
+| fresh command, script rebuilt (the original) | 29,854 ns | 22,144 B |
+| command cached, script rebuilt | 7,170 ns | 7,496 B |
+| **script and command both cached (now)** | **5,800 ns** | **648 B** |
+
+Generating the script was **91% of everything a dequeue allocated** — 6,848 B of 7,496 B — and
+caching it removes essentially all of it. End to end against the original: 5.1x on time and 34x
+on allocation.
+
+The script is keyed on the caller's clause and the routes, the only inputs to it that vary.
+Parameter *values* are bound rather than written into the SQL, so the factory forms of
+`GetUserClause` and `GetUserParameters` are still called on every dequeue and keep working — a
+clause that changes simply produces a different key.
+
+## Why this exists
 
 A scratch decomposition in August 2026 found that the write transaction was ~3% of the gap
 between DotNetWorkQueue and a hand-written table, while connection lifecycle was ~58% and
