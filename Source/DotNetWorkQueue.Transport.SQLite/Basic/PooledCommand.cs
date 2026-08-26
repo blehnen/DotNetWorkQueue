@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Data.SQLite;
 using System.Threading;
 
@@ -67,6 +68,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 : throw new ObjectDisposedException(nameof(PooledCommand));
 
         /// <inheritdoc />
+        [SuppressMessage("Major Code Smell", "S4275:Getters and setters should access the expected fields",
+            Justification = "The setter deliberately never assigns. A pooled command is filed under its text, so " +
+                            "changing the text would leave it under a key that no longer describes it. The setter " +
+                            "reads the field to accept a caller re-assigning the value it already holds - which is " +
+                            "the normal shape of the callers - and refuses anything else.")]
         public string CommandText
         {
             //the text this command was rented for, which is also how it is filed
