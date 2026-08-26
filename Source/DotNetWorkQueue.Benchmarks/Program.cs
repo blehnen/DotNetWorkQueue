@@ -108,8 +108,15 @@ namespace DotNetWorkQueue.Benchmarks
             Time("pooling ON,  one connection held open", System.IO.Path.Combine(dir, "b.db"), true, true, 2000);
             Time("pooling OFF, no other connection held", System.IO.Path.Combine(dir, "c.db"), false, false, 200);
             Time("pooling OFF, one connection held open", System.IO.Path.Combine(dir, "d.db"), false, true, 200);
-            //best-effort cleanup of a temp directory; a file still held open is not worth failing over
-            try { System.IO.Directory.Delete(dir, true); } catch (System.IO.IOException) { }
+            try
+            {
+                System.IO.Directory.Delete(dir, true);
+            }
+            catch (System.IO.IOException)
+            {
+                //best-effort cleanup of a temp directory; a file still held open by the provider is
+                //not worth failing a diagnostic run over
+            }
         }
     }
 }
