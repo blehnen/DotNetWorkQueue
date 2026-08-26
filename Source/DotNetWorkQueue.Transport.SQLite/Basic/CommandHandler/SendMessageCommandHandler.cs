@@ -155,8 +155,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                     {
                         if (_options.Value.EnableStatusTable)
                         {
-                            commandStatus = CreateStatusRecord(connection, commandSend.MessageToSend,
-                                commandSend.MessageData);
+                            commandStatus = CreateStatusRecord(connection, commandSend.MessageData);
                         }
 
                         using (var trans = _dbFactory.CreateTransaction(connection).BeginTransaction())
@@ -229,11 +228,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         /// Creates the status record.
         /// </summary>
         /// <param name="connection">The connection.</param>
-        /// <param name="message">The message.</param>
         /// <param name="data">The data.</param>
         /// <returns></returns>
-        private IDbCommand CreateStatusRecord(IDbConnection connection, IMessage message,
-            IAdditionalMessageData data)
+        private IDbCommand CreateStatusRecord(IDbConnection connection, IAdditionalMessageData data)
         {
             var command = _dbFactory.CreateCommand(connection,
                 SendMessage.BuildStatusCommandText(_tableNameHelper, data, _options.Value));

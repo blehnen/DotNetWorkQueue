@@ -87,6 +87,31 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         }
 
         [TestMethod]
+        public void UserColumnsOffMetaData_ChangeTheStatusTextWithTheMessage()
+        {
+            //The mirror of the case above, and the one that applies by default: with
+            //AdditionalColumnsOnMetaData off, the caller's columns are named on the *status*
+            //insert instead, so that is the statement that varies per message.
+            var tables = TableNames();
+            var options = Options(userColumnsOnMetaData: false);
+
+            var withOrder = new AdditionalMessageData();
+            withOrder.AdditionalMetaData.Add(new AdditionalMetaData<int>("OrderID", 1));
+
+            var withCustomer = new AdditionalMessageData();
+            withCustomer.AdditionalMetaData.Add(new AdditionalMetaData<int>("CustomerID", 1));
+
+            Assert.AreNotEqual(
+                SendMessage.BuildStatusCommandText(tables, withOrder, options),
+                SendMessage.BuildStatusCommandText(tables, withCustomer, options));
+
+            //and the meta data insert is the one that stays put in this configuration
+            Assert.AreEqual(
+                SendMessage.BuildMetaCommandText(tables, withOrder, options),
+                SendMessage.BuildMetaCommandText(tables, withCustomer, options));
+        }
+
+        [TestMethod]
         public void TheMetaDataAndStatusInsertsAreDifferentStatements()
         {
             //they are cached separately; if they collided one would be served for the other
