@@ -2,9 +2,6 @@ using System;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
-using AutoFixture;
-using AutoFixture.AutoNSubstitute;
-using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler;
@@ -22,9 +19,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
     {
         private static CommandString Build(string metaTableName = "qMetaData")
         {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             return ReceiveMessage.GetDeQueueCommand(metaTableName, "q", "qStatus",
-                new SqLiteMessageQueueTransportOptions(), fixture.Create<QueueConsumerConfiguration>(), null, out _);
+                new SqLiteMessageQueueTransportOptions(), null, null);
         }
 
         [TestMethod]
