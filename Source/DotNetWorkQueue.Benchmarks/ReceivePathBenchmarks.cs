@@ -68,12 +68,9 @@ namespace DotNetWorkQueue.Benchmarks
         private string _connectionString;
 
         private QueueCreationContainer<SqLiteMessageQueueInit> _creation;
-        private QueueContainer<SqLiteMessageQueueInit> _container;
-        private IConsumerQueue _consumer;
 
         private TableNameHelper _tableNames;
         private SqLiteMessageQueueTransportOptions _options;
-        private QueueConsumerConfiguration _configuration;
 
         private SQLiteConnection _connection;
         private IDbFactory _dbFactory;
@@ -97,12 +94,6 @@ namespace DotNetWorkQueue.Benchmarks
                 if (!result.Success)
                     throw new InvalidOperationException($"CreateQueue failed: {result.Status} {result.ErrorMessage}");
             }
-
-            _container = new QueueContainer<SqLiteMessageQueueInit>();
-            _consumer = _container.CreateConsumer(queueConnection);
-
-            //the live consumer configuration, so the generated SQL matches what a consumer runs
-            _configuration = _consumer.Configuration;
 
             //the queue above was created with default options, so these are the options it has
             _options = new SqLiteMessageQueueTransportOptions();
@@ -132,8 +123,6 @@ namespace DotNetWorkQueue.Benchmarks
             (_dbFactory as IDisposable)?.Dispose();
             _reusedCommand?.Dispose();
             _connection?.Dispose();
-            _consumer?.Dispose();
-            _container?.Dispose();
             _creation?.Dispose();
             SQLiteConnection.ClearAllPools();
             try
