@@ -77,6 +77,46 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         }
 
         [TestMethod]
+        public void KeysCannotCollideAcrossClauseAndRouteBoundaries()
+        {
+            //A separator-joined key would give these the same value. They need different scripts:
+            //the route count decides how many placeholders the SQL carries, so serving one for the
+            //other would bind the wrong number of parameters.
+            var separator = "\u001f";
+
+            var first = ReceiveMessageQueryHandler.Key("a", new List<string> { "b", "c" });
+            var second = ReceiveMessageQueryHandler.Key("a" + separator + "b", new List<string> { "c" });
+
+            Assert.AreNotEqual(first, second);
+        }
+
+        [TestMethod]
+        public void KeysAreStableForTheSameInputs()
+        {
+            var routes = new List<string> { "a", "b" };
+
+            Assert.AreEqual(
+                ReceiveMessageQueryHandler.Key("(x = @x)", routes),
+                ReceiveMessageQueryHandler.Key("(x = @x)", new List<string> { "a", "b" }));
+        }
+
+        [TestMethod]
+        public void TheOrdinaryCaseHasAnEmptyKey()
+        {
+            //no clause and no routes is the common path, and it allocates nothing
+            Assert.AreEqual(string.Empty, ReceiveMessageQueryHandler.Key(null, null));
+            Assert.AreEqual(string.Empty, ReceiveMessageQueryHandler.Key(string.Empty, new List<string>()));
+        }
+
+        [TestMethod]
+        public void DifferentRouteCountsGiveDifferentKeys()
+        {
+            Assert.AreNotEqual(
+                ReceiveMessageQueryHandler.Key(null, new List<string> { "a" }),
+                ReceiveMessageQueryHandler.Key(null, new List<string> { "a", "b" }));
+        }
+
+        [TestMethod]
         public void TheScriptDoesNotDependOnParameterValues()
         {
             //parameters are bound, not written into the SQL - which is what lets the factory form

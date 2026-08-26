@@ -55,9 +55,9 @@ where it actually happens.
 
 | benchmark | isolates |
 |---|---|
-| generate the dequeue SQL | the `StringBuilder` script the transport rebuilds per dequeue |
-| dequeue, fresh command | a dequeue as the transport performed it before any of the caching |
-| dequeue, command from the factory cache | the same acquired through `DbFactory` and its per-connection command cache — *against the row above* = what the cache delivers. Neither row opens a transaction or goes through `BuildDequeueCommand`, so the ratio is the meaningful part, not the absolute |
+| generate the dequeue SQL | the `StringBuilder` script — rebuilt per dequeue before the cache, now built once per routes+clause |
+| dequeue, fresh command | the receive path before any of the caching. Like the rows below it, this is a reduced shape: no transaction and no `BuildDequeueCommand`, so read the ratios between rows rather than the absolute numbers |
+| dequeue, command from the factory cache | the same acquired through `DbFactory` and its per-connection command cache — *against the row above* = what the command cache delivers |
 | dequeue, script and command both cached | what the transport does now — *against the row above* = what caching the generated SQL is worth |
 | dequeue, command reused, parameters rebuilt | *minus the row above* = generating the script and recompiling its statements |
 | dequeue, command reused | the same with parameters kept too — the ceiling, for comparison |

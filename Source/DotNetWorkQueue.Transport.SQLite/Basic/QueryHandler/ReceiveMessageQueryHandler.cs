@@ -20,6 +20,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
+using System.Text;
 using System.Data.SQLite;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
@@ -58,6 +59,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// includes the caller's clause, which a caller supplying it through a factory may vary.
         /// </summary>
         private const int MaxCachedScripts = 32;
+
+        /// <summary>Guards admission to <see cref="_dequeueScripts"/> so the cap cannot be exceeded.</summary>
+        private readonly object Admission = new object();
 
         /// <summary>Initializes a new instance of the <see cref="ReceiveMessageQueryHandler" /> class.</summary>
         /// <param name="optionsFactory">The options factory.</param>
@@ -153,24 +157,46 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             var built = ReceiveMessage.GetDeQueueCommand(_tableNameHelper.MetaDataName, _tableNameHelper.QueueName,
                 _tableNameHelper.StatusName, _options.Value, userClause, routes);
 
-            //Count is a snapshot; a handful of extra entries under concurrency is harmless, and the
-            //point is a bound rather than an exact size. This runs only on a miss.
-            if (_dequeueScripts.Count < MaxCachedScripts)
-                _dequeueScripts.TryAdd(key, built);
+            //Admission is serialised so the cap is an actual bound; there is no eviction, so an
+            //overshoot would be permanent. This runs only on a miss, which after warm-up is never.
+            lock (Admission)
+            {
+                if (_dequeueScripts.Count < MaxCachedScripts)
+                    _dequeueScripts.TryAdd(key, built);
+            }
 
             return built;
         }
 
         /// <summary>
-        /// Everything the script depends on that is not fixed for the life of this handler. The
-        /// separator is a unit separator so a route or clause containing it cannot forge a key.
+        /// Everything the script depends on that is not fixed for the life of this handler.
         /// </summary>
-        private static string Key(string userClause, List<string> routes)
+        /// <remarks>
+        /// Length-prefixed rather than separator-joined. A separator can be split or joined by a
+        /// clause or route value that contains it, and two different combinations reaching the same
+        /// key would matter: the number of routes decides how many placeholders the SQL carries, so
+        /// a collision could hand back a script of the wrong shape.
+        /// </remarks>
+        internal static string Key(string userClause, List<string> routes)
         {
-            if (string.IsNullOrEmpty(userClause) && (routes == null || routes.Count == 0))
+            var hasClause = !string.IsNullOrEmpty(userClause);
+            var hasRoutes = routes != null && routes.Count > 0;
+
+            //the ordinary case allocates nothing
+            if (!hasClause && !hasRoutes)
                 return string.Empty;
 
-            return (userClause ?? string.Empty) + "\u001f" + (routes == null ? string.Empty : string.Join("\u001f", routes));
+            var key = new StringBuilder();
+            key.Append(hasClause ? userClause.Length : 0).Append(':').Append(userClause);
+            key.Append('|').Append(hasRoutes ? routes.Count : 0);
+
+            if (hasRoutes)
+            {
+                foreach (var route in routes)
+                    key.Append(':').Append(route?.Length ?? 0).Append(':').Append(route);
+            }
+
+            return key.ToString();
         }
     }
 }

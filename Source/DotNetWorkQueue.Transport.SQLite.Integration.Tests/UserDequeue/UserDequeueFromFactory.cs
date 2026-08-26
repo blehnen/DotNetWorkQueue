@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using DotNetWorkQueue.Configuration;
@@ -7,13 +8,16 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.UserDequeue
 {
     /// <summary>
-    /// The same dequeue filter as <see cref="UserDequeue"/>, but supplied through the factory form
-    /// of the API rather than as static values. The factories are meant to be consulted on every
+    /// The same dequeue filter as <see cref="UserDequeue"/>, supplied through the factory form of
+    /// the API rather than as static values. The factories are meant to be consulted on every
     /// dequeue, which the script cache in ReceiveMessageQueryHandler has to preserve.
     /// </summary>
     [TestClass]
     public class UserDequeueFromFactory
     {
+        private readonly ConcurrentDictionary<int, int> _clauseCalls = new ConcurrentDictionary<int, int>();
+        private readonly ConcurrentDictionary<int, int> _parameterCalls = new ConcurrentDictionary<int, int>();
+
         [TestMethod]
         [DataRow(100, 0, 240, 1, false, 4, false),
          DataRow(25, 3, 240, 2, true, 4, false)]
@@ -31,15 +35,36 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.UserDequeue
                         false, true, false, false, true, true, true, false, true),
                     Helpers.GenerateDataWithColumnValue, Helpers.Verify, Helpers.VerifyQueueCount, SetQueueOptions);
             }
+
+            //The messages were all consumed, so the filter worked. These assert the stronger thing:
+            //that the factories were consulted repeatedly rather than once and cached. Without them
+            //this test would pass even if the clause and the parameter list were both cached, since
+            //each consumer has its own handler and its own values.
+            Assert.AreEqual(valueCount, _clauseCalls.Count, "every consumer should have used its clause factory");
+            Assert.AreEqual(valueCount, _parameterCalls.Count, "every consumer should have used its parameter factory");
+
+            foreach (var calls in _clauseCalls)
+                Assert.IsTrue(calls.Value > 1,
+                    $"the clause factory for order {calls.Key} was called {calls.Value} time(s); it must be consulted per dequeue");
+
+            foreach (var calls in _parameterCalls)
+                Assert.IsTrue(calls.Value > 1,
+                    $"the parameter factory for order {calls.Key} was called {calls.Value} time(s); it must be consulted per dequeue");
         }
 
         private void SetQueueOptions(QueueConsumerConfiguration obj, int orderId)
         {
-            //deliberately built fresh on every call, so a cached clause or a cached parameter list
-            //would be visible as wrong results rather than as a silent behaviour change
             obj.SetUserParametersAndClause(
-                () => new List<SQLiteParameter> { new SQLiteParameter("@OrderID", orderId) },
-                () => "(OrderID = @OrderID)");
+                () =>
+                {
+                    _parameterCalls.AddOrUpdate(orderId, 1, (_, count) => count + 1);
+                    return new List<SQLiteParameter> { new SQLiteParameter("@OrderID", orderId) };
+                },
+                () =>
+                {
+                    _clauseCalls.AddOrUpdate(orderId, 1, (_, count) => count + 1);
+                    return "(OrderID = @OrderID)";
+                });
         }
     }
 }
