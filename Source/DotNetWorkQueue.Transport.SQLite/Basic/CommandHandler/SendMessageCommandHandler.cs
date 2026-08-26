@@ -50,6 +50,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         private readonly DatabaseExists _databaseExists;
 
         /// <summary>
+        /// Named so the command is filed under a constant. A pooled connection keys its compiled
+        /// statements by text, so building this string per send would defeat the reuse.
+        /// </summary>
+        private const string LastInsertRowId = "SELECT last_insert_rowid();";
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="SendMessageCommandHandler" /> class.
         /// </summary>
         /// <param name="tableNameHelper">The table name helper.</param>
@@ -140,17 +146,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                 }
 
                 IDbCommand commandStatus = null;
-                using (var command = SendMessage.GetMainCommand(commandSend, connection, _commandCache, _headers, _serializer))
+                using (var command = SendMessage.GetMainCommand(commandSend, connection, _commandCache, _headers, _serializer, _dbFactory))
                 {
                     long id;
                     using (var commandMeta = SendMessage.CreateMetaDataRecord(commandSend.MessageData.GetDelay(), expiration,
                         connection, commandSend.MessageToSend, commandSend.MessageData, _tableNameHelper, _headers,
-                        _options.Value, _getTime))
+                        _options.Value, _getTime, _dbFactory))
                     {
                         if (_options.Value.EnableStatusTable)
                         {
-                            commandStatus = CreateStatusRecord(connection, commandSend.MessageToSend,
-                                commandSend.MessageData);
+                            commandStatus = CreateStatusRecord(connection, commandSend.MessageData);
                         }
 
                         using (var trans = _dbFactory.CreateTransaction(connection).BeginTransaction())
@@ -162,10 +167,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                                 {
                                     command.Transaction = trans;
                                     command.ExecuteNonQuery();
-                                    using (var commandId = connection.CreateCommand())
+                                    using (var commandId = _dbFactory.CreateCommand(connection, LastInsertRowId))
                                     {
                                         commandId.Transaction = trans;
-                                        commandId.CommandText = "SELECT last_insert_rowid();";
                                         id = Convert.ToInt64(commandId.ExecuteScalar());
                                     }
                                     if (id > 0)
@@ -224,14 +228,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         /// Creates the status record.
         /// </summary>
         /// <param name="connection">The connection.</param>
-        /// <param name="message">The message.</param>
         /// <param name="data">The data.</param>
         /// <returns></returns>
-        private IDbCommand CreateStatusRecord(IDbConnection connection, IMessage message,
-            IAdditionalMessageData data)
+        private IDbCommand CreateStatusRecord(IDbConnection connection, IAdditionalMessageData data)
         {
-            var command = connection.CreateCommand();
-            SendMessage.BuildStatusCommand(command, _tableNameHelper, _headers, data, message, 0, _options.Value, _getTime.GetCurrentUtcDate());
+            var command = _dbFactory.CreateCommand(connection,
+                SendMessage.BuildStatusCommandText(_tableNameHelper, data, _options.Value));
+            SendMessage.AddStatusCommandParameters(command, data, 0, _options.Value, _getTime.GetCurrentUtcDate());
             return command;
         }
     }

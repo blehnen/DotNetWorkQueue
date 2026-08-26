@@ -201,7 +201,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                 }
 
                 using (var commandMeta = SendMessage.CreateMetaDataRecord(m.MessageData.GetDelay(), expiration,
-                    connection, m.Message, m.MessageData, _tableNameHelper, _headers, options, _getTime))
+                    connection, m.Message, m.MessageData, _tableNameHelper, _headers, options, _getTime, _dbFactory))
                 {
                     commandMeta.Transaction = trans;
                     var param = commandMeta.CreateParameter();
@@ -214,10 +214,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 
                 if (options.EnableStatusTable)
                 {
-                    using (var commandStatus = connection.CreateCommand())
+                    using (var commandStatus = _dbFactory.CreateCommand(connection,
+                        SendMessage.BuildStatusCommandText(_tableNameHelper, m.MessageData, options)))
                     {
-                        SendMessage.BuildStatusCommand(commandStatus, _tableNameHelper, _headers,
-                            m.MessageData, m.Message, id, options, _getTime.GetCurrentUtcDate());
+                        SendMessage.AddStatusCommandParameters(commandStatus, m.MessageData, id, options,
+                            _getTime.GetCurrentUtcDate());
                         commandStatus.Transaction = trans;
                         commandStatus.ExecuteNonQuery();
                     }

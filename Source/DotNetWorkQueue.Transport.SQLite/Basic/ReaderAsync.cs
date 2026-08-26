@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.Data;
 using System.Data.SQLite;
 using System.Threading.Tasks;
@@ -31,22 +32,42 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <inheritdoc />
         public async Task<int> ExecuteNonQueryAsync(IDbCommand command)
         {
-            var sqlCommand = (SQLiteCommand)command;
+            var sqlCommand = Provider(command);
             return await sqlCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<object> ExecuteScalarAsync(IDbCommand command)
         {
-            var sqlCommand = (SQLiteCommand)command;
+            var sqlCommand = Provider(command);
             return await sqlCommand.ExecuteScalarAsync().ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<IDataReader> ExecuteReaderAsync(IDbCommand command)
         {
-            var sqlCommand = (SQLiteCommand)command;
+            var sqlCommand = Provider(command);
             return await sqlCommand.ExecuteReaderAsync().ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// The provider command behind <paramref name="command"/>. The async execution methods are
+        /// on <see cref="SQLiteCommand"/> rather than on <see cref="IDbCommand"/>, so this has to
+        /// reach the concrete command - including through the wrapper a pooled connection returns,
+        /// which is not itself a <see cref="SQLiteCommand"/>.
+        /// </summary>
+        private static SQLiteCommand Provider(IDbCommand command)
+        {
+            switch (command)
+            {
+                case SQLiteCommand sqlCommand:
+                    return sqlCommand;
+                case PooledCommand pooled:
+                    return pooled.Unwrap();
+                default:
+                    throw new ArgumentException(
+                        $"Expected a SQLite command, received {command?.GetType().FullName ?? "null"}", nameof(command));
+            }
         }
     }
 }

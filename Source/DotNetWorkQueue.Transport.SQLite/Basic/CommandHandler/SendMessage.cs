@@ -31,10 +31,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
     {
         internal static IDbCommand CreateMetaDataRecord(TimeSpan? delay, TimeSpan expiration, IDbConnection connection,
             IMessage message, IAdditionalMessageData data, ITableNameHelper tableNameHelper,
-            IHeaders headers, SqLiteMessageQueueTransportOptions options, IGetTime getTime)
+            IHeaders headers, SqLiteMessageQueueTransportOptions options, IGetTime getTime, IDbFactory dbFactory)
         {
-            var command = connection.CreateCommand();
-            BuildMetaCommand(command, tableNameHelper, data, options, delay, expiration, getTime.GetCurrentUtcDate());
+            //The text is produced before the command is asked for, because it is what identifies
+            //the statements SQLite already compiled for it on this connection. Where the text does
+            //not vary - and it only varies when the caller puts its own columns on the meta data -
+            //the command comes back with its statements already compiled.
+            var command = dbFactory.CreateCommand(connection, BuildMetaCommandText(tableNameHelper, data, options));
+            AddMetaCommandParameters(command, data, options, delay, expiration, getTime.GetCurrentUtcDate());
             return command;
         }
 
@@ -44,10 +48,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             IDbConnection connection,
             IDbCommandStringCache commandCache,
             IHeaders headers,
-            ICompositeSerialization serializer)
+            ICompositeSerialization serializer,
+            IDbFactory dbFactory)
         {
-            var command = connection.CreateCommand();
-            command.CommandText = commandCache.GetCommand(CommandStringTypes.InsertMessageBody);
+            var command = dbFactory.CreateCommand(connection,
+                commandCache.GetCommand(CommandStringTypes.InsertMessageBody));
             var serialization =
                 serializer.Serializer.MessageToBytes(new MessageBody { Body = commandSend.MessageToSend.Body }, commandSend.MessageToSend.Headers);
 
@@ -69,15 +74,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             return command;
         }
 
+        /// <summary>The status insert, without its parameter values.</summary>
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        internal static void BuildStatusCommand(IDbCommand command,
-            ITableNameHelper tableNameHelper,
-            IHeaders headers,
+        internal static string BuildStatusCommandText(ITableNameHelper tableNameHelper,
             IAdditionalMessageData data,
-            IMessage message,
-            long id,
-            SqLiteMessageQueueTransportOptions options,
-            DateTime currentDateTime)
+            SqLiteMessageQueueTransportOptions options)
         {
             var builder = new StringBuilder();
             builder.AppendLine("Insert into " + tableNameHelper.StatusName);
@@ -106,8 +107,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 
             builder.Append(')'); //close the VALUES 
 
-            command.CommandText = builder.ToString();
+            return builder.ToString();
+        }
 
+        /// <summary>The parameter values for <see cref="BuildStatusCommandText"/>.</summary>
+        internal static void AddStatusCommandParameters(IDbCommand command,
+            IAdditionalMessageData data,
+            long id,
+            SqLiteMessageQueueTransportOptions options,
+            DateTime currentDateTime)
+        {
             options.AddBuiltInColumnsParams(command, data, null, TimeSpan.Zero, currentDateTime);
 
             if (id > 0)
@@ -133,14 +142,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             }
         }
 
+        /// <summary>The meta data insert, without its parameter values.</summary>
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        private static void BuildMetaCommand(IDbCommand command,
-            ITableNameHelper tableNameHelper,
+        internal static string BuildMetaCommandText(ITableNameHelper tableNameHelper,
             IAdditionalMessageData data,
-            SqLiteMessageQueueTransportOptions options,
-            TimeSpan? delay,
-            TimeSpan expiration,
-            DateTime currentDateTime)
+            SqLiteMessageQueueTransportOptions options)
         {
             var sbMeta = new StringBuilder();
             sbMeta.AppendLine("Insert into " + tableNameHelper.MetaDataName);
@@ -173,8 +179,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 
             sbMeta.Append(')'); //close the VALUES 
 
-            command.CommandText = sbMeta.ToString();
+            return sbMeta.ToString();
+        }
 
+        /// <summary>The parameter values for <see cref="BuildMetaCommandText"/>.</summary>
+        private static void AddMetaCommandParameters(IDbCommand command,
+            IAdditionalMessageData data,
+            SqLiteMessageQueueTransportOptions options,
+            TimeSpan? delay,
+            TimeSpan expiration,
+            DateTime currentDateTime)
+        {
             options.AddBuiltInColumnsParams(command, data, delay, expiration, currentDateTime);
 
             var param = command.CreateParameter();
