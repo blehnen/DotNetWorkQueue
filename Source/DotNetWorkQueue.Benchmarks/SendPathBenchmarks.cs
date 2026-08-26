@@ -104,6 +104,9 @@ namespace DotNetWorkQueue.Benchmarks
         private DatabaseExists _databaseExists;
         private string _sqliteConnectionString;
 
+        private const int BatchSize = 100;
+        private List<Event> _batch;
+
         private string _payload;
         private byte[] _body;
         private byte[] _headerBytes;
@@ -188,7 +191,7 @@ namespace DotNetWorkQueue.Benchmarks
             Execute(seed, ShapeSchema);
         }
 
-        [GlobalSetup(Targets = new[] { nameof(Sqlite_Send), nameof(Serializer_BodyAndHeaders), nameof(DatabaseExists_Check) })]
+        [GlobalSetup(Targets = new[] { nameof(Sqlite_Send), nameof(Sqlite_SendBatch), nameof(Serializer_BodyAndHeaders), nameof(DatabaseExists_Check) })]
         public void SetupForSqlite()
         {
             SetupCommon();
@@ -355,7 +358,7 @@ namespace DotNetWorkQueue.Benchmarks
         public void MemoryTransport_Send()
         {
             var result = _memoryProducer.Send(new Event { Body = _payload });
-            if (result.HasError) throw result.SendingException ?? new Exception("send failed");
+            if (result.HasError) throw result.SendingException ?? new InvalidOperationException("send failed");
         }
 
         /// <summary>The whole send path, as a caller experiences it.</summary>
@@ -363,7 +366,23 @@ namespace DotNetWorkQueue.Benchmarks
         public void Sqlite_Send()
         {
             var result = _sqliteProducer.Send(new Event { Body = _payload });
-            if (result.HasError) throw result.SendingException ?? new Exception("send failed");
+            if (result.HasError) throw result.SendingException ?? new InvalidOperationException("send failed");
+        }
+
+        /// <summary>
+        /// A batch send, reported per batch. Divide by the batch size for the per-message cost and
+        /// compare that with <see cref="Sqlite_Send"/> to see what batching itself buys.
+        /// </summary>
+        /// <remarks>
+        /// This is where reusing commands pays most. A chunk builds the meta data insert and the
+        /// status insert once per message in it, so before the commands were reused every message
+        /// in a batch recompiled both statements.
+        /// </remarks>
+        [Benchmark(Description = "DotNetWorkQueue SQLite batch send (100 messages)")]
+        public void Sqlite_SendBatch()
+        {
+            var results = _sqliteProducer.Send(_batch);
+            if (results.HasErrors) throw new InvalidOperationException("batch send failed");
         }
 
         // ---------------------------------------------------------------- setup
@@ -431,6 +450,11 @@ namespace DotNetWorkQueue.Benchmarks
 
             _serializer = ReflectSerializer(_sqliteProducer);
             _databaseExists = new DatabaseExists(new GetFileNameFromConnectionString());
+
+            //built once; the rung measures sending it, not constructing it
+            _batch = new List<Event>(BatchSize);
+            for (var i = 0; i < BatchSize; i++)
+                _batch.Add(new Event { Body = _payload });
         }
 
         private void SetupMemory()
