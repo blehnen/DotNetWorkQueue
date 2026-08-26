@@ -36,6 +36,7 @@ rungs is the cost of what the upper rung adds:
 | serialize body + headers | the real configured serializer, via the interceptor graph |
 | core producer pipeline (Memory transport) | the pipeline with no serialization and no SQL |
 | DotNetWorkQueue SQLite send (end to end) | the whole thing |
+| DotNetWorkQueue SQLite batch send (100 messages) | the batch path, reported per batch — divide by 100 for the per-message cost |
 
 `MemoryDiagnoser` is on, so the allocation columns are as informative as the timings — allocation
 is often where hidden work shows up that latency alone hides.
@@ -72,8 +73,32 @@ relationships between rows are the durable result.
 | Statement preparation is real, and roughly 2.4 us per statement | Reusing the command objects, which is what lets System.Data.SQLite keep a prepared statement, took the three-statement shape from 43,642 to 36,445 ns and from 5,600 to 2,432 B |
 | Statement compilation dominates a dequeue, far more than a send | An empty-queue dequeue costs 27,389 ns and 22,144 B with a fresh command and 4,458 ns and 552 B with the command reused - 6.1x and 40x. Only 536 ns of the saving is building the SQL; the rest is recompiling the script |
 | Keeping the compiled statement is enough; the parameters do not matter | Reusing the command but rebuilding its parameters each time measured 4,458 ns against 4,230 ns for keeping them - 99% of the win. Callers can keep using CreateParameter |
+| Command reuse pays off *less* in a batch, not more | 11.4% against 13.2% for a single send. A chunk recompiles one statement per message under default options, not several: the body insert is one multi-row statement for the whole chunk and `EnableStatusTable` is off. Do not re-derive this |
 
-## Why this exists
+### Batching, and what command reuse is worth
+
+Measured by disabling the command cache at `DbFactory.CreateCommand` and re-running, so both
+columns are the same code on the same machine:
+
+| rung | commands not reused | commands reused | change |
+|---|---|---|---|
+| single send | 82.79 us / 22.82 KB | 71.88 us / 20.19 KB | −13.2% |
+| batch of 100 | 2,013.35 us / 1,843 KB | 1,784.36 us / 1,738 KB | −11.4% |
+| …per message in that batch | 20.13 us | 17.84 us | −11.4% |
+
+**Batching itself is the larger effect: 17.84 us per message against 71.88 us sending one at a
+time, roughly 4x.**
+
+**Command reuse does *not* pay off more in a batch, contrary to what was claimed when it was
+built.** It was assumed a chunk would recompile several statements per message. With the default
+options it recompiles exactly one — `EnableStatusTable` is off, and the body insert is a single
+multi-row statement for the whole chunk since the bulk-insert work in 0.9.41 — so only the meta
+data insert is per-message. 100 messages x 1 statement x ~2.4 us predicts ~240 us saved; 229 us
+was measured. A single send recompiles three statements, which is why it gains the larger share.
+
+Turn `EnableStatusTable` on and a batch recompiles two per message, so the gap would narrow.
+
+
 
 A scratch decomposition in August 2026 found that the write transaction was ~3% of the gap
 between DotNetWorkQueue and a hand-written table, while connection lifecycle was ~58% and
