@@ -33,9 +33,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// <param name="queueTableName">Name of the queue table.</param>
         /// <param name="statusTableName">Name of the status table.</param>
         /// <param name="options">The options.</param>
-        /// <param name="configuration">Configuration module</param>
         /// <param name="routes">The routes.</param>
-        /// <param name="userParams">Optional user params for de-queue</param>
+        /// <param name="userClause">The caller's additional where clause, if any</param>
         /// <returns>
         ///   <br />
         /// </returns>
@@ -43,10 +42,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             string queueTableName,
             string statusTableName,
             SqLiteMessageQueueTransportOptions options,
-            QueueConsumerConfiguration configuration,
-            List<string> routes, out List<SQLiteParameter> userParams)
+            string userClause,
+            List<string> routes)
         {
-            userParams = null;
             var sb = new StringBuilder();
 
             var tempName = TempTableName(metaTableName);
@@ -117,13 +115,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
 
 
             //if true, the query can be added to via user settings
-            var userQuery = configuration.GetUserClause();
-            if (options.AdditionalColumnsOnMetaData && !string.IsNullOrEmpty(userQuery))
+            if (options.AdditionalColumnsOnMetaData && !string.IsNullOrEmpty(userClause))
             {
-                userParams = configuration.GetUserParameters(); //NOTE - could be null
                 sb.AppendLine(needWhere
-                    ? $"where {userQuery} "
-                    : $"AND {userQuery} ");
+                    ? $"where {userClause} "
+                    : $"AND {userClause} ");
             }
 
             //determine order by looking at the options
