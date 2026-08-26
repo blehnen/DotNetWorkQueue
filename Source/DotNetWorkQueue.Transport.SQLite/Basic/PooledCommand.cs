@@ -67,6 +67,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 ? _command
                 : throw new ObjectDisposedException(nameof(PooledCommand));
 
+        /// <summary>
+        /// The wrapped command, for the code that needs the provider type rather than the
+        /// interface - <see cref="ReaderAsync"/>, which reaches the async execution methods that
+        /// <see cref="IDbCommand"/> does not expose.
+        /// </summary>
+        internal SQLiteCommand Unwrap() => Inner;
+
         /// <inheritdoc />
         [SuppressMessage("Major Code Smell", "S4275:Getters and setters should access the expected fields",
             Justification = "The setter deliberately never assigns. A pooled command is filed under its text, so " +
