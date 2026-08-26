@@ -265,6 +265,101 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         }
 
         [TestMethod]
+        public void TheWrapperDelegatesTheRestOfTheCommand()
+        {
+            //PooledCommand stands in for the real command everywhere, not just where it intervenes
+            using var factory = CreateFactory();
+            var connectionString = NewDatabase();
+            using var connection = (PooledConnection)factory.CreateConnection(connectionString, false);
+
+            using var command = factory.CreateCommand(connection, Count);
+
+            Assert.AreEqual(CommandType.Text, command.CommandType);
+            Assert.IsNotNull(command.Connection);
+            Assert.IsNotNull(command.Parameters);
+            Assert.IsNull(command.Transaction);
+
+            command.CommandType = CommandType.Text;
+            command.CommandTimeout = 45;
+            Assert.AreEqual(45, command.CommandTimeout);
+
+            command.UpdatedRowSource = UpdateRowSource.None;
+            Assert.AreEqual(UpdateRowSource.None, command.UpdatedRowSource);
+
+            //a no-op here; statements are compiled on execution, not on Prepare
+            command.Prepare();
+            command.Cancel();
+
+            using (var reader = command.ExecuteReader(CommandBehavior.SingleRow))
+            {
+                Assert.IsTrue(reader.Read());
+            }
+
+            Assert.AreEqual(0L, Convert.ToInt64(command.ExecuteScalar()));
+        }
+
+        [TestMethod]
+        public void TheConnectionOfAPooledCommand_CannotBeChanged()
+        {
+            //it would leave the command filed against a connection that no longer owns it
+            using var factory = CreateFactory();
+            var connectionString = NewDatabase();
+            using var connection = (PooledConnection)factory.CreateConnection(connectionString, false);
+
+            using var command = factory.CreateCommand(connection, Count);
+
+            Assert.ThrowsExactly<NotSupportedException>(() => command.Connection = null);
+        }
+
+        [TestMethod]
+        public void ACommandUsedInsideATransaction_ComesBackDetached()
+        {
+            using var factory = CreateFactory();
+            var connectionString = NewDatabase();
+            using var connection = (PooledConnection)factory.CreateConnection(connectionString, false);
+
+            using (var transaction = connection.BeginTransaction())
+            using (var command = factory.CreateCommand(connection, Insert))
+            {
+                command.Transaction = transaction;
+                command.ExecuteNonQuery();
+                transaction.Commit();
+            }
+
+            using var next = factory.CreateCommand(connection, Insert);
+            Assert.IsNull(next.Transaction, "a committed transaction must not follow the command to its next caller");
+        }
+
+        [TestMethod]
+        public void UsingAPooledCommandAfterDisposal_IsRefused()
+        {
+            using var factory = CreateFactory();
+            var connectionString = NewDatabase();
+            using var connection = (PooledConnection)factory.CreateConnection(connectionString, false);
+
+            var command = factory.CreateCommand(connection, Count);
+            command.Dispose();
+
+            Assert.ThrowsExactly<ObjectDisposedException>(() => command.ExecuteScalar());
+        }
+
+        [TestMethod]
+        public void DisposingAPooledCommandTwice_IsSafe()
+        {
+            using var factory = CreateFactory();
+            var connectionString = NewDatabase();
+            using var connection = (PooledConnection)factory.CreateConnection(connectionString, false);
+
+            var command = factory.CreateCommand(connection, Count);
+            command.Dispose();
+            command.Dispose();
+
+            //a double dispose must not release the same command to the pool twice
+            using var next = factory.CreateCommand(connection, Count);
+            Assert.AreEqual(0L, Convert.ToInt64(next.ExecuteScalar()));
+        }
+
+        [TestMethod]
         public void AnUnpooledConnection_StillGetsAWorkingCommand()
         {
             //in-memory databases are handed out as plain connections; the factory default applies
