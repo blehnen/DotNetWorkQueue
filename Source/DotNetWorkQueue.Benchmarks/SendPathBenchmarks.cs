@@ -358,7 +358,7 @@ namespace DotNetWorkQueue.Benchmarks
         public void MemoryTransport_Send()
         {
             var result = _memoryProducer.Send(new Event { Body = _payload });
-            if (result.HasError) throw result.SendingException ?? new Exception("send failed");
+            if (result.HasError) throw result.SendingException ?? new InvalidOperationException("send failed");
         }
 
         /// <summary>The whole send path, as a caller experiences it.</summary>
@@ -366,7 +366,7 @@ namespace DotNetWorkQueue.Benchmarks
         public void Sqlite_Send()
         {
             var result = _sqliteProducer.Send(new Event { Body = _payload });
-            if (result.HasError) throw result.SendingException ?? new Exception("send failed");
+            if (result.HasError) throw result.SendingException ?? new InvalidOperationException("send failed");
         }
 
         /// <summary>
@@ -382,7 +382,7 @@ namespace DotNetWorkQueue.Benchmarks
         public void Sqlite_SendBatch()
         {
             var results = _sqliteProducer.Send(_batch);
-            if (results.HasErrors) throw new Exception("batch send failed");
+            if (results.HasErrors) throw new InvalidOperationException("batch send failed");
         }
 
         // ---------------------------------------------------------------- setup
