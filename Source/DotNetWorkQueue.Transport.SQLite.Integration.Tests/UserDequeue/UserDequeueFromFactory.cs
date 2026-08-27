@@ -40,15 +40,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.UserDequeue
             //that the factories were consulted repeatedly rather than once and cached. Without them
             //this test would pass even if the clause and the parameter list were both cached, since
             //each consumer has its own handler and its own values.
-            Assert.AreEqual(valueCount, _clauseCalls.Count, "every consumer should have used its clause factory");
-            Assert.AreEqual(valueCount, _parameterCalls.Count, "every consumer should have used its parameter factory");
+            Assert.HasCount(valueCount, _clauseCalls, "every consumer should have used its clause factory");
+            Assert.HasCount(valueCount, _parameterCalls, "every consumer should have used its parameter factory");
 
             foreach (var calls in _clauseCalls)
-                Assert.IsTrue(calls.Value > 1,
+                Assert.IsGreaterThan(1, calls.Value,
                     $"the clause factory for order {calls.Key} was called {calls.Value} time(s); it must be consulted per dequeue");
 
             foreach (var calls in _parameterCalls)
-                Assert.IsTrue(calls.Value > 1,
+                Assert.IsGreaterThan(1, calls.Value,
                     $"the parameter factory for order {calls.Key} was called {calls.Value} time(s); it must be consulted per dequeue");
         }
 
