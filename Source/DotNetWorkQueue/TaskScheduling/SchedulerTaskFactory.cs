@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="schedulerFactory">The scheduler factory.</param>
         public SchedulerTaskFactory(ITaskSchedulerFactory schedulerFactory)
         {
-            Guard.NotNull(() => schedulerFactory, schedulerFactory);
+            Guard.NotNull(schedulerFactory);
             _scheduler = new Lazy<ATaskScheduler>(schedulerFactory.Create);
             _factory = new Lazy<TaskFactory>(() =>
             {
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <inheritdoc />
         public TryStartNewResult TryStartNew(Action<object> action, StateInformation state, Action<Task> continueWith, out Task task)
         {
-            Guard.NotNull(() => action, action);
+            Guard.NotNull(action);
 
             if (SchedulerHasRoom(state))
             {

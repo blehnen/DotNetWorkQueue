@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic.Query
         /// <param name="jobName">Name of the job.</param>
         public GetJobLastKnownEventQuery(string jobName)
         {
-            Guard.NotNullOrEmpty(() => jobName, jobName);
+            Guard.NotNullOrEmpty(jobName);
             JobName = jobName;
         }
         /// <summary>

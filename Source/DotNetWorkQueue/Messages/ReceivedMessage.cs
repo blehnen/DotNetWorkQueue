@@ -44,9 +44,9 @@ namespace DotNetWorkQueue.Messages
         public ReceivedMessage(IReceivedMessageInternal message, IGetPreviousMessageErrors getErrors,
             ILogger logger)
         {
-            Guard.NotNull(() => message, message);
-            Guard.NotNull(() => getErrors, getErrors);
-            Guard.NotNull(() => logger, logger);
+            Guard.NotNull(message);
+            Guard.NotNull(getErrors);
+            Guard.NotNull(logger);
 
             _getErrors = getErrors;
             _logger = logger;

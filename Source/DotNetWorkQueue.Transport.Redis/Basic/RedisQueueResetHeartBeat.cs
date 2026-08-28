@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="commandReset">The command reset.</param>
         public RedisQueueResetHeartBeat(ICommandHandlerWithOutput<ResetHeartBeatCommand<string>, List<ResetHeartBeatOutput>> commandReset)
         {
-            Guard.NotNull(() => commandReset, commandReset);
+            Guard.NotNull(commandReset);
             _commandReset = commandReset;
         }
 

@@ -42,9 +42,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             IUnixTimeFactory unixTimeFactory,
             RedisQueueTransportOptions options)
         {
-            Guard.NotNull(() => moveDelayedToPendingLua, moveDelayedToPendingLua);
-            Guard.NotNull(() => unixTimeFactory, unixTimeFactory);
-            Guard.NotNull(() => options, options);
+            Guard.NotNull(moveDelayedToPendingLua);
+            Guard.NotNull(unixTimeFactory);
+            Guard.NotNull(options);
 
             _moveDelayedToPendingLua = moveDelayedToPendingLua;
             _unixTimeFactory = unixTimeFactory;

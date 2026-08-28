@@ -66,12 +66,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             ICreationScope creationScope
             )
         {
-            Guard.NotNull(() => options, options);
-            Guard.NotNull(() => createSchema, createSchema);
-            Guard.NotNull(() => queryTableExists, queryTableExists);
-            Guard.NotNull(() => createCommand, createCommand);
-            Guard.NotNull(() => deleteCommand, deleteCommand);
-            Guard.NotNull(() => creationScope, creationScope);
+            Guard.NotNull(options);
+            Guard.NotNull(createSchema);
+            Guard.NotNull(queryTableExists);
+            Guard.NotNull(createCommand);
+            Guard.NotNull(deleteCommand);
+            Guard.NotNull(creationScope);
 
             _options = new Lazy<PostgreSqlMessageQueueTransportOptions>(options.Create);
             _createSchema = createSchema;

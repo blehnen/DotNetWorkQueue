@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.Admin
         public AdminFunctions(
             IQueryHandler<GetQueueCountQuery, long> queueCount)
         {
-            Guard.NotNull(() => queueCount, queueCount);
+            Guard.NotNull(queueCount);
             _queueCount = queueCount;
 
         }

@@ -50,10 +50,10 @@ namespace DotNetWorkQueue.Configuration
             BaseTimeConfiguration timeConfiguration)
             : base(transportConfiguration, headers, additionalConfiguration, timeConfiguration)
         {
-            Guard.NotNull(() => workerConfiguration, workerConfiguration);
-            Guard.NotNull(() => heartBeatConfiguration, heartBeatConfiguration);
-            Guard.NotNull(() => messageExpirationConfiguration, messageExpirationConfiguration);
-            Guard.NotNull(() => messageErrorConfiguration, messageErrorConfiguration);
+            Guard.NotNull(workerConfiguration);
+            Guard.NotNull(heartBeatConfiguration);
+            Guard.NotNull(messageExpirationConfiguration);
+            Guard.NotNull(messageErrorConfiguration);
 
             Worker = workerConfiguration;
             HeartBeat = heartBeatConfiguration;

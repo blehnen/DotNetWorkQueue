@@ -45,8 +45,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryPrepareHandler
             IGetTimeFactory timeFactory,
             IMessageErrorConfiguration configuration)
         {
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => timeFactory, timeFactory);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(timeFactory);
             _commandCache = commandCache;
             _configuration = configuration;
             _getTime = timeFactory.Create();

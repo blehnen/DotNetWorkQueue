@@ -35,8 +35,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// <param name="tableName">Name of the table.</param>
         public GetColumnNamesFromTableQuery(string connectionString, string tableName)
         {
-            Guard.NotNullOrEmpty(() => connectionString, connectionString);
-            Guard.NotNullOrEmpty(() => tableName, tableName);
+            Guard.NotNullOrEmpty(connectionString);
+            Guard.NotNullOrEmpty(tableName);
             ConnectionString = connectionString;
             TableName = tableName;
         }

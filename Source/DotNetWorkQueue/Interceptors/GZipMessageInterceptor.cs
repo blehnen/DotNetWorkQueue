@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.Interceptors
         /// <returns></returns>
         public MessageInterceptorResult MessageToBytes(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
-            Guard.NotNull(() => input, input);
+            Guard.NotNull(input);
             if (input.Length < _configuration.MinimumSize)
             {
                 return new MessageInterceptorResult(input, false, GetType());
@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Interceptors
         /// <returns></returns>
         public byte[] BytesToMessage(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
-            Guard.NotNull(() => input, input);
+            Guard.NotNull(input);
             var memoryStream = new MemoryStream(input);
             using (var gZipStream = new GZipStream(memoryStream, CompressionMode.Decompress, true))
             using (var destination = SharedMemoryStream.StreamManager.GetStream("gzip - uncompressed - output"))

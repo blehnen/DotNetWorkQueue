@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// <param name="status">The status to filter by, or null for none</param>
         public GetQueueCountQuery(string connectionString, QueueStatusAdmin? status)
         {
-            Guard.NotNullOrEmpty(() => connectionString, connectionString);
+            Guard.NotNullOrEmpty(connectionString);
 
             ConnectionString = connectionString;
             Status = status;

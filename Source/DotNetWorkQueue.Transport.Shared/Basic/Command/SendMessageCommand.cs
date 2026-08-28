@@ -32,8 +32,8 @@ namespace DotNetWorkQueue.Transport.Shared.Basic.Command
         /// <param name="messageData">The message data.</param>
         public SendMessageCommand(IMessage messageToSend, IAdditionalMessageData messageData)
         {
-            Guard.NotNull(() => messageToSend, messageToSend);
-            Guard.NotNull(() => messageData, messageData);
+            Guard.NotNull(messageToSend);
+            Guard.NotNull(messageData);
 
             MessageData = messageData;
             MessageToSend = messageToSend;

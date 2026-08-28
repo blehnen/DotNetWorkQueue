@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandPrepareHandler
         /// <param name="commandCache">The command cache.</param>
         public DeleteTableCommandPrepareHandler(CommandStringCache commandCache)
         {
-            Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(commandCache);
             _commandCache = commandCache;
         }
 

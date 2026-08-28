@@ -26,8 +26,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Admin
         private readonly IRedisConnection _connection;
         public AdminFunctions(IRedisConnection connection, RedisNames names)
         {
-            Guard.NotNull(() => connection, connection);
-            Guard.NotNull(() => names, names);
+            Guard.NotNull(connection);
+            Guard.NotNull(names);
 
             _connection = connection;
             _names = names;

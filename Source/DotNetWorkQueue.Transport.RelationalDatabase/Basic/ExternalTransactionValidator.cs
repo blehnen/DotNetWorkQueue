@@ -57,8 +57,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         public ExternalTransactionValidator(IExternalDbNameExtractor extractor,
             IConnectionInformation connectionInfo)
         {
-            Guard.NotNull(() => extractor, extractor);
-            Guard.NotNull(() => connectionInfo, connectionInfo);
+            Guard.NotNull(extractor);
+            Guard.NotNull(connectionInfo);
             _extractor = extractor;
             _connectionInfo = connectionInfo;
         }

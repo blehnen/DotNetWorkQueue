@@ -57,14 +57,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             IPrepareQueryHandler<DoesJobExistQuery<TConnection, TTransaction>, QueueStatuses> prepareQuery,
             IReadColumn readColumn)
         {
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => tableExists, tableExists);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => transactionFactory, transactionFactory);
-            Guard.NotNull(() => prepareQuery, prepareQuery);
-            Guard.NotNull(() => readColumn, readColumn);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(tableExists);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(dbConnectionFactory);
+            Guard.NotNull(transactionFactory);
+            Guard.NotNull(prepareQuery);
+            Guard.NotNull(readColumn);
 
             _commandCache = commandCache;
             _connectionInformation = connectionInformation;

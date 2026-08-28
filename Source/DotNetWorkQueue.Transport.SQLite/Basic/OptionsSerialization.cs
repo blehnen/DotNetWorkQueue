@@ -39,8 +39,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         public OptionsSerialization(ISqLiteMessageQueueTransportOptionsFactory options,
             IInternalSerializer serializer)
         {
-            Guard.NotNull(() => options, options);
-            Guard.NotNull(() => serializer, serializer);
+            Guard.NotNull(options);
+            Guard.NotNull(serializer);
 
             _serializer = serializer;
             _options = new Lazy<SqLiteMessageQueueTransportOptions>(options.Create);

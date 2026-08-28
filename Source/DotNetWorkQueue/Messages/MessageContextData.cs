@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Messages
         /// <param name="defaultValue">The default value.</param>
         public MessageContextData(string name, T defaultValue)
         {
-            Guard.NotNull(() => name, name);
+            Guard.NotNull(name);
             Name = name;
             Default = defaultValue;
         }

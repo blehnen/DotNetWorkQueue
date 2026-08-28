@@ -62,13 +62,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             IGetFileNameFromConnectionString getFileNameFromConnection,
             DatabaseExists databaseExists)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => cancelWork, cancelWork);
-            Guard.NotNull(() => handleMessage, handleMessage);
-            Guard.NotNull(() => receiveMessages, receiveMessages);
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => getFileNameFromConnection, getFileNameFromConnection);
-            Guard.NotNull(() => databaseExists, databaseExists);
+            Guard.NotNull(configuration);
+            Guard.NotNull(cancelWork);
+            Guard.NotNull(handleMessage);
+            Guard.NotNull(receiveMessages);
+            Guard.NotNull(log);
+            Guard.NotNull(getFileNameFromConnection);
+            Guard.NotNull(databaseExists);
 
             _log = log;
             _configuration = configuration;

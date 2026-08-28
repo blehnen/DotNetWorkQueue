@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <param name="caller">The caller.</param>
         public void RegisterStandardImplementations(IContainer container, params Assembly[] caller)
         {
-            Guard.NotNull(() => container, container);
+            Guard.NotNull(container);
 
             //**all
             container.Register<IJobTableCreation, JobTableCreation>(LifeStyles.Singleton);

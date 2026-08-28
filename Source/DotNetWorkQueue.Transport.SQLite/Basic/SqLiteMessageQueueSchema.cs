@@ -43,8 +43,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         public SqLiteMessageQueueSchema(ITableNameHelper tableNameHelper,
             ISqLiteMessageQueueTransportOptionsFactory options)
         {
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => options, options);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(options);
 
             _tableNameHelper = tableNameHelper;
             _options = new Lazy<SqLiteMessageQueueTransportOptions>(options.Create);

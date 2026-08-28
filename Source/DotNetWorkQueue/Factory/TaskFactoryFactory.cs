@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Factory
         /// <param name="container">The container.</param>
         public TaskFactoryFactory(IContainerFactory container)
         {
-            Guard.NotNull(() => container, container);
+            Guard.NotNull(container);
             _container = container;
         }
         public ITaskFactory Create()

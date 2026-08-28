@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 
         public GetDashboardMessageHeadersPrepareHandler(CommandStringCache commandCache)
         {
-            Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(commandCache);
             _commandCache = commandCache;
         }
 

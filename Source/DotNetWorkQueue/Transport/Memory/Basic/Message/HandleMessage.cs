@@ -33,8 +33,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
         public HandleMessage(CommitMessage commitMessage,
             RollbackMessage rollbackMessage)
         {
-            Guard.NotNull(() => commitMessage, commitMessage);
-            Guard.NotNull(() => rollbackMessage, rollbackMessage);
+            Guard.NotNull(commitMessage);
+            Guard.NotNull(rollbackMessage);
 
             RollbackMessage = rollbackMessage;
             CommitMessage = commitMessage;

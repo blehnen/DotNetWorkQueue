@@ -32,8 +32,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Command
         /// <param name="metaData">The meta data.</param>
         public SaveMetaDataCommand(RedisQueueId id, RedisMetaData metaData)
         {
-            Guard.NotNull(() => id, id);
-            Guard.NotNull(() => metaData, metaData);
+            Guard.NotNull(id);
+            Guard.NotNull(metaData);
             Id = id;
             MetaData = metaData;
         }

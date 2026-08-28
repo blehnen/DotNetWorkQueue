@@ -47,9 +47,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             IDelayedProcessingMonitor delayedProcessing,
             IClearErrorMessagesMonitor clearErrorMessagesMonitor)
         {
-            Guard.NotNull(() => clearMessagesFactory, clearMessagesFactory);
-            Guard.NotNull(() => heartBeatFactory, heartBeatFactory);
-            Guard.NotNull(() => clearErrorMessagesMonitor, clearErrorMessagesMonitor);
+            Guard.NotNull(clearMessagesFactory);
+            Guard.NotNull(heartBeatFactory);
+            Guard.NotNull(clearErrorMessagesMonitor);
             _heartBeatFactory = heartBeatFactory;
             _clearMessagesFactory = clearMessagesFactory;
             _delayedProcessing = delayedProcessing;

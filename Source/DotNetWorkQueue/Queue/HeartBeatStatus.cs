@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="lastHeartBeatTime">The last heart beat time.</param>
         public HeartBeatStatus(IMessageId messageId, DateTime? lastHeartBeatTime)
         {
-            Guard.NotNull(() => messageId, messageId);
+            Guard.NotNull(messageId);
             MessageId = messageId;
             LastHeartBeatTime = lastHeartBeatTime;
         }

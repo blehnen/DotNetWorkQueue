@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Messages
         private readonly IMessageHandlerRegistrationAsync _messageHandlerRegistration;
         public MessageHandlerAsync(IMessageHandlerRegistrationAsync messageHandlerRegistration)
         {
-            Guard.NotNull(() => messageHandlerRegistration, messageHandlerRegistration);
+            Guard.NotNull(messageHandlerRegistration);
             _messageHandlerRegistration = messageHandlerRegistration;
         }
         /// <summary>
@@ -40,8 +40,8 @@ namespace DotNetWorkQueue.Messages
         /// <returns></returns>
         public Task HandleAsync(IReceivedMessageInternal message, IWorkerNotification workerNotification)
         {
-            Guard.NotNull(() => message, message);
-            Guard.NotNull(() => workerNotification, workerNotification);
+            Guard.NotNull(message);
+            Guard.NotNull(workerNotification);
             return _messageHandlerRegistration.GetHandler().Invoke(_messageHandlerRegistration.GenerateMessage(message), workerNotification);
         }
     }

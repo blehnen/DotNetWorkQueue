@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic.Command
         /// <param name="context">The context.</param>
         public MoveRecordToErrorQueueCommand(Exception exception, T queueId, IMessageContext context)
         {
-            Guard.NotNull(() => context, context);
+            Guard.NotNull(context);
             Exception = exception;
             QueueId = queueId;
             MessageContext = context;

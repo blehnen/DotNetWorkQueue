@@ -38,10 +38,10 @@ namespace DotNetWorkQueue.Configuration
             IConfiguration additionalConfiguration,
             BaseTimeConfiguration timeConfiguration)
         {
-            Guard.NotNull(() => transportConfiguration, transportConfiguration);
-            Guard.NotNull(() => headerNames, headerNames);
-            Guard.NotNull(() => additionalConfiguration, additionalConfiguration);
-            Guard.NotNull(() => timeConfiguration, timeConfiguration);
+            Guard.NotNull(transportConfiguration);
+            Guard.NotNull(headerNames);
+            Guard.NotNull(additionalConfiguration);
+            Guard.NotNull(timeConfiguration);
 
             TransportConfiguration = transportConfiguration;
             HeaderNames = headerNames;

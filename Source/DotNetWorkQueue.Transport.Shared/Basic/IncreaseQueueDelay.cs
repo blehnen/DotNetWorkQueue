@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
         /// <param name="messageContextDataFactory">The message context data factory.</param>
         public IncreaseQueueDelay(IMessageContextDataFactory messageContextDataFactory)
         {
-            Guard.NotNull(() => messageContextDataFactory, messageContextDataFactory);
+            Guard.NotNull(messageContextDataFactory);
             QueueDelay = messageContextDataFactory.Create("IncreaseQueueDelay", new QueueDelay(TimeSpan.Zero));
         }
         /// <inheritdoc />

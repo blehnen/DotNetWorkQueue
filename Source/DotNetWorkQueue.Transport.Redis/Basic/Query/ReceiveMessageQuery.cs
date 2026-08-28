@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Query
         /// <param name="context">The context.</param>
         public ReceiveMessageQuery(IMessageContext context)
         {
-            Guard.NotNull(() => context, context);
+            Guard.NotNull(context);
 
             MessageContext = context;
         }

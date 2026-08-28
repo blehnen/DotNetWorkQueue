@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Queue
         /// <inheritdoc />
         public ClearHistoryMonitor(IBaseTransportOptions options,
             IPurgeMessageHistory purgeHistory, ILogger log)
-            : base(CreatePurgeAction(options, Guard.NotNull(() => purgeHistory, purgeHistory)),
+            : base(CreatePurgeAction(options, Guard.NotNull(purgeHistory)),
                   new MonitorTimespanWrapper(options.HistoryOptions?.MonitorTime ?? TimeSpan.FromDays(1)), log)
         {
         }

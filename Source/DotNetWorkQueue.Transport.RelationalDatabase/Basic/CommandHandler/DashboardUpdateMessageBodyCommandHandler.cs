@@ -46,9 +46,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             ITransactionFactory transactionFactory,
             IPrepareCommandHandler<DashboardUpdateMessageBodyCommand> prepareCommand)
         {
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => transactionFactory, transactionFactory);
-            Guard.NotNull(() => prepareCommand, prepareCommand);
+            Guard.NotNull(dbConnectionFactory);
+            Guard.NotNull(transactionFactory);
+            Guard.NotNull(prepareCommand);
 
             _transactionFactory = transactionFactory;
             _prepareCommand = prepareCommand;

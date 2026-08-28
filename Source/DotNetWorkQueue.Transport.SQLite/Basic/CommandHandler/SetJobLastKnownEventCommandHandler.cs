@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         /// <param name="commandCache">The command cache.</param>
         public SetJobLastKnownEventCommandHandler(IDbCommandStringCache commandCache)
         {
-            Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(commandCache);
             _commandCache = commandCache;
         }
 

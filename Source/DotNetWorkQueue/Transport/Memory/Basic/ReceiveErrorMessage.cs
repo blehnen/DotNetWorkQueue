@@ -43,8 +43,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             ILogger log,
             IDataStorage dataDataStorage)
         {
-            Guard.NotNull(() => dataDataStorage, dataDataStorage);
-            Guard.NotNull(() => log, log);
+            Guard.NotNull(dataDataStorage);
+            Guard.NotNull(log);
 
             _log = log;
             _dataDataStorage = dataDataStorage;

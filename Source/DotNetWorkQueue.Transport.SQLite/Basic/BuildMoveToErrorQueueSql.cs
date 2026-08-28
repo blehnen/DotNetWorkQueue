@@ -44,8 +44,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         public BuildMoveToErrorQueueSql(ITableNameHelper tableNameHelper,
             IGetColumnsFromTable getColumns)
         {
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => getColumns, getColumns);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(getColumns);
 
             _tableNameHelper = tableNameHelper;
             _getColumns = getColumns;

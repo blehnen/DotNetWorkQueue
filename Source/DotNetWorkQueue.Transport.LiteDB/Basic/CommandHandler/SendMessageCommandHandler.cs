@@ -74,14 +74,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             IJobSchedulerMetaData jobSchedulerMetaData,
             DatabaseExists databaseExists)
         {
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => serializer, serializer);
-            Guard.NotNull(() => optionsFactory, optionsFactory);
-            Guard.NotNull(() => headers, headers);
-            Guard.NotNull(() => sendJobStatus, sendJobStatus);
-            Guard.NotNull(() => jobExistsHandler, jobExistsHandler);
-            Guard.NotNull(() => databaseExists, databaseExists);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(serializer);
+            Guard.NotNull(optionsFactory);
+            Guard.NotNull(headers);
+            Guard.NotNull(sendJobStatus);
+            Guard.NotNull(jobExistsHandler);
+            Guard.NotNull(databaseExists);
 
             _connectionInformation = connectionInformation;
             _tableNameHelper = tableNameHelper;

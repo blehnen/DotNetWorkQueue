@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Configuration
         /// <param name="connectionInfo">The connection information.</param>
         public TransportConfigurationSend(IConnectionInformation connectionInfo)
         {
-            Guard.NotNull(() => connectionInfo, connectionInfo);
+            Guard.NotNull(connectionInfo);
             ConnectionInfo = connectionInfo;
         }
         #endregion

@@ -31,8 +31,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Admin
             IConnectionInformation connection,
             IQueryHandler<GetQueueCountQuery, long> queueCount)
         {
-            Guard.NotNull(() => connection, connection);
-            Guard.NotNull(() => queueCount, queueCount);
+            Guard.NotNull(connection);
+            Guard.NotNull(queueCount);
 
             _connection = connection;
             _queueCount = queueCount;

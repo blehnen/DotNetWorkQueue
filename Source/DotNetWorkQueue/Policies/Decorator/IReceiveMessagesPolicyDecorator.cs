@@ -32,8 +32,8 @@ namespace DotNetWorkQueue.Policies.Decorator
         public ReceiveMessagesPolicyDecorator(IPolicies policies,
             IReceiveMessages handler)
         {
-            Guard.NotNull(() => policies, policies);
-            Guard.NotNull(() => handler, handler);
+            Guard.NotNull(policies);
+            Guard.NotNull(handler);
             _policies = policies;
             _handler = handler;
         }

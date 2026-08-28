@@ -66,15 +66,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             IGetTimeFactory getTimeFactory,
             QueueConsumerConfiguration configuration)
         {
-            Guard.NotNull(() => optionsFactory, optionsFactory);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => receivedMessageFactory, receivedMessageFactory);
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => messageFactory, messageFactory);
-            Guard.NotNull(() => serialization, serialization);
-            Guard.NotNull(() => headers, headers);
-            Guard.NotNull(() => getTimeFactory, getTimeFactory);
-            Guard.NotNull(() => configuration, configuration);
+            Guard.NotNull(optionsFactory);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(receivedMessageFactory);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(messageFactory);
+            Guard.NotNull(serialization);
+            Guard.NotNull(headers);
+            Guard.NotNull(getTimeFactory);
+            Guard.NotNull(configuration);
 
             _options = new Lazy<PostgreSqlMessageQueueTransportOptions>(optionsFactory.Create);
             _tableNameHelper = tableNameHelper;

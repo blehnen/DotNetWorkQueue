@@ -34,8 +34,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public RedisHeaders(IMessageContextDataFactory messageContextDataFactory,
             IHeaders headers)
         {
-            Guard.NotNull(() => messageContextDataFactory, messageContextDataFactory);
-            Guard.NotNull(() => headers, headers);
+            Guard.NotNull(messageContextDataFactory);
+            Guard.NotNull(headers);
             Headers = headers;
             IncreaseQueueDelay = messageContextDataFactory.Create("IncreaseQueueDelay", new RedisQueueDelay(TimeSpan.Zero));
             CorrelationId = messageContextDataFactory.Create<RedisQueueCorrelationIdSerialized>("CorrelationId", null);

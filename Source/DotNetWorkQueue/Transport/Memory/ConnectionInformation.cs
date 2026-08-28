@@ -69,8 +69,8 @@ namespace DotNetWorkQueue.Transport.Memory
         /// <summary>Validates that the queue name contains only safe characters for use as a memory queue identifier.</summary>
         private static void ValidateQueueName(string name)
         {
-            Guard.NotNullOrEmpty(() => name, name);
-            Guard.IsValid(() => name, name, n => ValidQueueNamePattern().IsMatch(n),
+            Guard.NotNullOrEmpty(name);
+            Guard.IsValid(name, n => ValidQueueNamePattern().IsMatch(n),
                 "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
         }
 

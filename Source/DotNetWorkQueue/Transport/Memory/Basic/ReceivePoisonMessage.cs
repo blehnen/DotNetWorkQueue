@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <param name="dataStorage">The data storage.</param>
         public ReceivePoisonMessage(IDataStorage dataStorage)
         {
-            Guard.NotNull(() => dataStorage, dataStorage);
+            Guard.NotNull(dataStorage);
             _dataStorage = dataStorage;
         }
         /// <summary>
@@ -45,8 +45,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <param name="exception">The exception.</param>
         public void Handle(IMessageContext context, PoisonMessageException exception)
         {
-            Guard.NotNull(() => context, context);
-            Guard.NotNull(() => exception, exception);
+            Guard.NotNull(context);
+            Guard.NotNull(exception);
 
             if (context.MessageId == null || !context.MessageId.HasValue) return;
 

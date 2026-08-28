@@ -69,7 +69,7 @@ namespace DotNetWorkQueue.Transport.SQLite
         private static void ValidateQueueName(string name)
         {
             if (string.IsNullOrEmpty(name)) return; // allow empty for backward compatibility
-            Guard.IsValid(() => name, name, n => ValidQueueNamePattern().IsMatch(n),
+            Guard.IsValid(name, n => ValidQueueNamePattern().IsMatch(n),
                 "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
         }
 

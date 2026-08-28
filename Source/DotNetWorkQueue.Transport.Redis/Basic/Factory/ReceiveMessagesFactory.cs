@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Factory
         /// <param name="container">The container.</param>
         public ReceiveMessagesFactory(IContainerFactory container)
         {
-            Guard.NotNull(() => container, container);
+            Guard.NotNull(container);
             _container = container;
         }
         /// <inheritdoc />

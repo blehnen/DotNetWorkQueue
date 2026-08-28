@@ -39,8 +39,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Factory
         public PostgreSqlMessageQueueTransportOptionsFactory(IConnectionInformation connectionInformation,
             IQueryHandler<GetQueueOptionsQuery<PostgreSqlMessageQueueTransportOptions>, PostgreSqlMessageQueueTransportOptions> queryOptions)
         {
-            Guard.NotNull(() => queryOptions, queryOptions);
-            Guard.NotNull(() => connectionInformation, connectionInformation);
+            Guard.NotNull(queryOptions);
+            Guard.NotNull(connectionInformation);
 
             _queryOptions = queryOptions;
             _connectionInformation = connectionInformation;

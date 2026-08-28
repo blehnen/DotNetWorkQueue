@@ -48,11 +48,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             RedisQueueTransportOptions options,
             QueueContext queueContext)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => resetHeartbeatLua, resetHeartbeatLua);
-            Guard.NotNull(() => unixTimeFactory, unixTimeFactory);
-            Guard.NotNull(() => options, options);
-            Guard.NotNull(() => queueContext, queueContext);
+            Guard.NotNull(configuration);
+            Guard.NotNull(resetHeartbeatLua);
+            Guard.NotNull(unixTimeFactory);
+            Guard.NotNull(options);
+            Guard.NotNull(queueContext);
 
             _configuration = configuration;
             _resetHeartbeatLua = resetHeartbeatLua;

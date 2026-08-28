@@ -33,8 +33,8 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="concurrencyLevel">The concurrency level.</param>
         public WorkGroup(string name, int concurrencyLevel)
         {
-            Guard.NotNullOrEmpty(() => name, name);
-            Guard.IsValid(() => concurrencyLevel, concurrencyLevel, i => i > 0,
+            Guard.NotNullOrEmpty(name);
+            Guard.IsValid(concurrencyLevel, i => i > 0,
                "concurrencyLevel must be greater than 0");
 
             Name = name;

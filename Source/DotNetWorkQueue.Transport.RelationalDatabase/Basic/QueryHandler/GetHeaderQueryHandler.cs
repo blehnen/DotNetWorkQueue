@@ -44,10 +44,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             IPrepareQueryHandler<GetHeaderQuery<T>, IDictionary<string, object>> prepareQuery,
             IReadColumn readColumn, ICompositeSerialization serialization)
         {
-            Guard.NotNull(() => connectionFactory, connectionFactory);
-            Guard.NotNull(() => prepareQuery, prepareQuery);
-            Guard.NotNull(() => readColumn, readColumn);
-            Guard.NotNull(() => serialization, serialization);
+            Guard.NotNull(connectionFactory);
+            Guard.NotNull(prepareQuery);
+            Guard.NotNull(readColumn);
+            Guard.NotNull(serialization);
             _connectionFactory = connectionFactory;
             _prepareQuery = prepareQuery;
             _readColumn = readColumn;

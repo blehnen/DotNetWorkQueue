@@ -62,12 +62,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public RedisQueueSend(ISentMessageFactory sentMessageFactory,
             RedisHeaders headers, ICommandHandlerWithOutput<SendMessageCommand, string> sendMessage, ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages> sendMessageBatch, ICommandHandlerWithOutput<SendMessageCommand, Task<string>> sendMessageAsync, ICommandHandlerWithOutput<SendMessageCommandBatch, Task<QueueOutputMessages>> sendMessageBatchAsync)
         {
-            Guard.NotNull(() => sentMessageFactory, sentMessageFactory);
-            Guard.NotNull(() => headers, headers);
-            Guard.NotNull(() => sendMessage, sendMessage);
-            Guard.NotNull(() => sendMessageBatch, sendMessageBatch);
-            Guard.NotNull(() => sendMessageBatchAsync, sendMessageBatchAsync);
-            Guard.NotNull(() => sentMessageFactory, sentMessageFactory);
+            Guard.NotNull(sentMessageFactory);
+            Guard.NotNull(headers);
+            Guard.NotNull(sendMessage);
+            Guard.NotNull(sendMessageBatch);
+            Guard.NotNull(sendMessageBatchAsync);
+            Guard.NotNull(sentMessageFactory);
 
             _headers = headers;
             _sendMessage = sendMessage;

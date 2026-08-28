@@ -64,15 +64,15 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             IGetMessageIdFactory messageIdFactory,
             IJobSchedulerMetaData jobSchedulerMetaData)
         {
-            Guard.NotNull(() => serializer, serializer);
-            Guard.NotNull(() => headers, headers);
-            Guard.NotNull(() => enqueueLua, enqueueLua);
-            Guard.NotNull(() => enqueueDelayedLua, enqueueDelayedLua);
-            Guard.NotNull(() => enqueueExpirationLua, enqueueExpirationLua);
-            Guard.NotNull(() => enqueueDelayedAndExpirationLua, enqueueDelayedAndExpirationLua);
-            Guard.NotNull(() => unixTimeFactory, unixTimeFactory);
-            Guard.NotNull(() => messageIdFactory, messageIdFactory);
-            Guard.NotNull(() => jobSchedulerMetaData, jobSchedulerMetaData);
+            Guard.NotNull(serializer);
+            Guard.NotNull(headers);
+            Guard.NotNull(enqueueLua);
+            Guard.NotNull(enqueueDelayedLua);
+            Guard.NotNull(enqueueExpirationLua);
+            Guard.NotNull(enqueueDelayedAndExpirationLua);
+            Guard.NotNull(unixTimeFactory);
+            Guard.NotNull(messageIdFactory);
+            Guard.NotNull(jobSchedulerMetaData);
 
             _serializer = serializer;
             _headers = headers;

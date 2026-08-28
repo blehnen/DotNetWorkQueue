@@ -36,8 +36,8 @@ namespace DotNetWorkQueue.Messages
         /// <param name="logger">logger</param>
         public GenerateReceivedMessage(IGetPreviousMessageErrors getErrors, ILogger logger)
         {
-            Guard.NotNull(() => getErrors, getErrors);
-            Guard.NotNull(() => getErrors, getErrors);
+            Guard.NotNull(getErrors);
+            Guard.NotNull(getErrors);
             _getErrors = getErrors;
             _logger = logger;
         }

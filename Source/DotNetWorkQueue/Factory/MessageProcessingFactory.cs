@@ -36,8 +36,8 @@ namespace DotNetWorkQueue.Factory
         /// <param name="mode">The mode.</param>
         public MessageProcessingFactory(IContainerFactory container, MessageProcessingMode mode)
         {
-            Guard.NotNull(() => container, container);
-            Guard.NotNull(() => mode, mode);
+            Guard.NotNull(container);
+            Guard.NotNull(mode);
             _container = container;
             _mode = mode;
         }

@@ -48,11 +48,11 @@ namespace DotNetWorkQueue.Queue
             ICommitMessage commitMessage,
             IConsumerQueueNotification consumerQueueNotification)
         {
-            Guard.NotNull(() => handler, handler);
-            Guard.NotNull(() => heartBeatWorkerFactory, heartBeatWorkerFactory);
-            Guard.NotNull(() => messageExceptionHandler, messageExceptionHandler);
-            Guard.NotNull(() => commitMessage, commitMessage);
-            Guard.NotNull(() => consumerQueueNotification, consumerQueueNotification);
+            Guard.NotNull(handler);
+            Guard.NotNull(heartBeatWorkerFactory);
+            Guard.NotNull(messageExceptionHandler);
+            Guard.NotNull(commitMessage);
+            Guard.NotNull(consumerQueueNotification);
 
             _messageExceptionHandler = messageExceptionHandler;
             _methodToRun = handler;

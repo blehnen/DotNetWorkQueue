@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="waitForThreadToFinish">The wait for thread to finish.</param>
         public StopThread(WaitForThreadToFinish waitForThreadToFinish)
         {
-            Guard.NotNull(() => waitForThreadToFinish, waitForThreadToFinish);
+            Guard.NotNull(waitForThreadToFinish);
             _waitForThreadToFinish = waitForThreadToFinish;
         }
 

@@ -50,11 +50,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             ITransactionFactory transactionFactory,
             IPrepareCommandHandler<SaveQueueConfigurationCommand> prepareSaveConfigurationCommand)
         {
-            Guard.NotNull(() => options, options);
-            Guard.NotNull(() => connectionFactory, connectionFactory);
-            Guard.NotNull(() => prepareCommand, prepareCommand);
-            Guard.NotNull(() => transactionFactory, transactionFactory);
-            Guard.NotNull(() => prepareSaveConfigurationCommand, prepareSaveConfigurationCommand);
+            Guard.NotNull(options);
+            Guard.NotNull(connectionFactory);
+            Guard.NotNull(prepareCommand);
+            Guard.NotNull(transactionFactory);
+            Guard.NotNull(prepareSaveConfigurationCommand);
 
             _options = options;
             _connectionFactory = connectionFactory;

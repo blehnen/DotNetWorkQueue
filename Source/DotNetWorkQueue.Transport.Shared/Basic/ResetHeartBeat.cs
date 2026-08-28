@@ -50,9 +50,9 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
             IQueryHandler<FindMessagesToResetByHeartBeatQuery<T>, IEnumerable<MessageToReset<T>>> queryHandler,
             IGetTimeFactory getTime)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => commandHandler, commandHandler);
-            Guard.NotNull(() => queryHandler, queryHandler);
+            Guard.NotNull(configuration);
+            Guard.NotNull(commandHandler);
+            Guard.NotNull(queryHandler);
 
             _configuration = configuration;
             _commandHandler = commandHandler;

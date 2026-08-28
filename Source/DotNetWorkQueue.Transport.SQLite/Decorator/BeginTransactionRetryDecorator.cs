@@ -39,8 +39,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         public BeginTransactionRetryDecorator(ISQLiteTransactionWrapper decorated,
             IPolicies policies)
         {
-            Guard.NotNull(() => decorated, decorated);
-            Guard.NotNull(() => policies, policies);
+            Guard.NotNull(decorated);
+            Guard.NotNull(policies);
 
             _decorated = decorated;
             _policies = policies;

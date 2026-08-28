@@ -37,8 +37,8 @@ namespace DotNetWorkQueue.Factory
         /// <param name="cancelWork">The cancel work.</param>
         public QueueWaitFactory(QueueConsumerConfiguration configuration, IQueueCancelWork cancelWork)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => cancelWork, cancelWork);
+            Guard.NotNull(configuration);
+            Guard.NotNull(cancelWork);
 
             _configuration = configuration;
             _cancelWork = cancelWork;

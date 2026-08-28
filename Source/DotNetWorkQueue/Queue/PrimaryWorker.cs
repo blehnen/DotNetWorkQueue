@@ -52,11 +52,11 @@ namespace DotNetWorkQueue.Queue
             StopThread stopThread)
             : base(workerTerminate, stopThread)
         {
-            Guard.NotNull(() => nameFactory, nameFactory);
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => messageProcessing, messageProcessing);
-            Guard.NotNull(() => workerTerminate, workerTerminate);
-            Guard.NotNull(() => workerCollection, workerCollection);
+            Guard.NotNull(nameFactory);
+            Guard.NotNull(log);
+            Guard.NotNull(messageProcessing);
+            Guard.NotNull(workerTerminate);
+            Guard.NotNull(workerCollection);
 
             _log = log;
             _nameFactory = nameFactory;

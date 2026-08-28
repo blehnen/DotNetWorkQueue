@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
         /// <param name="deleteMessageCommandHandler">The delete message command handler.</param>
         public RemoveMessage(ICommandHandlerWithOutput<DeleteMessageCommand<T>, long> deleteMessageCommandHandler)
         {
-            Guard.NotNull(() => deleteMessageCommandHandler, deleteMessageCommandHandler);
+            Guard.NotNull(deleteMessageCommandHandler);
             _deleteMessageCommandHandler = deleteMessageCommandHandler;
         }
         #endregion

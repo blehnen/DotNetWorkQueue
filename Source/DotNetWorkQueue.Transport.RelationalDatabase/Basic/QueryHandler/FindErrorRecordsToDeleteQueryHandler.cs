@@ -44,9 +44,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             IReadColumn readColumn,
             IPrepareQueryHandler<FindErrorMessagesToDeleteQuery<T>, IEnumerable<T>> prepareQuery)
         {
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => prepareQuery, prepareQuery);
-            Guard.NotNull(() => readColumn, readColumn);
+            Guard.NotNull(dbConnectionFactory);
+            Guard.NotNull(prepareQuery);
+            Guard.NotNull(readColumn);
 
             _dbConnectionFactory = dbConnectionFactory;
             _readColumn = readColumn;

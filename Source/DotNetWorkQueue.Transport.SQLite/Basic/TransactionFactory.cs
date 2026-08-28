@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="factory">The factory.</param>
         public TransactionFactory(IDbFactory factory)
         {
-            Guard.NotNull(() => factory, factory);
+            Guard.NotNull(factory);
             _factory = factory;
         }
         /// <summary>

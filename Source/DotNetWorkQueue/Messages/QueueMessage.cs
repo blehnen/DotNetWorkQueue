@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Messages
         /// <param name="messageData">The message data.</param>
         public QueueMessage(TMessage message, TMessageData messageData)
         {
-            Guard.NotNull(() => message, message);
+            Guard.NotNull(message);
             Message = message;
             MessageData = messageData;
         }

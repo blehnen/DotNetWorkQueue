@@ -48,7 +48,7 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         public virtual MessageInterceptorsResult MessageToBytes<T>(T message, IDictionary<string, object> headers) where T : class
         {
-            Guard.NotNull(() => message, message);
+            Guard.NotNull(message);
             byte[] btBytes;
             try
             {
@@ -79,7 +79,7 @@ namespace DotNetWorkQueue
         /// <exception cref="SerializationException">An error has occurred when de-serializing a message</exception>
         public virtual T BytesToMessage<T>(byte[] bytes, MessageInterceptorsGraph graph, IDictionary<string, object> headers) where T : class
         {
-            Guard.NotNull(() => bytes, bytes);
+            Guard.NotNull(bytes);
 
             if (MessageInterceptors != null)
             {

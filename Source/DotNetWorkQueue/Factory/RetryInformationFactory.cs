@@ -36,8 +36,8 @@ namespace DotNetWorkQueue.Factory
         /// <returns></returns>
         public IRetryInformation Create(Type exceptionType, List<TimeSpan> times)
         {
-            Guard.NotNull(() => exceptionType, exceptionType);
-            Guard.NotNull(() => times, times);
+            Guard.NotNull(exceptionType);
+            Guard.NotNull(times);
             return new RetryInformation(exceptionType, times);
         }
     }

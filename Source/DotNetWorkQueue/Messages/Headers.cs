@@ -32,8 +32,8 @@ namespace DotNetWorkQueue.Messages
         /// <param name="customHeaders">The customer headers.</param>
         public Headers(IStandardHeaders standardHeaders, ICustomHeaders customHeaders)
         {
-            Guard.NotNull(() => standardHeaders, standardHeaders);
-            Guard.NotNull(() => customHeaders, customHeaders);
+            Guard.NotNull(standardHeaders);
+            Guard.NotNull(customHeaders);
             StandardHeaders = standardHeaders;
             CustomHeaders = customHeaders;
         }

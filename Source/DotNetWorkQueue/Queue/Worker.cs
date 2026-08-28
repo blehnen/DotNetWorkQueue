@@ -51,9 +51,9 @@ namespace DotNetWorkQueue.Queue
             StopThread stopThread)
             : base(workerTerminate, stopThread)
         {
-            Guard.NotNull(() => pauseEvent, pauseEvent);
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => nameFactory, nameFactory);
+            Guard.NotNull(pauseEvent);
+            Guard.NotNull(log);
+            Guard.NotNull(nameFactory);
 
             _pauseEvent = pauseEvent;
             _log = log;

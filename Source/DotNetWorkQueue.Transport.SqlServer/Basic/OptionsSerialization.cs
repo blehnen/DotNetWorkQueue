@@ -30,8 +30,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         public OptionsSerialization(ISqlServerMessageQueueTransportOptionsFactory options,
             IInternalSerializer serializer)
         {
-            Guard.NotNull(() => options, options);
-            Guard.NotNull(() => serializer, serializer);
+            Guard.NotNull(options);
+            Guard.NotNull(serializer);
 
             _serializer = serializer;
             _options = new Lazy<SqlServerMessageQueueTransportOptions>(options.Create);

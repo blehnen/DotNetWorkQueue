@@ -43,8 +43,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <param name="scope">The scope.</param>
         public LiteDbConnectionManager(IConnectionInformation connectionInformation, ICreationScope scope)
         {
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => scope, scope);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(scope);
             _connectionInformation = connectionInformation;
 
             if (string.IsNullOrEmpty(_connectionInformation.ConnectionString) ||

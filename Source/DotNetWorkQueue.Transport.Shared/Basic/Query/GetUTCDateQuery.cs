@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic.Query
         /// <param name="connectionString">The connection string.</param>
         public GetUtcDateQuery(string connectionString)
         {
-            Guard.NotNullOrEmpty(() => connectionString, connectionString);
+            Guard.NotNullOrEmpty(connectionString);
             ConnectionString = connectionString;
         }
         /// <summary>

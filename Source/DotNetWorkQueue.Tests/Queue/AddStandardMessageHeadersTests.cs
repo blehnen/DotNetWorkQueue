@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -75,6 +75,36 @@ namespace DotNetWorkQueue.Tests.Queue
             Assert.IsTrue(message.Headers.ContainsKey("Queue-FirstPossibleDeliveryDate"));
         }
 
+        [TestMethod]
+        public void AddHeaders_Caches_The_PortableName_Per_Type()
+        {
+            //The name is built once per body type and reused; a second message of the same type
+            //must get the very same string rather than one rebuilt from the assembly identity.
+            var (sut, firstMessage) = CreateSut(new SimpleTestBody());
+            var secondMessage = new Message(new SimpleTestBody(), new Dictionary<string, object>());
+
+            sut.AddHeaders(firstMessage, Substitute.For<IAdditionalMessageData>());
+            sut.AddHeaders(secondMessage, Substitute.For<IAdditionalMessageData>());
+
+            Assert.AreSame(firstMessage.Headers["Queue-MessageBodyType"],
+                secondMessage.Headers["Queue-MessageBodyType"]);
+        }
+
+        [TestMethod]
+        public void AddHeaders_Caches_Each_Type_Separately()
+        {
+            var (sut, firstMessage) = CreateSut(new SimpleTestBody());
+            var secondMessage = new Message(new OtherTestBody(), new Dictionary<string, object>());
+
+            sut.AddHeaders(firstMessage, Substitute.For<IAdditionalMessageData>());
+            sut.AddHeaders(secondMessage, Substitute.For<IAdditionalMessageData>());
+
+            Assert.AreEqual($"{typeof(SimpleTestBody).FullName}, {typeof(SimpleTestBody).Assembly.GetName().Name}",
+                (string)firstMessage.Headers["Queue-MessageBodyType"]);
+            Assert.AreEqual($"{typeof(OtherTestBody).FullName}, {typeof(OtherTestBody).Assembly.GetName().Name}",
+                (string)secondMessage.Headers["Queue-MessageBodyType"]);
+        }
+
         private static (AddStandardMessageHeaders sut, IMessage message) CreateSut(dynamic body)
         {
             var deliveryTime = Substitute.For<IGetFirstMessageDeliveryTime>();
@@ -92,5 +122,7 @@ namespace DotNetWorkQueue.Tests.Queue
         }
 
         private class SimpleTestBody { }
+
+        private class OtherTestBody { }
     }
 }

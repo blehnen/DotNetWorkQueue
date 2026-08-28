@@ -47,10 +47,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
             IGetFileNameFromConnectionString getFileNameFromConnection,
             DatabaseExists databaseExists)
         {
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => decorated, decorated);
-            Guard.NotNull(() => getFileNameFromConnection, getFileNameFromConnection);
-            Guard.NotNull(() => databaseExists, databaseExists);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(decorated);
+            Guard.NotNull(getFileNameFromConnection);
+            Guard.NotNull(databaseExists);
 
             _connectionInformation = connectionInformation;
             _decorated = decorated;

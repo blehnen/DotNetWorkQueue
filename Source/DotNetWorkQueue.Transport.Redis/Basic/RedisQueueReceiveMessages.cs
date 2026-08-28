@@ -46,10 +46,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             ITransportHandleMessage handleMessage,
             IQueueCancelWork cancelWork)
         {
-            Guard.NotNull(() => workSubFactory, workSubFactory);
-            Guard.NotNull(() => receiveMessage, receiveMessage);
-            Guard.NotNull(() => handleMessage, handleMessage);
-            Guard.NotNull(() => cancelWork, cancelWork);
+            Guard.NotNull(workSubFactory);
+            Guard.NotNull(receiveMessage);
+            Guard.NotNull(handleMessage);
+            Guard.NotNull(cancelWork);
 
             _receiveMessage = receiveMessage;
             _handleMessage = handleMessage;

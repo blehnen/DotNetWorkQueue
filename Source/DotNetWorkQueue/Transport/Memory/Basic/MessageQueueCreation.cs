@@ -42,9 +42,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             ITransportOptionsFactory options,
             ICreationScope creationScope)
         {
-            Guard.NotNull(() => options, options);
-            Guard.NotNull(() => creationScope, creationScope);
-            Guard.NotNull(() => connectionInfo, connectionInfo);
+            Guard.NotNull(options);
+            Guard.NotNull(creationScope);
+            Guard.NotNull(connectionInfo);
 
             _options = new Lazy<TransportOptions>(options.Create);
             ConnectionInfo = connectionInfo;

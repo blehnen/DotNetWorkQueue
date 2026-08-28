@@ -58,10 +58,10 @@ namespace DotNetWorkQueue.TaskScheduling
             IMetrics metrics,
             ILogger log)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => waitForFreeThread, waitForFreeThread);
-            Guard.NotNull(() => metrics, metrics);
-            Guard.NotNull(() => log, log);
+            Guard.NotNull(configuration);
+            Guard.NotNull(waitForFreeThread);
+            Guard.NotNull(metrics);
+            Guard.NotNull(log);
 
             _logger = log;
             _configuration = configuration;
@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.TaskScheduling
         public override void Start()
         {
             ThrowIfDisposed();
-            Guard.IsValid(() => Configuration.MaximumThreads, Configuration.MaximumThreads, i => i > 0,
+            Guard.IsValid(Configuration.MaximumThreads, i => i > 0,
               "The Configuration.MaximumThreads must be greater than 0");
 
             Configuration.SetReadOnly();

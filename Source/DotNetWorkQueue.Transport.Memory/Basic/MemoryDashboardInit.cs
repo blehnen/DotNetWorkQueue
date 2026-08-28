@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType,
             QueueConnection queueConnection)
         {
-            Guard.NotNull(() => container, container);
+            Guard.NotNull(container);
 
             base.RegisterImplementations(container, registrationType, queueConnection);
 

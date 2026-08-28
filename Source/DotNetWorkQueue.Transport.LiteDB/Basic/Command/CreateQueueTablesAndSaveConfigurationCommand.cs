@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.Command
         /// <param name="tables">The tables.</param>
         public CreateQueueTablesAndSaveConfigurationCommand(List<TTableType> tables)
         {
-            Guard.NotNull(() => tables, tables);
+            Guard.NotNull(tables);
             Tables = tables;
         }
         /// <summary>

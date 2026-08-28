@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Serialization
         /// <exception cref="ArgumentException"><paramref name="typeName"/> is empty.</exception>
         public void AddDeniedType(string typeName)
         {
-            Guard.NotNullOrEmpty(() => typeName, typeName);
+            Guard.NotNullOrEmpty(typeName);
             _deniedTypes.Add(typeName);
         }
 
@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.Serialization
         /// <exception cref="ArgumentNullException"><paramref name="typeNames"/> is null.</exception>
         public void AddDeniedTypes(IEnumerable<string> typeNames)
         {
-            Guard.NotNull(() => typeNames, typeNames);
+            Guard.NotNull(typeNames);
             foreach (var typeName in typeNames)
             {
                 AddDeniedType(typeName);

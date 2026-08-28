@@ -40,8 +40,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         public RetryCommandHandlerOutputDecoratorAsync(ICommandHandlerWithOutputAsync<TCommand, TOutput> decorated,
             IPolicies policies)
         {
-            Guard.NotNull(() => decorated, decorated);
-            Guard.NotNull(() => policies, policies);
+            Guard.NotNull(decorated);
+            Guard.NotNull(policies);
 
             _decorated = decorated;
             _policies = policies;
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         /// <inheritdoc />
         public async Task<TOutput> HandleAsync(TCommand command)
         {
-            Guard.NotNull(() => command, command);
+            Guard.NotNull(command);
 
             if (command is IRetrySkippable skippable && skippable.SkipRetry)
                 return await _decorated.HandleAsync(command).ConfigureAwait(false);

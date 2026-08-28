@@ -40,9 +40,9 @@ namespace DotNetWorkQueue.Logging.Decorator
             IResetHeartBeat handler,
              QueueConsumerConfiguration configuration)
         {
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => handler, handler);
-            Guard.NotNull(() => configuration, configuration);
+            Guard.NotNull(log);
+            Guard.NotNull(handler);
+            Guard.NotNull(configuration);
 
             _log = log;
             _handler = handler;

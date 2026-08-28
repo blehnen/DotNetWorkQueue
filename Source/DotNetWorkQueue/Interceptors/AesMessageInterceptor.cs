@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Interceptors
         /// <param name="configuration">The configuration.</param>
         public AesMessageInterceptor(AesMessageInterceptorConfiguration configuration)
         {
-            Guard.NotNull(() => configuration, configuration);
+            Guard.NotNull(configuration);
             _configuration = configuration;
             DisplayName = "AES";
         }
@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Interceptors
         /// <param name="headers">the message headers</param>
         public MessageInterceptorResult MessageToBytes(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
-            Guard.NotNull(() => input, input);
+            Guard.NotNull(input);
 
             var nonce = new byte[NonceSizeBytes];
             RandomNumberGenerator.Fill(nonce); // CSPRNG, not System.Random
@@ -83,7 +83,7 @@ namespace DotNetWorkQueue.Interceptors
         /// <param name="headers">the message headers</param>
         public byte[] BytesToMessage(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
-            Guard.NotNull(() => input, input);
+            Guard.NotNull(input);
             if (input.Length < HeaderSize)
                 throw new DotNetWorkQueueException("AES envelope is too short to contain the version, nonce, and tag.");
             if (input[0] != Version)
@@ -130,7 +130,7 @@ namespace DotNetWorkQueue.Interceptors
         /// <param name="key">The AES-256 key; must be exactly 32 bytes.</param>
         public AesMessageInterceptorConfiguration(byte[] key)
         {
-            Guard.NotNull(() => key, key);
+            Guard.NotNull(key);
             if (key.Length != KeySizeBytes)
                 throw new ArgumentException($"AES-256 requires a {KeySizeBytes}-byte key; received {key.Length}.", nameof(key));
             Key = key;

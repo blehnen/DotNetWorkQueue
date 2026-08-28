@@ -43,9 +43,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.Message
             IQueryHandler<ReceiveMessageQuery, IReceivedMessageInternal> receiveMessage,
             IQueueCancelWork cancelToken)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => receiveMessage, receiveMessage);
-            Guard.NotNull(() => cancelToken, cancelToken);
+            Guard.NotNull(configuration);
+            Guard.NotNull(receiveMessage);
+            Guard.NotNull(cancelToken);
 
             _configuration = configuration;
             _receiveMessage = receiveMessage;

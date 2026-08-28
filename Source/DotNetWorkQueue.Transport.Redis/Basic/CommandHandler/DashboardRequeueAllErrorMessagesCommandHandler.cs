@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         public DashboardRequeueAllErrorMessagesCommandHandler(
             DashboardRequeueAllErrorMessagesLua requeueAllLua)
         {
-            Guard.NotNull(() => requeueAllLua, requeueAllLua);
+            Guard.NotNull(requeueAllLua);
             _requeueAllLua = requeueAllLua;
         }
 

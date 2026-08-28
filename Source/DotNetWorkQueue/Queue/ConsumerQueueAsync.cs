@@ -61,12 +61,12 @@ namespace DotNetWorkQueue.Queue
             IConsumerQueueErrorNotification consumerQueueErrorNotification)
             : base(log, consumerQueueNotification, consumerQueueErrorNotification)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => workerFactory, workerFactory);
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => registerMessagesAsync, registerMessagesAsync);
-            Guard.NotNull(() => stopWorker, stopWorker);
-            Guard.NotNull(() => queueMonitor, queueMonitor);
+            Guard.NotNull(configuration);
+            Guard.NotNull(workerFactory);
+            Guard.NotNull(log);
+            Guard.NotNull(registerMessagesAsync);
+            Guard.NotNull(stopWorker);
+            Guard.NotNull(queueMonitor);
 
             _configuration = configuration;
             _primaryWorker = new Lazy<IPrimaryWorker>(() =>
@@ -109,7 +109,7 @@ namespace DotNetWorkQueue.Queue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => workerAction, workerAction);
+            Guard.NotNull(workerAction);
 
             if (Started)
             {

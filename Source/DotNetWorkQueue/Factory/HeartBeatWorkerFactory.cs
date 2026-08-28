@@ -46,11 +46,11 @@ namespace DotNetWorkQueue.Factory
             ILogger logFactory,
             IWorkerHeartBeatNotificationFactory heartBeatNotificationFactory)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => sendHeartBeat, sendHeartBeat);
-            Guard.NotNull(() => scheduler, scheduler);
-            Guard.NotNull(() => logFactory, logFactory);
-            Guard.NotNull(() => heartBeatNotificationFactory, heartBeatNotificationFactory);
+            Guard.NotNull(configuration);
+            Guard.NotNull(sendHeartBeat);
+            Guard.NotNull(scheduler);
+            Guard.NotNull(logFactory);
+            Guard.NotNull(heartBeatNotificationFactory);
 
             _configuration = configuration;
             _sendHeartBeat = sendHeartBeat;

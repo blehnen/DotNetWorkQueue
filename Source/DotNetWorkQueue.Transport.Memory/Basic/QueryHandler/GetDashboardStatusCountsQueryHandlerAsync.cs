@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.QueryHandler
 
         public GetDashboardStatusCountsQueryHandlerAsync(IDataStorage dataStorage)
         {
-            Guard.NotNull(() => dataStorage, dataStorage);
+            Guard.NotNull(dataStorage);
             _dataStorage = dataStorage;
         }
 

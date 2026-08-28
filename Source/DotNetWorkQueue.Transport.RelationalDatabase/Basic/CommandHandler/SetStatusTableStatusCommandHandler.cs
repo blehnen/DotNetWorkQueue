@@ -40,8 +40,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         public SetStatusTableStatusCommandHandler(IDbConnectionFactory dbConnectionFactory,
                 IPrepareCommandHandler<SetStatusTableStatusCommand<long>> prepareCommand)
         {
-            Guard.NotNull(() => prepareCommand, prepareCommand);
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
+            Guard.NotNull(prepareCommand);
+            Guard.NotNull(dbConnectionFactory);
 
             _dbConnectionFactory = dbConnectionFactory;
             _prepareCommand = prepareCommand;

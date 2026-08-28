@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.IoC
         /// <param name="container">The container.</param>
         public ContainerWrapper(Container container)
         {
-            Guard.NotNull(() => container, container);
+            Guard.NotNull(container);
             _container = container;
             TypesThatCanBeSuppressed = new HashSet<Type>();
         }
@@ -323,7 +323,7 @@ namespace DotNetWorkQueue.IoC
         /// </remarks>
         public IContainer SuppressDiagnosticWarning(Type type, DiagnosticTypes warningType, string reason)
         {
-            Guard.NotNull(() => type, type);
+            Guard.NotNull(type);
 
             if (TypesThatCanBeSuppressed.Contains(type))
             {

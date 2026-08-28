@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.Messages
         /// <param name="workerNotificationFactory">The worker notification factory.</param>
         public MessageContext(IWorkerNotificationFactory workerNotificationFactory)
         {
-            Guard.NotNull(() => workerNotificationFactory, workerNotificationFactory);
+            Guard.NotNull(workerNotificationFactory);
             WorkerNotification = workerNotificationFactory.Create();
         }
 

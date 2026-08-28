@@ -42,8 +42,8 @@ namespace DotNetWorkQueue.Queue
         public ProducerMethodQueue(IProducerQueue<MessageExpression> queue,
             IExpressionSerializer serializer)
         {
-            Guard.NotNull(() => queue, queue);
-            Guard.NotNull(() => serializer, serializer);
+            Guard.NotNull(queue);
+            Guard.NotNull(serializer);
 
             _queue = queue;
             _serializer = serializer;

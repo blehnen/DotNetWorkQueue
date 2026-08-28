@@ -102,8 +102,8 @@ namespace DotNetWorkQueue.JobScheduler
              where TTransportInit : ITransportInit, new()
              where TQueue : class, IJobQueueCreation
         {
-            Guard.NotNullOrEmpty(() => schedule, schedule);
-            Guard.IsValid(() => jobName, jobName, i => i.Length < 256,
+            Guard.NotNullOrEmpty(schedule);
+            Guard.IsValid(jobName, i => i.Length < 256,
               "The job name length must be 255 characters or less");
             return AddTaskImpl<TTransportInit, TQueue>(jobName, queueConnection, new JobSchedule(schedule, GetCurrentOffset, window), autoRun, window, actionToRun, route, rawExpression, producerConfiguration);
         }
@@ -121,8 +121,8 @@ namespace DotNetWorkQueue.JobScheduler
             bool rawExpression = false)
              where TTransportInit : ITransportInit, new()
         {
-            Guard.NotNullOrEmpty(() => schedule, schedule);
-            Guard.IsValid(() => jobname, jobname, i => i.Length < 256,
+            Guard.NotNullOrEmpty(schedule);
+            Guard.IsValid(jobname, i => i.Length < 256,
               "The job name length must be 255 characters or less");
             return AddTaskImpl<TTransportInit>(jobQueueCreation, jobname, queueConnection, new JobSchedule(schedule, GetCurrentOffset, window), autoRun, window, actionToRun, route, rawExpression, producerConfiguration);
         }
@@ -155,8 +155,8 @@ namespace DotNetWorkQueue.JobScheduler
                 where TTransportInit : ITransportInit, new()
                 where TQueue : class, IJobQueueCreation
         {
-            Guard.NotNull(() => schedule, schedule);
-            Guard.NotNullOrEmpty(() => name, name);
+            Guard.NotNull(schedule);
+            Guard.NotNullOrEmpty(name);
 
             ScheduledJob job;
             lock (_lockTasks)
@@ -217,8 +217,8 @@ namespace DotNetWorkQueue.JobScheduler
             Action<QueueProducerConfiguration> producerConfiguration = null)
                 where TTransportInit : ITransportInit, new()
         {
-            Guard.NotNull(() => schedule, schedule);
-            Guard.NotNullOrEmpty(() => name, name);
+            Guard.NotNull(schedule);
+            Guard.NotNullOrEmpty(name);
 
             ScheduledJob job;
             lock (_lockTasks)

@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         /// <param name="prepareQuery">The prepare query.</param>
         public GetTableExistsTransactionQueryHandler(IPrepareQueryHandler<GetTableExistsTransactionQuery, bool> prepareQuery)
         {
-            Guard.NotNull(() => prepareQuery, prepareQuery);
+            Guard.NotNull(prepareQuery);
             _prepareQuery = prepareQuery;
         }
 

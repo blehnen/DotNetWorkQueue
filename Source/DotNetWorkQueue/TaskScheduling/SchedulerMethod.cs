@@ -42,8 +42,8 @@ namespace DotNetWorkQueue.TaskScheduling
         public SchedulerMethod(IConsumerQueueScheduler queue,
             IMessageMethodHandling messageMethodHandling)
         {
-            Guard.NotNull(() => queue, queue);
-            Guard.NotNull(() => messageMethodHandling, messageMethodHandling);
+            Guard.NotNull(queue);
+            Guard.NotNull(messageMethodHandling);
 
             _queue = queue;
             _messageMethodHandling = messageMethodHandling;

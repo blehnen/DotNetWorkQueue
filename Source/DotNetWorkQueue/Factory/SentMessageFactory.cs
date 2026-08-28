@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Factory
         public ISentMessage Create(IMessageId messageId, ICorrelationId correlationId)
         {
             //NOTE - null messageID's are allowed, as this indicates a failure by the transport to send
-            Guard.NotNull(() => correlationId, correlationId);
+            Guard.NotNull(correlationId);
             return new SentMessage(messageId, correlationId);
         }
     }

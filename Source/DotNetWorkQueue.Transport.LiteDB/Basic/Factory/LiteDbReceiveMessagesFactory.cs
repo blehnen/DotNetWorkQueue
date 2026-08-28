@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.Factory
         /// <param name="container">The container.</param>
         public LiteDbReceiveMessagesFactory(IContainerFactory container)
         {
-            Guard.NotNull(() => container, container);
+            Guard.NotNull(container);
             _container = container;
         }
         /// <inheritdoc />

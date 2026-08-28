@@ -38,8 +38,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryPrepareHandler
         public GetTableExistsQueryPrepareHandler(CommandStringCache commandCache,
             IConnectionInformation connectionInformation, ISqlSchema schema)
         {
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => connectionInformation, connectionInformation);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(connectionInformation);
             _commandCache = commandCache;
             _connectionInformation = connectionInformation;
             _schema = schema;

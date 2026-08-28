@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="waitForEventOrCancelFactory">The wait for event or cancel factory.</param>
         public WaitForEventOrCancelThreadPool(IWaitForEventOrCancelFactory waitForEventOrCancelFactory)
         {
-            Guard.NotNull(() => waitForEventOrCancelFactory, waitForEventOrCancelFactory);
+            Guard.NotNull(waitForEventOrCancelFactory);
             _waitForEventForGroups = new ConcurrentDictionary<IWorkGroup, IWaitForEventOrCancel>();
             _waitForEventOrCancelFactory = waitForEventOrCancelFactory;
             _waitForEvent = new Lazy<IWaitForEventOrCancel>(_waitForEventOrCancelFactory.Create);
@@ -95,7 +95,7 @@ namespace DotNetWorkQueue.TaskScheduling
             }
             else
             {
-                Guard.NotNull(() => group, group);
+                Guard.NotNull(group);
                 GetOrAddGroup(group).Set();
             }
         }

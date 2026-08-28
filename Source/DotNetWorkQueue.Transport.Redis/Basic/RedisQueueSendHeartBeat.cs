@@ -40,8 +40,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public RedisQueueSendHeartBeat(ICommandHandlerWithOutput<SendHeartBeatCommand<string>, long> sendHeartBeat,
             IUnixTimeFactory unixTimeFactory)
         {
-            Guard.NotNull(() => sendHeartBeat, sendHeartBeat);
-            Guard.NotNull(() => unixTimeFactory, unixTimeFactory);
+            Guard.NotNull(sendHeartBeat);
+            Guard.NotNull(unixTimeFactory);
 
             _sendHeartBeat = sendHeartBeat;
             _unixTimeFactory = unixTimeFactory;

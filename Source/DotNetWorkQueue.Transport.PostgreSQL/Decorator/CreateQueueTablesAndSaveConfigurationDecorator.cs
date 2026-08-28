@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         /// <param name="decorated">The decorated.</param>
         public CreateQueueTablesAndSaveConfigurationDecorator(ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> decorated)
         {
-            Guard.NotNull(() => decorated, decorated);
+            Guard.NotNull(decorated);
             _decorated = decorated;
         }
         /// <inheritdoc />

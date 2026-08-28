@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Serialization
         public Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> ConvertBytesToMethod(
             byte[] bytes)
         {
-            Guard.NotNull(() => bytes, bytes);
+            Guard.NotNull(bytes);
             return
                 JsonConvert
                     .DeserializeObject<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>>(
@@ -57,7 +57,7 @@ namespace DotNetWorkQueue.Serialization
         public byte[] ConvertMethodToBytes(
             Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> method)
         {
-            Guard.NotNull(() => method, method);
+            Guard.NotNull(method);
             return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(method, _serializerSettings));
         }
     }

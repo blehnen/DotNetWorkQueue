@@ -64,14 +64,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             IJobSchedulerMetaData jobSchedulerMetaData,
             ISentMessageFactory sentMessageFactory)
         {
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => serializer, serializer);
-            Guard.NotNull(() => optionsFactory, optionsFactory);
-            Guard.NotNull(() => headers, headers);
-            Guard.NotNull(() => configurationSend, configurationSend);
-            Guard.NotNull(() => getTimeFactory, getTimeFactory);
-            Guard.NotNull(() => jobSchedulerMetaData, jobSchedulerMetaData);
-            Guard.NotNull(() => sentMessageFactory, sentMessageFactory);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(serializer);
+            Guard.NotNull(optionsFactory);
+            Guard.NotNull(headers);
+            Guard.NotNull(configurationSend);
+            Guard.NotNull(getTimeFactory);
+            Guard.NotNull(jobSchedulerMetaData);
+            Guard.NotNull(sentMessageFactory);
 
             _tableNameHelper = tableNameHelper;
             _serializer = serializer;
@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         /// <inheritdoc />
         public async Task<QueueOutputMessages> HandleAsync(SendMessageCommandBatch command)
         {
-            Guard.NotNull(() => command, command);
+            Guard.NotNull(command);
             var messages = command.Messages;
             if (messages.Count == 0)
                 return new QueueOutputMessages(new List<IQueueOutputMessage>());

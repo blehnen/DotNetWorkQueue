@@ -40,7 +40,7 @@ namespace DotNetWorkQueue
         /// </summary>
         public static void SetContainerFactory(Func<ICreateContainer<T>> createContainer)
         {
-            Guard.NotNull(() => createContainer, createContainer);
+            Guard.NotNull(createContainer);
             _createContainerInternal = createContainer;
         }
         #endregion
@@ -83,7 +83,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
             var container = _createContainerInternal().Create(QueueContexts.QueueCreator, _registerService, queueConnection, _transportInit,
                 ConnectionTypes.Send, x => { }, _setOptions);
             lock (Containers)
@@ -114,7 +114,7 @@ namespace DotNetWorkQueue
         /// </summary>
         public static void SetContainerFactory(Func<ICreateContainer<T>> createContainer)
         {
-            Guard.NotNull(() => createContainer, createContainer);
+            Guard.NotNull(createContainer);
             _createContainerInternal = createContainer;
         }
         #endregion
@@ -156,7 +156,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
             var container = _createContainerInternal().Create(QueueContexts.JobQueueCreator, _registerService, queueConnection, _transportInit,
                 ConnectionTypes.Send, x => { }, _setOptions);
             lock (Containers)

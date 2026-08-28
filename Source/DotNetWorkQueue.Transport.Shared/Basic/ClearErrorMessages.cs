@@ -47,9 +47,9 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
             IQueryHandler<FindErrorMessagesToDeleteQuery<T>, IEnumerable<T>> findErrorMessagesQueryHandler,
             IRemoveMessage removeMessage)
         {
-            Guard.NotNull(() => connectionInfo, connectionInfo);
-            Guard.NotNull(() => findErrorMessagesQueryHandler, findErrorMessagesQueryHandler);
-            Guard.NotNull(() => removeMessage, removeMessage);
+            Guard.NotNull(connectionInfo);
+            Guard.NotNull(findErrorMessagesQueryHandler);
+            Guard.NotNull(removeMessage);
 
             _connectionInfo = connectionInfo;
             _findErrorMessagesQueryHandler = findErrorMessagesQueryHandler;

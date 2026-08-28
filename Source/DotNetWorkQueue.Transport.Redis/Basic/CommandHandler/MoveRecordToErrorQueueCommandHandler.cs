@@ -35,8 +35,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <param name="timeFactory">Time factory</param>
         public MoveRecordToErrorQueueCommandHandler(ErrorLua errorLua, IUnixTimeFactory timeFactory)
         {
-            Guard.NotNull(() => errorLua, errorLua);
-            Guard.NotNull(() => timeFactory, timeFactory);
+            Guard.NotNull(errorLua);
+            Guard.NotNull(timeFactory);
             _errorLua = errorLua;
             _unixTime = timeFactory.Create();
         }

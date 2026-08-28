@@ -40,7 +40,7 @@ namespace DotNetWorkQueue
         /// </summary>
         public static void SetContainerFactory(Func<ICreateContainer<SchedulerInit>> createContainer)
         {
-            Guard.NotNull(() => createContainer, createContainer);
+            Guard.NotNull(createContainer);
             _createContainerInternal = createContainer;
         }
 

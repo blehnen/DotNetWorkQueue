@@ -39,8 +39,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Factory
         public ConnectionHolderFactory(IConnectionInformation connectionInfo,
             ISqlServerMessageQueueTransportOptionsFactory options)
         {
-            Guard.NotNull(() => connectionInfo, connectionInfo);
-            Guard.NotNull(() => options, options);
+            Guard.NotNull(connectionInfo);
+            Guard.NotNull(options);
 
             _connectionInfo = connectionInfo;
             _options = new Lazy<SqlServerMessageQueueTransportOptions>(options.Create);

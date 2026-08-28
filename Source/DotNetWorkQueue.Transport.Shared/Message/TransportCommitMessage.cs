@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.Shared.Message
         /// </summary>
         public TransportCommitMessage(IRemoveMessage removeMessage)
         {
-            Guard.NotNull(() => removeMessage, removeMessage);
+            Guard.NotNull(removeMessage);
             _removeMessage = removeMessage;
         }
         /// <summary>

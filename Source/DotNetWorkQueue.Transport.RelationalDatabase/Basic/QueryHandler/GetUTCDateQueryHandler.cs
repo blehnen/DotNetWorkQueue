@@ -44,9 +44,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             IDbConnectionFactory dbConnectionFactory,
             IReadColumn readColumn)
         {
-            Guard.NotNull(() => prepareQuery, prepareQuery);
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => readColumn, readColumn);
+            Guard.NotNull(prepareQuery);
+            Guard.NotNull(dbConnectionFactory);
+            Guard.NotNull(readColumn);
             _prepareQuery = prepareQuery;
             _dbConnectionFactory = dbConnectionFactory;
             _readColumn = readColumn;

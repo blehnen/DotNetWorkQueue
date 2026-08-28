@@ -42,11 +42,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             IInternalSerializer internalSerializer,
             ICompositeSerialization serialization)
         {
-            Guard.NotNull(() => connection, connection);
-            Guard.NotNull(() => redisNames, redisNames);
-            Guard.NotNull(() => redisHeaders, redisHeaders);
-            Guard.NotNull(() => internalSerializer, internalSerializer);
-            Guard.NotNull(() => serialization, serialization);
+            Guard.NotNull(connection);
+            Guard.NotNull(redisNames);
+            Guard.NotNull(redisHeaders);
+            Guard.NotNull(internalSerializer);
+            Guard.NotNull(serialization);
 
             _connection = connection;
             _redisNames = redisNames;

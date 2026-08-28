@@ -52,11 +52,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> headers,
             IIncreaseQueueDelay increaseQueueDelay)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => rollbackCommand, rollbackCommand);
-            Guard.NotNull(() => setStatusCommandHandler, setStatusCommandHandler);
-            Guard.NotNull(() => headers, headers);
-            Guard.NotNull(() => increaseQueueDelay, increaseQueueDelay);
+            Guard.NotNull(configuration);
+            Guard.NotNull(rollbackCommand);
+            Guard.NotNull(setStatusCommandHandler);
+            Guard.NotNull(headers);
+            Guard.NotNull(increaseQueueDelay);
 
             _configuration = configuration;
             _rollbackCommand = rollbackCommand;

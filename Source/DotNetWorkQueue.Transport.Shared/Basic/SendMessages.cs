@@ -64,12 +64,12 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
             ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages> sendMessageBatchAsync,
             ISendMessageBatchSupport batchSupport)
         {
-            Guard.NotNull(() => sentMessageFactory, sentMessageFactory);
-            Guard.NotNull(() => sendMessage, sendMessage);
-            Guard.NotNull(() => sendMessageAsync, sendMessageAsync);
-            Guard.NotNull(() => sendMessageBatch, sendMessageBatch);
-            Guard.NotNull(() => sendMessageBatchAsync, sendMessageBatchAsync);
-            Guard.NotNull(() => batchSupport, batchSupport);
+            Guard.NotNull(sentMessageFactory);
+            Guard.NotNull(sendMessage);
+            Guard.NotNull(sendMessageAsync);
+            Guard.NotNull(sendMessageBatch);
+            Guard.NotNull(sendMessageBatchAsync);
+            Guard.NotNull(batchSupport);
             _sentMessageFactory = sentMessageFactory;
             _sendMessage = sendMessage;
             _sendMessageAsync = sendMessageAsync;

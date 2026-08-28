@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="getFileNameFromConnection">The get file name from connection.</param>
         public DatabaseExists(IGetFileNameFromConnectionString getFileNameFromConnection)
         {
-            Guard.NotNull(() => getFileNameFromConnection, getFileNameFromConnection);
+            Guard.NotNull(getFileNameFromConnection);
             _getFileNameFromConnection = getFileNameFromConnection;
         }
         /// <summary>

@@ -43,8 +43,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         public SqlServerMessageQueueSchema(TableNameHelper tableNameHelper,
             ISqlServerMessageQueueTransportOptionsFactory options, ISqlSchema schema)
         {
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => options, options);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(options);
 
             _tableNameHelper = tableNameHelper;
             _options = new Lazy<SqlServerMessageQueueTransportOptions>(options.Create);

@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <param name="deleteLua">The delete lua.</param>
         public DeleteMessageCommandHandler(DeleteLua deleteLua)
         {
-            Guard.NotNull(() => deleteLua, deleteLua);
+            Guard.NotNull(deleteLua);
             _deleteLua = deleteLua;
         }
 

@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.QueryHandler
 
         public GetDashboardMessagesQueryHandlerAsync(IDataStorage dataStorage)
         {
-            Guard.NotNull(() => dataStorage, dataStorage);
+            Guard.NotNull(dataStorage);
             _dataStorage = dataStorage;
         }
 

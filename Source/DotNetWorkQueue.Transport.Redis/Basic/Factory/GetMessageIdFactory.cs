@@ -34,8 +34,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Factory
         /// <param name="options">The options.</param>
         public GetMessageIdFactory(IContainerFactory container, RedisQueueTransportOptions options)
         {
-            Guard.NotNull(() => container, container);
-            Guard.NotNull(() => options, options);
+            Guard.NotNull(container);
+            Guard.NotNull(options);
 
             _container = container;
             _options = options;

@@ -41,8 +41,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandPrepareHandler
         public MoveRecordToErrorQueueCommandPrepareHandler(IBuildMoveToErrorQueueSql buildSql,
             IGetTimeFactory getTimeFactory)
         {
-            Guard.NotNull(() => buildSql, buildSql);
-            Guard.NotNull(() => getTimeFactory, getTimeFactory);
+            Guard.NotNull(buildSql);
+            Guard.NotNull(getTimeFactory);
             _buildSql = buildSql;
             _getTime = getTimeFactory.Create();
         }

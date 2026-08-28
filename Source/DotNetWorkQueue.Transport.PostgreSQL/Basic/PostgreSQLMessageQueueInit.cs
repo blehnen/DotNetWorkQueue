@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         public override void RegisterImplementations(IContainer container, RegistrationTypes registrationType,
             QueueConnection queueConnection)
         {
-            Guard.NotNull(() => container, container);
+            Guard.NotNull(container);
             base.RegisterImplementations(container, registrationType, queueConnection);
 
             var init = new RelationalDatabaseMessageQueueInit<long, Guid>();

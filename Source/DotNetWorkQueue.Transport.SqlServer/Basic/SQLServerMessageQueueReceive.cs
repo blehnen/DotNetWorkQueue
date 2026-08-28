@@ -77,12 +77,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             ReceiveMessage receiveMessages,
             IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> sqlHeaders)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => connectionFactory, connectionFactory);
-            Guard.NotNull(() => cancelWork, cancelWork);
-            Guard.NotNull(() => handleMessage, handleMessage);
-            Guard.NotNull(() => receiveMessages, receiveMessages);
-            Guard.NotNull(() => sqlHeaders, sqlHeaders);
+            Guard.NotNull(configuration);
+            Guard.NotNull(connectionFactory);
+            Guard.NotNull(cancelWork);
+            Guard.NotNull(handleMessage);
+            Guard.NotNull(receiveMessages);
+            Guard.NotNull(sqlHeaders);
 
             _configuration = configuration;
             _connectionFactory = connectionFactory;
@@ -210,8 +210,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="eventArgs">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void ContextOnRollbackTransaction(object sender, EventArgs eventArgs)
         {
-            Guard.NotNull(() => _rollbackConnection, _rollbackConnection);
-            Guard.NotNull(() => sender, sender);
+            Guard.NotNull(_rollbackConnection);
+            Guard.NotNull(sender);
 
             var context = (IMessageContext)sender;
             var connection = context.Get(_sqlHeaders.Connection);
@@ -225,8 +225,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="eventArgs">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void ContextOnCommitTransaction(object sender, EventArgs eventArgs)
         {
-            Guard.NotNull(() => _commitConnection, _commitConnection);
-            Guard.NotNull(() => sender, sender);
+            Guard.NotNull(_commitConnection);
+            Guard.NotNull(sender);
 
             var context = (IMessageContext)sender;
             var connection = context.Get(_sqlHeaders.Connection);

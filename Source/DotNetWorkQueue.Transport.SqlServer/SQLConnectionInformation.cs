@@ -92,9 +92,9 @@ namespace DotNetWorkQueue.Transport.SqlServer
         private static void ValidateQueueName(string name)
         {
             if (string.IsNullOrEmpty(name)) return; // allow empty for backward compatibility
-            Guard.IsValid(() => name, name, n => n.Length <= 128,
+            Guard.IsValid(name, n => n.Length <= 128,
                 $"Queue name exceeds maximum length of 128 characters. Got {name.Length} characters.");
-            Guard.IsValid(() => name, name, n => ValidQueueNamePattern().IsMatch(n),
+            Guard.IsValid(name, n => ValidQueueNamePattern().IsMatch(n),
                 "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
         }
 

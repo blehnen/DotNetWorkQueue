@@ -48,9 +48,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler
             QueueConsumerConfiguration configuration,
             IGetTimeFactory getTimeFactory)
         {
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => getTimeFactory, getTimeFactory);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(configuration);
+            Guard.NotNull(getTimeFactory);
             _commandCache = commandCache;
             _configuration = configuration;
             _getTime = getTimeFactory.Create();

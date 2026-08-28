@@ -49,8 +49,8 @@ namespace DotNetWorkQueue.Queue
            IConsumerQueueErrorNotification consumerQueueErrorNotification)
            : base(log, consumerQueueNotification, consumerQueueErrorNotification)
         {
-            Guard.NotNull(() => queue, queue);
-            Guard.NotNull(() => messageMethodHandling, messageMethodHandling);
+            Guard.NotNull(queue);
+            Guard.NotNull(messageMethodHandling);
 
             _queue = queue;
             _messageMethodHandling = messageMethodHandling;

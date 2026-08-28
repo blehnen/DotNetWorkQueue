@@ -48,11 +48,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             ICreationScope creationScope,
             RedisBaseTransportOptions options)
         {
-            Guard.NotNull(() => connectionInfo, connectionInfo);
-            Guard.NotNull(() => redisConnection, redisConnection);
-            Guard.NotNull(() => redisNames, redisNames);
-            Guard.NotNull(() => creationScope, creationScope);
-            Guard.NotNull(() => options, options);
+            Guard.NotNull(connectionInfo);
+            Guard.NotNull(redisConnection);
+            Guard.NotNull(redisNames);
+            Guard.NotNull(creationScope);
+            Guard.NotNull(options);
 
             _redisConnection = redisConnection;
             _redisNames = redisNames;

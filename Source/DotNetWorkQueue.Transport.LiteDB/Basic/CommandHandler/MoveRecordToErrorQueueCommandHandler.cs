@@ -45,9 +45,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper)
         {
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => optionsFactory, optionsFactory);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(optionsFactory);
 
             _options = new Lazy<LiteDbMessageQueueTransportOptions>(optionsFactory.Create);
             _connectionInformation = connectionInformation;

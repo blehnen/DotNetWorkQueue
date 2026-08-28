@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         /// <param name="lua">The lua.</param>
         public DoesJobExistQueryHandler(DoesJobExistLua lua)
         {
-            Guard.NotNull(() => lua, lua);
+            Guard.NotNull(lua);
             _lua = lua;
         }
 

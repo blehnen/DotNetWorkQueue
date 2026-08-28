@@ -69,13 +69,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             IJobSchedulerMetaData jobSchedulerMetaData,
             ISentMessageFactory sentMessageFactory)
         {
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => serializer, serializer);
-            Guard.NotNull(() => optionsFactory, optionsFactory);
-            Guard.NotNull(() => headers, headers);
-            Guard.NotNull(() => configurationSend, configurationSend);
-            Guard.NotNull(() => jobSchedulerMetaData, jobSchedulerMetaData);
-            Guard.NotNull(() => sentMessageFactory, sentMessageFactory);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(serializer);
+            Guard.NotNull(optionsFactory);
+            Guard.NotNull(headers);
+            Guard.NotNull(configurationSend);
+            Guard.NotNull(jobSchedulerMetaData);
+            Guard.NotNull(sentMessageFactory);
 
             _tableNameHelper = tableNameHelper;
             _serializer = serializer;
@@ -89,7 +89,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// <inheritdoc />
         public QueueOutputMessages Handle(SendMessageCommandBatch command)
         {
-            Guard.NotNull(() => command, command);
+            Guard.NotNull(command);
             var messages = command.Messages;
             if (messages.Count == 0)
                 return new QueueOutputMessages(new List<IQueueOutputMessage>());

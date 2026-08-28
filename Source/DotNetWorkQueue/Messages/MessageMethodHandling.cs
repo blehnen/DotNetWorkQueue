@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Messages
         /// <param name="serializer">The serializer.</param>
         public MessageMethodHandling(IExpressionSerializer serializer)
         {
-            Guard.NotNull(() => serializer, serializer);
+            Guard.NotNull(serializer);
 
             _serializer = serializer;
         }
@@ -44,8 +44,8 @@ namespace DotNetWorkQueue.Messages
         public void HandleExecution(IReceivedMessage<MessageExpression> receivedMessage, IWorkerNotification workerNotification)
         {
             ThrowIfDisposed();
-            Guard.NotNull(() => receivedMessage, receivedMessage);
-            Guard.NotNull(() => workerNotification, workerNotification);
+            Guard.NotNull(receivedMessage);
+            Guard.NotNull(workerNotification);
 
             switch (receivedMessage.Body.PayLoad)
             {

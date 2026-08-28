@@ -39,8 +39,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
         public FindRecordsToResetByHeartBeatQueryPrepareHandler(CommandStringCache commandCache,
             QueueConsumerConfiguration configuration)
         {
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => configuration, configuration);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(configuration);
             _commandCache = commandCache;
             _configuration = configuration;
         }

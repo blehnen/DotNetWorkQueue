@@ -48,9 +48,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             IGetColumnsFromTable getColumns,
             ITransportOptionsFactory options)
         {
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => getColumns, getColumns);
-            Guard.NotNull(() => options, options);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(getColumns);
+            Guard.NotNull(options);
 
             _tableNameHelper = tableNameHelper;
             _getColumns = getColumns;

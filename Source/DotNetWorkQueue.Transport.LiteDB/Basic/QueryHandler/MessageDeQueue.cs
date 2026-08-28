@@ -47,10 +47,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
              IReceivedMessageFactory receivedMessageFactory,
              ICompositeSerialization serialization)
         {
-            Guard.NotNull(() => serialization, serialization);
-            Guard.NotNull(() => headers, headers);
-            Guard.NotNull(() => messageFactory, messageFactory);
-            Guard.NotNull(() => receivedMessageFactory, receivedMessageFactory);
+            Guard.NotNull(serialization);
+            Guard.NotNull(headers);
+            Guard.NotNull(messageFactory);
+            Guard.NotNull(receivedMessageFactory);
 
             _messageFactory = messageFactory;
             _headers = headers;

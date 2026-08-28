@@ -51,9 +51,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             RedisNames redisNames,
             IQueueCancelWork cancelWork)
         {
-            Guard.NotNull(() => connection, connection);
-            Guard.NotNull(() => redisNames, redisNames);
-            Guard.NotNull(() => cancelWork, cancelWork);
+            Guard.NotNull(connection);
+            Guard.NotNull(redisNames);
+            Guard.NotNull(cancelWork);
 
             _connection = connection;
             _redisNames = redisNames;

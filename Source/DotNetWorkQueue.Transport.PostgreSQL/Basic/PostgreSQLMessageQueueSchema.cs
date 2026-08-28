@@ -43,8 +43,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         public PostgreSqlMessageQueueSchema(ITableNameHelper tableNameHelper,
             IPostgreSqlMessageQueueTransportOptionsFactory options)
         {
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => options, options);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(options);
 
             _tableNameHelper = tableNameHelper;
             _options = new Lazy<PostgreSqlMessageQueueTransportOptions>(options.Create);

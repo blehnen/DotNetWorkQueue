@@ -40,8 +40,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         public GetTableExistsQueryHandler(IPrepareQueryHandler<GetTableExistsQuery, bool> prepareQuery,
             IDbConnectionFactory dbConnectionFactory)
         {
-            Guard.NotNull(() => prepareQuery, prepareQuery);
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
+            Guard.NotNull(prepareQuery);
+            Guard.NotNull(dbConnectionFactory);
             _prepareQuery = prepareQuery;
             _dbConnectionFactory = dbConnectionFactory;
         }

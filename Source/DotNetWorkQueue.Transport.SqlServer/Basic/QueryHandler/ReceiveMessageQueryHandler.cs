@@ -40,8 +40,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         public ReceiveMessageQueryHandler(ReadMessage readMessage,
             BuildDequeueCommand buildDequeueCommand)
         {
-            Guard.NotNull(() => readMessage, readMessage);
-            Guard.NotNull(() => buildDequeueCommand, buildDequeueCommand);
+            Guard.NotNull(readMessage);
+            Guard.NotNull(buildDequeueCommand);
 
             _readMessage = readMessage;
             _buildDequeueCommand = buildDequeueCommand;

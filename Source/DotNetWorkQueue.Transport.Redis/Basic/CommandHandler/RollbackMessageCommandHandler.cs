@@ -43,9 +43,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             RollbackDelayLua rollbackDelayLua,
             IUnixTimeFactory unixTimeFactory)
         {
-            Guard.NotNull(() => rollbackLua, rollbackLua);
-            Guard.NotNull(() => rollbackDelayLua, rollbackDelayLua);
-            Guard.NotNull(() => unixTimeFactory, unixTimeFactory);
+            Guard.NotNull(rollbackLua);
+            Guard.NotNull(rollbackDelayLua);
+            Guard.NotNull(unixTimeFactory);
             _rollbackLua = rollbackLua;
             _rollbackDelayLua = rollbackDelayLua;
             _unixTimeFactory = unixTimeFactory;

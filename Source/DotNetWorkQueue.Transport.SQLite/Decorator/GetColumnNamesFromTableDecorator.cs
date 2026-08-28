@@ -44,9 +44,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
             IQueryHandler<GetColumnNamesFromTableQuery, List<string>> decorated,
             DatabaseExists databaseExists)
         {
-            Guard.NotNull(() => decorated, decorated);
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => databaseExists, databaseExists);
+            Guard.NotNull(decorated);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(databaseExists);
             _connectionInformation = connectionInformation;
             _decorated = decorated;
             _databaseExists = databaseExists;

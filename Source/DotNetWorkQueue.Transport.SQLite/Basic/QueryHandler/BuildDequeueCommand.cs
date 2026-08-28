@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         private readonly IGetTime _getTime;
         public BuildDequeueCommand(IGetTimeFactory getTimeFactory)
         {
-            Guard.NotNull(() => getTimeFactory, getTimeFactory);
+            Guard.NotNull(getTimeFactory);
             _getTime = getTimeFactory.Create();
         }
 

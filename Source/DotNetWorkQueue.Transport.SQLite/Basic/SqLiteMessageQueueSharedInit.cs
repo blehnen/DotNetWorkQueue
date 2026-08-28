@@ -73,7 +73,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         public virtual void RegisterImplementations(IContainer container, RegistrationTypes registrationType,
             QueueConnection queueConnection, params Assembly[] assemblies)
         {
-            Guard.NotNull(() => container, container);
+            Guard.NotNull(container);
             base.RegisterImplementations(container, registrationType, queueConnection);
             var init = new RelationalDatabaseMessageQueueInit<long, Guid>();
             init.RegisterStandardImplementations(container, assemblies);

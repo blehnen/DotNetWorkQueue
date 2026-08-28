@@ -32,8 +32,8 @@ namespace DotNetWorkQueue.TaskScheduling
         /// <param name="metricCounter">A counter for tracking how many items are being processed</param>
         public WorkGroupWithItem(IWorkGroup sourceGroup, ICounter metricCounter)
         {
-            Guard.NotNull(() => sourceGroup, sourceGroup);
-            Guard.NotNull(() => metricCounter, metricCounter);
+            Guard.NotNull(sourceGroup);
+            Guard.NotNull(metricCounter);
 
             GroupInfo = sourceGroup;
             MaxWorkItems = GroupInfo.ConcurrencyLevel;

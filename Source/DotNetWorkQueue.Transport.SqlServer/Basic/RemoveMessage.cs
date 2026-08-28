@@ -60,12 +60,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> deleteTransactionalMessageCommand,
             ILogger log)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => deleteStatusCommandHandler, deleteStatusCommandHandler);
-            Guard.NotNull(() => deleteMessageCommand, deleteMessageCommand);
-            Guard.NotNull(() => headers, headers);
-            Guard.NotNull(() => deleteTransactionalMessageCommand, deleteTransactionalMessageCommand);
-            Guard.NotNull(() => log, log);
+            Guard.NotNull(configuration);
+            Guard.NotNull(deleteStatusCommandHandler);
+            Guard.NotNull(deleteMessageCommand);
+            Guard.NotNull(headers);
+            Guard.NotNull(deleteTransactionalMessageCommand);
+            Guard.NotNull(log);
 
             _configuration = configuration;
             _deleteStatusCommandHandler = deleteStatusCommandHandler;

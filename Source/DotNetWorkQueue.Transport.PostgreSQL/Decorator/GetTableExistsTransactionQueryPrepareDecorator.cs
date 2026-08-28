@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         public GetTableExistsTransactionQueryPrepareDecorator(
             IPrepareQueryHandler<GetTableExistsTransactionQuery, bool> decorated)
         {
-            Guard.NotNull(() => decorated, decorated);
+            Guard.NotNull(decorated);
             _decorated = decorated;
         }
 

@@ -55,9 +55,9 @@ namespace DotNetWorkQueue.Queue
         public HeartBeatScheduler(IHeartBeatThreadPoolConfiguration configuration,
             IGetTimeFactory timeFactory, ILogger log)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => timeFactory, timeFactory);
-            Guard.NotNull(() => log, log);
+            Guard.NotNull(configuration);
+            Guard.NotNull(timeFactory);
+            Guard.NotNull(log);
 
             _configuration = configuration;
             _timeFactory = timeFactory;

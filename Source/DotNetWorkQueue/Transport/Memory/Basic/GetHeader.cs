@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <param name="dataStorage">The data storage.</param>
         public GetHeader(IDataStorage dataStorage)
         {
-            Guard.NotNull(() => dataStorage, dataStorage);
+            Guard.NotNull(dataStorage);
             _dataStorage = dataStorage;
         }
 

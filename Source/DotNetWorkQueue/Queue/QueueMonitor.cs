@@ -59,14 +59,14 @@ namespace DotNetWorkQueue.Queue
             IClearHistoryMonitor clearHistoryMonitor,
             IBaseTransportOptions baseTransportOptions)
         {
-            Guard.NotNull(() => clearMessagesFactory, clearMessagesFactory);
-            Guard.NotNull(() => heartBeatFactory, heartBeatFactory);
-            Guard.NotNull(() => heartBeatConfiguration, heartBeatConfiguration);
-            Guard.NotNull(() => expirationConfiguration, expirationConfiguration);
-            Guard.NotNull(() => clearErrorMessagesMonitor, clearErrorMessagesMonitor);
-            Guard.NotNull(() => clearMessageErrorConfiguration, clearMessageErrorConfiguration);
-            Guard.NotNull(() => clearHistoryMonitor, clearHistoryMonitor);
-            Guard.NotNull(() => baseTransportOptions, baseTransportOptions);
+            Guard.NotNull(clearMessagesFactory);
+            Guard.NotNull(heartBeatFactory);
+            Guard.NotNull(heartBeatConfiguration);
+            Guard.NotNull(expirationConfiguration);
+            Guard.NotNull(clearErrorMessagesMonitor);
+            Guard.NotNull(clearMessageErrorConfiguration);
+            Guard.NotNull(clearHistoryMonitor);
+            Guard.NotNull(baseTransportOptions);
 
             _heartBeatConfiguration = heartBeatConfiguration;
             _heartBeatFactory = heartBeatFactory;

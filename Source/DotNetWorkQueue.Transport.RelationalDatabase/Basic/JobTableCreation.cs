@@ -48,11 +48,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             ITableNameHelper tableNameHelper
             )
         {
-            Guard.NotNull(() => createSchema, createSchema);
-            Guard.NotNull(() => queryTableExists, queryTableExists);
-            Guard.NotNull(() => createCommand, createCommand);
-            Guard.NotNull(() => connectionInfo, connectionInfo);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
+            Guard.NotNull(createSchema);
+            Guard.NotNull(queryTableExists);
+            Guard.NotNull(createCommand);
+            Guard.NotNull(connectionInfo);
+            Guard.NotNull(tableNameHelper);
 
             _createSchema = createSchema;
             _queryTableExists = queryTableExists;

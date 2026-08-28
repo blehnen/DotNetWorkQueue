@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.Serialization
         /// <param name="serializationBinder">The serialization binder used to control type resolution during deserialization.</param>
         public JsonSerializerInternal(ISerializationBinder serializationBinder)
         {
-            Guard.NotNull(() => serializationBinder, serializationBinder);
+            Guard.NotNull(serializationBinder);
             _serializeSettings = new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.Auto,
@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Serialization
         /// <returns></returns>
         public byte[] ConvertToBytes<T>(T message) where T : class
         {
-            Guard.NotNull(() => message, message);
+            Guard.NotNull(message);
             return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message, _serializeSettings));
         }
 
@@ -76,7 +76,7 @@ namespace DotNetWorkQueue.Serialization
         /// <returns></returns>
         public T ConvertBytesTo<T>(byte[] bytes) where T : class
         {
-            Guard.NotNull(() => bytes, bytes);
+            Guard.NotNull(bytes);
             return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(bytes), _deserializeSettings);
         }
     }

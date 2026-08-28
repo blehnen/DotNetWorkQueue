@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         public SetStatusTableStatusTransactionCommandHandler(
             IPrepareCommandHandler<SetStatusTableStatusTransactionCommand> prepareCommand)
         {
-            Guard.NotNull(() => prepareCommand, prepareCommand);
+            Guard.NotNull(prepareCommand);
             _prepareCommand = prepareCommand;
         }
         /// <inheritdoc />

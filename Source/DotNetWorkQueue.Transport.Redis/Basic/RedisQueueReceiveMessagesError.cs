@@ -57,12 +57,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             ILogger log,
             RedisHeaders headers)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => queryGetMetaData, queryGetMetaData);
-            Guard.NotNull(() => saveMetaData, saveMetaData);
-            Guard.NotNull(() => commandMoveRecord, commandMoveRecord);
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => headers, headers);
+            Guard.NotNull(configuration);
+            Guard.NotNull(queryGetMetaData);
+            Guard.NotNull(saveMetaData);
+            Guard.NotNull(commandMoveRecord);
+            Guard.NotNull(log);
+            Guard.NotNull(headers);
 
             _configuration = configuration;
             _queryGetMetaData = queryGetMetaData;

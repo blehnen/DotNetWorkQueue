@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <param name="dataStorage">The data storage.</param>
         public RemoveMessage(IDataStorage dataStorage)
         {
-            Guard.NotNull(() => dataStorage, dataStorage);
+            Guard.NotNull(dataStorage);
             _dataStorage = dataStorage;
         }
 

@@ -40,8 +40,8 @@ namespace DotNetWorkQueue.Queue
             StopThread stopThread)
             : base(workerTerminate)
         {
-            Guard.NotNull(() => workerTerminate, workerTerminate);
-            Guard.NotNull(() => StopThread, stopThread);
+            Guard.NotNull(workerTerminate);
+            Guard.NotNull(stopThread);
 
             StopThread = stopThread;
         }

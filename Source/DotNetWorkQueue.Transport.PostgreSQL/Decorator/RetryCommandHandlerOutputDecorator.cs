@@ -39,8 +39,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         public RetryCommandHandlerOutputDecorator(ICommandHandlerWithOutput<TCommand, TOutput> decorated,
             IPolicies policies)
         {
-            Guard.NotNull(() => decorated, decorated);
-            Guard.NotNull(() => policies, policies);
+            Guard.NotNull(decorated);
+            Guard.NotNull(policies);
 
             _decorated = decorated;
             _policies = policies;
@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         /// <inheritdoc />
         public TOutput Handle(TCommand command)
         {
-            Guard.NotNull(() => command, command);
+            Guard.NotNull(command);
 
             if (command is IRetrySkippable skippable && skippable.SkipRetry)
                 return _decorated.Handle(command);

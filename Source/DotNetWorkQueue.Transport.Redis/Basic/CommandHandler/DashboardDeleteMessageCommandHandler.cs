@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 
         public DashboardDeleteMessageCommandHandler(DeleteLua deleteLua)
         {
-            Guard.NotNull(() => deleteLua, deleteLua);
+            Guard.NotNull(deleteLua);
             _deleteLua = deleteLua;
         }
 

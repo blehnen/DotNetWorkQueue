@@ -30,8 +30,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         public OptionsSerialization(IPostgreSqlMessageQueueTransportOptionsFactory options,
             IInternalSerializer serializer)
         {
-            Guard.NotNull(() => options, options);
-            Guard.NotNull(() => serializer, serializer);
+            Guard.NotNull(options);
+            Guard.NotNull(serializer);
 
             _serializer = serializer;
             _options = new Lazy<PostgreSqlMessageQueueTransportOptions>(options.Create);

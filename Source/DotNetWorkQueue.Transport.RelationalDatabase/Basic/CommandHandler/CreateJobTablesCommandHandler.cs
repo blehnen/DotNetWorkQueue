@@ -42,9 +42,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             IPrepareCommandHandler<CreateJobTablesCommand<ITable>> prepareCommandHandler,
             ITransactionFactory transactionFactory)
         {
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => prepareCommandHandler, prepareCommandHandler);
-            Guard.NotNull(() => transactionFactory, transactionFactory);
+            Guard.NotNull(dbConnectionFactory);
+            Guard.NotNull(prepareCommandHandler);
+            Guard.NotNull(transactionFactory);
             _dbConnectionFactory = dbConnectionFactory;
             _prepareCommandHandler = prepareCommandHandler;
             _transactionFactory = transactionFactory;

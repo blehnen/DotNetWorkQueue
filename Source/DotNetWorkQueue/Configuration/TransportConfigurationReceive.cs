@@ -48,9 +48,9 @@ namespace DotNetWorkQueue.Configuration
             IQueueDelayFactory queueDelayFactory,
             IRetryDelayFactory retryDelayFactory)
         {
-            Guard.NotNull(() => connectionInfo, connectionInfo);
-            Guard.NotNull(() => queueDelayFactory, queueDelayFactory);
-            Guard.NotNull(() => retryDelayFactory, retryDelayFactory);
+            Guard.NotNull(connectionInfo);
+            Guard.NotNull(queueDelayFactory);
+            Guard.NotNull(retryDelayFactory);
             ConnectionInfo = connectionInfo;
 
             QueueDelayBehavior = queueDelayFactory.Create(new List<TimeSpan>());

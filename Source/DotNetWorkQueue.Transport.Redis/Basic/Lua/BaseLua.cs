@@ -47,8 +47,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="redisNames">The redis names.</param>
         protected BaseLua(IRedisConnection connection, RedisNames redisNames)
         {
-            Guard.NotNull(() => connection, connection);
-            Guard.NotNull(() => redisNames, redisNames);
+            Guard.NotNull(connection);
+            Guard.NotNull(redisNames);
 
             Connection = connection;
             RedisNames = redisNames;
@@ -145,11 +145,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         {
             if (Connection.Connection == null) return;
 
-            Guard.NotNullOrEmpty(() => Script, Script);
+            Guard.NotNullOrEmpty(Script);
 
             var luaScript = LuaScript.Prepare(Script);
             var endpoints = Connection.Connection.GetEndPoints();
-            Guard.IsValid(() => endpoints.Length, endpoints.Length, i => i > 0,
+            Guard.IsValid(endpoints.Length, i => i > 0,
                 "No endpoints where found; the count was 0");
             LoadedLuaScript loadedScript = null;
             foreach (var server in endpoints.Select(endpoint => Connection.Connection.GetServer(endpoint)))

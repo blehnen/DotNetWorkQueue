@@ -49,10 +49,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             ICommandHandler<SetStatusTableStatusCommand<long>> setStatusCommandHandler,
             IQueueCancelWork cancelToken)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => receiveMessage, receiveMessage);
-            Guard.NotNull(() => setStatusCommandHandler, setStatusCommandHandler);
-            Guard.NotNull(() => cancelToken, cancelToken);
+            Guard.NotNull(configuration);
+            Guard.NotNull(receiveMessage);
+            Guard.NotNull(setStatusCommandHandler);
+            Guard.NotNull(cancelToken);
 
             _configuration = configuration;
             _receiveMessage = receiveMessage;

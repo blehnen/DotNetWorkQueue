@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <param name="tableNameHelper">The table name helper.</param>
         protected CommandStringCache(ITableNameHelper tableNameHelper)
         {
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
+            Guard.NotNull(tableNameHelper);
 
             TableNameHelper = tableNameHelper;
             CommandCache = new Dictionary<CommandStringTypes, string>();

@@ -76,16 +76,16 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             IJobSchedulerMetaData jobSchedulerMetaData,
             IGetTimeFactory getTimeFactory)
         {
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => serializer, serializer);
-            Guard.NotNull(() => optionsFactory, optionsFactory);
-            Guard.NotNull(() => headers, headers);
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => configurationSend, configurationSend);
-            Guard.NotNull(() => sendJobStatus, sendJobStatus);
-            Guard.NotNull(() => jobExistsHandler, jobExistsHandler);
-            Guard.NotNull(() => jobSchedulerMetaData, jobSchedulerMetaData);
-            Guard.NotNull(() => getTimeFactory, getTimeFactory);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(serializer);
+            Guard.NotNull(optionsFactory);
+            Guard.NotNull(headers);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(configurationSend);
+            Guard.NotNull(sendJobStatus);
+            Guard.NotNull(jobExistsHandler);
+            Guard.NotNull(jobSchedulerMetaData);
+            Guard.NotNull(getTimeFactory);
 
             _tableNameHelper = tableNameHelper;
             _serializer = serializer;
