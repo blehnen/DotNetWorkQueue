@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="creation">The creation.</param>
         public RedisJobQueueCreation(IQueueCreation creation)
         {
-            Guard.NotNull(() => creation, creation);
+            Guard.NotNull(creation);
             _creation = creation;
         }
         /// <inheritdoc />

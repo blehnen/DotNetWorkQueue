@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Decorator
 
         public CreateQueueTablesAndSaveConfigurationDecorator(ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> decorated)
         {
-            Guard.NotNull(() => decorated, decorated);
+            Guard.NotNull(decorated);
             _decorated = decorated;
         }
         public QueueCreationResult Handle(CreateQueueTablesAndSaveConfigurationCommand<ITable> command)

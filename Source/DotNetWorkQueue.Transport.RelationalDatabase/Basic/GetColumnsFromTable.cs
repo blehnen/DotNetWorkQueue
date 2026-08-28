@@ -39,8 +39,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         public GetColumnsFromTable(IConnectionInformation connectionInformation,
             IQueryHandler<GetColumnNamesFromTableQuery, List<string>> columnQuery)
         {
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => columnQuery, columnQuery);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(columnQuery);
 
             _connectionInformation = connectionInformation;
             _columnQuery = columnQuery;

@@ -36,9 +36,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// <param name="tableName">Name of the table.</param>
         public GetTableExistsTransactionQuery(IDbConnection connection, IDbTransaction trans, string tableName)
         {
-            Guard.NotNull(() => connection, connection);
-            Guard.NotNull(() => trans, trans);
-            Guard.NotNullOrEmpty(() => tableName, tableName);
+            Guard.NotNull(connection);
+            Guard.NotNull(trans);
+            Guard.NotNullOrEmpty(tableName);
 
             Connection = connection;
             Trans = trans;

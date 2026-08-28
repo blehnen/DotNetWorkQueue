@@ -44,9 +44,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             ICommandHandler<RollbackMessageCommand<int>> rollbackCommand,
             IIncreaseQueueDelay headers)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => rollbackCommand, rollbackCommand);
-            Guard.NotNull(() => headers, headers);
+            Guard.NotNull(configuration);
+            Guard.NotNull(rollbackCommand);
+            Guard.NotNull(headers);
 
             _configuration = configuration;
             _rollbackCommand = rollbackCommand;

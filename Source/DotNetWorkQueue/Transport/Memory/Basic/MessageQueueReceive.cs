@@ -49,9 +49,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             HandleMessage handleMessage,
             ReceiveMessage receiveMessages)
         {
-            Guard.NotNull(() => cancelWork, cancelWork);
-            Guard.NotNull(() => handleMessage, handleMessage);
-            Guard.NotNull(() => receiveMessages, receiveMessages);
+            Guard.NotNull(cancelWork);
+            Guard.NotNull(handleMessage);
+            Guard.NotNull(receiveMessages);
 
             _cancelWork = cancelWork;
             _handleMessage = handleMessage;

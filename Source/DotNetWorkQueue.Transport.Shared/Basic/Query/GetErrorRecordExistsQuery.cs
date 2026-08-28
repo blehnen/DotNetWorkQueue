@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic.Query
         /// <param name="queueId">The queue identifier.</param>
         public GetErrorRecordExistsQuery(string exceptionType, T queueId)
         {
-            Guard.NotNullOrEmpty(() => exceptionType, exceptionType);
+            Guard.NotNullOrEmpty(exceptionType);
             ExceptionType = exceptionType;
             QueueId = queueId;
         }

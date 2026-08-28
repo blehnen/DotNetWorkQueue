@@ -35,8 +35,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.QueryHandler
             IDataStorage dataStorage,
             IInternalSerializer internalSerializer)
         {
-            Guard.NotNull(() => dataStorage, dataStorage);
-            Guard.NotNull(() => internalSerializer, internalSerializer);
+            Guard.NotNull(dataStorage);
+            Guard.NotNull(internalSerializer);
 
             _dataStorage = dataStorage;
             _internalSerializer = internalSerializer;

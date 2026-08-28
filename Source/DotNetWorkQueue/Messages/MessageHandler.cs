@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Messages
         /// <param name="messageHandlerRegistration">The message handler registration.</param>
         public MessageHandler(IMessageHandlerRegistration messageHandlerRegistration)
         {
-            Guard.NotNull(() => messageHandlerRegistration, messageHandlerRegistration);
+            Guard.NotNull(messageHandlerRegistration);
             _messageHandlerRegistration = messageHandlerRegistration;
         }
         /// <summary>
@@ -42,8 +42,8 @@ namespace DotNetWorkQueue.Messages
         /// <param name="workerNotification">The worker notification.</param>
         public void Handle(IReceivedMessageInternal message, IWorkerNotification workerNotification)
         {
-            Guard.NotNull(() => message, message);
-            Guard.NotNull(() => workerNotification, workerNotification);
+            Guard.NotNull(message);
+            Guard.NotNull(workerNotification);
             _messageHandlerRegistration.GetHandler().Invoke(_messageHandlerRegistration.GenerateMessage(message), workerNotification);
         }
     }

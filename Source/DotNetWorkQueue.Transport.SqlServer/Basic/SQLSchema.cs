@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="connection">The connection.</param>
         public SqlSchema(IConnectionInformation connection)
         {
-            Guard.NotNull(() => connection, connection);
+            Guard.NotNull(connection);
             Schema = connection.AdditionalConnectionSettings.GetSchema();
         }
 

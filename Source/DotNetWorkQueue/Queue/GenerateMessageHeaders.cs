@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="correlationIdFactory">The correlation identifier factory.</param>
         public GenerateMessageHeaders(ICorrelationIdFactory correlationIdFactory)
         {
-            Guard.NotNull(() => correlationIdFactory, correlationIdFactory);
+            Guard.NotNull(correlationIdFactory);
             _correlationIdFactory = correlationIdFactory;
         }
 
@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Queue
         /// <returns></returns>
         public Dictionary<string, object> HeaderSetup(IAdditionalMessageData data)
         {
-            Guard.NotNull(() => data, data);
+            Guard.NotNull(data);
 
             //a correlation ID is required. Verify that we have one.
             if (data.CorrelationId == null || !data.CorrelationId.HasValue)

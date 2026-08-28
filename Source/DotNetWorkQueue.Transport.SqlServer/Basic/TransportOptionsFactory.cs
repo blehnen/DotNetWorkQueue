@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="factory">The factory.</param>
         public TransportOptionsFactory(ISqlServerMessageQueueTransportOptionsFactory factory)
         {
-            Guard.NotNull(() => factory, factory);
+            Guard.NotNull(factory);
             _factory = factory;
         }
         /// <summary>

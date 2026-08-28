@@ -49,10 +49,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
             IHeartBeatConfiguration configuration,
             ICompositeSerialization serialization)
         {
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => serialization, serialization);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(configuration);
+            Guard.NotNull(serialization);
 
             _connectionInformation = connectionInformation;
             _tableNameHelper = tableNameHelper;

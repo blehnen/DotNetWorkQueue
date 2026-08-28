@@ -38,9 +38,9 @@ namespace DotNetWorkQueue.Logging.Decorator
             IClearExpiredMessages handler,
             IConnectionInformation connectionInfo)
         {
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => handler, handler);
-            Guard.NotNull(() => connectionInfo, connectionInfo);
+            Guard.NotNull(log);
+            Guard.NotNull(handler);
+            Guard.NotNull(connectionInfo);
 
             _log = log;
             _handler = handler;

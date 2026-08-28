@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Queue
         /// <exception cref="CommitException">An error has occurred Committing a processed message</exception>
         public bool Commit(IMessageContext context)
         {
-            Guard.NotNull(() => context, context);
+            Guard.NotNull(context);
             try
             {
                 context.RaiseCommit();

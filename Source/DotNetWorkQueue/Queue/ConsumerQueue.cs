@@ -60,12 +60,12 @@ namespace DotNetWorkQueue.Queue
             IConsumerQueueErrorNotification consumerQueueErrorNotification)
             : base(log, consumerQueueNotification, consumerQueueErrorNotification)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => queueMonitor, queueMonitor);
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => registerMessages, registerMessages);
-            Guard.NotNull(() => primaryWorkerFactory, primaryWorkerFactory);
-            Guard.NotNull(() => stopWorker, stopWorker);
+            Guard.NotNull(configuration);
+            Guard.NotNull(queueMonitor);
+            Guard.NotNull(log);
+            Guard.NotNull(registerMessages);
+            Guard.NotNull(primaryWorkerFactory);
+            Guard.NotNull(stopWorker);
 
             _configuration = configuration;
             _queueMonitor = queueMonitor;
@@ -110,7 +110,7 @@ namespace DotNetWorkQueue.Queue
                 throw new DotNetWorkQueueException("Start must only be called 1 time");
             }
 
-            Guard.NotNull(() => workerAction, workerAction);
+            Guard.NotNull(workerAction);
             Started = true;
 
             _registerMessages.Register(workerAction);

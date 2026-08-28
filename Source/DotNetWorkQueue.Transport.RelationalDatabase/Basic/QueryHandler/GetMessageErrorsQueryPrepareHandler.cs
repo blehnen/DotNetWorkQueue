@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         /// <param name="commandCache">The command cache.</param>
         public GetMessageErrorsQueryPrepareHandler(CommandStringCache commandCache)
         {
-            Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(commandCache);
             _commandCache = commandCache;
         }
 

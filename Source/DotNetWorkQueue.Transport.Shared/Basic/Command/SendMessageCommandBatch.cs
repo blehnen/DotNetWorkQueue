@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic.Command
         /// <param name="messages">The messages to send, in caller order.</param>
         public SendMessageCommandBatch(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
-            Guard.NotNull(() => messages, messages);
+            Guard.NotNull(messages);
             Messages = messages;
         }
 

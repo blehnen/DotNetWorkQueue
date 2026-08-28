@@ -48,9 +48,9 @@ namespace DotNetWorkQueue.TaskScheduling
             ITaskFactoryFactory factory,
             IWorkGroup workGroup)
         {
-            Guard.NotNull(() => queue, queue);
-            Guard.NotNull(() => schedulerMessageHandler, schedulerMessageHandler);
-            Guard.NotNull(() => factory, factory);
+            Guard.NotNull(queue);
+            Guard.NotNull(schedulerMessageHandler);
+            Guard.NotNull(factory);
 
             _queue = queue;
             _schedulerMessageHandler = schedulerMessageHandler;
@@ -88,7 +88,7 @@ namespace DotNetWorkQueue.TaskScheduling
             where T : class
         {
             ThrowIfDisposed();
-            Guard.NotNull(() => functionToRun, functionToRun);
+            Guard.NotNull(functionToRun);
 
             if (_taskFactory.Value.Scheduler == null)
             {

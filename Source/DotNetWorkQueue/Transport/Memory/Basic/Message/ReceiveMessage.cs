@@ -42,9 +42,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
             IQueueCancelWork cancelToken,
             IDataStorage dataStorage)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => dataStorage, dataStorage);
-            Guard.NotNull(() => cancelToken, cancelToken);
+            Guard.NotNull(configuration);
+            Guard.NotNull(dataStorage);
+            Guard.NotNull(cancelToken);
 
             _configuration = configuration;
             _cancelToken = cancelToken;

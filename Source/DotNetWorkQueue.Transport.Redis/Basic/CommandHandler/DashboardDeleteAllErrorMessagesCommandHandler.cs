@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 
         public DashboardDeleteAllErrorMessagesCommandHandler(DashboardDeleteAllErrorMessagesLua lua)
         {
-            Guard.NotNull(() => lua, lua);
+            Guard.NotNull(lua);
             _lua = lua;
         }
 

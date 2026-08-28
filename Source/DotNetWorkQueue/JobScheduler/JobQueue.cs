@@ -42,7 +42,7 @@ namespace DotNetWorkQueue.JobScheduler
         /// <param name="registrations">The registrations.</param>
         public JobQueue(JobQueueContainerRegistrations registrations)
         {
-            Guard.NotNull(() => registrations, registrations);
+            Guard.NotNull(registrations);
 
             _containers = new ConcurrentDictionary<string, IQueueContainer>();
             _queues = new ConcurrentDictionary<IConnectionInformation, IProducerMethodJobQueue>();

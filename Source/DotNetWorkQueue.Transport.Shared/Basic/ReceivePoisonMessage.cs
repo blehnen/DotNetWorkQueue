@@ -33,14 +33,14 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
         /// <param name="commandMoveRecord">The command move record.</param>
         public ReceivePoisonMessage(ICommandHandler<MoveRecordToErrorQueueCommand<T>> commandMoveRecord)
         {
-            Guard.NotNull(() => commandMoveRecord, commandMoveRecord);
+            Guard.NotNull(commandMoveRecord);
             _commandMoveRecord = commandMoveRecord;
         }
         /// <inheritdoc />
         public void Handle(IMessageContext context, PoisonMessageException exception)
         {
-            Guard.NotNull(() => context, context);
-            Guard.NotNull(() => exception, exception);
+            Guard.NotNull(context);
+            Guard.NotNull(exception);
 
             if (context.MessageId == null || !context.MessageId.HasValue) return;
 

@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.QueryHandler
 
         public GetDashboardMessageCountQueryHandlerAsync(IDataStorage dataStorage)
         {
-            Guard.NotNull(() => dataStorage, dataStorage);
+            Guard.NotNull(dataStorage);
             _dataStorage = dataStorage;
         }
 

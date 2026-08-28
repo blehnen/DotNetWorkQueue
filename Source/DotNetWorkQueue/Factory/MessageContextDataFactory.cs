@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Factory
         public IMessageContextData<T> Create<T>(string name, T defaultValue)
             where T : class
         {
-            Guard.NotNullOrEmpty(() => name, name);
+            Guard.NotNullOrEmpty(name);
             return new MessageContextData<T>(name, defaultValue);
         }
     }

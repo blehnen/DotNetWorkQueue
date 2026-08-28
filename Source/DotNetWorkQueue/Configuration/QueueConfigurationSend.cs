@@ -40,11 +40,11 @@ namespace DotNetWorkQueue.Configuration
             BaseTimeConfiguration timeConfiguration,
             IPolicies policies)
         {
-            Guard.NotNull(() => transportConfiguration, transportConfiguration);
-            Guard.NotNull(() => headerNames, headerNames);
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => timeConfiguration, timeConfiguration);
-            Guard.NotNull(() => policies, policies);
+            Guard.NotNull(transportConfiguration);
+            Guard.NotNull(headerNames);
+            Guard.NotNull(configuration);
+            Guard.NotNull(timeConfiguration);
+            Guard.NotNull(policies);
 
             TransportConfiguration = transportConfiguration;
             HeaderNames = headerNames;

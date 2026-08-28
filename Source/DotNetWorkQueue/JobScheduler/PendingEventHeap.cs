@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.JobScheduler
 
         public void Push(PendingEvent ev)
         {
-            Guard.NotNull(() => ev, ev);
+            Guard.NotNull(ev);
             var ei = Add(ev);
             while (ei > 0)
             {

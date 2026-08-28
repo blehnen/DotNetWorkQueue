@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Messages
         public SentMessage(IMessageId messageId, ICorrelationId correlationId)
         {
             //NOTE - null messageID's are allowed, as this indicates a failure by the transport to send
-            Guard.NotNull(() => correlationId, correlationId);
+            Guard.NotNull(correlationId);
 
             MessageId = messageId;
             CorrelationId = correlationId;

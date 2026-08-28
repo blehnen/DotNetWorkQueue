@@ -41,8 +41,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Factory
         public SqLiteMessageQueueTransportOptionsFactory(IConnectionInformation connectionInformation,
             IQueryHandler<GetQueueOptionsQuery<SqLiteMessageQueueTransportOptions>, SqLiteMessageQueueTransportOptions> queryOptions)
         {
-            Guard.NotNull(() => queryOptions, queryOptions);
-            Guard.NotNull(() => connectionInformation, connectionInformation);
+            Guard.NotNull(queryOptions);
+            Guard.NotNull(connectionInformation);
 
             _queryOptions = queryOptions;
             _connectionInformation = connectionInformation;

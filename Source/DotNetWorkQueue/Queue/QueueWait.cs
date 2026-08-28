@@ -45,9 +45,9 @@ namespace DotNetWorkQueue.Queue
         /// </exception>
         public QueueWait(IEnumerable<TimeSpan> backOffTimes, ICancelWork tokenWorkerCanceled)
         {
-            Guard.NotNull(() => tokenWorkerCanceled, tokenWorkerCanceled);
+            Guard.NotNull(tokenWorkerCanceled);
             var timeSpans = backOffTimes.ToArray();
-            Guard.NotNull(() => timeSpans, timeSpans);
+            Guard.NotNull(timeSpans);
             if (timeSpans.Length == 0)
                 throw new ArgumentException("Back off helper must be initialized with at least one time span");
 

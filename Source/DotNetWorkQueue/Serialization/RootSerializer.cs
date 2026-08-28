@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Serialization
         public RootSerializer(IMessageInterceptorRegistrar messageInterceptors, ISerializer serializer)
             : base(messageInterceptors)
         {
-            Guard.NotNull(() => serializer, serializer);
+            Guard.NotNull(serializer);
             _serializer = serializer;
         }
         #endregion
@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Serialization
         /// <returns></returns>
         protected override byte[] ConvertMessageToBytes<T>(T message, IReadOnlyDictionary<string, object> headers)
         {
-            Guard.NotNull(() => message, message);
+            Guard.NotNull(message);
             return _serializer.ConvertMessageToBytes(message, headers);
         }
 
@@ -64,7 +64,7 @@ namespace DotNetWorkQueue.Serialization
         /// <returns></returns>
         protected override T ConvertBytesToMessage<T>(byte[] bytes, IReadOnlyDictionary<string, object> headers)
         {
-            Guard.NotNull(() => bytes, bytes);
+            Guard.NotNull(bytes);
             return _serializer.ConvertBytesToMessage<T>(bytes, headers);
 
         }

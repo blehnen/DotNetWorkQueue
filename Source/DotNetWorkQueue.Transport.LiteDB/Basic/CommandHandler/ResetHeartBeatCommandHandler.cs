@@ -42,8 +42,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             _tableNameHelper = tableNameHelper;
             _connectionInformation = connectionInformation;
 
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(tableNameHelper);
         }
 
         /// <inheritdoc />

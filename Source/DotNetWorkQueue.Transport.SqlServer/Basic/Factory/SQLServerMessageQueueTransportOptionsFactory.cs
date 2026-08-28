@@ -41,8 +41,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Factory
         public SqlServerMessageQueueTransportOptionsFactory(IConnectionInformation connectionInformation,
             IQueryHandler<GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions>, SqlServerMessageQueueTransportOptions> queryOptions)
         {
-            Guard.NotNull(() => queryOptions, queryOptions);
-            Guard.NotNull(() => connectionInformation, connectionInformation);
+            Guard.NotNull(queryOptions);
+            Guard.NotNull(connectionInformation);
 
             _queryOptions = queryOptions;
             _connectionInformation = connectionInformation;

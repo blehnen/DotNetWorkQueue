@@ -40,8 +40,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             IConnectionInformation connectionInformation,
             ILogger logger)
         {
-            Guard.NotNull(() => getFileNameFromConnection, getFileNameFromConnection);
-            Guard.NotNull(() => connectionInformation, connectionInformation);
+            Guard.NotNull(getFileNameFromConnection);
+            Guard.NotNull(connectionInformation);
             _getFileNameFromConnection = getFileNameFromConnection;
             _connectionInformation = connectionInformation;
             _logger = logger;

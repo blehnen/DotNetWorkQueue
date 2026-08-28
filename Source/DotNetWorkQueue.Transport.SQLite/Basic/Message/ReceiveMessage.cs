@@ -44,9 +44,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
             IQueryHandler<ReceiveMessageQuery<IDbConnection, IDbTransaction>, IReceivedMessageInternal> receiveMessage,
             IQueueCancelWork cancelToken)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => receiveMessage, receiveMessage);
-            Guard.NotNull(() => cancelToken, cancelToken);
+            Guard.NotNull(configuration);
+            Guard.NotNull(receiveMessage);
+            Guard.NotNull(cancelToken);
 
             _configuration = configuration;
             _receiveMessage = receiveMessage;

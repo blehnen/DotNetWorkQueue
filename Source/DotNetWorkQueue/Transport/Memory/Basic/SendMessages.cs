@@ -47,8 +47,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         public SendMessages(ISentMessageFactory sentMessageFactory,
             IDataStorageSendMessage dataStorage)
         {
-            Guard.NotNull(() => sentMessageFactory, sentMessageFactory);
-            Guard.NotNull(() => dataStorage, dataStorage);
+            Guard.NotNull(sentMessageFactory);
+            Guard.NotNull(dataStorage);
             _sentMessageFactory = sentMessageFactory;
             _dataStorage = dataStorage;
         }

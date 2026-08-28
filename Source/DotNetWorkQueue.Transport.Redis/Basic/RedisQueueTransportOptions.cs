@@ -42,8 +42,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public RedisQueueTransportOptions(SntpTimeConfiguration sntpTimeConfiguration,
             DelayedProcessingConfiguration delayedProcessingConfiguration)
         {
-            Guard.NotNull(() => sntpTimeConfiguration, sntpTimeConfiguration);
-            Guard.NotNull(() => delayedProcessingConfiguration, delayedProcessingConfiguration);
+            Guard.NotNull(sntpTimeConfiguration);
+            Guard.NotNull(delayedProcessingConfiguration);
 
             _clearExpiredMessagesBatchLimit = 50;
             _moveDelayedMessagesBatchLimit = 50;

@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="log">The log.</param>
         /// <param name="options">The options.</param>
         public RedisDelayedProcessingMonitor(IDelayedProcessingAction action, ILogger log, RedisQueueTransportOptions options)
-            : base(Guard.NotNull(() => action, action).Run, options.DelayedProcessingConfiguration, log)
+            : base(Guard.NotNull(action).Run, options.DelayedProcessingConfiguration, log)
         {
 
         }
@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="moveRecords">The move records.</param>
         public DelayedProcessingAction(ICommandHandlerWithOutput<MoveDelayedRecordsCommand, long> moveRecords)
         {
-            Guard.NotNull(() => moveRecords, moveRecords);
+            Guard.NotNull(moveRecords);
             _moveRecords = moveRecords;
         }
 

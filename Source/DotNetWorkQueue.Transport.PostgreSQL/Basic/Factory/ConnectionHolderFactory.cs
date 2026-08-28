@@ -37,8 +37,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Factory
         public ConnectionHolderFactory(IConnectionInformation connectionInfo,
             IPostgreSqlMessageQueueTransportOptionsFactory options)
         {
-            Guard.NotNull(() => connectionInfo, connectionInfo);
-            Guard.NotNull(() => options, options);
+            Guard.NotNull(connectionInfo);
+            Guard.NotNull(options);
 
             _connectionInfo = connectionInfo;
             _options = new Lazy<PostgreSqlMessageQueueTransportOptions>(options.Create);

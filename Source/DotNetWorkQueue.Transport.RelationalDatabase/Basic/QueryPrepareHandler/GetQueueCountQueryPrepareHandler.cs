@@ -35,8 +35,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
         /// <param name="options">The transport options.</param>
         public GetQueueCountQueryPrepareHandler(CommandStringCache commandCache, ITransportOptionsFactory options)
         {
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => options, options);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(options);
 
             _commandCache = commandCache;
             _options = new Lazy<ITransportOptions>(options.Create);

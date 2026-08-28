@@ -55,9 +55,9 @@ namespace DotNetWorkQueue.Queue
             IMonitorTimespan monitorTimeSpan,
             ILogger log)
         {
-            Guard.NotNull(() => monitorAction, monitorAction);
-            Guard.NotNull(() => monitorTimeSpan, monitorTimeSpan);
-            Guard.NotNull(() => log, log);
+            Guard.NotNull(monitorAction);
+            Guard.NotNull(monitorTimeSpan);
+            Guard.NotNull(log);
 
             _monitorAction = monitorAction;
             _monitorActionIds = null;
@@ -75,9 +75,9 @@ namespace DotNetWorkQueue.Queue
             Func<CancellationToken, List<ResetHeartBeatOutput>> monitorAction,
             ILogger log)
         {
-            Guard.NotNull(() => monitorAction, monitorAction);
-            Guard.NotNull(() => monitorTimeSpan, monitorTimeSpan);
-            Guard.NotNull(() => log, log);
+            Guard.NotNull(monitorAction);
+            Guard.NotNull(monitorTimeSpan);
+            Guard.NotNull(log);
 
             _monitorActionIds = monitorAction;
             _monitorAction = null;

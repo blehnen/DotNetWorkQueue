@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 
         public DashboardResetStaleMessageCommandHandler(DashboardResetStaleMessageLua resetLua)
         {
-            Guard.NotNull(() => resetLua, resetLua);
+            Guard.NotNull(resetLua);
             _resetLua = resetLua;
         }
 

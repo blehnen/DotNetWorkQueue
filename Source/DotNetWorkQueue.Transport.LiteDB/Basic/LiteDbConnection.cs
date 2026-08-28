@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <param name="shared">if set to <c>true</c> [shared].</param>
         public LiteDbConnection(LiteDatabase database, bool shared)
         {
-            Guard.NotNull(() => database, database);
+            Guard.NotNull(database);
             Database = database;
             _shared = shared;
         }

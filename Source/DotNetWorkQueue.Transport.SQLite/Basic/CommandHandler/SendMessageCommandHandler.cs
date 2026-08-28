@@ -82,17 +82,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             IJobSchedulerMetaData jobSchedulerMetaData,
             DatabaseExists databaseExists)
         {
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => serializer, serializer);
-            Guard.NotNull(() => optionsFactory, optionsFactory);
-            Guard.NotNull(() => headers, headers);
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => configurationSend, configurationSend);
-            Guard.NotNull(() => getTimeFactory, getTimeFactory);
-            Guard.NotNull(() => sendJobStatus, sendJobStatus);
-            Guard.NotNull(() => jobExistsHandler, jobExistsHandler);
-            Guard.NotNull(() => databaseExists, databaseExists);
-            Guard.NotNull(() => dbFactory, dbFactory);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(serializer);
+            Guard.NotNull(optionsFactory);
+            Guard.NotNull(headers);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(configurationSend);
+            Guard.NotNull(getTimeFactory);
+            Guard.NotNull(sendJobStatus);
+            Guard.NotNull(jobExistsHandler);
+            Guard.NotNull(databaseExists);
+            Guard.NotNull(dbFactory);
 
             _tableNameHelper = tableNameHelper;
             _serializer = serializer;

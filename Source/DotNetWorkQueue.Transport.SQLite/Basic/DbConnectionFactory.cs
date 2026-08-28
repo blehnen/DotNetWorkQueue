@@ -39,8 +39,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         public DbConnectionFactory(IConnectionInformation connectionInformation,
             IDbFactory dbFactory)
         {
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => dbFactory, dbFactory);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(dbFactory);
             _connectionInformation = connectionInformation;
             _dbFactory = dbFactory;
         }

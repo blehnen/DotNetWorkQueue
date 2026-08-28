@@ -35,8 +35,8 @@ namespace DotNetWorkQueue.Logging.Decorator
         public RollbackMessageDecorator(ILogger log,
             IRollbackMessage handler)
         {
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => handler, handler);
+            Guard.NotNull(log);
+            Guard.NotNull(handler);
 
             _log = log;
             _handler = handler;

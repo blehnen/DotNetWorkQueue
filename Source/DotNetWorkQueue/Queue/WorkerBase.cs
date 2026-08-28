@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="workerTerminate">The worker terminate.</param>
         protected WorkerBase(WorkerTerminate workerTerminate)
         {
-            Guard.NotNull(() => workerTerminate, workerTerminate);
+            Guard.NotNull(workerTerminate);
             _workerTerminate = workerTerminate;
         }
 

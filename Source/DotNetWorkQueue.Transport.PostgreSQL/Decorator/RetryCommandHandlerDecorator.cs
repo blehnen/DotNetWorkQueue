@@ -38,8 +38,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         public RetryCommandHandlerDecorator(ICommandHandler<TCommand> decorated,
             IPolicies policies)
         {
-            Guard.NotNull(() => decorated, decorated);
-            Guard.NotNull(() => policies, policies);
+            Guard.NotNull(decorated);
+            Guard.NotNull(policies);
 
             _decorated = decorated;
             _policies = policies;

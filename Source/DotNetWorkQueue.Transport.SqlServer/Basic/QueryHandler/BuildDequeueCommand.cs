@@ -33,8 +33,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         public BuildDequeueCommand(ISqlServerMessageQueueTransportOptionsFactory optionsFactory,
             CreateDequeueStatement createDequeueStatement)
         {
-            Guard.NotNull(() => optionsFactory, optionsFactory);
-            Guard.NotNull(() => createDequeueStatement, createDequeueStatement);
+            Guard.NotNull(optionsFactory);
+            Guard.NotNull(createDequeueStatement);
 
             _options = new Lazy<SqlServerMessageQueueTransportOptions>(optionsFactory.Create);
             _createDequeueStatement = createDequeueStatement;

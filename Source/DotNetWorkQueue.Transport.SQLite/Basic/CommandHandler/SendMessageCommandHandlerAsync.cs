@@ -86,18 +86,18 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             DatabaseExists databaseExists,
             IReaderAsync readerAsync)
         {
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => serializer, serializer);
-            Guard.NotNull(() => optionsFactory, optionsFactory);
-            Guard.NotNull(() => headers, headers);
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => configurationSend, configurationSend);
-            Guard.NotNull(() => getTimeFactory, getTimeFactory);
-            Guard.NotNull(() => sendJobStatus, sendJobStatus);
-            Guard.NotNull(() => jobExistsHandler, jobExistsHandler);
-            Guard.NotNull(() => jobSchedulerMetaData, jobSchedulerMetaData);
-            Guard.NotNull(() => databaseExists, databaseExists);
-            Guard.NotNull(() => readerAsync, readerAsync);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(serializer);
+            Guard.NotNull(optionsFactory);
+            Guard.NotNull(headers);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(configurationSend);
+            Guard.NotNull(getTimeFactory);
+            Guard.NotNull(sendJobStatus);
+            Guard.NotNull(jobExistsHandler);
+            Guard.NotNull(jobSchedulerMetaData);
+            Guard.NotNull(databaseExists);
+            Guard.NotNull(readerAsync);
 
             _tableNameHelper = tableNameHelper;
             _serializer = serializer;

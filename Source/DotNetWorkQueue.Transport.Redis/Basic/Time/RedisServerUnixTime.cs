@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
             ILogger log,
             BaseTimeConfiguration configuration) : base(log, configuration)
         {
-            Guard.NotNull(() => timeLua, timeLua);
+            Guard.NotNull(timeLua);
             _timeLua = timeLua;
         }
 

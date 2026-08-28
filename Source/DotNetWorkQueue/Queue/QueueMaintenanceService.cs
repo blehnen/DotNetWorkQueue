@@ -41,8 +41,8 @@ namespace DotNetWorkQueue.Queue
         /// <param name="log">The logger.</param>
         public QueueMaintenanceService(IQueueMonitor queueMonitor, ILogger log)
         {
-            Guard.NotNull(() => queueMonitor, queueMonitor);
-            Guard.NotNull(() => log, log);
+            Guard.NotNull(queueMonitor);
+            Guard.NotNull(log);
 
             _queueMonitor = queueMonitor;
             _log = log;

@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
         /// <param name="commandHandler">The command handler.</param>
         public GetHeader(IQueryHandler<GetHeaderQuery<T>, IDictionary<string, object>> commandHandler)
         {
-            Guard.NotNull(() => commandHandler, commandHandler);
+            Guard.NotNull(commandHandler);
             _commandHandler = commandHandler;
         }
         #endregion

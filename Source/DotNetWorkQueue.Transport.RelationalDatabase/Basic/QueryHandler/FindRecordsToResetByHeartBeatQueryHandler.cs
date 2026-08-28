@@ -54,10 +54,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             IPrepareQueryHandler<FindMessagesToResetByHeartBeatQuery<T>, IEnumerable<MessageToReset<T>>> prepareQuery,
             IReadColumn readColumn, ICompositeSerialization serialization)
         {
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => prepareQuery, prepareQuery);
-            Guard.NotNull(() => readColumn, readColumn);
-            Guard.NotNull(() => serialization, serialization);
+            Guard.NotNull(dbConnectionFactory);
+            Guard.NotNull(prepareQuery);
+            Guard.NotNull(readColumn);
+            Guard.NotNull(serialization);
 
             _dbConnectionFactory = dbConnectionFactory;
             _prepareQuery = prepareQuery;

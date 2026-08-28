@@ -37,8 +37,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Logging.Decorator
         public DelayedProcessingActionDecorator(ILogger log,
             IDelayedProcessingAction handler)
         {
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => handler, handler);
+            Guard.NotNull(log);
+            Guard.NotNull(handler);
 
             _log = log;
             _handler = handler;

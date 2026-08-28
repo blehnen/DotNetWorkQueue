@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         public LiteDbMessageQueueSchema(
             ILiteDbMessageQueueTransportOptionsFactory options)
         {
-            Guard.NotNull(() => options, options);
+            Guard.NotNull(options);
 
             _options = new Lazy<LiteDbMessageQueueTransportOptions>(options.Create);
         }

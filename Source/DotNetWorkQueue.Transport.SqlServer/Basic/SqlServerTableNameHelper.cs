@@ -41,7 +41,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <param name="connectionInformation">The connection information.</param>
         public SqlServerTableNameHelper(IConnectionInformation connectionInformation)
         {
-            Guard.NotNull(() => connectionInformation, connectionInformation);
+            Guard.NotNull(connectionInformation);
             _connectionInformation = connectionInformation;
             _schema = new SqlSchema(connectionInformation);
         }

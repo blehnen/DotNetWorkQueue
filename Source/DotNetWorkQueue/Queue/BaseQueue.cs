@@ -46,9 +46,9 @@ namespace DotNetWorkQueue.Queue
         /// <param name="consumerQueueNotification">notifications for consumer queue messages</param>
         protected BaseQueue(ILogger log, IConsumerQueueNotification consumerQueueNotification, IConsumerQueueErrorNotification consumerQueueErrorNotification)
         {
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => consumerQueueNotification, consumerQueueNotification);
-            Guard.NotNull(() => consumerQueueErrorNotification, consumerQueueErrorNotification);
+            Guard.NotNull(log);
+            Guard.NotNull(consumerQueueNotification);
+            Guard.NotNull(consumerQueueErrorNotification);
 
             Log = log;
             _consumerQueueNotification = consumerQueueNotification;

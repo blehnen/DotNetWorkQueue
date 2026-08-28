@@ -45,8 +45,8 @@ namespace DotNetWorkQueue.Configuration
         /// <param name="timeSpans">The retry time spans.</param>
         public void Add(Type exceptionType, List<TimeSpan> timeSpans)
         {
-            Guard.NotNull(() => exceptionType, exceptionType);
-            Guard.NotNull(() => timeSpans, timeSpans);
+            Guard.NotNull(exceptionType);
+            Guard.NotNull(timeSpans);
 
             FailIfReadOnly();
 
@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Configuration
         /// <returns></returns>
         public IRetryInformation GetRetryAmount<T>(T exception) where T : Exception
         {
-            Guard.NotNull(() => exception, exception);
+            Guard.NotNull(exception);
 
             foreach (var exceptionType in GetAllExceptionTypes(exception.GetType()))
             {

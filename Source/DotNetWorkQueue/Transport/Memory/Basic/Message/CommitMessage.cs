@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
         /// <param name="removeMessage">The remove message.</param>
         public CommitMessage(IRemoveMessage removeMessage)
         {
-            Guard.NotNull(() => removeMessage, removeMessage);
+            Guard.NotNull(removeMessage);
             _removeMessage = removeMessage;
         }
         /// <summary>

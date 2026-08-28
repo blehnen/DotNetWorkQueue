@@ -45,9 +45,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             IDbConnectionFactory dbConnectionFactory,
             IPrepareCommandHandler<SetErrorCountCommand<T>> prepareCommand)
         {
-            Guard.NotNull(() => queryHandler, queryHandler);
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => prepareCommand, prepareCommand);
+            Guard.NotNull(queryHandler);
+            Guard.NotNull(dbConnectionFactory);
+            Guard.NotNull(prepareCommand);
 
             _queryHandler = queryHandler;
             _dbConnectionFactory = dbConnectionFactory;

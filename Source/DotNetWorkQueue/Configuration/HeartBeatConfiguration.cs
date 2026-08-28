@@ -42,8 +42,8 @@ namespace DotNetWorkQueue.Configuration
         /// <param name="threadPoolConfiguration">The thread pool configuration.</param>
         public HeartBeatConfiguration(TransportConfigurationReceive transportConfiguration, IHeartBeatThreadPoolConfiguration threadPoolConfiguration)
         {
-            Guard.NotNull(() => transportConfiguration, transportConfiguration);
-            Guard.NotNull(() => threadPoolConfiguration, threadPoolConfiguration);
+            Guard.NotNull(transportConfiguration);
+            Guard.NotNull(threadPoolConfiguration);
 
             _transportConfigurationReceive = transportConfiguration;
             ThreadPoolConfiguration = threadPoolConfiguration;

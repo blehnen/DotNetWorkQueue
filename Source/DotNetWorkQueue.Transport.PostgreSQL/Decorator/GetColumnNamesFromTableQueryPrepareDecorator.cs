@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         public GetColumnNamesFromTableQueryPrepareDecorator(
             IPrepareQueryHandler<GetColumnNamesFromTableQuery, List<string>> decorated)
         {
-            Guard.NotNull(() => decorated, decorated);
+            Guard.NotNull(decorated);
             _decorated = decorated;
         }
 

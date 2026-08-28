@@ -32,8 +32,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 
         public GetDashboardMessagesPrepareHandler(CommandStringCache commandCache, ITransportOptionsFactory optionsFactory)
         {
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => optionsFactory, optionsFactory);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(optionsFactory);
             _commandCache = commandCache;
             _dynamicColumns = new Lazy<string>(() => DashboardDynamicColumnHelper.BuildDynamicColumns(optionsFactory.Create()));
         }

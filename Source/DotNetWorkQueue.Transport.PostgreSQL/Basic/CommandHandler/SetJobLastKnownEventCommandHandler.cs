@@ -39,8 +39,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         public SetJobLastKnownEventCommandHandler(PostgreSqlCommandStringCache commandCache,
             IDbConnectionFactory dbConnectionFactory)
         {
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(dbConnectionFactory);
 
             _commandCache = commandCache;
             _dbConnectionFactory = dbConnectionFactory;

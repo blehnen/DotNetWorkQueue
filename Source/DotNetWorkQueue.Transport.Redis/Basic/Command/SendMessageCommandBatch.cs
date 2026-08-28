@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Command
         /// <param name="messages">The messages.</param>
         public SendMessageCommandBatch(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
-            Guard.NotNull(() => messages, messages);
+            Guard.NotNull(messages);
             Messages = messages;
         }
         /// <summary>

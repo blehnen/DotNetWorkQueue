@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Query
         /// <param name="id">The identifier.</param>
         public GetMetaDataQuery(RedisQueueId id)
         {
-            Guard.NotNull(() => id, id);
+            Guard.NotNull(id);
             Id = id;
         }
         /// <summary>

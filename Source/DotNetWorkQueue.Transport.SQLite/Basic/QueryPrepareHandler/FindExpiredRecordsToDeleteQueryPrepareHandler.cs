@@ -42,8 +42,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryPrepareHandler
         public FindExpiredRecordsToDeleteQueryPrepareHandler(CommandStringCache commandCache,
             IGetTimeFactory timeFactory)
         {
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => timeFactory, timeFactory);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(timeFactory);
             _commandCache = commandCache;
             _getTime = timeFactory.Create();
         }

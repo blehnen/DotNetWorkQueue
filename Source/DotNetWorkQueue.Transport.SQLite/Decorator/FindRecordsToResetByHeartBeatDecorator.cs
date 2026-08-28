@@ -45,8 +45,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         public FindRecordsToResetByHeartBeatErrorDecorator(ILogger logger,
             IQueryHandler<FindMessagesToResetByHeartBeatQuery<long>, IEnumerable<MessageToReset<long>>> decorated)
         {
-            Guard.NotNull(() => decorated, decorated);
-            Guard.NotNull(() => logger, logger);
+            Guard.NotNull(decorated);
+            Guard.NotNull(logger);
 
             _logger = logger;
             _decorated = decorated;

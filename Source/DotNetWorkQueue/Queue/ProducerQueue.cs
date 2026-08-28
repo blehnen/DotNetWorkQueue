@@ -62,12 +62,12 @@ namespace DotNetWorkQueue.Queue
             GenerateMessageHeaders generateMessageHeaders,
             AddStandardMessageHeaders addStandardMessageHeaders)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => sendMessages, sendMessages);
-            Guard.NotNull(() => messageFactory, messageFactory);
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => generateMessageHeaders, generateMessageHeaders);
-            Guard.NotNull(() => addStandardMessageHeaders, addStandardMessageHeaders);
+            Guard.NotNull(configuration);
+            Guard.NotNull(sendMessages);
+            Guard.NotNull(messageFactory);
+            Guard.NotNull(log);
+            Guard.NotNull(generateMessageHeaders);
+            Guard.NotNull(addStandardMessageHeaders);
 
             _configuration = configuration;
             _sendMessages = sendMessages;
@@ -263,8 +263,8 @@ The queue uses dynamic instances to run the user delegate and the queue cannot c
         /// <returns></returns>
         private IQueueOutputMessage InternalSend(T message, IAdditionalMessageData data)
         {
-            Guard.NotNull(() => message, message);
-            Guard.NotNull(() => data, data);
+            Guard.NotNull(message);
+            Guard.NotNull(data);
 
             if (!Configuration.IsReadOnly)
                 Configuration.SetReadOnly();
@@ -284,7 +284,7 @@ The queue uses dynamic instances to run the user delegate and the queue cannot c
         /// <returns></returns>
         private IQueueOutputMessages InternalSend(List<QueueMessage<T, IAdditionalMessageData>> messages)
         {
-            Guard.NotNull(() => messages, messages);
+            Guard.NotNull(messages);
 
             var newMessages = InternalSendPrepare(messages);
 
@@ -300,8 +300,8 @@ The queue uses dynamic instances to run the user delegate and the queue cannot c
         /// <returns></returns>
         private async Task<IQueueOutputMessage> InternalSendAsync(T message, IAdditionalMessageData data)
         {
-            Guard.NotNull(() => message, message);
-            Guard.NotNull(() => data, data);
+            Guard.NotNull(message);
+            Guard.NotNull(data);
 
             if (!Configuration.IsReadOnly)
                 Configuration.SetReadOnly();
@@ -321,7 +321,7 @@ The queue uses dynamic instances to run the user delegate and the queue cannot c
         /// <returns></returns>
         private async Task<IQueueOutputMessages> InternalSendAsync(List<QueueMessage<T, IAdditionalMessageData>> messages)
         {
-            Guard.NotNull(() => messages, messages);
+            Guard.NotNull(messages);
 
             var newMessages = InternalSendPrepare(messages);
 

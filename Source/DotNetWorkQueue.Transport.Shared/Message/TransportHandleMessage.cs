@@ -33,8 +33,8 @@ namespace DotNetWorkQueue.Transport.Shared.Message
         public TransportHandleMessage(ITransportCommitMessage commitMessage,
             ITransportRollbackMessage rollbackMessage)
         {
-            Guard.NotNull(() => commitMessage, commitMessage);
-            Guard.NotNull(() => rollbackMessage, rollbackMessage);
+            Guard.NotNull(commitMessage);
+            Guard.NotNull(rollbackMessage);
 
             RollbackMessage = rollbackMessage;
             CommitMessage = commitMessage;

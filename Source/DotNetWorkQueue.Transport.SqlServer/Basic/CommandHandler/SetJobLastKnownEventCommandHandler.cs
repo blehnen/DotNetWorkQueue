@@ -41,8 +41,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         public SetJobLastKnownEventCommandHandler(SqlServerCommandStringCache commandCache,
             IDbConnectionFactory dbConnectionFactory)
         {
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(dbConnectionFactory);
 
             _commandCache = commandCache;
             _dbConnectionFactory = dbConnectionFactory;

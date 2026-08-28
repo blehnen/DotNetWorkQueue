@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler
         public FindExpiredRecordsToDeleteQueryPrepareHandler(CommandStringCache commandCache,
             IGetTimeFactory timeFactory)
         {
-            Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(commandCache);
             _commandCache = commandCache;
             _getTime = timeFactory.Create();
         }

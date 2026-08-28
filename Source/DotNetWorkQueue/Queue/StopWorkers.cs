@@ -48,10 +48,10 @@ namespace DotNetWorkQueue.Queue
             ILogger log,
             IWorkerWaitForEventOrCancel waitForEventOrCancel)
         {
-            Guard.NotNull(() => cancelWorkSource, cancelWorkSource);
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => waitForEventOrCancel, waitForEventOrCancel);
+            Guard.NotNull(cancelWorkSource);
+            Guard.NotNull(configuration);
+            Guard.NotNull(log);
+            Guard.NotNull(waitForEventOrCancel);
 
             _cancelWorkSource = cancelWorkSource;
             _configuration = configuration;
@@ -73,7 +73,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="workers">The workers.</param>
         public void Stop(List<IWorker> workers)
         {
-            Guard.NotNull(() => workers, workers);
+            Guard.NotNull(workers);
 
             _waitForEventOrCancel.Set();
             _waitForEventOrCancel.Cancel();
@@ -127,7 +127,7 @@ namespace DotNetWorkQueue.Queue
         /// <param name="worker">The worker.</param>
         public void StopPrimary(IPrimaryWorker worker)
         {
-            Guard.NotNull(() => worker, worker);
+            Guard.NotNull(worker);
 
             _waitForEventOrCancel.Set();
             _waitForEventOrCancel.Cancel();

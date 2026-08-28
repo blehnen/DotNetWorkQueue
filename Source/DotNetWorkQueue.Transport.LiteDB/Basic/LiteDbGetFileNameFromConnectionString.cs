@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
     {
         public ConnectionStringInfo GetFileName(string connectionString)
         {
-            Guard.NotNullOrEmpty(() => connectionString, connectionString);
+            Guard.NotNullOrEmpty(connectionString);
             var connection = new ConnectionString(connectionString);
 
             var inMemory = connectionString.Contains(":memory:");

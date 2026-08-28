@@ -44,9 +44,9 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
             IQueryHandler<FindExpiredMessagesToDeleteQuery<T>, IEnumerable<T>> findExpiredMessagesQueryHandler,
             IRemoveMessage removeMessage)
         {
-            Guard.NotNull(() => connectionInfo, connectionInfo);
-            Guard.NotNull(() => findExpiredMessagesQueryHandler, findExpiredMessagesQueryHandler);
-            Guard.NotNull(() => removeMessage, removeMessage);
+            Guard.NotNull(connectionInfo);
+            Guard.NotNull(findExpiredMessagesQueryHandler);
+            Guard.NotNull(removeMessage);
 
             _connectionInfo = connectionInfo;
             _findExpiredMessagesQueryHandler = findExpiredMessagesQueryHandler;

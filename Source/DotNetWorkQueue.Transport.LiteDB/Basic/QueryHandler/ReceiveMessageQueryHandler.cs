@@ -53,11 +53,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
             DatabaseExists databaseExists,
             MessageDeQueue messageDeQueue)
         {
-            Guard.NotNull(() => optionsFactory, optionsFactory);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => databaseExists, databaseExists);
-            Guard.NotNull(() => messageDeQueue, messageDeQueue);
-            Guard.NotNull(() => connectionInformation, connectionInformation);
+            Guard.NotNull(optionsFactory);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(databaseExists);
+            Guard.NotNull(messageDeQueue);
+            Guard.NotNull(connectionInformation);
 
             _options = new Lazy<LiteDbMessageQueueTransportOptions>(optionsFactory.Create);
             _tableNameHelper = tableNameHelper;

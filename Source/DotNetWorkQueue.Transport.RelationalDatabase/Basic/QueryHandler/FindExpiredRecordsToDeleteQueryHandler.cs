@@ -50,10 +50,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             IReadColumn readColumn,
             IPrepareQueryHandler<FindExpiredMessagesToDeleteQuery<T>, IEnumerable<T>> prepareQuery)
         {
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => options, options);
-            Guard.NotNull(() => prepareQuery, prepareQuery);
-            Guard.NotNull(() => readColumn, readColumn);
+            Guard.NotNull(dbConnectionFactory);
+            Guard.NotNull(options);
+            Guard.NotNull(prepareQuery);
+            Guard.NotNull(readColumn);
 
             _dbConnectionFactory = dbConnectionFactory;
             _readColumn = readColumn;

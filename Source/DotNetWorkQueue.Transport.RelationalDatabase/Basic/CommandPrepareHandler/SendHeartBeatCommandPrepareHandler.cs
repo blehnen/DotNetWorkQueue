@@ -36,8 +36,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
         public SendHeartBeatCommandPrepareHandler(CommandStringCache commandCache,
             IGetTimeFactory getTimeFactory)
         {
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => getTimeFactory, getTimeFactory);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(getTimeFactory);
             _commandCache = commandCache;
             _getTime = getTimeFactory.Create();
         }

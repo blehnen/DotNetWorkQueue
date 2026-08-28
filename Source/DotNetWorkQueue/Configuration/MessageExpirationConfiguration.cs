@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Configuration
         /// <param name="transportConfiguration">The transport configuration.</param>
         public MessageExpirationConfiguration(TransportConfigurationReceive transportConfiguration)
         {
-            Guard.NotNull(() => transportConfiguration, transportConfiguration);
+            Guard.NotNull(transportConfiguration);
             _transportConfigurationReceive = transportConfiguration;
         }
         #endregion

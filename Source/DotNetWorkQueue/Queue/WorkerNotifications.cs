@@ -45,12 +45,12 @@ namespace DotNetWorkQueue.Queue
             IMetrics metrics,
             ActivitySource tracer)
         {
-            Guard.NotNull(() => headerNames, headerNames);
-            Guard.NotNull(() => cancelWork, cancelWork);
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => metrics, metrics);
-            Guard.NotNull(() => tracer, tracer);
+            Guard.NotNull(headerNames);
+            Guard.NotNull(cancelWork);
+            Guard.NotNull(configuration);
+            Guard.NotNull(log);
+            Guard.NotNull(metrics);
+            Guard.NotNull(tracer);
 
             HeaderNames = headerNames;
             WorkerStopping = cancelWork;

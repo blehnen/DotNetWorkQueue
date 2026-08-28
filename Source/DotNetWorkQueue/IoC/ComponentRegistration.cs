@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.IoC
         /// <param name="connection">the queue connection information.</param>
         public static void RegisterDefaultsForScheduler(IContainer container, QueueConnection connection)
         {
-            Guard.NotNull(() => container, container);
+            Guard.NotNull(container);
 
             RegisterSharedDefaults(container, connection);
 
@@ -86,7 +86,7 @@ namespace DotNetWorkQueue.IoC
         /// <param name="connection">the queue connection information.</param>
         public static void RegisterDefaultsForJobScheduler(IContainer container, QueueConnection connection)
         {
-            Guard.NotNull(() => container, container);
+            Guard.NotNull(container);
             RegisterSharedDefaults(container, connection);
             container.Register<IMetrics, MetricsNet>(LifeStyles.Singleton);
         }
@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.IoC
         public static void RegisterDefaults(IContainer container,
             RegistrationTypes registrationType, QueueConnection connection)
         {
-            Guard.NotNull(() => container, container);
+            Guard.NotNull(container);
 
             //default types that are always registered in the container for both send and receive
             RegisterSharedDefaults(container, connection);

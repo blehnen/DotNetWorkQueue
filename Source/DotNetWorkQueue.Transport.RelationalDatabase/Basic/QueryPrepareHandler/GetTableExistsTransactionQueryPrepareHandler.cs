@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
         public GetTableExistsTransactionQueryPrepareHandler(CommandStringCache commandCache,
             IConnectionInformation connectionInformation)
         {
-            Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(commandCache);
             _commandCache = commandCache;
             _connectionInformation = connectionInformation;
         }

@@ -38,8 +38,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Metrics.Decorator
             IDelayedProcessingAction handler,
             IConnectionInformation connectionInformation)
         {
-            Guard.NotNull(() => metrics, metrics);
-            Guard.NotNull(() => handler, handler);
+            Guard.NotNull(metrics);
+            Guard.NotNull(handler);
 
             var name = handler.GetType().Name;
             _timer = metrics.Timer($"{connectionInformation.QueueName}.{name}.RunTimer", Units.Calls);

@@ -42,8 +42,8 @@ namespace DotNetWorkQueue.TaskScheduling
         public SchedulerMessageHandler(ILogger log,
             IMetrics metrics)
         {
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => metrics, metrics);
+            Guard.NotNull(log);
+            Guard.NotNull(metrics);
 
             _log = log;
 
@@ -64,10 +64,10 @@ namespace DotNetWorkQueue.TaskScheduling
         public Task HandleAsync<T>(IWorkGroup workGroup, IReceivedMessage<T> message, IWorkerNotification notifications, Action<IReceivedMessage<T>, IWorkerNotification> functionToRun, ITaskFactory taskFactory)
             where T : class
         {
-            Guard.NotNull(() => message, message);
-            Guard.NotNull(() => notifications, notifications);
-            Guard.NotNull(() => functionToRun, functionToRun);
-            Guard.NotNull(() => taskFactory, taskFactory);
+            Guard.NotNull(message);
+            Guard.NotNull(notifications);
+            Guard.NotNull(functionToRun);
+            Guard.NotNull(taskFactory);
 
             while (true)
             {

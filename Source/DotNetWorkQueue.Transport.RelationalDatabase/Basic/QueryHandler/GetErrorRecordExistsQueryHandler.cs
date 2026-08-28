@@ -40,8 +40,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         public GetErrorRecordExistsQueryHandler(IPrepareQueryHandler<GetErrorRecordExistsQuery<T>, bool> prepareQuery,
             IDbConnectionFactory connectionFactory)
         {
-            Guard.NotNull(() => prepareQuery, prepareQuery);
-            Guard.NotNull(() => connectionFactory, connectionFactory);
+            Guard.NotNull(prepareQuery);
+            Guard.NotNull(connectionFactory);
 
             _prepareQuery = prepareQuery;
             _prepareQuery = prepareQuery;

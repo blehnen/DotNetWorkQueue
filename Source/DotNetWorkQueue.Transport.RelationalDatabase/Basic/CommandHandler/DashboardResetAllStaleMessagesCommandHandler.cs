@@ -46,10 +46,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             ITransactionFactory transactionFactory,
             IPrepareCommandHandler<DashboardResetAllStaleMessagesCommand> prepareCommand)
         {
-            Guard.NotNull(() => options, options);
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => transactionFactory, transactionFactory);
-            Guard.NotNull(() => prepareCommand, prepareCommand);
+            Guard.NotNull(options);
+            Guard.NotNull(dbConnectionFactory);
+            Guard.NotNull(transactionFactory);
+            Guard.NotNull(prepareCommand);
 
             _options = new Lazy<ITransportOptions>(options.Create);
             _transactionFactory = transactionFactory;

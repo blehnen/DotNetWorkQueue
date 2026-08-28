@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command
         /// <param name="context">The context.</param>
         public DeleteTransactionalMessageCommand(long queueId, IMessageContext context)
         {
-            Guard.NotNull(() => context, context);
+            Guard.NotNull(context);
             QueueId = queueId;
             MessageContext = context;
         }

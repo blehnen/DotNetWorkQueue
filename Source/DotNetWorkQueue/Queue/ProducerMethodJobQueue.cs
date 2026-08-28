@@ -48,10 +48,10 @@ namespace DotNetWorkQueue.Queue
             ILogger log,
             IJobTableCreation createJobQueue)
         {
-            Guard.NotNull(() => jobSchedulerLastKnownEvent, jobSchedulerLastKnownEvent);
-            Guard.NotNull(() => sendJobToQueue, sendJobToQueue);
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => createJobQueue, createJobQueue);
+            Guard.NotNull(jobSchedulerLastKnownEvent);
+            Guard.NotNull(sendJobToQueue);
+            Guard.NotNull(log);
+            Guard.NotNull(createJobQueue);
 
             LastKnownEvent = jobSchedulerLastKnownEvent;
             _sendJobToQueue = sendJobToQueue;

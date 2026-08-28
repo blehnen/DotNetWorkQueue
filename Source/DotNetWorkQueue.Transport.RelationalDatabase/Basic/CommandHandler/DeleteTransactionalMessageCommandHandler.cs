@@ -48,9 +48,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             IConnectionHeader<TConnection, TTransaction, TCommand> headers,
             IPrepareCommandHandler<DeleteMessageCommand<long>> prepareCommand)
         {
-            Guard.NotNull(() => options, options);
-            Guard.NotNull(() => headers, headers);
-            Guard.NotNull(() => prepareCommand, prepareCommand);
+            Guard.NotNull(options);
+            Guard.NotNull(headers);
+            Guard.NotNull(prepareCommand);
 
             _options = new Lazy<ITransportOptions>(options.Create);
             _headers = headers;

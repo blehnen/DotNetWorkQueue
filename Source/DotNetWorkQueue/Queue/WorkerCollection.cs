@@ -64,11 +64,11 @@ namespace DotNetWorkQueue.Queue
             ILogger log,
             IWorkerWaitForEventOrCancel workerPause)
         {
-            Guard.NotNull(() => workerConfiguration, workerConfiguration);
-            Guard.NotNull(() => workerFactory, workerFactory);
-            Guard.NotNull(() => stopWorker, stopWorker);
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => workerPause, workerPause);
+            Guard.NotNull(workerConfiguration);
+            Guard.NotNull(workerFactory);
+            Guard.NotNull(stopWorker);
+            Guard.NotNull(log);
+            Guard.NotNull(workerPause);
 
             _workerConfiguration = workerConfiguration;
             _workerFactory = workerFactory;
@@ -169,7 +169,7 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         private void CreateWorkers()
         {
-            Guard.IsValid(() => _workerConfiguration.WorkerCount, _workerConfiguration.WorkerCount, i => i > 0,
+            Guard.IsValid(_workerConfiguration.WorkerCount, i => i > 0,
                 "numberOfWorkers must be greater than 0");
 
             //this collection contains all workers except the primary worker

@@ -71,9 +71,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
         private static void ValidateQueueName(string name)
         {
             if (string.IsNullOrEmpty(name)) return; // allow empty for backward compatibility
-            Guard.IsValid(() => name, name, n => n.Length <= 63,
+            Guard.IsValid(name, n => n.Length <= 63,
                 $"Queue name exceeds maximum length of 63 characters. Got {name.Length} characters.");
-            Guard.IsValid(() => name, name, n => ValidQueueNamePattern().IsMatch(n),
+            Guard.IsValid(name, n => ValidQueueNamePattern().IsMatch(n),
                 "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
         }
 

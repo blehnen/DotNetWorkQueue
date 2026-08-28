@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 
         public GetDashboardConfigurationPrepareHandler(CommandStringCache commandCache)
         {
-            Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(commandCache);
             _commandCache = commandCache;
         }
 

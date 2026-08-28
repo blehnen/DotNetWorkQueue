@@ -47,9 +47,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryPrepareHandler
         public FindRecordsToResetByHeartBeatQueryPrepareHandler(CommandStringCache commandCache,
             QueueConsumerConfiguration configuration, IGetTimeFactory getTimeFactory)
         {
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => getTimeFactory, getTimeFactory);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(configuration);
+            Guard.NotNull(getTimeFactory);
 
             _configuration = configuration;
             _getTime = getTimeFactory.Create();

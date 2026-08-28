@@ -64,8 +64,8 @@ namespace DotNetWorkQueue.Time
         protected BaseTime(ILogger log,
             BaseTimeConfiguration configuration)
         {
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => configuration, configuration);
+            Guard.NotNull(log);
+            Guard.NotNull(configuration);
 
             Configuration = configuration;
             Log = log;

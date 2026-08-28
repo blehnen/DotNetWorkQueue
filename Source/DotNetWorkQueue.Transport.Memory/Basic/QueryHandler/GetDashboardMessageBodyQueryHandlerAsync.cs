@@ -38,9 +38,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.QueryHandler
             ICompositeSerialization serialization,
             IHeaders headers)
         {
-            Guard.NotNull(() => dataStorage, dataStorage);
-            Guard.NotNull(() => serialization, serialization);
-            Guard.NotNull(() => headers, headers);
+            Guard.NotNull(dataStorage);
+            Guard.NotNull(serialization);
+            Guard.NotNull(headers);
 
             _dataStorage = dataStorage;
             _serialization = serialization;

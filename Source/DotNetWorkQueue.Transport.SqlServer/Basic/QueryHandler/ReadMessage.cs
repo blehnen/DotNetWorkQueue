@@ -45,10 +45,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             IHeaders headers,
             ICompositeSerialization serialization)
         {
-            Guard.NotNull(() => receivedMessageFactory, receivedMessageFactory);
-            Guard.NotNull(() => messageFactory, messageFactory);
-            Guard.NotNull(() => serialization, serialization);
-            Guard.NotNull(() => headers, headers);
+            Guard.NotNull(receivedMessageFactory);
+            Guard.NotNull(messageFactory);
+            Guard.NotNull(serialization);
+            Guard.NotNull(headers);
 
             _receivedMessageFactory = receivedMessageFactory;
             _messageFactory = messageFactory;

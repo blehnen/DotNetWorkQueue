@@ -33,6 +33,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 
 namespace DotNetWorkQueue.Validation
 {
@@ -42,13 +43,14 @@ namespace DotNetWorkQueue.Validation
     ///	<nuget id="netfx-Guard" />
     [DebuggerStepThrough]
     [ExcludeFromCodeCoverage]
-    public static class Guard
+    public static partial class Guard
     {
         /// <summary>
         /// Ensures the given <paramref name="value"/> is not null.
         /// Throws <see cref="ArgumentNullException"/> otherwise.
         /// </summary>
         /// <exception cref="System.ArgumentException">The <paramref name="value"/> is null.</exception>
+        [Obsolete("Use the overload that omits the expression - it takes the parameter name from the compiler rather than building an expression tree on every call. This one allocates on the path where the argument is valid.")]
         public static T NotNull<T>(Expression<Func<T>> reference, T value)
         {
             // ReferenceEquals rather than "value == null": T is unconstrained, so the == operator
@@ -66,9 +68,13 @@ namespace DotNetWorkQueue.Validation
         /// <see cref="ArgumentException"/> in the latter.
         /// </summary>
         /// <exception cref="System.ArgumentException">The <paramref name="value"/> is null or an empty string.</exception>
+        [Obsolete("Use the overload that omits the expression - it takes the parameter name from the compiler rather than building an expression tree on every call. This one allocates on the path where the argument is valid.")]
         public static void NotNullOrEmpty(Expression<Func<string>> reference, string value)
         {
-            NotNull(reference, value);
+            //written out rather than delegating to NotNull: with both the expression and the
+            //compiler-supplied overloads in scope, NotNull(reference, value) matches each of them.
+            if (value == null)
+                throw new ArgumentNullException(GetParameterName(reference), "Parameter cannot be null.");
             if (value.Length == 0)
                 throw new ArgumentException("Parameter cannot be empty.", GetParameterName(reference));
         }
@@ -80,6 +86,7 @@ namespace DotNetWorkQueue.Validation
         /// </summary>
         /// <exception cref="System.ArgumentException">The <paramref name="value"/> is not valid according 
         /// to the <paramref name="validate"/> function.</exception>
+        [Obsolete("Use the overload that omits the expression - it takes the parameter name from the compiler rather than building an expression tree on every call. This one allocates on the path where the argument is valid.")]
         public static void IsValid<T>(Expression<Func<T>> reference, T value, Func<T, bool> validate, string message)
         {
             if (!validate(value))
@@ -93,6 +100,7 @@ namespace DotNetWorkQueue.Validation
         /// </summary>
         /// <exception cref="System.ArgumentException">The <paramref name="value"/> is not valid according 
         /// to the <paramref name="validate"/> function.</exception>
+        [Obsolete("Use the overload that omits the expression - it takes the parameter name from the compiler rather than building an expression tree on every call. This one allocates on the path where the argument is valid.")]
         public static void IsValid<T>(Expression<Func<T>> reference, T value, Func<T, bool> validate, string format,
             params object[] args)
         {

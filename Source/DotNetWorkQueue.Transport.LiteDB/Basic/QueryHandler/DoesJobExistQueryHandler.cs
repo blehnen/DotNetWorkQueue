@@ -39,8 +39,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
             IQueryHandler<GetTableExistsQuery, bool> tableExists,
             TableNameHelper tableNameHelper)
         {
-            Guard.NotNull(() => tableExists, tableExists);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
+            Guard.NotNull(tableExists);
+            Guard.NotNull(tableNameHelper);
 
             _tableExists = tableExists;
             _tableNameHelper = tableNameHelper;

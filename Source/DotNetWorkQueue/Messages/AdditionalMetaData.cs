@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Messages
         /// <param name="value">The value.</param>
         public AdditionalMetaData(string name, T value)
         {
-            Guard.NotNull(() => name, name);
+            Guard.NotNull(name);
             Name = name;
             Value = value;
         }

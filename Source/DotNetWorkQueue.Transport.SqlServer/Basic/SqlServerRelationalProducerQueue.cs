@@ -95,13 +95,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             : base(configuration, sendMessages, messageFactory, log,
                    generateMessageHeaders, addStandardMessageHeaders)
         {
-            Guard.NotNull(() => sendHandler, sendHandler);
-            Guard.NotNull(() => sendHandlerAsync, sendHandlerAsync);
-            Guard.NotNull(() => sendBatchHandler, sendBatchHandler);
-            Guard.NotNull(() => sendBatchHandlerAsync, sendBatchHandlerAsync);
-            Guard.NotNull(() => validator, validator);
-            Guard.NotNull(() => sentMessageFactory, sentMessageFactory);
-            Guard.NotNull(() => ownMessageFactory, ownMessageFactory);
+            Guard.NotNull(sendHandler);
+            Guard.NotNull(sendHandlerAsync);
+            Guard.NotNull(sendBatchHandler);
+            Guard.NotNull(sendBatchHandlerAsync);
+            Guard.NotNull(validator);
+            Guard.NotNull(sentMessageFactory);
+            Guard.NotNull(ownMessageFactory);
             _sendHandler = sendHandler;
             _sendHandlerAsync = sendHandlerAsync;
             _sendBatchHandler = sendBatchHandler;
@@ -135,7 +135,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         protected override IQueueOutputMessages SendWithExternalTransactionBatch(
             List<QueueMessage<TMessage, IAdditionalMessageData>> messages, DbTransaction transaction)
         {
-            Guard.NotNull(() => messages, messages);
+            Guard.NotNull(messages);
             _validator.Validate(transaction);  // ONCE, at the boundary (CONTEXT-3 Decision 3)
             GuardSqlTransaction(transaction);
             if (messages.Count == 0)
@@ -149,7 +149,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         protected override async Task<IQueueOutputMessages> SendWithExternalTransactionBatchAsync(
             List<QueueMessage<TMessage, IAdditionalMessageData>> messages, DbTransaction transaction)
         {
-            Guard.NotNull(() => messages, messages);
+            Guard.NotNull(messages);
             _validator.Validate(transaction);
             GuardSqlTransaction(transaction);
             if (messages.Count == 0)

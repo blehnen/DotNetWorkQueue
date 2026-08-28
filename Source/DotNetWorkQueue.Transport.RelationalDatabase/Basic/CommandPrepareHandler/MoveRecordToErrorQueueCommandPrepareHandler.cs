@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
         /// <param name="buildSql">The build SQL.</param>
         public MoveRecordToErrorQueueCommandPrepareHandler(IBuildMoveToErrorQueueSql buildSql)
         {
-            Guard.NotNull(() => buildSql, buildSql);
+            Guard.NotNull(buildSql);
             _buildSql = buildSql;
         }
         /// <inheritdoc />

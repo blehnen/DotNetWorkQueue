@@ -39,9 +39,9 @@ namespace DotNetWorkQueue.Messages
         /// <param name="correlationId">The correlation identifier.</param>
         public ReceivedMessageInternal(IMessage message, IMessageId messageId, ICorrelationId correlationId)
         {
-            Guard.NotNull(() => message, message);
-            Guard.NotNull(() => messageId, messageId);
-            Guard.NotNull(() => correlationId, correlationId);
+            Guard.NotNull(message);
+            Guard.NotNull(messageId);
+            Guard.NotNull(correlationId);
 
             Body = message.Body;
             MessageId = messageId;

@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
         /// <param name="commandHandler">The command handler.</param>
         public SendHeartBeat(ICommandHandlerWithOutput<SendHeartBeatCommand<T>, DateTime?> commandHandler)
         {
-            Guard.NotNull(() => commandHandler, commandHandler);
+            Guard.NotNull(commandHandler);
             _commandHandler = commandHandler;
         }
         #endregion

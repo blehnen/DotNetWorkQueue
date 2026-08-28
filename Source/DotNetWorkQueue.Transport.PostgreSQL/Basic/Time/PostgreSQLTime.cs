@@ -48,8 +48,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Time
             IConnectionInformation connectionInformation,
             IQueryHandler<GetUtcDateQuery, DateTime> dateTimeQueryHandler) : base(log, configuration)
         {
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => dateTimeQueryHandler, dateTimeQueryHandler);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(dateTimeQueryHandler);
             _queryHandler = dateTimeQueryHandler;
             _connectionInformation = connectionInformation;
         }

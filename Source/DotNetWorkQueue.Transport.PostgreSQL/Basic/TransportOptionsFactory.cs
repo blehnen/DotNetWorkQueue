@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <param name="factory">The factory.</param>
         public TransportOptionsFactory(IPostgreSqlMessageQueueTransportOptionsFactory factory)
         {
-            Guard.NotNull(() => factory, factory);
+            Guard.NotNull(factory);
             _factory = factory;
         }
         /// <inheritdoc />

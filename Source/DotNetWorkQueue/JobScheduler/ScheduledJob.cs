@@ -144,7 +144,7 @@ namespace DotNetWorkQueue.JobScheduler
 
         public void UpdateSchedule(IJobSchedule schedule)
         {
-            Guard.NotNull(() => schedule, schedule);
+            Guard.NotNull(schedule);
             lock (_scheduleLock)
             {
                 var wasRunning = IsScheduleRunning;

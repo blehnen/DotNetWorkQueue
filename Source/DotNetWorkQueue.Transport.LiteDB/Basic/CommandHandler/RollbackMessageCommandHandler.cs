@@ -49,11 +49,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             LiteDbConnectionManager connectionInformation,
             DatabaseExists databaseExists)
         {
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => getUtcDateQuery, getUtcDateQuery);
-            Guard.NotNull(() => options, options);
-            Guard.NotNull(() => databaseExists, databaseExists);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(getUtcDateQuery);
+            Guard.NotNull(options);
+            Guard.NotNull(databaseExists);
 
             _getUtcDateQuery = getUtcDateQuery;
             _options = new Lazy<LiteDbMessageQueueTransportOptions>(options.Create);

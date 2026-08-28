@@ -35,9 +35,9 @@ namespace DotNetWorkQueue.Factory
         /// <returns></returns>
         public IReceivedMessageInternal Create(IMessage message, IMessageId messageId, ICorrelationId correlationId)
         {
-            Guard.NotNull(() => messageId, messageId);
-            Guard.NotNull(() => message, message);
-            Guard.NotNull(() => correlationId, correlationId);
+            Guard.NotNull(messageId);
+            Guard.NotNull(message);
+            Guard.NotNull(correlationId);
 
             return new ReceivedMessageInternal(message, messageId, correlationId);
         }

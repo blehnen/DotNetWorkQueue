@@ -42,11 +42,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
             DatabaseExists databaseExists,
             ISqLiteMessageQueueTransportOptionsFactory options)
         {
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => decorated, decorated);
-            Guard.NotNull(() => getFileNameFromConnection, getFileNameFromConnection);
-            Guard.NotNull(() => databaseExists, databaseExists);
-            Guard.NotNull(() => options, options);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(decorated);
+            Guard.NotNull(getFileNameFromConnection);
+            Guard.NotNull(databaseExists);
+            Guard.NotNull(options);
 
             _connectionInformation = connectionInformation;
             _decorated = decorated;

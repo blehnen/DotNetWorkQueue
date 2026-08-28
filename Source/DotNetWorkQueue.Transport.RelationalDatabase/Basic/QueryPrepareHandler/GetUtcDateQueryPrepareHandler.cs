@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
         /// <param name="commandCache">The command cache.</param>
         public GetUtcDateQueryPrepareHandler(CommandStringCache commandCache)
         {
-            Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(commandCache);
             _commandCache = commandCache;
         }
         /// <inheritdoc />

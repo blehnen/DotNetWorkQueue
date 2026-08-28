@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <param name="connection">The connection.</param>
         public TransactionWrapper(IDbConnection connection)
         {
-            Guard.NotNull(() => connection, connection);
+            Guard.NotNull(connection);
             Connection = connection;
         }
         /// <inheritdoc />

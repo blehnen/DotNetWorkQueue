@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <param name="connectionInformation">The connection information.</param>
         public TableNameHelper(IConnectionInformation connectionInformation)
         {
-            Guard.NotNull(() => connectionInformation, connectionInformation);
+            Guard.NotNull(connectionInformation);
             _connectionInformation = connectionInformation;
         }
         #endregion

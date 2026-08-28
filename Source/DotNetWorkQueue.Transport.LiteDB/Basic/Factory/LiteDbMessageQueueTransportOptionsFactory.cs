@@ -45,8 +45,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.Factory
         public LiteDbMessageQueueTransportOptionsFactory(IConnectionInformation connectionInformation,
             IQueryHandler<GetQueueOptionsQuery<LiteDbMessageQueueTransportOptions>, LiteDbMessageQueueTransportOptions> queryOptions)
         {
-            Guard.NotNull(() => queryOptions, queryOptions);
-            Guard.NotNull(() => connectionInformation, connectionInformation);
+            Guard.NotNull(queryOptions);
+            Guard.NotNull(connectionInformation);
 
             _queryOptions = queryOptions;
             _connectionInformation = connectionInformation;

@@ -44,7 +44,7 @@ namespace DotNetWorkQueue
         /// </summary>
         public static void SetContainerFactory(Func<ICreateContainer<TTransportInit>> createContainer)
         {
-            Guard.NotNull(() => createContainer, createContainer);
+            Guard.NotNull(createContainer);
             _createContainerInternal = createContainer;
         }
 
@@ -81,7 +81,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
             Containers.Add(container);
@@ -96,7 +96,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, registerServiceInternal, _setOptions);
             Containers.Add(container);
@@ -112,7 +112,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerQueueAsync, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
             Containers.Add(container);
@@ -130,7 +130,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
 
             var schedulerCreator = new SchedulerContainer(_registerService);
             var factory = schedulerCreator.CreateTaskFactory();
@@ -149,7 +149,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
 
             return CreateConsumerQueueSchedulerInternal(queueConnection, factory, null, false);
         }
@@ -165,7 +165,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
 
             return CreateConsumerQueueSchedulerInternal(queueConnection, factory, workGroup, false);
         }
@@ -179,7 +179,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
 
             var schedulerCreator = new SchedulerContainer(_registerService);
             var factory = schedulerCreator.CreateTaskFactory();
@@ -198,7 +198,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
 
             return CreateConsumerMethodQueueSchedulerInternal(queueConnection, factory, null, false);
         }
@@ -214,7 +214,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
 
             return CreateConsumerMethodQueueSchedulerInternal(queueConnection, factory, workGroup, false);
         }
@@ -230,7 +230,7 @@ namespace DotNetWorkQueue
         private IConsumerQueueScheduler CreateConsumerQueueSchedulerInternal(QueueConnection queueConnection,
             ITaskFactory factory, IWorkGroup workGroup, bool internalFactory)
         {
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
             IContainer container;
             if (internalFactory) //we own the factory
             {
@@ -276,7 +276,7 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         private IConsumerMethodQueueScheduler CreateConsumerMethodQueueSchedulerInternal(QueueConnection queueConnection, ITaskFactory factory, IWorkGroup workGroup, bool internalFactory)
         {
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
 
             IContainer container;
             if (internalFactory) //we own factory
@@ -344,7 +344,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             Containers.Add(container);
@@ -361,7 +361,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             Containers.Add(container);
@@ -378,7 +378,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             Containers.Add(container);
@@ -442,7 +442,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.Admin, _registerService, queueConnection, _transportInit, ConnectionTypes.Status, x => { }, _setOptions);
             Containers.Add(container);
@@ -470,7 +470,7 @@ namespace DotNetWorkQueue
         {
             ThrowIfDisposed();
 
-            Guard.NotNull(() => queueConnection, queueConnection);
+            Guard.NotNull(queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.Admin, _registerService, queueConnection, _transportInit, ConnectionTypes.Status, registerServiceInternal ?? (x => { }), _setOptions);
             Containers.Add(container);

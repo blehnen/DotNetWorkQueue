@@ -38,8 +38,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         public RetryQueryHandlerDecorator(IQueryHandler<TQuery, TResult> decorated,
             IPolicies policies)
         {
-            Guard.NotNull(() => decorated, decorated);
-            Guard.NotNull(() => policies, policies);
+            Guard.NotNull(decorated);
+            Guard.NotNull(policies);
 
             _decorated = decorated;
             _policies = policies;
@@ -48,7 +48,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         /// <inheritdoc />
         public TResult Handle(TQuery query)
         {
-            Guard.NotNull(() => query, query);
+            Guard.NotNull(query);
             ResiliencePipeline pipeline = null;
             try
             {

@@ -32,8 +32,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             IRedisConnection connection,
             RedisNames redisNames)
         {
-            Guard.NotNull(() => connection, connection);
-            Guard.NotNull(() => redisNames, redisNames);
+            Guard.NotNull(connection);
+            Guard.NotNull(redisNames);
 
             _connection = connection;
             _redisNames = redisNames;

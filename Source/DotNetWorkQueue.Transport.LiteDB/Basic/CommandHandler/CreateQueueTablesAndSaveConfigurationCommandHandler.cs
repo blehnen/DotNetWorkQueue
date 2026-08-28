@@ -50,11 +50,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             IInternalSerializer serializer,
             IConnectionInformation connectionInfo)
         {
-            Guard.NotNull(() => optionsFactory, optionsFactory);
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => serializer, serializer);
-            Guard.NotNull(() => connectionInfo, connectionInfo);
+            Guard.NotNull(optionsFactory);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(serializer);
+            Guard.NotNull(connectionInfo);
 
             _options = new Lazy<LiteDbMessageQueueTransportOptions>(optionsFactory.Create);
             _connectionInformation = connectionInformation;

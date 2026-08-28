@@ -43,9 +43,9 @@ namespace DotNetWorkQueue.Queue
             ILogger log,
             IConsumerQueueErrorNotification consumerQueueErrorNotification)
         {
-            Guard.NotNull(() => transportErrorHandler, transportErrorHandler);
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => consumerQueueErrorNotification, consumerQueueErrorNotification);
+            Guard.NotNull(transportErrorHandler);
+            Guard.NotNull(log);
+            Guard.NotNull(consumerQueueErrorNotification);
 
             _transportErrorHandler = transportErrorHandler;
             _log = log;

@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Messages
         /// <param name="generateMessage">The generate message.</param>
         public MessageHandlerRegistration(IGenerateReceivedMessage generateMessage)
         {
-            Guard.NotNull(() => generateMessage, generateMessage);
+            Guard.NotNull(generateMessage);
             _generateMessage = generateMessage;
         }
 
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Messages
         /// <param name="messageAction">The message action.</param>
         public void Set<T>(Action<IReceivedMessage<T>, IWorkerNotification> messageAction) where T : class
         {
-            Guard.NotNull(() => messageAction, messageAction);
+            Guard.NotNull(messageAction);
             _handler = messageAction;
             _messageType = typeof(T);
         }

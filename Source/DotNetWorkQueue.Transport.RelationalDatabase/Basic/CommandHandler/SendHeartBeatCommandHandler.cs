@@ -42,8 +42,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             IDbConnectionFactory connectionFactory)
         {
 
-            Guard.NotNull(() => connectionFactory, connectionFactory);
-            Guard.NotNull(() => prepareCommand, prepareCommand);
+            Guard.NotNull(connectionFactory);
+            Guard.NotNull(prepareCommand);
 
             _prepareCommand = prepareCommand;
             _connectionFactory = connectionFactory;

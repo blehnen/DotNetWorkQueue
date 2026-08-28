@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <param name="getErrorMessageQueryHandler">The get error message query handler.</param>
         public LiteDbGetPreviousMessageErrors(IQueryHandler<GetMessageErrorsQuery<int>, Dictionary<string, int>> getErrorMessageQueryHandler)
         {
-            Guard.NotNull(() => getErrorMessageQueryHandler, getErrorMessageQueryHandler);
+            Guard.NotNull(getErrorMessageQueryHandler);
             _getErrorMessageQueryHandler = getErrorMessageQueryHandler;
         }
         #endregion

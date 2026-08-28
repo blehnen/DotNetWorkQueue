@@ -47,10 +47,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
                     LiteDbConnectionManager connectionInformation,
                     TableNameHelper tableNameHelper)
         {
-            Guard.NotNull(() => serializer, serializer);
-            Guard.NotNull(() => tableExists, tableExists);
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
+            Guard.NotNull(serializer);
+            Guard.NotNull(tableExists);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(tableNameHelper);
 
             _serializer = serializer;
             _tableExists = tableExists;

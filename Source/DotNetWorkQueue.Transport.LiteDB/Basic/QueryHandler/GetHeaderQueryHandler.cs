@@ -43,9 +43,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
             LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper)
         {
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => serialization, serialization);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(serialization);
 
             _connectionInformation = connectionInformation;
             _tableNameHelper = tableNameHelper;

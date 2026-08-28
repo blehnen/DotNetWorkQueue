@@ -53,10 +53,10 @@ namespace DotNetWorkQueue.Transport.LiteDb
         /// <summary>Validates that the queue name contains only safe characters for use as a LiteDB collection name.</summary>
         private static void ValidateQueueName(string name)
         {
-            Guard.NotNullOrEmpty(() => name, name);
-            Guard.IsValid(() => name, name, n => n.Length <= 256,
+            Guard.NotNullOrEmpty(name);
+            Guard.IsValid(name, n => n.Length <= 256,
                 $"Queue name exceeds maximum length of 256 characters. Got {name.Length} characters.");
-            Guard.IsValid(() => name, name, n => ValidQueueNamePattern().IsMatch(n),
+            Guard.IsValid(name, n => ValidQueueNamePattern().IsMatch(n),
                 "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
         }
 

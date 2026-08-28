@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic.Command
         /// <param name="queueId">The queue identifier.</param>
         public SetErrorCountCommand(string exceptionType, T queueId)
         {
-            Guard.NotNullOrEmpty(() => exceptionType, exceptionType);
+            Guard.NotNullOrEmpty(exceptionType);
 
             ExceptionType = exceptionType;
             QueueId = queueId;

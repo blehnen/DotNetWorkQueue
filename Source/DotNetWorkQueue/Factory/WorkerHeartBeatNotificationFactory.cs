@@ -37,8 +37,8 @@ namespace DotNetWorkQueue.Factory
         /// <param name="configuration">The configuration.</param>
         public WorkerHeartBeatNotificationFactory(IContainerFactory container, IHeartBeatConfiguration configuration)
         {
-            Guard.NotNull(() => container, container);
-            Guard.NotNull(() => configuration, configuration);
+            Guard.NotNull(container);
+            Guard.NotNull(configuration);
             _container = container;
             _configuration = configuration;
         }

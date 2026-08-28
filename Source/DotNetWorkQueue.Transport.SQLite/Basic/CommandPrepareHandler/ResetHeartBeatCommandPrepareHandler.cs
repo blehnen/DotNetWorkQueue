@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandPrepareHandler
         /// <param name="commandCache">The command cache.</param>
         public ResetHeartBeatCommandPrepareHandler(CommandStringCache commandCache)
         {
-            Guard.NotNull(() => commandCache, commandCache);
+            Guard.NotNull(commandCache);
             _commandCache = commandCache;
         }
 

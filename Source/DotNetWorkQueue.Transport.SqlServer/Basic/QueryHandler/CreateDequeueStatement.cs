@@ -41,10 +41,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             SqlServerCommandStringCache commandCache,
             QueueConsumerConfiguration configuration)
         {
-            Guard.NotNull(() => optionsFactory, optionsFactory);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => commandCache, commandCache);
-            Guard.NotNull(() => configuration, configuration);
+            Guard.NotNull(optionsFactory);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(commandCache);
+            Guard.NotNull(configuration);
 
             _options = new Lazy<SqlServerMessageQueueTransportOptions>(optionsFactory.Create);
             _tableNameHelper = tableNameHelper;

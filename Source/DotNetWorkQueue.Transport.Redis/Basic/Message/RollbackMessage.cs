@@ -38,8 +38,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Message
         /// <param name="headers">The headers.</param>
         public RollbackMessage(ICommandHandler<RollbackMessageCommand<string>> command, RedisHeaders headers)
         {
-            Guard.NotNull(() => command, command);
-            Guard.NotNull(() => headers, headers);
+            Guard.NotNull(command);
+            Guard.NotNull(headers);
 
             _command = command;
             _headers = headers;

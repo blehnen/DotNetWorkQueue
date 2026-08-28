@@ -32,9 +32,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             IPrepareQueryHandler<GetQueueCountQuery, long> prepareQuery,
             IReadColumn readColumn)
         {
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => prepareQuery, prepareQuery);
-            Guard.NotNull(() => readColumn, readColumn);
+            Guard.NotNull(dbConnectionFactory);
+            Guard.NotNull(prepareQuery);
+            Guard.NotNull(readColumn);
 
             _prepareQuery = prepareQuery;
             _dbConnectionFactory = dbConnectionFactory;

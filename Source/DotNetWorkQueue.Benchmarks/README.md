@@ -1,4 +1,4 @@
-# DotNetWorkQueue.Benchmarks
+﻿# DotNetWorkQueue.Benchmarks
 
 Micro-benchmarks used to attribute cost inside the library. Not shipped, not part of
 `DotNetWorkQueueNoTests.sln`, and not run by CI.
@@ -116,6 +116,38 @@ The script is keyed on the caller's clause and the routes, the only inputs to it
 Parameter *values* are bound rather than written into the SQL, so the factory forms of
 `GetUserClause` and `GetUserParameters` are still called on every dequeue and keep working — a
 clause that changes simply produces a different key.
+
+## CorePathBenchmarks
+
+Decomposes the cost of a send that belongs to the core library rather than to a transport, so a
+change to any of it moves every transport at once. The rungs are paired: the first of a pair is
+what the library did, the second is what replaced it, both on the same input in the same process.
+
+| benchmark | isolates |
+|---|---|
+| body: SerializeObject then UTF8.GetBytes (current) | what `JsonSerializer` does today |
+| body: cached serializer, still via a string | *minus the row above* = constructing a Newtonsoft `JsonSerializer` from the settings on every call |
+| body: cached serializer, direct to UTF8 bytes | writing straight to a stream instead of a string |
+| body: cached serializer + pooled writer buffers | the writer's internal char buffers rented rather than allocated |
+| body: JSON payload size (reference, not a candidate) | the floor: `SerializeObject` alone, with no byte conversion at all |
+| headers: … | the same pair for the header dictionary |
+| header: portable type name, uncached / cached | `Assembly.GetName()` per send against a per-type cache |
+| validation: 14x Guard.NotNull, expression tree / compiler-supplied name | the argument validation a single send runs |
+
+### Findings
+
+| finding | evidence |
+|---|---|
+| Argument validation was the largest removable cost in the core library | `Guard` took its parameter name from an `Expression<Func<T>>`, so the compiler emitted tree-building code at every call site and ran it on every call, including the ones that pass. 605 ns and 2,152 B for the 14 calls a send makes, against 2.7 ns and nothing for the same checks with the name supplied by the compiler — 43 ns and 154 B per call. A send makes 14 and a message consumed makes roughly 19 |
+| The `MessageBodyType` header was rebuilt from the assembly identity on every send | `Assembly.GetName()` parses the identity and allocates an `AssemblyName` for a value that is fixed per type: 205 ns and 520 B per message, against 2.9 ns and nothing from a per-type cache |
+| Writing JSON straight to UTF-8 bytes allocates **more**, not less | 7.92 KB against 4.3 KB for the string round trip, and 25% slower. `StreamWriter` brings a 1 KB char buffer, an encoder and a byte buffer, all of which cost more than the intermediate string they avoid. Do not re-derive this |
+| Caching the Newtonsoft `JsonSerializer` is worth almost nothing here | 4.08 KB against 4.3 KB, about 5%. `JsonConvert.SerializeObject` does construct one per call, but that construction is not where the money is |
+| Serialization cannot be meaningfully improved while the serializer is Newtonsoft | `SerializeObject` **alone**, producing only a string and converting nothing, costs 539 ns and 3.91 KB for a 256-byte message. That is the floor; the whole current rung is 616 ns and 4.3 KB. Everything above the floor is the output byte array. Reducing this means replacing the serializer, not tuning the call |
+
+Measured on net10, WSL2/ext4, ShortRun. End to end, removing the expression trees and caching the
+type name took a SQLite send from 20,674 B to 17,721 B, a 100-message batch from 1,795 us to
+1,600 us, and the transport-independent producer pipeline from 4,005 ns / 4,512 B to
+2,839 ns / 3,088 B.
 
 ## Why this exists
 

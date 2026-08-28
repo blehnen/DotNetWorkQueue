@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Factory
         /// <param name="unixTimeFactory">The unix time factory.</param>
         public GetRedisTimeFactory(IUnixTimeFactory unixTimeFactory)
         {
-            Guard.NotNull(() => unixTimeFactory, unixTimeFactory);
+            Guard.NotNull(unixTimeFactory);
             _unixTimeFactory = unixTimeFactory;
         }
         /// <inheritdoc />

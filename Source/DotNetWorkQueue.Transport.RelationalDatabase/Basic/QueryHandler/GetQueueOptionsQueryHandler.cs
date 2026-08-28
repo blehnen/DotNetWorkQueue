@@ -56,13 +56,13 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                     IDbConnectionFactory dbConnectionFactory,
                     IReadColumn readColumn)
         {
-            Guard.NotNull(() => serializer, serializer);
-            Guard.NotNull(() => tableExists, tableExists);
-            Guard.NotNull(() => prepareQuery, prepareQuery);
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => readColumn, readColumn);
+            Guard.NotNull(serializer);
+            Guard.NotNull(tableExists);
+            Guard.NotNull(prepareQuery);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(dbConnectionFactory);
+            Guard.NotNull(readColumn);
 
             _serializer = serializer;
             _tableExists = tableExists;

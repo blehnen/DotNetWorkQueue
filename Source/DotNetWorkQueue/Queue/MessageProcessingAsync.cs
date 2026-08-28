@@ -76,15 +76,15 @@ namespace DotNetWorkQueue.Queue
             IConsumerQueueErrorNotification consumerQueueErrorNotification,
             IConsumerQueueNotification consumerQueueNotification)
         {
-            Guard.NotNull(() => receiveMessages, receiveMessages);
-            Guard.NotNull(() => messageContextFactory, messageContextFactory);
-            Guard.NotNull(() => queueWaitFactory, queueWaitFactory);
-            Guard.NotNull(() => log, log);
-            Guard.NotNull(() => processMessage, processMessage);
-            Guard.NotNull(() => receivePoisonMessage, receivePoisonMessage);
-            Guard.NotNull(() => rollbackMessage, rollbackMessage);
-            Guard.NotNull(() => consumerQueueErrorNotification, consumerQueueErrorNotification);
-            Guard.NotNull(() => consumerQueueNotification, consumerQueueNotification);
+            Guard.NotNull(receiveMessages);
+            Guard.NotNull(messageContextFactory);
+            Guard.NotNull(queueWaitFactory);
+            Guard.NotNull(log);
+            Guard.NotNull(processMessage);
+            Guard.NotNull(receivePoisonMessage);
+            Guard.NotNull(rollbackMessage);
+            Guard.NotNull(consumerQueueErrorNotification);
+            Guard.NotNull(consumerQueueNotification);
 
             _receiveMessages = receiveMessages;
             _messageContextFactory = messageContextFactory;

@@ -38,8 +38,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Metrics.Decorator
             IQueryHandler<ReceiveMessageQuery, RedisMessage> handler,
             IConnectionInformation connectionInformation)
         {
-            Guard.NotNull(() => metrics, metrics);
-            Guard.NotNull(() => handler, handler);
+            Guard.NotNull(metrics);
+            Guard.NotNull(handler);
 
             var name = handler.GetType().Name;
             _counter = metrics.Counter($"{connectionInformation.QueueName}.{name}.HandleAsync.Expired", Units.Items);

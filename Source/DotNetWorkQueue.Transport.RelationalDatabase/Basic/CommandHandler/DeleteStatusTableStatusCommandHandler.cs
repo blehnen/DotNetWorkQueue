@@ -39,8 +39,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         public DeleteStatusTableStatusCommandHandler(IPrepareCommandHandler<DeleteStatusTableStatusCommand<long>> prepareCommand,
             IDbConnectionFactory dbConnectionFactory)
         {
-            Guard.NotNull(() => prepareCommand, prepareCommand);
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
+            Guard.NotNull(prepareCommand);
+            Guard.NotNull(dbConnectionFactory);
 
             _prepareCommand = prepareCommand;
             _dbConnectionFactory = dbConnectionFactory;

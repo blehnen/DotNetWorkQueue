@@ -45,9 +45,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
             TableNameHelper tableNameHelper,
             IMessageErrorConfiguration configuration)
         {
-            Guard.NotNull(() => connectionInformation, connectionInformation);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => configuration, configuration);
+            Guard.NotNull(connectionInformation);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(configuration);
 
             _connectionInformation = connectionInformation;
             _tableNameHelper = tableNameHelper;

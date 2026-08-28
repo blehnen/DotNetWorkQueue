@@ -81,13 +81,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             DatabaseExists databaseExists,
             QueueConsumerConfiguration configuration)
         {
-            Guard.NotNull(() => optionsFactory, optionsFactory);
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => buildDequeueCommand, buildDequeueCommand);
-            Guard.NotNull(() => messageDeQueue, messageDeQueue);
-            Guard.NotNull(() => databaseExists, databaseExists);
-            Guard.NotNull(() => dbFactory, dbFactory);
-            Guard.NotNull(() => configuration, configuration);
+            Guard.NotNull(optionsFactory);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(buildDequeueCommand);
+            Guard.NotNull(messageDeQueue);
+            Guard.NotNull(databaseExists);
+            Guard.NotNull(dbFactory);
+            Guard.NotNull(configuration);
 
             _options = new Lazy<SqLiteMessageQueueTransportOptions>(optionsFactory.Create);
             _tableNameHelper = tableNameHelper;

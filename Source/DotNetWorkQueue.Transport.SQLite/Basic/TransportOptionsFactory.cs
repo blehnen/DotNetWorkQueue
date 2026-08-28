@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="factory">The factory.</param>
         public TransportOptionsFactory(ISqLiteMessageQueueTransportOptionsFactory factory)
         {
-            Guard.NotNull(() => factory, factory);
+            Guard.NotNull(factory);
             _factory = factory;
         }
         /// <summary>

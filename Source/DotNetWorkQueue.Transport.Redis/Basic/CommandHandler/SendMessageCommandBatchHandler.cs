@@ -61,13 +61,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             RedisHeaders redisHeaders,
             ISendBatchSize sendBatchSize)
         {
-            Guard.NotNull(() => serializer, serializer);
-            Guard.NotNull(() => enqueue, enqueue);
-            Guard.NotNull(() => unixTimeFactory, unixTimeFactory);
-            Guard.NotNull(() => messageIdFactory, messageIdFactory);
-            Guard.NotNull(() => sentMessageFactory, sentMessageFactory);
-            Guard.NotNull(() => redisHeaders, redisHeaders);
-            Guard.NotNull(() => sendBatchSize, sendBatchSize);
+            Guard.NotNull(serializer);
+            Guard.NotNull(enqueue);
+            Guard.NotNull(unixTimeFactory);
+            Guard.NotNull(messageIdFactory);
+            Guard.NotNull(sentMessageFactory);
+            Guard.NotNull(redisHeaders);
+            Guard.NotNull(sendBatchSize);
 
             _serializer = serializer;
             _enqueue = enqueue;

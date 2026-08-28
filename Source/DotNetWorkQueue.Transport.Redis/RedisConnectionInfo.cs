@@ -77,10 +77,10 @@ namespace DotNetWorkQueue.Transport.Redis
         /// <summary>Validates that the queue name contains only safe characters for use as a Redis key component.</summary>
         private static void ValidateQueueName(string name)
         {
-            Guard.NotNullOrEmpty(() => name, name);
-            Guard.IsValid(() => name, name, n => n.Length <= 512,
+            Guard.NotNullOrEmpty(name);
+            Guard.IsValid(name, n => n.Length <= 512,
                 $"Queue name exceeds maximum length of 512 characters. Got {name.Length} characters.");
-            Guard.IsValid(() => name, name, n => ValidQueueNamePattern().IsMatch(n),
+            Guard.IsValid(name, n => ValidQueueNamePattern().IsMatch(n),
                 "Queue name contains invalid characters. Only alphanumeric characters, underscores, dots, and hyphens are allowed.");
         }
 

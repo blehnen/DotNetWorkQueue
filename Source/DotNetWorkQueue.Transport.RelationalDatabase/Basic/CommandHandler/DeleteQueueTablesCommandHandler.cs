@@ -46,11 +46,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             IPrepareCommandHandler<DeleteTableCommand> prepareDeleteTable,
             IQueryHandler<GetTableExistsTransactionQuery, bool> tableExists)
         {
-            Guard.NotNull(() => tableNameHelper, tableNameHelper);
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => transactionFactory, transactionFactory);
-            Guard.NotNull(() => prepareDeleteTable, prepareDeleteTable);
-            Guard.NotNull(() => tableExists, tableExists);
+            Guard.NotNull(tableNameHelper);
+            Guard.NotNull(dbConnectionFactory);
+            Guard.NotNull(transactionFactory);
+            Guard.NotNull(prepareDeleteTable);
+            Guard.NotNull(tableExists);
 
             _tableNameHelper = tableNameHelper;
             _transactionFactory = transactionFactory;

@@ -37,8 +37,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         public SqLiteHoldConnection(IGetFileNameFromConnectionString getFileNameFromConnection,
             IDbFactory dbFactory)
         {
-            Guard.NotNull(() => getFileNameFromConnection, getFileNameFromConnection);
-            Guard.NotNull(() => dbFactory, dbFactory);
+            Guard.NotNull(getFileNameFromConnection);
+            Guard.NotNull(dbFactory);
             _getFileNameFromConnection = getFileNameFromConnection;
             _dbFactory = dbFactory;
             _connections = new ConcurrentDictionary<string, IDbConnection>();

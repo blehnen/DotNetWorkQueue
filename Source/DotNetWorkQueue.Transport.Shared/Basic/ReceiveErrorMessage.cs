@@ -55,11 +55,11 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
             ILogger log,
             IIncreaseQueueDelay headers)
         {
-            Guard.NotNull(() => configuration, configuration);
-            Guard.NotNull(() => queryErrorRetryCount, queryErrorRetryCount);
-            Guard.NotNull(() => commandSetErrorCount, commandSetErrorCount);
-            Guard.NotNull(() => commandMoveRecord, commandMoveRecord);
-            Guard.NotNull(() => log, log);
+            Guard.NotNull(configuration);
+            Guard.NotNull(queryErrorRetryCount);
+            Guard.NotNull(commandSetErrorCount);
+            Guard.NotNull(commandMoveRecord);
+            Guard.NotNull(log);
 
             _configuration = configuration;
             _queryErrorRetryCount = queryErrorRetryCount;

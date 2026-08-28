@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Interceptors
             Justification = "3DES is intentionally retained (see [Obsolete] on the type) so existing 3DES-encrypted messages remain decryptable. New code should use AesMessageInterceptor.")]
         public MessageInterceptorResult MessageToBytes(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
-            Guard.NotNull(() => input, input);
+            Guard.NotNull(input);
             using (var tripleDes = TripleDES.Create())
             {
                 using (var tripleDesEncrypt = tripleDes.CreateEncryptor(_configuration.Key, _configuration.Iv))
@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Interceptors
             Justification = "3DES is intentionally retained (see [Obsolete] on the type) so existing 3DES-encrypted messages remain decryptable. New code should use AesMessageInterceptor.")]
         public byte[] BytesToMessage(byte[] input, IReadOnlyDictionary<string, object> headers)
         {
-            Guard.NotNull(() => input, input);
+            Guard.NotNull(input);
             using (var tripleDes = TripleDES.Create())
             {
                 using (var tripleDesDecrypt = tripleDes.CreateDecryptor(_configuration.Key, _configuration.Iv))

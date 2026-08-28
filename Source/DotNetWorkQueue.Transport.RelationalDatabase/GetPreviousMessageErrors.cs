@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="getErrorMessageQueryHandler">The get error message query handler.</param>
         public GetPreviousMessageErrors(IQueryHandler<GetMessageErrorsQuery<T>, Dictionary<string, int>> getErrorMessageQueryHandler)
         {
-            Guard.NotNull(() => getErrorMessageQueryHandler, getErrorMessageQueryHandler);
+            Guard.NotNull(getErrorMessageQueryHandler);
             _getErrorMessageQueryHandler = getErrorMessageQueryHandler;
         }
         #endregion

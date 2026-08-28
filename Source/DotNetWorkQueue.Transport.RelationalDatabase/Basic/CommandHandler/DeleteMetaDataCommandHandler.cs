@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         public DeleteMetaDataCommandHandler(
             IPrepareCommandHandler<DeleteMetaDataCommand> prepareCommand)
         {
-            Guard.NotNull(() => prepareCommand, prepareCommand);
+            Guard.NotNull(prepareCommand);
 
             _prepareCommand = prepareCommand;
         }

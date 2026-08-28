@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Messages
         /// <param name="messageContextDataFactory">The message context data factory.</param>
         public StandardHeaders(IMessageContextDataFactory messageContextDataFactory)
         {
-            Guard.NotNull(() => messageContextDataFactory, messageContextDataFactory);
+            Guard.NotNull(messageContextDataFactory);
             FirstPossibleDeliveryDate = messageContextDataFactory.Create<ValueTypeWrapper<DateTime>>("Queue-FirstPossibleDeliveryDate", null);
             MessageInterceptorGraph =
                 messageContextDataFactory.Create("Queue-MessageInterceptorGraph",

@@ -64,14 +64,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             IConnectionHeader<TConnection, TTransaction, TCommand> headers,
             ICommandHandler<SetStatusTableStatusCommand<long>> setCommandHandler)
         {
-            Guard.NotNull(() => options, options);
-            Guard.NotNull(() => transactionFactory, transactionFactory);
-            Guard.NotNull(() => headers, headers);
-            Guard.NotNull(() => prepareCommand, prepareCommand);
-            Guard.NotNull(() => dbConnectionFactory, dbConnectionFactory);
-            Guard.NotNull(() => deleteMetaCommandHandler, deleteMetaCommandHandler);
-            Guard.NotNull(() => setStatusCommandHandler, setStatusCommandHandler);
-            Guard.NotNull(() => setCommandHandler, setCommandHandler);
+            Guard.NotNull(options);
+            Guard.NotNull(transactionFactory);
+            Guard.NotNull(headers);
+            Guard.NotNull(prepareCommand);
+            Guard.NotNull(dbConnectionFactory);
+            Guard.NotNull(deleteMetaCommandHandler);
+            Guard.NotNull(setStatusCommandHandler);
+            Guard.NotNull(setCommandHandler);
 
             _options = new Lazy<ITransportOptions>(options.Create);
             _deleteMetaCommandHandler = deleteMetaCommandHandler;

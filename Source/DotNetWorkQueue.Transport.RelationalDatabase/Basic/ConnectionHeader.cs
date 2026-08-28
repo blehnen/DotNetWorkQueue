@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <param name="messageContextDataFactory">The message context data factory.</param>
         public ConnectionHeader(IMessageContextDataFactory messageContextDataFactory)
         {
-            Guard.NotNull(() => messageContextDataFactory, messageContextDataFactory);
+            Guard.NotNull(messageContextDataFactory);
             Connection = messageContextDataFactory.Create<IConnectionHolder<TConnection, TTransaction, TCommand>>("Connection", null);
         }
         /// <inheritdoc />

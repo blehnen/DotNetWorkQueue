@@ -43,9 +43,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             IDbConnectionFactory connectionFactory,
             IPrepareCommandHandler<ResetHeartBeatCommand<long>> prepareCommand)
         {
-            Guard.NotNull(() => transactionFactory, transactionFactory);
-            Guard.NotNull(() => connectionFactory, connectionFactory);
-            Guard.NotNull(() => prepareCommand, prepareCommand);
+            Guard.NotNull(transactionFactory);
+            Guard.NotNull(connectionFactory);
+            Guard.NotNull(prepareCommand);
 
             _transactionFactory = transactionFactory;
             _connectionFactory = connectionFactory;

@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Admin
 
         public AdminApi(AdminApiConfiguration configuration)
         {
-            Guard.NotNull(() => configuration, configuration);
+            Guard.NotNull(configuration);
             Configuration = configuration;
             _queueConnections = new ConcurrentDictionary<Guid, Tuple<IQueueContainer, QueueConnection>>();
             _queueFunctions = new ConcurrentDictionary<Guid, IAdminFunctions>();
@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Admin
         public Guid AddQueueConnection(IQueueContainer container, QueueConnection connection)
         {
             ThrowIfDisposed();
-            Guard.NotNull(() => connection, connection);
+            Guard.NotNull(connection);
             var id = Guid.NewGuid();
             var added = _queueConnections.TryAdd(id,
                 new Tuple<DotNetWorkQueue.IQueueContainer, QueueConnection>(container, connection));

@@ -67,13 +67,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             LiteDbConnectionManager connectionManager
             )
         {
-            Guard.NotNull(() => options, options);
-            Guard.NotNull(() => createSchema, createSchema);
-            Guard.NotNull(() => queryTableExists, queryTableExists);
-            Guard.NotNull(() => createCommand, createCommand);
-            Guard.NotNull(() => deleteCommand, deleteCommand);
-            Guard.NotNull(() => creationScope, creationScope);
-            Guard.NotNull(() => connectionManager, connectionManager);
+            Guard.NotNull(options);
+            Guard.NotNull(createSchema);
+            Guard.NotNull(queryTableExists);
+            Guard.NotNull(createCommand);
+            Guard.NotNull(deleteCommand);
+            Guard.NotNull(creationScope);
+            Guard.NotNull(connectionManager);
 
             _options = new Lazy<LiteDbMessageQueueTransportOptions>(options.Create);
             _createSchema = createSchema;

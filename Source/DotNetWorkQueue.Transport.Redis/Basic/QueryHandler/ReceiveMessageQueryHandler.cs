@@ -57,12 +57,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             IUnixTimeFactory unixTimeFactory,
             IMessageFactory messageFactory)
         {
-            Guard.NotNull(() => serializer, serializer);
-            Guard.NotNull(() => receivedMessageFactory, receivedMessageFactory);
-            Guard.NotNull(() => removeMessage, removeMessage);
-            Guard.NotNull(() => redisHeaders, redisHeaders);
-            Guard.NotNull(() => dequeueLua, dequeueLua);
-            Guard.NotNull(() => unixTimeFactory, unixTimeFactory);
+            Guard.NotNull(serializer);
+            Guard.NotNull(receivedMessageFactory);
+            Guard.NotNull(removeMessage);
+            Guard.NotNull(redisHeaders);
+            Guard.NotNull(dequeueLua);
+            Guard.NotNull(unixTimeFactory);
 
             _serializer = serializer;
             _receivedMessageFactory = receivedMessageFactory;

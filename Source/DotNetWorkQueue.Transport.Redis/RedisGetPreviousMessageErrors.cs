@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.Redis
 
         public RedisGetPreviousMessageErrors(IQueryHandler<GetMetaDataQuery, RedisMetaData> getMetaData)
         {
-            Guard.NotNull(() => getMetaData, getMetaData);
+            Guard.NotNull(getMetaData);
 
             _getMetaData = getMetaData;
         }

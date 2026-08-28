@@ -35,7 +35,7 @@ namespace DotNetWorkQueue.Messages
         /// <param name="messageHandlerRegistration">The message handler registration.</param>
         public RegisterMessagesAsync(IMessageHandlerRegistrationAsync messageHandlerRegistration)
         {
-            Guard.NotNull(() => messageHandlerRegistration, messageHandlerRegistration);
+            Guard.NotNull(messageHandlerRegistration);
 
             _messageHandlerRegistration = messageHandlerRegistration;
         }
@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Messages
         public void Register<TMessage>(Func<IReceivedMessage<TMessage>, IWorkerNotification, Task> messageAction)
            where TMessage : class
         {
-            Guard.NotNull(() => messageAction, messageAction);
+            Guard.NotNull(messageAction);
 
             _messageHandlerRegistration.Set(messageAction);
             Registered = true;

@@ -37,8 +37,8 @@ namespace DotNetWorkQueue.Messages
         public HandleMessage(IMessageHandler messageHandler,
             IMessageHandlerAsync messageHandlerAsync)
         {
-            Guard.NotNull(() => messageHandler, messageHandler);
-            Guard.NotNull(() => messageHandlerAsync, messageHandlerAsync);
+            Guard.NotNull(messageHandler);
+            Guard.NotNull(messageHandlerAsync);
 
             _messageHandler = messageHandler;
             _messageHandlerAsync = messageHandlerAsync;

@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="connectionInformation">The connection information.</param>
         public RedisNames(IConnectionInformation connectionInformation)
         {
-            Guard.NotNull(() => connectionInformation, connectionInformation);
+            Guard.NotNull(connectionInformation);
             _connectionInformation = connectionInformation;
             _names = new Dictionary<string, string>();
         }

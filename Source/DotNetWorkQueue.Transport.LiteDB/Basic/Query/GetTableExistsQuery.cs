@@ -34,8 +34,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.Query
         /// <param name="tableName">Name of the table.</param>
         public GetTableExistsQuery(LiteDatabase db, string tableName)
         {
-            Guard.NotNull(() => db, db);
-            Guard.NotNullOrEmpty(() => tableName, tableName);
+            Guard.NotNull(db);
+            Guard.NotNullOrEmpty(tableName);
 
             Database = db;
             TableName = tableName;
