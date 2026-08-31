@@ -36,6 +36,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     /// </summary>
     internal class SendMessageCommandHandlerAsync : ICommandHandlerWithOutputAsync<SendMessageCommand, int>
     {
+        /// <summary>Serializes the job check-then-insert; see SendMessageCommandHandler.</summary>
+        private static readonly object Locker = new object();
 
         private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
@@ -130,11 +132,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                 int id = 0;
                 using (var db = _connectionInformation.GetDatabase())
                 {
-                    //see SendMessageCommandHandler: the critical section is for scheduled jobs
-                    //only, and is scoped to this database rather than the whole process
-                    var jobLock = string.IsNullOrWhiteSpace(jobName)
-                        ? null
-                        : DatabaseLocks.ForJobs(_connectionInformation.DatabaseKey);
+                    //see SendMessageCommandHandler: the critical section is for scheduled jobs only
+                    var jobLock = string.IsNullOrWhiteSpace(jobName) ? null : Locker;
                     var lockTaken = false;
                     try
                     {

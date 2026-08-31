@@ -35,6 +35,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     /// </summary>
     internal class SendMessageCommandHandler : ICommandHandlerWithOutput<SendMessageCommand, int>
     {
+        /// <summary>
+        /// Serializes the job check-then-insert. Process wide, which is wider than the check needs,
+        /// but narrowing it means identifying a database reliably enough that two paths to the same
+        /// file cannot get different locks - and an ordinary send no longer takes it at all.
+        /// </summary>
+        private static readonly object Locker = new object();
 
         private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
@@ -131,12 +137,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                 //The critical section exists for scheduled jobs: "is this job already queued"
                 //followed by the insert is a check-then-act that two producers could interleave.
                 //An ordinary send needs none of it - the transaction covers the inserts - and
-                //taking a process-wide lock for every message is what made concurrent producers
-                //slower than a single one. Per database rather than static, so unrelated queues no
-                //longer serialize against each other.
-                var jobLock = string.IsNullOrWhiteSpace(jobName)
-                    ? null
-                    : DatabaseLocks.ForJobs(_connectionInformation.DatabaseKey);
+                //taking this lock for every message is what made concurrent producers slower than
+                //a single one.
+                var jobLock = string.IsNullOrWhiteSpace(jobName) ? null : Locker;
                 var lockTaken = false;
                 try
                 {

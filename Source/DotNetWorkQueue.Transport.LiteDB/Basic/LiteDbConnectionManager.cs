@@ -55,7 +55,6 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
 
             var builder = new LiteDB.ConnectionString(_connectionInformation.ConnectionString);
             _shared = builder.Connection == ConnectionType.Shared;
-            DatabaseKey = BuildDatabaseKey(builder, _connectionInformation.ConnectionString);
 
             var existingScopeConnection = scope.GetDisposable<LiteDbConnectionManager>();
             if (existingScopeConnection != null)
@@ -76,47 +75,6 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         ///   <c>true</c> if this instance is shared connection; otherwise, <c>false</c>.
         /// </value>
         public bool IsSharedConnection => _shared;
-
-        /// <summary>
-        /// Identifies the underlying database, for code that has to serialize access to it.
-        /// </summary>
-        /// <remarks>
-        /// Two managers pointing at the same file produce the same key even when their connection
-        /// strings differ in text or casing, and managers pointing at different files never do.
-        /// Serializing on the connection string itself would be wrong for the first case and
-        /// needlessly wide for the second.
-        /// </remarks>
-        public string DatabaseKey { get; } = string.Empty;
-
-        /// <summary>
-        /// Resolves a database to a stable key: the full path for a file, and the connection string
-        /// itself for an in-memory database, which is private to the connection that opened it.
-        /// </summary>
-        private static string BuildDatabaseKey(LiteDB.ConnectionString builder, string connectionString)
-        {
-            //LiteDB resolves ":memory:" into Filename like any other path, so this has to be
-            //detected the same way LiteDbGetFileNameFromConnectionString detects it. An in-memory
-            //database is private to the connection that opened it and has nothing on disk to key
-            //on, so the connection string stands in - two of them sharing a lock costs a little
-            //serialization, where splitting them could not be shown to be safe.
-            if (connectionString.Contains(":memory:") || string.IsNullOrWhiteSpace(builder.Filename))
-                return connectionString;
-
-            try
-            {
-                return System.IO.Path.GetFullPath(builder.Filename).ToUpperInvariant();
-            }
-            catch (ArgumentException)
-            {
-                //an unusable path is not worth failing construction over; the raw value still
-                //distinguishes one database from another
-                return builder.Filename.ToUpperInvariant();
-            }
-            catch (System.IO.PathTooLongException)
-            {
-                return builder.Filename.ToUpperInvariant();
-            }
-        }
 
         /// <summary>
         /// Gets the database.

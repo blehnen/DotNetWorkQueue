@@ -29,13 +29,20 @@ namespace DotNetWorkQueue.Benchmarks
     /// Measures what a single-threaded ladder cannot see: whether concurrent producers scale.
     /// </summary>
     /// <remarks>
-    /// <c>SendMessageCommandHandler</c> takes a <b>static</b> lock around the whole send, so every
-    /// send in the process serializes - including sends to unrelated queues. Each rung here sends a
-    /// fixed number of messages and is reported per batch, so the rows are directly comparable:
-    /// if more threads do not make the batch faster, the lock is the ceiling.
+    /// Each rung sends a fixed number of messages and is reported per batch, so the rows compare
+    /// directly: if more threads do not make the batch faster, something is serializing them.
     /// <para>
-    /// The raw rung is the control. LiteDB does its own locking internally, so it shows what the
-    /// storage engine alone allows before the transport's lock is added.
+    /// This is what found the send path's ceiling. <c>SendMessageCommandHandler</c> held a static
+    /// lock around <em>every</em> send, so unrelated queues waited on each other - four threads ran
+    /// slower than one, and two queues with separate database files performed no better than a
+    /// single queue. The lock is now taken only for the scheduled-job check it exists for, which is
+    /// the only send that needs it.
+    /// </para>
+    /// <para>
+    /// The raw rungs are controls. LiteDB does its own locking, so they show what the storage
+    /// engine allows before the transport is added - and the transactional one shows that a single
+    /// database does not scale for writes whatever this library does, because a write transaction
+    /// takes an exclusive engine lock.
     /// </para>
     /// </remarks>
     [MemoryDiagnoser]

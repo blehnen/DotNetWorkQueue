@@ -33,10 +33,10 @@ namespace DotNetWorkQueue.Benchmarks
     /// LiteDb is the other embedded single-file transport, so the SQLite findings are the obvious
     /// hypotheses - but they are hypotheses, and this exists to test them rather than assume them.
     /// <para>
-    /// One cost deliberately does not appear here: <c>SendMessageCommandHandler</c> takes a
-    /// <b>static</b> lock around every send, so it serializes every send in the process regardless
-    /// of queue. A single-threaded benchmark cannot see that at all - see
-    /// <see cref="LiteDbConcurrencyBenchmarks"/>.
+    /// One cost cannot appear here at all: <c>SendMessageCommandHandler</c> holds a <b>static</b>
+    /// lock for the scheduled-job check, which serializes those sends across the whole process
+    /// regardless of queue. A single-threaded benchmark cannot see a lock - see
+    /// <see cref="LiteDbConcurrencyBenchmarks"/>, which is where that was found and measured.
     /// </para>
     /// </remarks>
     [MemoryDiagnoser]

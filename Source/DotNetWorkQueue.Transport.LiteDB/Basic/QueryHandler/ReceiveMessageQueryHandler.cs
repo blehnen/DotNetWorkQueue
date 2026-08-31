@@ -31,6 +31,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
     /// </summary>
     internal class ReceiveMessageQueryHandler : IQueryHandler<ReceiveMessageQuery, IReceivedMessageInternal>
     {
+        private static readonly object Reader = new object();
 
         private readonly Lazy<LiteDbMessageQueueTransportOptions> _options;
         private readonly TableNameHelper _tableNameHelper;
@@ -83,12 +84,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
 
             using (var db = _connectionInformation.GetDatabase())
             {
-                //One de-queue at a time against this database: BeginTrans does not block in direct
-                //or memory mode, so two consumers could otherwise claim the same record. Scoped to
-                //the database rather than the process - the exclusion is only needed between
-                //consumers of the same queue, and a static lock made unrelated queues wait on each
-                //other for no reason.
-                lock (DatabaseLocks.ForDequeue(_connectionInformation.DatabaseKey))
+                lock (Reader) //we have to enforce a single de-queue action per process, as BeginTrans does not block in direct or memory mode
                 {
                     db.Database.BeginTrans(); //will block in shared mode, but not direct or memory
                     try

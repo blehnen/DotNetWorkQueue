@@ -174,14 +174,15 @@ messages and is reported per batch, so rows compare directly: **if more threads 
 batch faster, something is serializing them.** The raw rungs are controls — LiteDB does its own
 locking, so they show what the storage engine allows before the transport is added.
 
-## Findings
+## LiteDb findings
 
 Measured on net10, WSL2/ext4, ShortRun. Direct connection unless stated.
 
 | finding | evidence |
 |---|---|
-| Three process-wide locks were the ceiling, not the missing bulk-send path | `SendMessageCommandHandler`, its async twin and `ReceiveMessageQueryHandler` each held a `static readonly object`. Four producer threads ran **1.35x slower** than one, and two queues with **separate database files** performed no better than a single queue (40.31 ms against 38.68 ms for 200 sends) — they were waiting on each other for no reason |
-| Scoping those locks per database is worth 1.8x across queues | Two queues on four threads went from 40.31 ms to 22.42 ms for 200 sends, and from *slower* than single-threaded (1.40x) to faster (0.77x) |
+| A process-wide lock on every send was the ceiling, not the missing bulk-send path | `SendMessageCommandHandler` took a `static readonly object` on **every** message, though its stated purpose is the scheduled-job check-then-act. Four producer threads ran **1.35x slower** than one, and two queues with **separate database files** performed no better than a single queue (40.31 ms against 38.68 ms for 200 sends) — they were waiting on each other for no reason |
+| Taking that lock only for job sends is worth 1.8x across queues | Two queues on four threads went from 40.31 ms to 21.87 ms for 200 sends, and from *slower* than single-threaded (1.40x) to faster (0.67x). An ordinary send is covered by the transaction and needs no lock at all |
+| Narrowing the locks per database was tried, measured at nothing, and reverted | It looks like the obvious next step, and it is a trap. The benefit above comes entirely from *skipping* the lock, so keying it per database moved no number — every send in these rungs carries no job name and takes no lock either way. It also cannot be done safely from a path: `Path.GetFullPath` does not resolve symbolic links, and nothing path-based resolves hard links, so two connection strings reaching one file could get different locks. On the de-queue path that means two consumers claiming the same record. Do not re-derive this without a real file-identity check |
 | The remaining single-database ceiling is LiteDB's, not this library's | Raw LiteDB doing the same transaction-wrapped writes with no transport involved goes 12.13 ms on one thread to 20.86 ms on four — **1.72x slower**, worse than the transport's own 1.31x. A write transaction takes an exclusive engine lock. Do not chase this in the transport |
 | Batching is currently **worse** than not batching | 20,677 us for 100 messages is 207 us each, against 149 us sending them one at a time. LiteDb has no bulk path, so `SendMessages` falls back to `Parallel.ForEach` over single sends — which fans threads into that same exclusive write transaction and buys contention instead of parallelism |
 | A shared connection costs 17x | 2,506 us against 149 us for the same send. `LiteDbConnectionManager.GetDatabase` constructs a **new `LiteDatabase` per operation** in shared mode; the raw ladder shows the same shape at 2,034 us with a database per send against 62.6 us on a held one |
