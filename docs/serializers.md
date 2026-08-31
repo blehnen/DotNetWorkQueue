@@ -10,7 +10,8 @@ allocation back.
 
 ## What it is worth
 
-Measured on net10 for a 256 byte message, `Source/DotNetWorkQueue.Benchmarks`:
+Measured on net10 by `Source/DotNetWorkQueue.Benchmarks`, for a message whose body is a 256-byte
+string (the serialized form is larger - it also carries the wrapper and the type name):
 
 | | Newtonsoft | System.Text.Json |
 |---|---|---|

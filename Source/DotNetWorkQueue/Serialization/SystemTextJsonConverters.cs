@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Serialization
                 return;
             }
 
-            var type = (Type)body.GetType();
+            var type = body.GetType();
             writer.WriteString(TypeProperty, TypeNaming.Write(_binder, type));
             writer.WritePropertyName(ValueProperty);
             Stj.Serialize(writer, body, type, options);
@@ -148,7 +148,14 @@ namespace DotNetWorkQueue.Serialization
 
     /// <summary>Writes and reads one polymorphic member. See <see cref="PolymorphicMemberConverterFactory"/>.</summary>
     /// <typeparam name="T">The declared type of the member.</typeparam>
+    /// <remarks>
+    /// Constrained to a reference type deliberately. <see cref="PolymorphicMemberConverterFactory"/>
+    /// only ever builds this for <see cref="object"/>, an interface, or an abstract class, and the
+    /// constraint says so - it also keeps the null check from being a comparison against an
+    /// unconstrained T, which is always false for a value type.
+    /// </remarks>
     internal sealed class PolymorphicMemberConverter<T> : JsonConverter<T>
+        where T : class
     {
         private readonly ISerializationBinder _binder;
 

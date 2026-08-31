@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Serialization
     /// annotation, which is the shape this library has to support - callers queue whatever type
     /// they like. This is for callers who own their message types and want the allocation back:
     /// measured at 4,464 B against 752 B to serialize and 4,552 B against 1,272 B to read back, for
-    /// a 256 byte message.
+    /// a message whose body is a 256-byte string.
     /// <para>
     /// <b>Changing the serializer on a queue that already holds messages requires setting
     /// <see cref="ISerializerResolver.Fallback"/></b> to whatever wrote them. Messages written

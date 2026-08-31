@@ -105,7 +105,7 @@ namespace DotNetWorkQueue.Tests.Serialization
             var registered = Serializer("json.net");
             var sut = new SerializerResolver(registered);
 
-            Assert.AreEqual(1, sut.Registered.Count);
+            Assert.HasCount(1, sut.Registered);
             Assert.AreSame(registered, sut.Registered["json.net"]);
         }
 
@@ -186,6 +186,42 @@ namespace DotNetWorkQueue.Tests.Serialization
 
             Assert.IsInstanceOfType<DotNetWorkQueueException>(ex.InnerException);
             Assert.Contains("something.else", ex.InnerException.Message);
+        }
+
+        [TestMethod]
+        public void A_Marker_That_Is_Not_A_String_Throws_Rather_Than_Falling_Back()
+        {
+            //a corrupt or forged header. Casting it away would quietly select the fallback and read
+            //the body with the wrong serializer, which is exactly what the resolver exists to stop
+            var binder = new DenyListSerializationBinder();
+            var newton = new JsonSerializer(binder);
+            var headers = new Dictionary<string, object> { { "Queue-SerializerId", 42 } };
+            var bytes = newton.ConvertMessageToBytes(new MessageBody { Body = new Payload { Name = "x" } }, headers);
+
+            var root = new RootSerializer(null, newton, new SerializerResolver(newton));
+
+            var ex = Assert.ThrowsExactly<SerializationException>(() =>
+                root.BytesToMessage<MessageBody>(bytes, new MessageInterceptorsGraph(), headers));
+
+            Assert.IsInstanceOfType<DotNetWorkQueueException>(ex.InnerException);
+            Assert.Contains("System.Int32", ex.InnerException.Message);
+        }
+
+        [TestMethod]
+        public void A_Marker_Present_But_Null_Is_Treated_As_A_Legacy_Message()
+        {
+            //indistinguishable in intent from the header not being there at all
+            var binder = new DenyListSerializationBinder();
+            var newton = new JsonSerializer(binder);
+            var headers = new Dictionary<string, object> { { "Queue-SerializerId", null } };
+            var bytes = newton.ConvertMessageToBytes(
+                new MessageBody { Body = new Payload { Name = "legacy" } }, headers);
+
+            var root = new RootSerializer(null, newton, new SerializerResolver(newton));
+
+            var back = root.BytesToMessage<MessageBody>(bytes, new MessageInterceptorsGraph(), headers);
+
+            Assert.AreEqual("legacy", (string)back.Body.Name);
         }
 
         public class Payload { public string Name { get; set; } }

@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -32,19 +32,23 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.QueryHandler
         private readonly IDataStorage _dataStorage;
         private readonly ICompositeSerialization _serialization;
         private readonly IHeaders _headers;
+        private readonly ISerializer _serializer;
 
         public GetDashboardMessageBodyQueryHandlerAsync(
             IDataStorage dataStorage,
             ICompositeSerialization serialization,
-            IHeaders headers)
+            IHeaders headers,
+            ISerializer serializer)
         {
             Guard.NotNull(dataStorage);
             Guard.NotNull(serialization);
             Guard.NotNull(headers);
+            Guard.NotNull(serializer);
 
             _dataStorage = dataStorage;
             _serialization = serialization;
             _headers = headers;
+            _serializer = serializer;
         }
 
         public Task<DashboardMessageBody> HandleAsync(GetDashboardMessageBodyQuery query)
@@ -59,6 +63,12 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.QueryHandler
 
             // Update interceptor graph in headers so the dashboard service can decode properly
             headerDict[_headers.StandardHeaders.MessageInterceptorGraph.Name] = bodyResult.Graph;
+
+            // Memory is the only transport that serializes here rather than at enqueue time, so the
+            // stored marker names whatever wrote the original message and not the bytes just
+            // produced above. Restamp it, or the dashboard would resolve the wrong serializer for
+            // a queue whose serializer has since been changed.
+            headerDict[_headers.StandardHeaders.SerializerId.Name] = _serializer.SerializerId;
 
             var internalSerializer = _serialization.InternalSerializer;
             var headersBytes = internalSerializer.ConvertToBytes(headerDict);

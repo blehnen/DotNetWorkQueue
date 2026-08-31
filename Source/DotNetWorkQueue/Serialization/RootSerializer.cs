@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
+using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Serialization
@@ -86,7 +87,18 @@ namespace DotNetWorkQueue.Serialization
         {
             if (headers == null) return _resolver.Fallback;
             if (!headers.TryGetValue(SerializerIdHeaderName, out var stamped)) return _resolver.Fallback;
-            return _resolver.Resolve(stamped as string);
+
+            //A marker that is absent, or present but null, means the message predates the header.
+            if (stamped == null) return _resolver.Fallback;
+            if (stamped is string serializerId) return _resolver.Resolve(serializerId);
+
+            //Anything else is a corrupt or forged header rather than a legacy message. Casting it
+            //away would quietly select the fallback and read the body with the wrong serializer,
+            //which is the silent-corruption case the resolver exists to prevent.
+            throw new DotNetWorkQueueException(
+                $"The '{SerializerIdHeaderName}' header holds a " +
+                $"{stamped.GetType().FullName} instead of a string, so the serializer that wrote " +
+                "this message cannot be determined.");
         }
 
         /// <summary>

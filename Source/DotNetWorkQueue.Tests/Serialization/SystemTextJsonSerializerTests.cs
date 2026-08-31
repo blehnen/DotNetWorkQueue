@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Tests.Serialization
         private static NewtonsoftSerializer Newton() => new(new DenyListSerializationBinder());
 
         [TestMethod]
-        [DynamicData(nameof(BodyCases), DynamicDataSourceType.Method)]
+        [DynamicData(nameof(BodyCases))]
         public void Round_Trips_The_Same_Shapes_Newtonsoft_Does(string name, object body)
         {
             var expected = Describe(body);
