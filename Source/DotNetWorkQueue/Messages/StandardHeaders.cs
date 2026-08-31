@@ -39,6 +39,7 @@ namespace DotNetWorkQueue.Messages
                 messageContextDataFactory.Create("Queue-MessageInterceptorGraph",
                     new MessageInterceptorsGraph());
             MessageBodyType = messageContextDataFactory.Create<string>("Queue-MessageBodyType", null);
+            SerializerId = messageContextDataFactory.Create<string>("Queue-SerializerId", null);
         }
 
         /// <inheritdoc/>
@@ -49,5 +50,8 @@ namespace DotNetWorkQueue.Messages
 
         /// <inheritdoc/>
         public IMessageContextData<string> MessageBodyType { get; }
+
+        /// <inheritdoc/>
+        public IMessageContextData<string> SerializerId { get; }
     }
 }

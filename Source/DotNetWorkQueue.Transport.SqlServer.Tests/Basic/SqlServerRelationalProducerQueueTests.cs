@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -86,10 +86,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
             // GenerateMessageHeaders takes ICorrelationIdFactory
             var generateHeaders = Substitute.For<GenerateMessageHeaders>(
                 Substitute.For<ICorrelationIdFactory>());
-            // AddStandardMessageHeaders takes IHeaders, IGetFirstMessageDeliveryTime
+            // AddStandardMessageHeaders takes IHeaders, IGetFirstMessageDeliveryTime, ISerializer
             var addStandardHeaders = Substitute.For<AddStandardMessageHeaders>(
                 Substitute.For<IHeaders>(),
-                Substitute.For<IGetFirstMessageDeliveryTime>());
+                Substitute.For<IGetFirstMessageDeliveryTime>(),
+                Substitute.For<ISerializer>());
 
             return new SqlServerRelationalProducerQueue<TestMessage>(
                 Substitute.For<QueueProducerConfiguration>(

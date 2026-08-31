@@ -66,6 +66,31 @@ namespace DotNetWorkQueue.Tests.Queue
         }
 
         [TestMethod]
+        public void AddHeaders_Stamps_The_Serializer_That_Will_Write_The_Body()
+        {
+            //the consumer needs this to know which serializer can read the body back
+            var (sut, message) = CreateSut(new SimpleTestBody());
+
+            sut.AddHeaders(message, Substitute.For<IAdditionalMessageData>());
+
+            Assert.IsTrue(message.Headers.ContainsKey("Queue-SerializerId"));
+            Assert.AreEqual("test.serializer", (string)message.Headers["Queue-SerializerId"]);
+        }
+
+        [TestMethod]
+        public void AddHeaders_Stamps_The_Serializer_Even_For_A_Delegate_Body()
+        {
+            //the body type header is skipped for delegates, but the serializer marker must not be -
+            //method and LINQ queues need reading back too
+            Action<string> delegateBody = _ => { };
+            var (sut, message) = CreateSut(delegateBody);
+
+            sut.AddHeaders(message, Substitute.For<IAdditionalMessageData>());
+
+            Assert.IsTrue(message.Headers.ContainsKey("Queue-SerializerId"));
+        }
+
+        [TestMethod]
         public void AddHeaders_Always_Stamps_FirstPossibleDeliveryDate()
         {
             var (sut, message) = CreateSut(new SimpleTestBody());
@@ -116,7 +141,10 @@ namespace DotNetWorkQueue.Tests.Queue
             var headers = Substitute.For<IHeaders>();
             headers.StandardHeaders.Returns(standardHeaders);
 
-            var sut = new AddStandardMessageHeaders(headers, deliveryTime);
+            var serializer = Substitute.For<ISerializer>();
+            serializer.SerializerId.Returns("test.serializer");
+
+            var sut = new AddStandardMessageHeaders(headers, deliveryTime, serializer);
             var message = new Message(body, new Dictionary<string, object>());
             return (sut, message);
         }

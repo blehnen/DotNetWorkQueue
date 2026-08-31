@@ -84,5 +84,9 @@ namespace DotNetWorkQueue.Metrics.Decorator
 
         /// <inheritdoc />
         public string DisplayName { get; }
+
+        /// <inheritdoc />
+        /// <remarks>Forwarded: the identity belongs to the serializer, not to this decorator.</remarks>
+        public string SerializerId => _handler.SerializerId;
     }
 }

@@ -47,6 +47,13 @@ namespace DotNetWorkQueue.Benchmarks
         private Newtonsoft.Json.JsonSerializer _cachedSerializer;
         private Type _bodyType;
 
+        private ISerializer _newtonsoft;
+        private ISerializer _systemTextJson;
+        private MessageBody _messageBody;
+        private byte[] _newtonsoftBytes;
+        private byte[] _systemTextJsonBytes;
+        private Dictionary<string, object> _emptyHeaders;
+
         [GlobalSetup]
         public void Setup()
         {
@@ -65,6 +72,15 @@ namespace DotNetWorkQueue.Benchmarks
             };
             _cachedSerializer = Newtonsoft.Json.JsonSerializer.Create(_settings);
             _bodyType = typeof(Event);
+
+            //the shipped serializers, resolved the way the container builds them
+            var binder = new DenyListSerializationBinder();
+            _newtonsoft = new DotNetWorkQueue.Serialization.JsonSerializer(binder);
+            _systemTextJson = new SystemTextJsonSerializer(binder);
+            _emptyHeaders = new Dictionary<string, object>();
+            _messageBody = new MessageBody { Body = new Event { Body = new string('x', PayloadBytes) } };
+            _newtonsoftBytes = _newtonsoft.ConvertMessageToBytes(_messageBody, _emptyHeaders);
+            _systemTextJsonBytes = _systemTextJson.ConvertMessageToBytes(_messageBody, _emptyHeaders);
         }
 
         #region serializing the body
@@ -157,6 +173,33 @@ namespace DotNetWorkQueue.Benchmarks
             }
             return stream.ToArray().Length;
         }
+
+        #endregion
+
+        #region the two shipped serializers, end to end
+
+        /// <summary>
+        /// The Newtonsoft serializer as registered by default, through its real public surface
+        /// rather than a hand-rolled equivalent.
+        /// </summary>
+        [Benchmark(Description = "serializer: Newtonsoft, serialize")]
+        public int Newtonsoft_Serialize()
+            => _newtonsoft.ConvertMessageToBytes(_messageBody, _emptyHeaders).Length;
+
+        /// <summary>The opt-in System.Text.Json serializer doing the same work.</summary>
+        [Benchmark(Description = "serializer: System.Text.Json, serialize")]
+        public int SystemTextJson_Serialize()
+            => _systemTextJson.ConvertMessageToBytes(_messageBody, _emptyHeaders).Length;
+
+        /// <summary>Reading a body back is the half that runs on every consumer.</summary>
+        [Benchmark(Description = "serializer: Newtonsoft, deserialize")]
+        public object Newtonsoft_Deserialize()
+            => _newtonsoft.ConvertBytesToMessage<MessageBody>(_newtonsoftBytes, _emptyHeaders).Body;
+
+        /// <summary>The same, through System.Text.Json.</summary>
+        [Benchmark(Description = "serializer: System.Text.Json, deserialize")]
+        public object SystemTextJson_Deserialize()
+            => _systemTextJson.ConvertBytesToMessage<MessageBody>(_systemTextJsonBytes, _emptyHeaders).Body;
 
         #endregion
 

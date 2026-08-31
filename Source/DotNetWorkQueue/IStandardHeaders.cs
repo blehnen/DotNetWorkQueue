@@ -49,6 +49,17 @@ namespace DotNetWorkQueue
         /// used by the dashboard to attempt typed deserialization.
         /// </summary>
         IMessageContextData<string> MessageBodyType { get; }
+
+        /// <summary>
+        /// Gets the header that records which serializer wrote the message body, so a consumer can
+        /// read it back with the same one. Written by the producer at enqueue time.
+        /// </summary>
+        /// <remarks>
+        /// Messages written before this header existed do not carry it. A consumer that finds it
+        /// missing falls back to its configured serializer, which by default is the one registered
+        /// for the queue - exactly the behaviour that applied before the header existed.
+        /// </remarks>
+        IMessageContextData<string> SerializerId { get; }
     }
 
     /// <summary>

@@ -27,17 +27,22 @@ namespace DotNetWorkQueue.Serialization
     public class RootSerializer : ASerializer
     {
         private readonly ISerializer _serializer;
+        private readonly ISerializerResolver _resolver;
         #region Constructor
         /// <summary>
         /// Initializes a new instance of the <see cref="RootSerializer"/> class.
         /// </summary>
         /// <param name="messageInterceptors">The message interceptors.</param>
-        /// <param name="serializer">The serializer.</param>
-        public RootSerializer(IMessageInterceptorRegistrar messageInterceptors, ISerializer serializer)
+        /// <param name="serializer">The serializer used to write message bodies.</param>
+        /// <param name="resolver">Selects the serializer used to read a body back.</param>
+        public RootSerializer(IMessageInterceptorRegistrar messageInterceptors, ISerializer serializer,
+            ISerializerResolver resolver)
             : base(messageInterceptors)
         {
             Guard.NotNull(serializer);
+            Guard.NotNull(resolver);
             _serializer = serializer;
+            _resolver = resolver;
         }
         #endregion
 
@@ -65,9 +70,31 @@ namespace DotNetWorkQueue.Serialization
         protected override T ConvertBytesToMessage<T>(byte[] bytes, IReadOnlyDictionary<string, object> headers)
         {
             Guard.NotNull(bytes);
-            return _serializer.ConvertBytesToMessage<T>(bytes, headers);
-
+            return ReaderFor(headers).ConvertBytesToMessage<T>(bytes, headers);
         }
+
+        /// <summary>
+        /// Picks the serializer that wrote this body.
+        /// </summary>
+        /// <remarks>
+        /// Every transport reaches deserialization through here, so resolving in this one place is
+        /// what keeps the transports out of it entirely. The headers are always deserialized before
+        /// the body - they carry the interceptor graph, which is needed first - so the marker is
+        /// available by the time it is wanted.
+        /// </remarks>
+        private ISerializer ReaderFor(IReadOnlyDictionary<string, object> headers)
+        {
+            if (headers == null) return _resolver.Fallback;
+            if (!headers.TryGetValue(SerializerIdHeaderName, out var stamped)) return _resolver.Fallback;
+            return _resolver.Resolve(stamped as string);
+        }
+
+        /// <summary>
+        /// The header the producer stamps. Read by name rather than through IStandardHeaders
+        /// because only the deserialized header dictionary is available at this point, not the
+        /// message context.
+        /// </summary>
+        internal const string SerializerIdHeaderName = "Queue-SerializerId";
         #endregion
     }
 }

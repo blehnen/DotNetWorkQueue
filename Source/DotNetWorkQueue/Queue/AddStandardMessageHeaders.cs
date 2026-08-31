@@ -28,6 +28,7 @@ namespace DotNetWorkQueue.Queue
     {
         private readonly IHeaders _headers;
         private readonly IGetFirstMessageDeliveryTime _getFirstMessageDeliveryTime;
+        private readonly ISerializer _serializer;
 
         /// <summary>Portable type names, keyed by the body type that produced them.</summary>
         private readonly ConcurrentDictionary<Type, string> _portableTypeNames = new();
@@ -37,11 +38,14 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         /// <param name="headers">The headers.</param>
         /// <param name="getFirstMessageDeliveryTime">The get first message delivery time.</param>
+        /// <param name="serializer">The serializer that will write the message body.</param>
         public AddStandardMessageHeaders(IHeaders headers,
-            IGetFirstMessageDeliveryTime getFirstMessageDeliveryTime)
+            IGetFirstMessageDeliveryTime getFirstMessageDeliveryTime,
+            ISerializer serializer)
         {
             _headers = headers;
             _getFirstMessageDeliveryTime = getFirstMessageDeliveryTime;
+            _serializer = serializer;
         }
         /// <summary>
         /// Adds the headers.
@@ -51,6 +55,13 @@ namespace DotNetWorkQueue.Queue
         public void AddHeaders(IMessage message, IAdditionalMessageData data)
         {
             message.SetHeader(_headers.StandardHeaders.FirstPossibleDeliveryDate, new ValueTypeWrapper<DateTime>(_getFirstMessageDeliveryTime.GetTime(message, data)));
+
+            //Record which serializer will write the body, so the consumer can read it back with
+            //the same one. Stamped here rather than inside the serializer because every send path
+            //- single, batch, async, and the method and LINQ queues through ProducerQueue - runs
+            //through this method, so it cannot depend on a transport's ordering of body and header
+            //serialization.
+            message.SetHeader(_headers.StandardHeaders.SerializerId, _serializer.SerializerId);
 
             // Record the portable body type for the dashboard.
             // Skip delegate types (method/LINQ queues) — Action<T>/expression types are not meaningful to display.
