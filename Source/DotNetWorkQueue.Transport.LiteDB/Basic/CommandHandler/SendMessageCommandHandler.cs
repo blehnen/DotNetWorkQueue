@@ -35,7 +35,6 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     /// </summary>
     internal class SendMessageCommandHandler : ICommandHandlerWithOutput<SendMessageCommand, int>
     {
-        private static readonly object Locker = new object();
 
         private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
@@ -129,8 +128,20 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             var id = 0;
             using (var db = _connectionInformation.GetDatabase())
             {
-                lock (Locker) //we need to block due to jobs
+                //The critical section exists for scheduled jobs: "is this job already queued"
+                //followed by the insert is a check-then-act that two producers could interleave.
+                //An ordinary send needs none of it - the transaction covers the inserts - and
+                //taking a process-wide lock for every message is what made concurrent producers
+                //slower than a single one. Per database rather than static, so unrelated queues no
+                //longer serialize against each other.
+                var jobLock = string.IsNullOrWhiteSpace(jobName)
+                    ? null
+                    : DatabaseLocks.ForJobs(_connectionInformation.DatabaseKey);
+                var lockTaken = false;
+                try
                 {
+                    if (jobLock != null) System.Threading.Monitor.Enter(jobLock, ref lockTaken);
+
                     try
                     {
                         db.Database.BeginTrans(); //only blocks on shared connections
@@ -225,6 +236,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                         db.Database.Rollback();
                         throw;
                     }
+                }
+                finally
+                {
+                    if (lockTaken) System.Threading.Monitor.Exit(jobLock);
                 }
 
                 return id;

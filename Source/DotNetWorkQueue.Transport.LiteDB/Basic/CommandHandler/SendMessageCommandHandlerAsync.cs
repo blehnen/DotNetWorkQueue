@@ -36,7 +36,6 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     /// </summary>
     internal class SendMessageCommandHandlerAsync : ICommandHandlerWithOutputAsync<SendMessageCommand, int>
     {
-        private static readonly object Locker = new object();
 
         private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
@@ -131,8 +130,16 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                 int id = 0;
                 using (var db = _connectionInformation.GetDatabase())
                 {
-                    lock (Locker) //we need to block due to jobs
+                    //see SendMessageCommandHandler: the critical section is for scheduled jobs
+                    //only, and is scoped to this database rather than the whole process
+                    var jobLock = string.IsNullOrWhiteSpace(jobName)
+                        ? null
+                        : DatabaseLocks.ForJobs(_connectionInformation.DatabaseKey);
+                    var lockTaken = false;
+                    try
                     {
+                        if (jobLock != null) System.Threading.Monitor.Enter(jobLock, ref lockTaken);
+
                         try
                         {
                             db.Database.BeginTrans(); //only blocks on shared connections
@@ -226,6 +233,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                             db.Database.Rollback();
                             throw;
                         }
+                    }
+                    finally
+                    {
+                        if (lockTaken) System.Threading.Monitor.Exit(jobLock);
                     }
                 }
 
