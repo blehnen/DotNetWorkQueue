@@ -62,8 +62,10 @@ namespace DotNetWorkQueue.Benchmarks
             _dir = Path.Combine(Path.GetTempPath(), "dnwq-litedb-conc", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(_dir);
 
-            (_creationA, _containerA, _producerA) = Create("benchConcA", Path.Combine(_dir, "a.db"));
-            (_creationB, _containerB, _producerB) = Create("benchConcB", Path.Combine(_dir, "b.db"));
+            (_creationA, _containerA, _producerA) = LiteDbPathBenchmarks.CreateQueue(
+                "benchConcA", $"Filename={Path.Combine(_dir, "a.db")};Connection=direct;");
+            (_creationB, _containerB, _producerB) = LiteDbPathBenchmarks.CreateQueue(
+                "benchConcB", $"Filename={Path.Combine(_dir, "b.db")};Connection=direct;");
 
             _rawDatabase = new LiteDatabase($"Filename={Path.Combine(_dir, "raw.db")};Connection=direct;");
             _rawQueue = _rawDatabase.GetCollection<LiteDbPathBenchmarks.RawQueue>("q");
@@ -125,38 +127,31 @@ namespace DotNetWorkQueue.Benchmarks
         /// this library.
         /// </summary>
         [Benchmark(Description = "200 raw LiteDB DNWQ-shape writes, 4 threads (control)")]
-        public void FourThreadsRawTransaction()
-            => Spread(4, _ =>
-            {
-                _rawDatabase.BeginTrans();
-                var id = _rawQueue.Insert(new LiteDbPathBenchmarks.RawQueue
-                    { Body = new byte[PayloadBytes], Headers = new byte[64] }).AsInt32;
-                _rawMeta.Insert(new LiteDbPathBenchmarks.RawMeta
-                {
-                    QueueId = id,
-                    CorrelationId = Guid.NewGuid(),
-                    QueuedDateTime = DateTimeOffset.UtcNow
-                });
-                _rawDatabase.Commit();
-            });
+        public void FourThreadsRawTransaction() => Spread(4, _ => RawTransactionalWrite());
 
         /// <summary>The same, on one thread, so the control has its own baseline.</summary>
         [Benchmark(Description = "200 raw LiteDB DNWQ-shape writes, 1 thread (control)")]
         public void OneThreadRawTransaction()
         {
-            for (var i = 0; i < TotalMessages; i++)
+            for (var i = 0; i < TotalMessages; i++) RawTransactionalWrite();
+        }
+
+        /// <summary>
+        /// The shape the transport writes - a transaction around two collection inserts - with no
+        /// transport in the way.
+        /// </summary>
+        private void RawTransactionalWrite()
+        {
+            _rawDatabase.BeginTrans();
+            var id = _rawQueue.Insert(new LiteDbPathBenchmarks.RawQueue
+                { Body = new byte[PayloadBytes], Headers = new byte[64] }).AsInt32;
+            _rawMeta.Insert(new LiteDbPathBenchmarks.RawMeta
             {
-                _rawDatabase.BeginTrans();
-                var id = _rawQueue.Insert(new LiteDbPathBenchmarks.RawQueue
-                    { Body = new byte[PayloadBytes], Headers = new byte[64] }).AsInt32;
-                _rawMeta.Insert(new LiteDbPathBenchmarks.RawMeta
-                {
-                    QueueId = id,
-                    CorrelationId = Guid.NewGuid(),
-                    QueuedDateTime = DateTimeOffset.UtcNow
-                });
-                _rawDatabase.Commit();
-            }
+                QueueId = id,
+                CorrelationId = Guid.NewGuid(),
+                QueuedDateTime = DateTimeOffset.UtcNow
+            });
+            _rawDatabase.Commit();
         }
 
         private void Send(IProducerQueue<LiteDbPathBenchmarks.Event> producer)
@@ -181,19 +176,5 @@ namespace DotNetWorkQueue.Benchmarks
             Task.WaitAll(tasks);
         }
 
-        private static (QueueCreationContainer<LiteDbMessageQueueInit>, QueueContainer<LiteDbMessageQueueInit>,
-            IProducerQueue<LiteDbPathBenchmarks.Event>) Create(string name, string path)
-        {
-            var connection = new QueueConnection(name, $"Filename={path};Connection=direct;");
-            var creation = new QueueCreationContainer<LiteDbMessageQueueInit>();
-            using (var creator = creation.GetQueueCreation<LiteDbMessageQueueCreation>(connection))
-            {
-                var result = creator.CreateQueue();
-                if (!result.Success)
-                    throw new InvalidOperationException($"CreateQueue failed: {result.Status} {result.ErrorMessage}");
-            }
-            var container = new QueueContainer<LiteDbMessageQueueInit>();
-            return (creation, container, container.CreateProducer<LiteDbPathBenchmarks.Event>(connection));
-        }
     }
 }

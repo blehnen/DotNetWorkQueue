@@ -47,7 +47,6 @@ namespace DotNetWorkQueue.Benchmarks
 
         private string _dir;
         private string _directConnectionString;
-        private string _sharedConnectionString;
         private string _rawPath;
 
         private LiteDatabase _heldDatabase;
@@ -133,8 +132,8 @@ namespace DotNetWorkQueue.Benchmarks
         public void SetupForShared()
         {
             SetupCommon();
-            _sharedConnectionString = $"Filename={Path.Combine(_dir, "shared.db")};Connection=shared;";
-            (_sharedCreation, _sharedContainer, _sharedProducer) = CreateQueue("benchShared", _sharedConnectionString);
+            var sharedConnectionString = $"Filename={Path.Combine(_dir, "shared.db")};Connection=shared;";
+            (_sharedCreation, _sharedContainer, _sharedProducer) = CreateQueue("benchShared", sharedConnectionString);
         }
 
         [GlobalCleanup]
@@ -258,7 +257,12 @@ namespace DotNetWorkQueue.Benchmarks
 
         #endregion
 
-        private static (QueueCreationContainer<LiteDbMessageQueueInit>, QueueContainer<LiteDbMessageQueueInit>,
+        /// <summary>
+        /// Creates a queue and a producer for it. Shared with
+        /// <see cref="LiteDbConcurrencyBenchmarks"/> so the two suites build their fixtures the
+        /// same way.
+        /// </summary>
+        internal static (QueueCreationContainer<LiteDbMessageQueueInit>, QueueContainer<LiteDbMessageQueueInit>,
             IProducerQueue<Event>) CreateQueue(string name, string connectionString)
         {
             var connection = new QueueConnection(name, connectionString);
