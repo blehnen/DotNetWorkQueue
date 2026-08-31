@@ -45,5 +45,21 @@ namespace DotNetWorkQueue
         /// The display name.
         /// </value>
         string DisplayName { get; }
+
+        /// <summary>
+        /// A stable identifier for this serializer, written into the message headers so the
+        /// consumer can pick the right serializer to read a body back.
+        /// </summary>
+        /// <remarks>
+        /// This value ends up on the wire, so it must not change once messages have been written
+        /// with it - treat it like a database column name rather than a display string. Prefer a
+        /// short constant over anything derived from the type, since renaming or moving the class
+        /// would then strand every message already in a queue.
+        /// <para>
+        /// The default is the implementing type's full name, so existing implementations keep
+        /// working without change and still get a usable identity.
+        /// </para>
+        /// </remarks>
+        string SerializerId => GetType().FullName;
     }
 }

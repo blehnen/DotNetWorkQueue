@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using DotNetWorkQueue.Transport.Memory;
 using DotNetWorkQueue.Transport.Memory.Basic.QueryHandler;
 using NSubstitute;
@@ -15,7 +15,8 @@ namespace DotNetWorkQueue.Transport.Memory.Tests.Basic.QueryHandler
             Assert.IsNotNull(new GetDashboardMessageBodyQueryHandlerAsync(
                 Substitute.For<IDataStorage>(),
                 Substitute.For<ICompositeSerialization>(),
-                Substitute.For<IHeaders>()));
+                Substitute.For<IHeaders>(),
+                Substitute.For<ISerializer>()));
         }
 
         [TestMethod]
@@ -24,7 +25,8 @@ namespace DotNetWorkQueue.Transport.Memory.Tests.Basic.QueryHandler
             Assert.ThrowsExactly<ArgumentNullException>(() => new GetDashboardMessageBodyQueryHandlerAsync(
                 null,
                 Substitute.For<ICompositeSerialization>(),
-                Substitute.For<IHeaders>()));
+                Substitute.For<IHeaders>(),
+                Substitute.For<ISerializer>()));
         }
 
         [TestMethod]
@@ -33,7 +35,8 @@ namespace DotNetWorkQueue.Transport.Memory.Tests.Basic.QueryHandler
             Assert.ThrowsExactly<ArgumentNullException>(() => new GetDashboardMessageBodyQueryHandlerAsync(
                 Substitute.For<IDataStorage>(),
                 null,
-                Substitute.For<IHeaders>()));
+                Substitute.For<IHeaders>(),
+                Substitute.For<ISerializer>()));
         }
 
         [TestMethod]
@@ -42,6 +45,17 @@ namespace DotNetWorkQueue.Transport.Memory.Tests.Basic.QueryHandler
             Assert.ThrowsExactly<ArgumentNullException>(() => new GetDashboardMessageBodyQueryHandlerAsync(
                 Substitute.For<IDataStorage>(),
                 Substitute.For<ICompositeSerialization>(),
+                null,
+                Substitute.For<ISerializer>()));
+        }
+
+        [TestMethod]
+        public void Create_NullSerializer_Throws()
+        {
+            Assert.ThrowsExactly<ArgumentNullException>(() => new GetDashboardMessageBodyQueryHandlerAsync(
+                Substitute.For<IDataStorage>(),
+                Substitute.For<ICompositeSerialization>(),
+                Substitute.For<IHeaders>(),
                 null));
         }
     }

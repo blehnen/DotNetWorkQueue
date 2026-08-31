@@ -78,6 +78,16 @@ namespace DotNetWorkQueue.Serialization
 
         /// <inheritdoc />
         public string DisplayName { get; }
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// Constant rather than derived from the type: this goes on the wire, and a rename must not
+        /// strand messages already sitting in a queue.
+        /// </remarks>
+        public string SerializerId => Id;
+
+        /// <summary>The wire identifier for this serializer.</summary>
+        public const string Id = "json.net";
         #endregion
         /// <summary>
         /// A wrapper class to avoid issues with being passed a dictionary as the top level object

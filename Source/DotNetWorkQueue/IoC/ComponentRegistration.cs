@@ -123,6 +123,7 @@ namespace DotNetWorkQueue.IoC
 
             container.Register<IQueueCancelWork, QueueCancelWork>(LifeStyles.Singleton);
             container.Register<ASerializer, RootSerializer>(LifeStyles.Singleton);
+            container.Register<ISerializerResolver, SerializerResolver>(LifeStyles.Singleton);
             container.Register<ISerializer, JsonSerializer>(LifeStyles.Singleton);
             container.Register<IExpressionSerializer, JsonExpressionSerializer>(LifeStyles.Singleton);
             container.Register<IQueueDelayFactory, QueueDelayFactory>(LifeStyles.Singleton);
