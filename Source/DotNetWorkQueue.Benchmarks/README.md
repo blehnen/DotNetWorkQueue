@@ -150,6 +150,46 @@ type name took a SQLite send from 20,674 B to 17,721 B, a 100-message batch from
 1,600 us, and the transport-independent producer pipeline from 4,005 ns / 4,512 B to
 2,839 ns / 3,088 B.
 
+## LiteDbPathBenchmarks
+
+Decomposes a LiteDb send, the same ladder shape as `SendPathBenchmarks`. LiteDb is the other
+embedded single-file transport, so the SQLite findings are the obvious hypotheses — this exists to
+test them rather than assume them, and the first result was that the obvious hypothesis was wrong.
+
+| benchmark | isolates |
+|---|---|
+| raw LiteDB, 1 insert (held database) | the floor |
+| raw LiteDB, DNWQ shape (held database) | *minus the row above* = the second collection and the transaction |
+| raw LiteDB, DNWQ shape + database per send | *minus the row above* = the connection lifecycle, which is what a shared connection does per operation |
+| LiteDatabase open + close, no work | construction alone, with nothing to checkpoint on dispose |
+| existence check (parse + stat) | the check the send path runs per message; nothing is cached |
+| DotNetWorkQueue LiteDb send, direct | the whole thing, as a caller experiences it |
+| DotNetWorkQueue LiteDb send, shared | the same on a shared connection — *against the row above* = what the mode costs |
+| DotNetWorkQueue LiteDb batch send (100) | reported per batch; divide by 100 and compare with the single send |
+
+## LiteDbConcurrencyBenchmarks
+
+Measures what a single-threaded ladder cannot see. Every rung sends the same fixed number of
+messages and is reported per batch, so rows compare directly: **if more threads do not make the
+batch faster, something is serializing them.** The raw rungs are controls — LiteDB does its own
+locking, so they show what the storage engine allows before the transport is added.
+
+## LiteDb findings
+
+Measured on net10, WSL2/ext4, ShortRun. Direct connection unless stated.
+
+| finding | evidence |
+|---|---|
+| A process-wide lock on every send was the ceiling, not the missing bulk-send path | `SendMessageCommandHandler` took a `static readonly object` on **every** message, though its stated purpose is the scheduled-job check-then-act. Four producer threads ran **1.35x slower** than one, and two queues with **separate database files** performed no better than a single queue (40.31 ms against 38.68 ms for 200 sends) — they were waiting on each other for no reason |
+| Taking that lock only for job sends is worth 1.8x across queues | Two queues on four threads went from 40.31 ms to 21.87 ms for 200 sends, and from *slower* than single-threaded (1.40x) to faster (0.67x). An ordinary send is covered by the transaction and needs no lock at all |
+| The two send handlers did not share their lock | Found while narrowing the change, and unrelated to performance: `SendMessageCommandHandler` and its async twin each held a `static` lock, so a `Send` and a `SendAsync` of the same scheduled job excluded others of their own kind but never each other, and both could insert. Pre-existing on master; fixed alongside this work |
+| Narrowing the locks per database was tried, measured at nothing, and reverted | It looks like the obvious next step, and it is a trap. The benefit above comes entirely from *skipping* the lock, so keying it per database moved no number — every send in these rungs carries no job name and takes no lock either way. It also cannot be done safely from a path: `Path.GetFullPath` does not resolve symbolic links, and nothing path-based resolves hard links, so two connection strings reaching one file could get different locks. On the de-queue path that means two consumers claiming the same record. Do not re-derive this without a real file-identity check |
+| The remaining single-database ceiling is LiteDB's, not this library's | Raw LiteDB doing the same transaction-wrapped writes with no transport involved goes 12.13 ms on one thread to 20.86 ms on four — **1.72x slower**, worse than the transport's own 1.31x. A write transaction takes an exclusive engine lock. Do not chase this in the transport |
+| Batching is currently **worse** than not batching | 20,677 us for 100 messages is 207 us each, against 149 us sending them one at a time. LiteDb has no bulk path, so `SendMessages` falls back to `Parallel.ForEach` over single sends — which fans threads into that same exclusive write transaction and buys contention instead of parallelism |
+| A shared connection costs 17x | 2,506 us against 149 us for the same send. `LiteDbConnectionManager.GetDatabase` constructs a **new `LiteDatabase` per operation** in shared mode; the raw ladder shows the same shape at 2,034 us with a database per send against 62.6 us on a held one |
+| Disposing a written-to database is the expensive half, not constructing one | Open and close with no work is 31.9 us, but the same construction wrapped around two inserts is 2,034 us. All three GC generations collect on those rungs, so the cost is the flush and the large buffers a LiteDatabase brings, not the constructor |
+| The existence check is small here, unlike SQLite | 0.9 us and 1.42 KB per send against a 149 us send. It parses the connection string every time and is not cached, so it is worth fixing eventually, but it is under 1% and not the lever |
+
 ## Why this exists
 
 A scratch decomposition in August 2026 found that the write transaction was ~3% of the gap

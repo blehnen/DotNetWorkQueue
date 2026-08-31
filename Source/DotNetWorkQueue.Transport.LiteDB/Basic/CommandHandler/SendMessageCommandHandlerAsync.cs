@@ -36,7 +36,6 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     /// </summary>
     internal class SendMessageCommandHandlerAsync : ICommandHandlerWithOutputAsync<SendMessageCommand, int>
     {
-        private static readonly object Locker = new object();
 
         private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
@@ -131,7 +130,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                 int id = 0;
                 using (var db = _connectionInformation.GetDatabase())
                 {
-                    lock (Locker) //we need to block due to jobs
+                    //Only a scheduled job needs this critical section, which is what it was added
+                    //for; an ordinary send is covered by the transaction. Taking it for every
+                    //message made concurrent producers slower than a single one.
+                    using (ScheduledJobLock.AcquireIfJob(jobName))
                     {
                         try
                         {

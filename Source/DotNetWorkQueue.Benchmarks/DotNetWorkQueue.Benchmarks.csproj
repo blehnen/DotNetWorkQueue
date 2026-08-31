@@ -19,10 +19,13 @@
   <ItemGroup>
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue.Transport.SQLite\DotNetWorkQueue.Transport.SQLite.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.LiteDB\DotNetWorkQueue.Transport.LiteDb.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" />
+    <!-- used directly by the LiteDb rungs, which build a raw database as the ladder's floor -->
+    <PackageReference Include="LiteDB" />
   </ItemGroup>
 
 </Project>
