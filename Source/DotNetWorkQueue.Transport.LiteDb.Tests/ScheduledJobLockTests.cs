@@ -29,11 +29,19 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests
     /// exclude every other scheduled job in the process, and an ordinary send must not be excluded
     /// by anything.
     /// </summary>
+    /// <remarks>
+    /// Every test starts its worker with a <c>started</c> signal and requires it. Without that, a
+    /// worker that never got scheduled looks exactly like a worker blocked on the lock, and the
+    /// exclusion test would pass whether or not the lock worked at all.
+    /// </remarks>
     [TestClass]
     public class ScheduledJobLockTests
     {
-        //generous, because the assertions are about blocking rather than about speed
-        private static readonly TimeSpan Wait = TimeSpan.FromSeconds(2);
+        /// <summary>Generous: these assertions are about blocking, not about speed.</summary>
+        private static readonly TimeSpan Wait = TimeSpan.FromSeconds(5);
+
+        /// <summary>How long to wait before concluding something did *not* happen.</summary>
+        private static readonly TimeSpan WaitForNothing = TimeSpan.FromMilliseconds(500);
 
         [TestMethod]
         [DataRow(null, DisplayName = "no job name")]
@@ -41,12 +49,19 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests
         [DataRow("   ", DisplayName = "blank job name")]
         public void An_Ordinary_Send_Is_Never_Blocked(string jobName)
         {
-            //this is the whole point of the change - an ordinary send used to wait behind every
-            //other send in the process, including sends to unrelated queues
-            using var held = ScheduledJobLock.AcquireIfJob("a job is being queued right now");
+            //the whole point of the change: an ordinary send used to wait behind every other send
+            //in the process, including sends to unrelated queues
+            var started = new ManualResetEventSlim(false);
+            var acquired = new ManualResetEventSlim(false);
 
-            Assert.IsTrue(TryAcquireOnAnotherThread(jobName),
-                "an ordinary send waited for a scheduled job to finish");
+            using (ScheduledJobLock.AcquireIfJob("a job is being queued right now"))
+            {
+                var worker = Run(jobName, started, acquired);
+
+                Assert.IsTrue(started.Wait(Wait), "the worker never ran");
+                Assert.IsTrue(acquired.Wait(Wait), "an ordinary send waited for a scheduled job");
+                Assert.IsTrue(worker.Wait(Wait), "the worker never finished");
+            }
         }
 
         [TestMethod]
@@ -54,10 +69,48 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests
         {
             //the check-then-act this lock exists for: without exclusion both producers can read
             //NotQueued before either commits, and both insert
-            using var held = ScheduledJobLock.AcquireIfJob("job-a");
+            var started = new ManualResetEventSlim(false);
+            var acquired = new ManualResetEventSlim(false);
+            Task worker;
 
-            Assert.IsFalse(TryAcquireOnAnotherThread("job-b"),
-                "two scheduled jobs were queued concurrently");
+            using (ScheduledJobLock.AcquireIfJob("job-a"))
+            {
+                worker = Run("job-b", started, acquired);
+
+                Assert.IsTrue(started.Wait(Wait), "the worker never ran");
+                Assert.IsFalse(acquired.Wait(WaitForNothing),
+                    "two scheduled jobs held the lock at the same time");
+            }
+
+            //and it is exclusion rather than deadlock - the worker gets through once released
+            Assert.IsTrue(worker.Wait(Wait), "the worker never acquired after the lock was released");
+            Assert.IsTrue(acquired.IsSet);
+        }
+
+        [TestMethod]
+        public void Disposing_A_Scope_Twice_Is_Safe()
+        {
+            //a scope can be passed around, and a second release would throw
+            //SynchronizationLockException if the state lived per copy rather than being shared
+            var scope = ScheduledJobLock.AcquireIfJob("job-a");
+            var alias = scope;
+
+            scope.Dispose();
+            alias.Dispose();
+
+            AssertLockIsFree();
+        }
+
+        [TestMethod]
+        public void An_Ordinary_Send_Releases_Nothing_And_Throws_Nothing()
+        {
+            //Dispose has to be safe when no lock was ever taken - Monitor.Exit on an unheld lock
+            //throws SynchronizationLockException
+            var scope = ScheduledJobLock.AcquireIfJob(null);
+            scope.Dispose();
+            scope.Dispose();
+
+            AssertLockIsFree();
         }
 
         [TestMethod]
@@ -68,42 +121,33 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests
                 //held
             }
 
-            Assert.IsTrue(TryAcquireOnAnotherThread("job-b"), "the lock outlived its scope");
+            AssertLockIsFree();
         }
 
-        [TestMethod]
-        public void An_Ordinary_Send_Releases_Nothing_And_Throws_Nothing()
+        /// <summary>Confirms a scheduled job can be queued, which it cannot be if the lock is stuck.</summary>
+        private static void AssertLockIsFree()
         {
-            //Dispose has to be safe when no lock was ever taken - Monitor.Exit on an unheld lock
-            //would throw SynchronizationLockException
-            using (ScheduledJobLock.AcquireIfJob(null))
-            {
-                //nothing taken
-            }
+            var started = new ManualResetEventSlim(false);
+            var acquired = new ManualResetEventSlim(false);
+            var worker = Run("job-b", started, acquired);
+
+            Assert.IsTrue(started.Wait(Wait), "the worker never ran");
+            Assert.IsTrue(acquired.Wait(Wait), "the lock was never released");
+            Assert.IsTrue(worker.Wait(Wait), "the worker never finished");
         }
 
         /// <summary>
-        /// Tries to acquire on a thread other than the caller's, and reports whether it got through
-        /// rather than blocking. Monitor is re-entrant, so this cannot be done on the same thread.
+        /// Acquires on another thread. Monitor is re-entrant, so a same-thread attempt would
+        /// succeed regardless and prove nothing.
         /// </summary>
-        private static bool TryAcquireOnAnotherThread(string jobName)
-        {
-            var acquired = new ManualResetEventSlim(false);
-            var release = new ManualResetEventSlim(false);
-
-            var worker = Task.Run(() =>
+        private static Task Run(string jobName, ManualResetEventSlim started, ManualResetEventSlim acquired)
+            => Task.Run(() =>
             {
+                started.Set();
                 using (ScheduledJobLock.AcquireIfJob(jobName))
                 {
                     acquired.Set();
-                    release.Wait(Wait);
                 }
             });
-
-            var gotThrough = acquired.Wait(Wait);
-            release.Set();
-            worker.Wait(Wait);
-            return gotThrough;
-        }
     }
 }
