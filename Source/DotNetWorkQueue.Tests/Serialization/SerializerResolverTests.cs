@@ -224,6 +224,29 @@ namespace DotNetWorkQueue.Tests.Serialization
             Assert.AreEqual("legacy", (string)back.Body.Name);
         }
 
+        [TestMethod]
+        public void Writing_Always_Uses_The_Registered_Serializer_Not_The_Fallback()
+        {
+            //the resolver only decides how to *read*. If it ever influenced writing, a queue
+            //migrating to a new serializer would keep emitting the old format
+            var binder = new DenyListSerializationBinder();
+            var newton = new JsonSerializer(binder);
+            var stj = new SystemTextJsonSerializer(binder);
+
+            var resolver = new SerializerResolver(stj);
+            resolver.SetFallback(newton);          //reads fall back to Newtonsoft
+            var root = new RootSerializer(null, stj, resolver);
+
+            var headers = new Dictionary<string, object>();
+            var written = root.MessageToBytes(
+                new MessageBody { Body = new Payload { Name = "written" } }, headers).Output;
+
+            //byte-identical to what the registered serializer produces on its own
+            CollectionAssert.AreEqual(
+                stj.ConvertMessageToBytes(new MessageBody { Body = new Payload { Name = "written" } }, headers),
+                written);
+        }
+
         public class Payload { public string Name { get; set; } }
     }
 }

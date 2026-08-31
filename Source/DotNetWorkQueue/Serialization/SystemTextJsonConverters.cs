@@ -54,7 +54,8 @@ namespace DotNetWorkQueue.Serialization
         public override void Write(Utf8JsonWriter writer, MessageBody value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
-            object body = value?.Body;
+            //not value?.Body: HandleNull is false, so a null never reaches this converter
+            object body = value.Body;
             if (body == null)
             {
                 writer.WriteNull(TypeProperty);
@@ -168,14 +169,12 @@ namespace DotNetWorkQueue.Serialization
         }
 
         /// <inheritdoc />
+        /// <remarks>
+        /// No null check: <see cref="JsonConverter{T}.HandleNull"/> is false for a reference type,
+        /// so System.Text.Json writes null itself and never dispatches it here.
+        /// </remarks>
         public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
         {
-            if (value == null)
-            {
-                writer.WriteNullValue();
-                return;
-            }
-
             var type = value.GetType();
             writer.WriteStartObject();
             writer.WriteString(MessageBodyConverter.TypeProperty, TypeNaming.Write(_binder, type));
@@ -187,7 +186,7 @@ namespace DotNetWorkQueue.Serialization
         /// <inheritdoc />
         public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            if (reader.TokenType == JsonTokenType.Null) return default;
+            //as with Write, a null never reaches this converter - HandleNull is false
             if (reader.TokenType != JsonTokenType.StartObject)
                 throw new JsonException($"Expected an object for a member declared as {typeToConvert.Name}.");
 

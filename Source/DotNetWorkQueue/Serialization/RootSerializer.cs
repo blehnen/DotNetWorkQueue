@@ -85,7 +85,8 @@ namespace DotNetWorkQueue.Serialization
         /// </remarks>
         private ISerializer ReaderFor(IReadOnlyDictionary<string, object> headers)
         {
-            if (headers == null) return _resolver.Fallback;
+            //headers is never null here: ASerializer hands this method a ReadOnlyDictionary it has
+            //already constructed, so a null would have thrown before reaching the serializer.
             if (!headers.TryGetValue(SerializerIdHeaderName, out var stamped)) return _resolver.Fallback;
 
             //A marker that is absent, or present but null, means the message predates the header.
