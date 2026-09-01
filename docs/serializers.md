@@ -118,5 +118,11 @@ path uses, so the configured allow or deny list governs both identically. Replac
 in the headers, so making the header envelope itself pluggable would mean needing to know how the
 headers were written in order to read how they were written.
 
+The mechanics of a System.Text.Json header path were prototyped and do work, so the obstacle is
+versioning rather than feasibility. Two converters are needed: System.Text.Json refuses
+`System.Type` outright (`NotSupportedException` on `System.RuntimeType`, a deliberate decision on
+their part), and `MessageInterceptorsGraph` exposes a getter-only `IEnumerable<Type>` that it will
+not populate. With both supplied, the headers round-trip identically to Newtonsoft.
+
 `IExpressionSerializer`, used by the LINQ and method queues, is a separate registration and is
 unaffected by any of this.

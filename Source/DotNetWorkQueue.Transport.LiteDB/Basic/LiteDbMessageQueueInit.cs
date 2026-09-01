@@ -96,13 +96,15 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
 
             //**send
             container.Register<ISendMessages, SendMessages<int>>(LifeStyles.Singleton);
-            // Batch-send fallback: LiteDb has no bulk-insert path, so batch sends use the per-message
-            // loop. The no-op handler only satisfies the SendMessages<int> constructor dependency.
-            container.Register<ISendMessageBatchSupport>(() => new SendMessageBatchSupport(false), LifeStyles.Singleton);
+            // Batch send: the whole batch in one connection and one transaction. Without this the
+            // fallback in SendMessages runs a Parallel.ForEach over single sends, which made a
+            // batch slower per message than sending one at a time.
+            container.Register<ISendMessageBatchSupport>(() => new SendMessageBatchSupport(true), LifeStyles.Singleton);
+            container.Register<SendMessageCommandBatchShared>(LifeStyles.Singleton);
             container.Register<ICommandHandlerWithOutput<SendMessageCommandBatch, QueueOutputMessages>,
-                NoOpSendMessageCommandBatchHandler>(LifeStyles.Singleton);
+                SendMessageCommandBatchHandler>(LifeStyles.Singleton);
             container.Register<ICommandHandlerWithOutputAsync<SendMessageCommandBatch, QueueOutputMessages>,
-                NoOpSendMessageCommandBatchHandler>(LifeStyles.Singleton);
+                SendMessageCommandBatchHandlerAsync>(LifeStyles.Singleton);
 
             container.Register<ITransportRollbackMessage, LiteDbRollbackMessage>(LifeStyles.Singleton);
             //**send
