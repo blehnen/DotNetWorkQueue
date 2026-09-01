@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -70,6 +70,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                         QueueId = errorRecord.QueueId,
                         CorrelationId = errorRecord.CorrelationId,
                         Status = QueueStatuses.Waiting,
+                        //kept for display: the original enqueue time is what the dashboard shows. It no
+                        //longer decides position - the de-queue walks in primary key order, so a requeued
+                        //message goes to the back of the queue rather than to its original place.
                         QueuedDateTime = errorRecord.QueuedDateTime,
                         QueueProcessTime = errorRecord.QueueProcessTime,
                         HeartBeat = null,

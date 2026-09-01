@@ -193,6 +193,38 @@ Measured on net10, WSL2/ext4, ShortRun. Direct connection unless stated.
 | Disposing a written-to database is the expensive half, not constructing one | Open and close with no work is 31.9 us, but the same construction wrapped around two inserts is 2,034 us. All three GC generations collect on those rungs, so the cost is the flush and the large buffers a LiteDatabase brings, not the constructor |
 | The existence check is small here, unlike SQLite | 0.9 us and 1.42 KB per send against a 149 us send. It parses the connection string every time and is not cached, so it is worth fixing eventually, but it is under 1% and not the lever |
 
+## LiteDbReceiveBenchmarks
+
+Isolates the query a de-queue runs to find the next message, against the index sets that could
+serve it. Depth is a parameter because that is the whole question: a scan grows with queue depth
+and an ordered walk does not. The rungs measure the query alone, which mutates nothing and is
+therefore repeatable — a real de-queue is not.
+
+### Findings
+
+| finding | evidence |
+|---|---|
+| The de-queue scanned the queue, and got slower the deeper it was | Filtering on `Status`, `HeartBeat`, `QueueProcessTime` and `ExpirationTime` then sorting by `QueuedDateTime`: 2.3 ms against a thousand waiting messages, 31 ms against ten thousand, allocating 22 MB to find one message. LiteDB uses **one index per query** and chose `Status`, where every waiting row holds the same value — so it selected the whole backlog and sorted it |
+| Adding an index for the sort field does **nothing** | `Status` and `HeartBeat` are indexed already (both options are hard-coded true), and the planner keeps choosing one of them: 30.2 ms against 29.1 ms. The naive fix is not a fix. Do not re-derive this |
+| Indexing `Status` makes this query *worse*, not better | With only the primary key indexed it is 22.9 ms against 29.1 ms. An equality seek on a field where every candidate row matches selects everything and still has to sort |
+| The fix is to leave only the key in the `Where` | Walking the collection in primary-key order and testing eligibility in memory: **55 us at any depth**, 157 KB. The predicates still run — over a window of 64 rather than over the whole collection |
+| Page by seeking, never by `Skip` | Both are ~55 us when the head of the queue is ready. When the whole head is deferred, seeking costs 12.5 ms and `Skip` costs **375 ms and 1.5 GB** — 12x *worse* than the scan it replaced, because `Skip` re-walks from the start on every page |
+| Key on `Id`, not `QueuedDateTime` | Same speed, and two things the timestamp cannot offer: it is unique, so paging cannot step over messages that share a value — a batch stamps many messages the same millisecond — and it is the primary key, so it is always indexed and the change needs no new index and no migration |
+| Dropping `Status` and `HeartBeat` also works, and costs more than it saves | It gives 25 us, slightly better than the walk, but the heartbeat monitor is the one query where `Status == Processing` really is selective: it goes from 83 us to 2.2 ms, 26x worse. Keeping every index and changing the query gives nearly all of the win and no regression |
+
+### A measurement that was wrong, and how
+
+An earlier version of this file reported the sort-field index as a 931x win. That was measured
+against a collection with **no** indexes, which is not what ships — `MetaDataTable` builds four.
+Re-baselining against the real schema turned the same change into 1.04x. Read the schema, not a
+truncated grep of it.
+
+A later version moved the predicates into memory and reported 52 us with no regression anywhere.
+That was measured with a filter that compared a `DateTime` LiteDB had returned as `Local` against
+`UtcNow`, which compares raw ticks without applying the offset — so it read a message deferred an
+hour into the future as ready and matched on the first page. Fast because it was wrong. The values
+the transport stores do come back as UTC, which `DateKindIsPreserved` now pins.
+
 ## Why this exists
 
 A scratch decomposition in August 2026 found that the write transaction was ~3% of the gap
