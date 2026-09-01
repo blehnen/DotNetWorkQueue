@@ -134,12 +134,15 @@ namespace DotNetWorkQueue.Benchmarks
             for (var i = 0; i < BatchSize; i++) _batch.Add(new Event { Body = _payload });
         }
 
-        [GlobalSetup(Target = nameof(Shared_Send))]
+        [GlobalSetup(Targets = new[] { nameof(Shared_Send), nameof(Shared_SendBatch) })]
         public void SetupForShared()
         {
             SetupCommon();
             var sharedConnectionString = $"Filename={Path.Combine(_dir, "shared.db")};Connection=shared;";
             (_sharedCreation, _sharedContainer, _sharedProducer) = CreateQueue("benchShared", sharedConnectionString);
+
+            _batch = new List<Event>(BatchSize);
+            for (var i = 0; i < BatchSize; i++) _batch.Add(new Event { Body = _payload });
         }
 
         [GlobalCleanup]
@@ -288,6 +291,24 @@ namespace DotNetWorkQueue.Benchmarks
         {
             var result = _sharedProducer.Send(new Event { Body = _payload });
             if (result.HasError) throw result.SendingException ?? new InvalidOperationException("send failed");
+        }
+
+        /// <summary>
+        /// A batch on a <b>shared</b> connection, reported per batch.
+        /// </summary>
+        /// <remarks>
+        /// Shared mode pays a fixed cost per operation that no amount of connection reuse removes -
+        /// LiteDB's <c>SharedEngine</c> opens and closes the engine under a cross-process mutex each
+        /// time, which is what lets another process interleave. A batch is one operation, so it pays
+        /// that cost once for the whole batch rather than once per message. Against
+        /// <see cref="Shared_Send"/> times 100, this is what the batch path is worth on the mode
+        /// that could not be fixed any other way.
+        /// </remarks>
+        [Benchmark(Description = "DotNetWorkQueue LiteDb batch send, shared (100 messages)")]
+        public void Shared_SendBatch()
+        {
+            var results = _sharedProducer.Send(_batch);
+            if (results.HasErrors) throw new InvalidOperationException("batch send failed");
         }
 
         /// <summary>
