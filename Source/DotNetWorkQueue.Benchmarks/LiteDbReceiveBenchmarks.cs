@@ -63,6 +63,13 @@ namespace DotNetWorkQueue.Benchmarks
         private LiteDatabase _dropHeartBeatOnly;
         private LiteDatabase _windowWorstCase;
         private LiteDatabase _nothingEligible;
+
+        /// <summary>
+        /// Where the bounded rung resumes, mirroring the field the transport keeps. Without it the
+        /// rung would re-measure the first pages every invocation and never show what a poll that
+        /// resumes deep into the collection costs.
+        /// </summary>
+        private int _resumeAfterId;
         private LiteDatabase _insertShipped;
         private LiteDatabase _insertCandidate;
         private int _insertId;
@@ -244,7 +251,47 @@ namespace DotNetWorkQueue.Benchmarks
         /// next time, so this is what a poll against an all-deferred queue actually costs.
         /// </summary>
         [Benchmark(Description = "no message available: bounded walk (as implemented)")]
-        public int NothingEligibleBounded() => NextWindowedIdSeek(_nothingEligible, 16);
+        public int NothingEligibleBounded() => NextBounded(_nothingEligible, 16);
+
+        /// <summary>
+        /// The bounded, resuming walk exactly as <c>ReceiveMessageQueryHandler.FindNextEligible</c>
+        /// does it: successive invocations carry on from where the last stopped, so the reported
+        /// mean covers a whole sweep of the queue rather than its first pages repeatedly.
+        /// </summary>
+        private int NextBounded(LiteDatabase db, int maxPages)
+        {
+            const int Window = 64;
+            var col = db.GetCollection<Meta>("qmeta");
+            var now = DateTime.UtcNow;
+            var after = _resumeAfterId;
+
+            for (var pages = 0; pages < maxPages; pages++)
+            {
+                var page = col.Query()
+                    .Where(x => x.Id > after)
+                    .OrderBy(x => x.Id)
+                    .Limit(Window)
+                    .ToList();
+
+                if (page.Count == 0)
+                {
+                    _resumeAfterId = 0;
+                    return 0;
+                }
+
+                foreach (var row in page)
+                {
+                    if (!Eligible(row, now)) continue;
+                    _resumeAfterId = 0;
+                    return 1;
+                }
+
+                after = page[page.Count - 1].Id;
+            }
+
+            _resumeAfterId = after;
+            return 0;
+        }
 
         /// <summary>
         /// The original query with one word changed: ordered by the primary key instead of by
