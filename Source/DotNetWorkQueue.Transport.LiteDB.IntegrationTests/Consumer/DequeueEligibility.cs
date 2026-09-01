@@ -114,6 +114,42 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
                 "the control should arrive and the expired message should not");
         }
 
+        [TestMethod]
+        public void A_Message_Beyond_One_Polls_Reach_Is_Still_Found()
+        {
+            //a poll examines a bounded number of rows and resumes where it stopped, so that a queue
+            //of deferred messages cannot make every poll read the whole collection. This puts the
+            //only ready message past that bound: it is reachable solely by the resume working, and
+            //nothing else in the suite gets near it.
+            const int BeyondOnePoll = 1200;
+
+            using var connectionInfo = new IntegrationConnectionInfo(
+                IntegrationConnectionInfo.ConnectionTypes.Direct);
+            var queueConnection = Create(connectionInfo, o => o.EnableDelayedProcessing = true);
+
+            using (var container = new QueueContainer<LiteDbMessageQueueInit>())
+            {
+                using var producer = container.CreateProducer<OrderedMessage>(queueConnection);
+
+                var deferred = new List<QueueMessage<OrderedMessage, IAdditionalMessageData>>(BeyondOnePoll);
+                for (var i = 0; i < BeyondOnePoll; i++)
+                {
+                    var data = new AdditionalMessageData();
+                    data.SetDelay(TimeSpan.FromHours(1));
+                    deferred.Add(new QueueMessage<OrderedMessage, IAdditionalMessageData>(
+                        new OrderedMessage { Body = $"deferred-{i}" }, data));
+                }
+
+                Assert.IsFalse(producer.Send(deferred).HasErrors);
+                Assert.IsFalse(producer.Send(new OrderedMessage { Body = "reachable" }).HasError);
+            }
+
+            var received = Consume<OrderedMessage>(queueConnection, 1, m => m.Body);
+
+            CollectionAssert.AreEqual(new List<string> { "reachable" }, received,
+                "the ready message sits past what a single poll examines; only the resume finds it");
+        }
+
         private static QueueConnection Create(IntegrationConnectionInfo connectionInfo,
             Action<LiteDbMessageQueueTransportOptions> options)
         {

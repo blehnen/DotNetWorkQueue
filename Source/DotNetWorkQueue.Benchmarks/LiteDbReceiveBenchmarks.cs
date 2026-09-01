@@ -62,6 +62,7 @@ namespace DotNetWorkQueue.Benchmarks
         private LiteDatabase _dropStatusOnly;
         private LiteDatabase _dropHeartBeatOnly;
         private LiteDatabase _windowWorstCase;
+        private LiteDatabase _nothingEligible;
         private LiteDatabase _insertShipped;
         private LiteDatabase _insertCandidate;
         private int _insertId;
@@ -117,6 +118,13 @@ namespace DotNetWorkQueue.Benchmarks
                 c => { Shipped(c); c.EnsureIndex(x => x.QueuedDateTime); },
                 (row, i, last) => { if (i < last) row.QueueProcessTime = DateTime.UtcNow.AddHours(1); });
 
+            //nothing eligible at all: the poll a consumer makes against a queue whose messages are
+            //all deferred, or against a route that matches none of them. Both the old query and the
+            //new walk have to look at everything before answering "no".
+            _nothingEligible = Seed("none-eligible",
+                c => { Shipped(c); c.EnsureIndex(x => x.QueuedDateTime); },
+                (row, i, last) => row.QueueProcessTime = DateTime.UtcNow.AddHours(1));
+
             _insertShipped = Empty("ins-shipped", Shipped);
             //the proposal adds an index without removing any, so this is the real write-side cost
             _insertCandidate = Empty("ins-candidate", c => { Shipped(c); c.EnsureIndex(x => x.QueuedDateTime); });
@@ -127,6 +135,7 @@ namespace DotNetWorkQueue.Benchmarks
         {
             foreach (var db in new[] { _shipped, _withoutStatusHeartBeat, _shippedPlusQueuedDate,
                          _queuedDateInstead, _dropStatusOnly, _dropHeartBeatOnly, _windowWorstCase,
+                         _nothingEligible,
                          _insertShipped, _insertCandidate })
                 db?.Dispose();
 
@@ -217,15 +226,71 @@ namespace DotNetWorkQueue.Benchmarks
         [Benchmark(Description = "ordered window by Id seek, all but one deferred")]
         public int OrderedWindowIdSeekWorstCase() => NextWindowedIdSeek(_windowWorstCase);
 
+        /// <summary>
+        /// The old query when nothing is eligible - it still selects and sorts the whole backlog.
+        /// </summary>
+        [Benchmark(Description = "no message available: as shipped")]
+        public int NothingEligibleShipped() => Next(_nothingEligible);
+
+        /// <summary>
+        /// The new walk when nothing is eligible. This is the case that is still proportional to
+        /// queue depth, because "there is nothing to do" cannot be established without looking.
+        /// </summary>
+        [Benchmark(Description = "no message available: Id seek walk")]
+        public int NothingEligibleWalk() => NextWindowedIdSeek(_nothingEligible);
+
+        /// <summary>
+        /// The bounded walk the transport uses: one poll reads at most sixteen pages and resumes
+        /// next time, so this is what a poll against an all-deferred queue actually costs.
+        /// </summary>
+        [Benchmark(Description = "no message available: bounded walk (as implemented)")]
+        public int NothingEligibleBounded() => NextWindowedIdSeek(_nothingEligible, 16);
+
+        /// <summary>
+        /// The original query with one word changed: ordered by the primary key instead of by
+        /// <c>QueuedDateTime</c>.
+        /// </summary>
+        /// <remarks>
+        /// If the planner will walk the always-present key index and apply the predicates as it
+        /// goes, this keeps the filtering inside the engine - which is what makes the no-match case
+        /// cheap - while still stopping at the first match.
+        /// </remarks>
+        [Benchmark(Description = "engine filter, ordered by Id")]
+        public int EngineFilterOrderById() => NextByIdOrder(_shipped);
+
+        /// <summary>The same when nothing is eligible.</summary>
+        [Benchmark(Description = "no message available: engine filter, ordered by Id")]
+        public int NothingEligibleOrderById() => NextByIdOrder(_nothingEligible);
+
+        private static int NextByIdOrder(LiteDatabase db)
+        {
+            var now = DateTime.UtcNow;
+            return db.GetCollection<Meta>("qmeta").Query()
+                .Where(x => x.Status == Waiting)
+                .Where(x => x.HeartBeat == null)
+                .Where(x => x.QueueProcessTime == null || x.QueueProcessTime < now)
+                .Where(x => x.ExpirationTime == null || x.ExpirationTime > now)
+                .OrderBy(x => x.Id)
+                .Limit(1)
+                .ToList().Count;
+        }
+
         /// <summary>Walks the queue in primary-key order, which is insertion order.</summary>
-        private static int NextWindowedIdSeek(LiteDatabase db)
+        private static int NextWindowedIdSeek(LiteDatabase db) => NextWindowedIdSeek(db, int.MaxValue);
+
+        /// <summary>
+        /// The walk as the transport now does it: bounded to <paramref name="maxPages"/> per poll,
+        /// resuming next time, so a queue where nothing is eligible costs a fixed amount rather
+        /// than a full read.
+        /// </summary>
+        private static int NextWindowedIdSeek(LiteDatabase db, int maxPages)
         {
             const int Window = 64;
             var col = db.GetCollection<Meta>("qmeta");
             var now = DateTime.UtcNow;
             var after = 0;
 
-            while (true)
+            for (var pages = 0; pages < maxPages; pages++)
             {
                 var page = col.Query()
                     .Where(x => x.Id > after)
@@ -238,6 +303,8 @@ namespace DotNetWorkQueue.Benchmarks
                     if (Eligible(row, now)) return 1;
                 after = page[page.Count - 1].Id;
             }
+
+            return 0;
         }
 
         /// <summary>The seek pager where the whole head of the queue is deferred.</summary>
