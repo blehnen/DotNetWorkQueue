@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.IO;
+using System.Linq;
 using BenchmarkDotNet.Attributes;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
@@ -52,6 +53,7 @@ namespace DotNetWorkQueue.Benchmarks
         private LiteDatabase _heldDatabase;
         private ILiteCollection<RawQueue> _heldQueue;
         private ILiteCollection<RawMeta> _heldMeta;
+        private List<RawQueue> _rawBatch;
 
         private QueueCreationContainer<LiteDbMessageQueueInit> _directCreation;
         private QueueContainer<LiteDbMessageQueueInit> _directContainer;
@@ -98,7 +100,8 @@ namespace DotNetWorkQueue.Benchmarks
             Directory.CreateDirectory(_dir);
         }
 
-        [GlobalSetup(Targets = new[] { nameof(RawInsert_OneCollection), nameof(RawInsert_DnwqShape) })]
+        [GlobalSetup(Targets = new[] { nameof(RawInsert_OneCollection), nameof(RawInsert_DnwqShape),
+            nameof(RawBatch_OneTransaction), nameof(RawBatch_InsertBulk) })]
         public void SetupForRawHeld()
         {
             SetupCommon();
@@ -106,6 +109,9 @@ namespace DotNetWorkQueue.Benchmarks
             _heldDatabase = new LiteDatabase($"Filename={_rawPath};Connection=direct;");
             _heldQueue = _heldDatabase.GetCollection<RawQueue>("q");
             _heldMeta = _heldDatabase.GetCollection<RawMeta>("qmeta");
+            _rawBatch = new List<RawQueue>(BatchSize);
+            for (var i = 0; i < BatchSize; i++)
+                _rawBatch.Add(new RawQueue { Body = new byte[PayloadBytes], Headers = new byte[64] });
         }
 
         [GlobalSetup(Targets = new[] { nameof(RawInsert_DatabasePerSend), nameof(Database_OpenClose) })]
@@ -177,6 +183,47 @@ namespace DotNetWorkQueue.Benchmarks
                 CorrelationId = Guid.NewGuid(),
                 QueuedDateTime = DateTimeOffset.UtcNow
             });
+            _heldDatabase.Commit();
+        }
+
+        /// <summary>
+        /// The ceiling for a real batch path: the whole batch in <b>one</b> transaction, inserting
+        /// each message so its generated id comes back, on a database already open.
+        /// </summary>
+        /// <remarks>
+        /// Against <see cref="RawInsert_DnwqShape"/> times 100 this shows what amortising the
+        /// transaction is worth; against the end-to-end batch rung it shows how much of the current
+        /// cost is the per-message loop rather than the storage.
+        /// </remarks>
+        [Benchmark(Description = "raw LiteDB, 100 writes in ONE transaction (batch ceiling)")]
+        public void RawBatch_OneTransaction()
+        {
+            _heldDatabase.BeginTrans();
+            //fresh rows each iteration: LiteDB stamps the generated Id onto the object it inserts,
+            //so re-inserting the same instances would be a duplicate key on the second pass
+            foreach (var source in _rawBatch)
+            {
+                var id = _heldQueue.Insert(new RawQueue { Body = source.Body, Headers = source.Headers }).AsInt32;
+                _heldMeta.Insert(new RawMeta
+                {
+                    QueueId = id,
+                    CorrelationId = Guid.NewGuid(),
+                    QueuedDateTime = DateTimeOffset.UtcNow
+                });
+            }
+            _heldDatabase.Commit();
+        }
+
+        /// <summary>
+        /// The same batch through <c>InsertBulk</c>, which is the API that exists for this - but it
+        /// returns a count rather than the generated ids, so it is only usable if the ids can be
+        /// recovered another way. Measured to find out whether giving them up would even pay.
+        /// </summary>
+        [Benchmark(Description = "raw LiteDB, 100 writes via InsertBulk (no ids returned)")]
+        public void RawBatch_InsertBulk()
+        {
+            _heldDatabase.BeginTrans();
+            _heldQueue.InsertBulk(_rawBatch.Select(r => new RawQueue { Body = r.Body, Headers = r.Headers }));
             _heldDatabase.Commit();
         }
 
