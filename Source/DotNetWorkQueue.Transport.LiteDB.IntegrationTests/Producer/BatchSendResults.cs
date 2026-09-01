@@ -80,10 +80,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
             using var connectionInfo = new IntegrationConnectionInfo(IntegrationConnectionInfo.ConnectionTypes.Direct);
             var queueConnection = new QueueConnection(GenerateQueueName.Create(), connectionInfo.ConnectionString);
 
+            //the batch handler also returns an empty result when the database is missing, so
+            //without this the assertion below would pass for a queue that was never created
             using (var creation = new QueueCreationContainer<LiteDbMessageQueueInit>())
             {
                 using var creator = creation.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
-                creator.CreateQueue();
+                var created = creator.CreateQueue();
+                Assert.IsTrue(created.Success, created.ErrorMessage);
             }
 
             using var container = new QueueContainer<LiteDbMessageQueueInit>();
