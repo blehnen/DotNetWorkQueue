@@ -181,17 +181,16 @@ send cost.
 
 | finding | evidence |
 |---|---|
-| Building `AdditionalMessageData` was the largest single cost in a send, and it is not transport work | One is constructed for every message — `ProducerQueue.Send` makes one when the caller supplies no data — and its constructor eagerly created four collections that most messages never put anything in. 1,832 B and 574 ns against 72 B and 32 ns for the same object with the collections created on first use, the two measured in the same run. Most of it was the `ConcurrentDictionary`, which sizes its lock array from the processor count |
-| `IAdditionalMessageData.Headers` allocated a wrapper on every read, and the send path read it twice | The property built a fresh `ReadOnlyDictionary` per call. Caching it, and reading it once in `HeaderSetup`, took that rung from 112 B to 72 B — what is left is the correlation id |
+| Building `AdditionalMessageData` was the largest single cost in a send, and it is not transport work | One is constructed for every message — `ProducerQueue.Send` makes one when the caller supplies no data — and its constructor eagerly created four collections that most messages never put anything in. **1,832 B against 72 B** for the same object with the collections created on first use, the two measured in the same run, and roughly an order of magnitude less time (573 ns against 11–32 ns, which moves between runs). Most of it was the `ConcurrentDictionary`, which sizes its lock array from the processor count |
+| `IAdditionalMessageData.Headers` allocated a wrapper on every read, and the send path read it twice | The property built a fresh `ReadOnlyDictionary` per call. It now hands back one cached view that reads the dictionary rather than wrapping it — which is what keeps the old behaviour of showing a header set after the view was taken, now that the dictionary itself may not exist yet. `HeaderSetup` reads it once instead of twice: that rung goes from 112 B to 72 B, and what is left is the correlation id. Note the rung reuses one data object, so the view's own 24 B is paid per message in the end-to-end rung rather than here |
 | The metrics decorator allocated two objects per message for a measurement nobody was collecting | `ITimer.NewContext()` created a context object holding a `Stopwatch` — both classes — and `Histogram.Record` then discarded the value when no collector was subscribed. Returning a shared do-nothing scope when the instrument has no listener, and keeping the start as a raw timestamp when it does, took the decorator stack from ~206 B per send to ~41 B |
 | Half of what a message object cost was a dictionary nothing wrote to | `Message` created a second dictionary for internal headers in its constructor. Created on first use instead, `IMessageFactory.Create` went from 248 B to 168 B |
 | The Memory transport's parallel batch bought nothing, and cost the caller's ordering | `Send(List<>)` fanned out with `Parallel.ForEach` into a `ConcurrentBag`, so results came back in whatever order the threads finished — while 0.9.41 declared results to be in caller input order, and every other transport returns them that way. The store behind it is an in-memory concurrent dictionary, so nothing was waiting on anything the parallelism could overlap: the two shapes measured the same to within the noise |
 | The store-touching rungs are too noisy to read timings from; the allocation column is the reliable one | Those rungs write 50,000 entries into a `ConcurrentDictionary` and a `BlockingCollection` that grow as they go, and the resulting GC and resize behaviour moves the means around by 30–40% between iterations. Adjacent rungs come out non-monotonic. Read them for allocation, and read the component rungs — whose standard deviation is 2% — for time |
 
 End to end: the `core producer pipeline (Memory transport)` rung went from 2,990 ns / 3.02 KB to
-2,280 ns / 1.13 KB, and a SQLite send — measured back to back on the same machine — from
-17.64 KB to 15.59 KB, with a 100-message batch from 1,562 KB to 1,361 KB and its Gen1 collections
-from 21.5 to 5.9 per thousand operations.
+2,190 ns / 1.15 KB, and a SQLite send — measured back to back on the same machine from two build
+outputs — from 17.64 KB to 15.62 KB, with a 100-message batch from 1,562 KB to 1,364 KB.
 
 ## LiteDbPathBenchmarks
 

@@ -130,6 +130,31 @@ namespace DotNetWorkQueue.Tests.Messages
         }
 
         [TestMethod]
+        public void Headers_Held_From_Before_A_Write_Still_Shows_It()
+        {
+            //the property has always handed back a live view over the header dictionary, and a
+            //caller holding one saw a header set afterwards. The dictionary is now created on
+            //first write, so the view has to read it rather than wrap it once - this is the
+            //behaviour that pins that
+            var test = new AdditionalMessageData();
+            var held = test.Headers;
+            Assert.IsEmpty(held);
+
+            var property = new MessageContextData<HeaderData>("Test", null);
+            var headerData = new HeaderData();
+            test.SetHeader(property, headerData);
+
+            Assert.HasCount(1, held);
+            Assert.IsTrue(held.ContainsKey("Test"));
+            Assert.IsTrue(held.TryGetValue("Test", out var value));
+            Assert.AreEqual(headerData, value);
+            Assert.AreEqual(headerData, held["Test"]);
+            CollectionAssert.AreEqual(new[] { "Test" }, held.Keys.ToList());
+            Assert.AreEqual(headerData, held.Values.Single());
+            Assert.AreEqual("Test", held.First().Key);
+        }
+
+        [TestMethod]
         public void TryGetSetting_Returns_False_When_None_Were_Set()
         {
             //asked on every send - GetJobName looks for "JobName" - so it has to answer without

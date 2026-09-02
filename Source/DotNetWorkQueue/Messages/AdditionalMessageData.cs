@@ -47,10 +47,7 @@ namespace DotNetWorkQueue.Messages
         /// The read-only view handed out by <see cref="Headers"/>. Cached because the property was
         /// building a new wrapper on every read, and the send path reads it per message.
         /// </summary>
-        private ReadOnlyDictionary<string, object> _headersView;
-
-        private static readonly ReadOnlyDictionary<string, object> NoHeaders =
-            ReadOnlyDictionary<string, object>.Empty;
+        private HeaderView _headersView;
         /// <summary>
         /// Gets or sets the correlation identifier. Used to optionally track a message through a system.
         /// </summary>
@@ -84,19 +81,7 @@ namespace DotNetWorkQueue.Messages
         /// <value>
         /// The headers.
         /// </value>
-        public IReadOnlyDictionary<string, object> Headers
-        {
-            get
-            {
-                //nothing has been set, so there is nothing to wrap; the empty view is shared
-                var headers = _headers;
-                if (headers == null) return NoHeaders;
-
-                //the wrapper is a live view over the dictionary, so caching it does not freeze
-                //anything - a header set after this call is still visible through it
-                return _headersView ??= new ReadOnlyDictionary<string, object>(headers);
-            }
-        }
+        public IReadOnlyDictionary<string, object> Headers => _headersView ??= new HeaderView(this);
 
         /// <inheritdoc/>
         public IDictionary<string, string> TraceTags =>
@@ -167,5 +152,40 @@ namespace DotNetWorkQueue.Messages
         /// <summary>The settings dictionary, created on first write.</summary>
         private ConcurrentDictionary<string, object> SettingStore =>
             LazyInitializer.EnsureInitialized(ref _settings, static () => new ConcurrentDictionary<string, object>());
+
+        /// <summary>
+        /// A read-only view of <see cref="_headers"/> that reads it each time rather than wrapping
+        /// it once.
+        /// </summary>
+        /// <remarks>
+        /// The property used to hand back a fresh <see cref="ReadOnlyDictionary{TKey,TValue}"/>
+        /// over the live dictionary on every call, so a caller holding the result saw headers set
+        /// afterwards. Wrapping a dictionary that may not exist yet would break that: the wrapper
+        /// would be frozen over an empty dictionary that is never the one written to. Reading the
+        /// field through this view keeps the old behaviour, while letting the dictionary itself
+        /// stay uncreated for the messages - the great majority - that carry no user headers.
+        /// </remarks>
+        private sealed class HeaderView : IReadOnlyDictionary<string, object>
+        {
+            private static readonly Dictionary<string, object> None = new Dictionary<string, object>();
+            private readonly AdditionalMessageData _owner;
+
+            public HeaderView(AdditionalMessageData owner)
+            {
+                _owner = owner;
+            }
+
+            private Dictionary<string, object> Current => _owner._headers ?? None;
+
+            public object this[string key] => Current[key];
+            public IEnumerable<string> Keys => Current.Keys;
+            public IEnumerable<object> Values => Current.Values;
+            public int Count => Current.Count;
+            public bool ContainsKey(string key) => Current.ContainsKey(key);
+            public bool TryGetValue(string key, out object value) => Current.TryGetValue(key, out value);
+
+            public IEnumerator<KeyValuePair<string, object>> GetEnumerator() => Current.GetEnumerator();
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+        }
     }
 }

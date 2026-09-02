@@ -241,9 +241,10 @@ namespace DotNetWorkQueue.Benchmarks
         }
 
         /// <summary>
-        /// The batch shape the transport uses today: <see cref="Parallel.ForEach"/> writing into a
-        /// <see cref="ConcurrentBag{T}"/>. Against the rung below it, this is what the parallelism
-        /// is worth for a store that is already a concurrent dictionary.
+        /// The batch shape the transport used before this work: <see cref="Parallel.ForEach"/>
+        /// writing into a <see cref="ConcurrentBag{T}"/>. Against the rung below it - the ordered
+        /// loop that replaced it - this is what the parallelism was worth for a store that is
+        /// already a concurrent dictionary. It is kept so the answer stays checkable.
         /// </summary>
         [Benchmark(OperationsPerInvoke = Sends, Description = "batch shape: Parallel.ForEach into a ConcurrentBag")]
         public int BatchShape_Parallel()
@@ -289,7 +290,8 @@ namespace DotNetWorkQueue.Benchmarks
 
         /// <summary>
         /// <c>HeaderSetup</c> on its own: the correlation id it creates when the caller supplied
-        /// none, and the two reads of <c>data.Headers</c> it makes.
+        /// none, and its read of <c>data.Headers</c> - which used to be two reads, each building
+        /// its own wrapper.
         /// </summary>
         [Benchmark(OperationsPerInvoke = Sends, Description = "component: GenerateMessageHeaders.HeaderSetup")]
         public void Component_HeaderSetup()
