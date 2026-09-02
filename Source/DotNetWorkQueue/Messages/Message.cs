@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace DotNetWorkQueue.Messages
 {
@@ -26,14 +27,18 @@ namespace DotNetWorkQueue.Messages
     /// </summary>
     public class Message : IMessage
     {
-        private readonly IDictionary<string, object> _headersInternal;
+        /// <summary>
+        /// Headers that stay inside the process. Created on first use: a message is built for
+        /// every send, and most sends never touch an internal header, so building the dictionary
+        /// anyway was a per-message allocation for nothing.
+        /// </summary>
+        private Dictionary<string, object> _headersInternal;
         /// <summary>
         /// Initializes a new instance of the <see cref="Message"/> class.
         /// </summary>
         protected Message()
         {
             Headers = new Dictionary<string, object>();
-            _headersInternal = new Dictionary<string, object>();
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="Message"/> class.
@@ -58,7 +63,6 @@ namespace DotNetWorkQueue.Messages
             {
                 throw new ArgumentNullException(nameof(body));
             }
-            _headersInternal = new Dictionary<string, object>();
             Body = body;
             Headers = additionalHeaders != null ? new Dictionary<string, object>(additionalHeaders) : new Dictionary<string, object>();
         }
@@ -119,10 +123,11 @@ namespace DotNetWorkQueue.Messages
         public THeader GetInternalHeader<THeader>(IMessageContextData<THeader> itemData)
             where THeader : class
         {
-            if (!_headersInternal.TryGetValue(itemData.Name, out var value))
+            var headers = InternalHeaderStore;
+            if (!headers.TryGetValue(itemData.Name, out var value))
             {
                 value = itemData.Default;
-                _headersInternal[itemData.Name] = value;
+                headers[itemData.Name] = value;
             }
             return (THeader)value;
         }
@@ -139,7 +144,11 @@ namespace DotNetWorkQueue.Messages
         public void SetInternalHeader<THeader>(IMessageContextData<THeader> itemData, THeader value)
             where THeader : class
         {
-            _headersInternal[itemData.Name] = value;
+            InternalHeaderStore[itemData.Name] = value;
         }
+
+        /// <summary>The internal header dictionary, created on first use.</summary>
+        private Dictionary<string, object> InternalHeaderStore =>
+            LazyInitializer.EnsureInitialized(ref _headersInternal, static () => new Dictionary<string, object>());
     }
 }

@@ -28,6 +28,9 @@ namespace DotNetWorkQueue.Metrics.Net
         private readonly Histogram<double> _histogram;
         private readonly KeyValuePair<string, object>[] _tags;
 
+        /// <summary>Handed out when nothing is listening; holds no state, so one is enough.</summary>
+        private static readonly ITimerContext NotCollected = new NoOp.TimerContextNoOp();
+
         public TimerNet(Histogram<double> histogram, KeyValuePair<string, object>[] tags)
         {
             _histogram = histogram;
@@ -68,8 +71,19 @@ namespace DotNetWorkQueue.Metrics.Net
             }
         }
 
+        /// <summary>
+        /// A scope that records how long it was open, or a shared do-nothing scope when no
+        /// collector is listening to this instrument.
+        /// </summary>
+        /// <remarks>
+        /// The check is worth making because the caller is the send and receive path: without it,
+        /// every message allocated a context whose measurement the histogram would then discard.
+        /// If a collector subscribes between this call and the dispose, that one operation goes
+        /// unrecorded - the next one is measured normally.
+        /// </remarks>
         public ITimerContext NewContext(string userValue = null)
         {
+            if (!_histogram.Enabled) return NotCollected;
             return new TimerContextNet(_histogram, _tags);
         }
 

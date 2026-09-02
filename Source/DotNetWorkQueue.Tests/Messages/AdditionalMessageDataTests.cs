@@ -101,6 +101,70 @@ namespace DotNetWorkQueue.Tests.Messages
             Assert.AreEqual(headerData2, headerData3);
         }
 
+        //The four collections this class holds are created on first use rather than in the
+        //constructor - one of these is built for every message sent, and building them anyway was
+        //the single largest allocation in a send. These pin the behaviour that has to survive that.
+
+        [TestMethod]
+        public void Headers_Is_Empty_When_None_Were_Set()
+        {
+            var test = new AdditionalMessageData();
+            Assert.IsNotNull(test.Headers);
+            Assert.IsEmpty(test.Headers);
+        }
+
+        [TestMethod]
+        public void Headers_Shows_A_Header_Set_After_It_Was_First_Read()
+        {
+            //reading first is the case that matters: the empty read must not leave the object
+            //believing it has no headers, and the view handed out afterwards must be the real one
+            var test = new AdditionalMessageData();
+            Assert.IsEmpty(test.Headers);
+
+            var property = new MessageContextData<HeaderData>("Test", null);
+            var headerData = new HeaderData();
+            test.SetHeader(property, headerData);
+
+            Assert.HasCount(1, test.Headers);
+            Assert.AreEqual(headerData, test.Headers.Values.First());
+        }
+
+        [TestMethod]
+        public void TryGetSetting_Returns_False_When_None_Were_Set()
+        {
+            //asked on every send - GetJobName looks for "JobName" - so it has to answer without
+            //creating the dictionary it is looking in
+            var test = new AdditionalMessageData();
+            Assert.IsFalse(test.TryGetSetting("Test", out var value));
+            Assert.IsNull(value);
+        }
+
+        [TestMethod]
+        public void SetAndGet_Setting()
+        {
+            var test = new AdditionalMessageData();
+            test.SetSetting("Test", 42);
+            Assert.IsTrue(test.TryGetSetting("Test", out var value));
+            Assert.AreEqual(42, value);
+        }
+
+        [TestMethod]
+        public void TraceTags_Is_Usable_Without_Being_Set_Up()
+        {
+            var test = new AdditionalMessageData();
+            Assert.IsNotNull(test.TraceTags);
+            test.TraceTags["Test"] = "Value";
+            Assert.AreEqual("Value", test.TraceTags["Test"]);
+        }
+
+        [TestMethod]
+        public void AdditionalMetaData_Is_Usable_Without_Being_Set_Up()
+        {
+            var test = new AdditionalMessageData();
+            Assert.IsNotNull(test.AdditionalMetaData);
+            Assert.IsEmpty(test.AdditionalMetaData);
+        }
+
         [TestClass]
 
         public class HeaderData

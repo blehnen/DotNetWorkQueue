@@ -23,25 +23,30 @@ using System.Diagnostics.Metrics;
 
 namespace DotNetWorkQueue.Metrics.Net
 {
+    /// <remarks>
+    /// The elapsed time is kept as a raw timestamp rather than a <see cref="Stopwatch"/>. One of
+    /// these is created for every message sent and every message consumed, and a
+    /// <see cref="Stopwatch"/> is a class - it was a second allocation per operation for a value
+    /// that fits in a <see cref="long"/>.
+    /// </remarks>
     internal sealed class TimerContextNet : ITimerContext
     {
         private readonly Histogram<double> _histogram;
         private readonly KeyValuePair<string, object>[] _tags;
-        private readonly Stopwatch _stopwatch;
+        private readonly long _start;
 
         public TimerContextNet(Histogram<double> histogram, KeyValuePair<string, object>[] tags)
         {
             _histogram = histogram;
             _tags = tags;
-            _stopwatch = Stopwatch.StartNew();
+            _start = Stopwatch.GetTimestamp();
         }
 
-        public TimeSpan Elapsed => _stopwatch.Elapsed;
+        public TimeSpan Elapsed => Stopwatch.GetElapsedTime(_start);
 
         public void Dispose()
         {
-            _stopwatch.Stop();
-            _histogram.Record(_stopwatch.Elapsed.TotalMilliseconds, _tags);
+            _histogram.Record(Stopwatch.GetElapsedTime(_start).TotalMilliseconds, _tags);
         }
     }
 }
