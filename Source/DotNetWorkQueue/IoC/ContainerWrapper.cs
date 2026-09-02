@@ -141,7 +141,9 @@ namespace DotNetWorkQueue.IoC
             //throwOnFailure: false - an unregistered service is a "do not know", not an error, and
             //the caller falls back to resolving (which will then throw, as it always would have)
             var registration = _container.GetRegistration(typeof(TService), false);
-            return registration?.Registration?.ImplementationType;
+            //Registration is never null on a producer the container handed back; only the
+            //producer itself can be missing, which is what an unregistered service looks like
+            return registration?.Registration.ImplementationType;
         }
 
         /// <summary>
