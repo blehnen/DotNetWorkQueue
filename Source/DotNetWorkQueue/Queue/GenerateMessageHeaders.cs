@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
-using System.Linq;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Queue
@@ -54,11 +53,15 @@ namespace DotNetWorkQueue.Queue
                 data.CorrelationId = _correlationIdFactory.Create();
             }
 
-            Dictionary<string, object> additionalHeaders = null;
-            if (data.Headers != null && data.Headers.Count > 0)
+            //read once: the property is free to build its view on each call, and this runs per
+            //message sent
+            var headers = data.Headers;
+            if (headers == null || headers.Count == 0) return null;
+
+            var additionalHeaders = new Dictionary<string, object>(headers.Count);
+            foreach (var entry in headers)
             {
-                additionalHeaders = data.Headers.ToDictionary(entry => entry.Key,
-                                               entry => entry.Value);
+                additionalHeaders[entry.Key] = entry.Value;
             }
             return additionalHeaders;
         }

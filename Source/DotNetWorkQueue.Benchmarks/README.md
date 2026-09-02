@@ -150,6 +150,48 @@ type name took a SQLite send from 20,674 B to 17,721 B, a 100-message batch from
 1,600 us, and the transport-independent producer pipeline from 4,005 ns / 4,512 B to
 2,839 ns / 3,088 B.
 
+## MemoryPathBenchmarks
+
+Takes apart the `core producer pipeline (Memory transport)` rung above. The Memory transport
+stores the POCO in a dictionary — no serialization, no SQL, no I/O — so what is left is the core
+library, and a change to any of it moves every transport at once.
+
+| benchmark | isolates |
+|---|---|
+| raw store: dictionary + queue add | the floor: the two collections the transport writes to |
+| `DataStorage.SendMessage` | the transport's storage layer |
+| `DataStorage.SendMessage` + trace decorator | *minus the row above* = the trace decorator |
+| `ISendMessages`, undecorated | the transport's `ISendMessages` |
+| `ISendMessages`, decorated | *minus the row above* = the policy, history and metrics decorators |
+| `producer.Send` (end to end) | *minus the row above* = header generation, the message factory and the standard headers — which the component rungs then split up |
+| `producer.Send(List)` (end to end) | the batch path, per message |
+| batch shape: `Parallel.ForEach` into a `ConcurrentBag` / ordered loop into an array | the batch shape on its own, against the same store |
+| component: message data, collections eager / lazy | what `AdditionalMessageData` costs to construct, before and after, measured in one run |
+| component: `GenerateMessageHeaders.HeaderSetup` | the correlation id, and the reads of `data.Headers` |
+| component: `IMessageFactory.Create` | the message and its header dictionaries |
+| component: `AddStandardMessageHeaders.AddHeaders` | the three standard headers stamped on every message |
+
+Every rung runs against a queue created fresh for the iteration, and an iteration is a single
+invocation of 50,000 operations. That matters: the Memory store is a process-wide static that
+nothing drains here, so letting BenchmarkDotNet choose the invocation count would have later
+iterations writing into a dictionary holding millions of entries, and would report that growth as
+send cost.
+
+### Findings
+
+| finding | evidence |
+|---|---|
+| Building `AdditionalMessageData` was the largest single cost in a send, and it is not transport work | One is constructed for every message — `ProducerQueue.Send` makes one when the caller supplies no data — and its constructor eagerly created four collections that most messages never put anything in. **1,832 B against 72 B** for the same object with the collections created on first use, the two measured in the same run, and roughly an order of magnitude less time (573 ns against 11–32 ns, which moves between runs). Most of it was the `ConcurrentDictionary`, which sizes its lock array from the processor count |
+| `IAdditionalMessageData.Headers` allocated a wrapper on every read, and the send path read it twice | The property built a fresh `ReadOnlyDictionary` per call. It now hands back one cached view that reads the dictionary rather than wrapping it — which is what keeps the old behaviour of showing a header set after the view was taken, now that the dictionary itself may not exist yet. `HeaderSetup` reads it once instead of twice: that rung goes from 112 B to 72 B, and what is left is the correlation id. Note the rung reuses one data object, so the view's own 24 B is paid per message in the end-to-end rung rather than here |
+| The metrics decorator allocated two objects per message for a measurement nobody was collecting | `ITimer.NewContext()` created a context object holding a `Stopwatch` — both classes — and `Histogram.Record` then discarded the value when no collector was subscribed. Returning a shared do-nothing scope when the instrument has no listener, and keeping the start as a raw timestamp when it does, took the decorator stack from ~206 B per send to ~41 B |
+| Half of what a message object cost was a dictionary nothing wrote to | `Message` created a second dictionary for internal headers in its constructor. Created on first use instead, `IMessageFactory.Create` went from 248 B to 168 B |
+| The Memory transport's parallel batch bought nothing, and cost the caller's ordering | `Send(List<>)` fanned out with `Parallel.ForEach` into a `ConcurrentBag`, so results came back in whatever order the threads finished — while 0.9.41 declared results to be in caller input order, and every other transport returns them that way. The store behind it is an in-memory concurrent dictionary, so nothing was waiting on anything the parallelism could overlap: the two shapes measured the same to within the noise |
+| The store-touching rungs are too noisy to read timings from; the allocation column is the reliable one | Those rungs write 50,000 entries into a `ConcurrentDictionary` and a `BlockingCollection` that grow as they go, and the resulting GC and resize behaviour moves the means around by 30–40% between iterations. Adjacent rungs come out non-monotonic. Read them for allocation, and read the component rungs — whose standard deviation is 2% — for time |
+
+End to end: the `core producer pipeline (Memory transport)` rung went from 2,990 ns / 3.02 KB to
+2,190 ns / 1.15 KB, and a SQLite send — measured back to back on the same machine from two build
+outputs — from 17.64 KB to 15.62 KB, with a 100-message batch from 1,562 KB to 1,364 KB.
+
 ## LiteDbPathBenchmarks
 
 Decomposes a LiteDb send, the same ladder shape as `SendPathBenchmarks`. LiteDb is the other
