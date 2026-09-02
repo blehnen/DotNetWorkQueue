@@ -26,7 +26,6 @@ using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Linq;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
 {
@@ -74,7 +73,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             Action<IConnectionHolder<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>> noMessageFoundActon, List<string> routes, IReadOnlyList<DbParameter> userParameterCollection, string userWhereClause)
         {
             //if stopping, exit now
-            if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
+            if (_cancelToken.AnyCancellationRequested())
             {
                 noMessageFoundActon(connectionHolder);
                 return null;

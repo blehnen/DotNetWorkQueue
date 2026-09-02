@@ -17,7 +17,6 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
@@ -152,7 +151,7 @@ namespace DotNetWorkQueue.TaskScheduling
         private bool ShouldHandle(IWorkerNotification notifications)
         {
             if (notifications.TransportSupportsRollback &&
-                notifications.WorkerStopping.Tokens.Any(m => m.IsCancellationRequested))
+                notifications.WorkerStopping.AnyCancellationRequested())
             {
                 _log.LogInformation("System is preparing to stop - aborting");
                 notifications.WorkerStopping.Tokens.Find(m => m.IsCancellationRequested).ThrowIfCancellationRequested();

@@ -24,7 +24,6 @@ using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 using System;
 using Microsoft.Data.SqlClient;
-using System.Linq;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
 {
@@ -73,7 +72,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             Action<IConnectionHolder<SqlConnection, SqlTransaction, SqlCommand>> noMessageFoundActon)
         {
             //if stopping, exit now
-            if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
+            if (_cancelToken.AnyCancellationRequested())
             {
                 noMessageFoundActon(connectionHolder);
                 return null;

@@ -20,7 +20,6 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.LiteDb.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
-using System.Linq;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Basic.Message
 {
@@ -62,7 +61,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.Message
         public IReceivedMessageInternal GetMessage(IMessageContext context)
         {
             //if stopping, exit now
-            if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
+            if (_cancelToken.AnyCancellationRequested())
             {
                 return null;
             }

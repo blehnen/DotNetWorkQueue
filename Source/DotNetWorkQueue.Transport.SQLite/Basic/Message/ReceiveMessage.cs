@@ -21,7 +21,6 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using System.Data;
-using System.Linq;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
 {
@@ -63,7 +62,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
         public IReceivedMessageInternal GetMessage(IMessageContext context)
         {
             //if stopping, exit now
-            if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
+            if (_cancelToken.AnyCancellationRequested())
             {
                 return null;
             }
