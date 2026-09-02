@@ -51,6 +51,25 @@ namespace DotNetWorkQueue
         object GetInstance(Type serviceType);
 
         /// <summary>
+        /// The concrete type this container will produce for <typeparamref name="TService"/>, or
+        /// null if that cannot be determined.
+        /// </summary>
+        /// <typeparam name="TService">The type of the service.</typeparam>
+        /// <remarks>
+        /// Lets a factory that already knows how to build the default implementation skip a
+        /// resolve, while still deferring to the container when the registration has been replaced
+        /// - a resolve costs about twenty times what constructing the object does, and the receive
+        /// path makes two of them per message.
+        /// <para>
+        /// The default returns null, which means "do not know" and always defers to the container,
+        /// so an <see cref="IContainer"/> implemented elsewhere is unaffected. A decorated or
+        /// conditional registration also reports the outer type rather than the implementation,
+        /// which fails the same safe way.
+        /// </para>
+        /// </remarks>
+        Type GetImplementationType<TService>() where TService : class => null;
+
+        /// <summary>
         /// Registers the service with the specified life style.
         /// </summary>
         /// <typeparam name="TService">The type of the service.</typeparam>

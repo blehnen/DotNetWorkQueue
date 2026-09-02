@@ -16,23 +16,46 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
+using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Validation;
 namespace DotNetWorkQueue.Factory
 {
     /// <summary>
     /// Creates new instances of <see cref="IMessageContext"/>
     /// </summary>
+    /// <remarks>
+    /// One of these is created for every message consumed, so it carries the same direct-build
+    /// shortcut as <see cref="WorkerNotificationFactory"/>, for the same measured reason: the
+    /// resolve is what costs, not the object.
+    /// </remarks>
     internal class MessageContextFactory : IMessageContextFactory
     {
         private readonly IContainerFactory _container;
+        private readonly IWorkerNotificationFactory _workerNotificationFactory;
+
+        /// <summary>
+        /// Whether the container still produces <see cref="MessageContext"/>. Deferred because
+        /// asking the container locks it, and this factory is built while registration may still
+        /// be in progress.
+        /// </summary>
+        private readonly Lazy<bool> _isDefaultRegistration;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageContextFactory"/> class.
         /// </summary>
         /// <param name="container">The container.</param>
-        public MessageContextFactory(IContainerFactory container)
+        /// <param name="workerNotificationFactory">The worker notification factory.</param>
+        public MessageContextFactory(IContainerFactory container,
+            IWorkerNotificationFactory workerNotificationFactory)
         {
             Guard.NotNull(container);
+            Guard.NotNull(workerNotificationFactory);
             _container = container;
+            _workerNotificationFactory = workerNotificationFactory;
+
+            _isDefaultRegistration = new Lazy<bool>(() =>
+                _container.Create().GetImplementationType<IMessageContext>() == typeof(MessageContext));
         }
         /// <summary>
         /// Creates a new instance of <see cref="IMessageContext" />
@@ -40,7 +63,10 @@ namespace DotNetWorkQueue.Factory
         /// <returns></returns>
         public IMessageContext Create()
         {
-            return _container.Create().GetInstance<IMessageContext>();
+            if (!_isDefaultRegistration.Value)
+                return _container.Create().GetInstance<IMessageContext>();
+
+            return new MessageContext(_workerNotificationFactory);
         }
     }
 }

@@ -135,6 +135,15 @@ namespace DotNetWorkQueue.IoC
             return _container.GetInstance(serviceType);
         }
 
+        /// <inheritdoc />
+        public Type GetImplementationType<TService>() where TService : class
+        {
+            //throwOnFailure: false - an unregistered service is a "do not know", not an error, and
+            //the caller falls back to resolving (which will then throw, as it always would have)
+            var registration = _container.GetRegistration(typeof(TService), false);
+            return registration?.Registration?.ImplementationType;
+        }
+
         /// <summary>
         /// Registers the service with the specified life style.
         /// </summary>
