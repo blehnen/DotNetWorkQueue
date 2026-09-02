@@ -17,9 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Messages;
@@ -76,35 +74,50 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 return new QueueOutputMessage(_sentMessageFactory.Create(null, data.CorrelationId), exception);
             }
         }
+
+        /// <summary>Sends one message, reporting a failure rather than throwing.</summary>
+        private IQueueOutputMessage SendOne(QueueMessage<IMessage, IAdditionalMessageData> message)
+        {
+            try
+            {
+                var id = _dataStorage.SendMessage(message.Message, message.MessageData);
+                return new QueueOutputMessage(
+                    _sentMessageFactory.Create(new MessageQueueId(id), message.MessageData.CorrelationId));
+            }
+            catch (Exception error)
+            {
+                return new QueueOutputMessage(
+                    _sentMessageFactory.Create(null, message.MessageData.CorrelationId), error);
+            }
+        }
         #endregion
 
         /// <summary>
         /// Sends a new message to an existing queue
         /// </summary>
-        /// <param name="messages"></param>
-        /// <returns></returns>
+        /// <param name="messages">The messages, in caller order.</param>
+        /// <returns>One result per message, in the same order.</returns>
+        /// <remarks>
+        /// A straight loop rather than a <see cref="Parallel"/> fan-out. The fan-out returned its
+        /// results in whatever order the threads finished, while every other transport returns
+        /// them in caller order - which is what a caller needs to match a generated id back to
+        /// the message it sent, and what 0.9.41 declared the contract to be.
+        /// <para>
+        /// It bought nothing to offset that. The store behind this is an in-memory concurrent
+        /// dictionary, so a send waits on nothing the parallelism could overlap; measured, the two
+        /// shapes were the same speed to within the noise of the measurement.
+        /// </para>
+        /// </remarks>
         public IQueueOutputMessages Send(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
             try
             {
-                var rc = new ConcurrentBag<IQueueOutputMessage>();
-                Parallel.ForEach(messages, m =>
+                var rc = new List<IQueueOutputMessage>(messages.Count);
+                foreach (var m in messages)
                 {
-                    try
-                    {
-                        var id = _dataStorage.SendMessage(m.Message, m.MessageData);
-                        rc.Add(
-                            new QueueOutputMessage(_sentMessageFactory.Create(new MessageQueueId(id),
-                                m.MessageData.CorrelationId)));
-                    }
-                    catch (Exception error)
-                    {
-                        rc.Add(
-                            new QueueOutputMessage(_sentMessageFactory.Create(null,
-                                m.MessageData.CorrelationId), error));
-                    }
-                });
-                return new QueueOutputMessages(rc.ToList());
+                    rc.Add(SendOne(m));
+                }
+                return new QueueOutputMessages(rc);
             }
             catch (Exception exception)
             {
@@ -142,7 +155,10 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         {
             try
             {
-                var rc = new ConcurrentBag<IQueueOutputMessage>();
+                //a List rather than the ConcurrentBag this used to fill from a sequential loop:
+                //the bag hands its contents back in no particular order, so the results did not
+                //match the caller's input order either
+                var rc = new List<IQueueOutputMessage>(messages.Count);
                 foreach (var m in messages)
                 {
                     try
@@ -155,7 +171,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                         rc.Add(new QueueOutputMessage(_sentMessageFactory.Create(null, m.MessageData.CorrelationId), error));
                     }
                 }
-                return new QueueOutputMessages(rc.ToList());
+                return new QueueOutputMessages(rc);
             }
             catch (Exception exception)
             {
