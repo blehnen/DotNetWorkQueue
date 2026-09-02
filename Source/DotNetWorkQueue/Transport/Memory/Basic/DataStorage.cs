@@ -738,9 +738,23 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
             GC.SuppressFinalize(this);
+
+            //A de-queue reads the token off this source inside the read lock, so disposing it
+            //from here without waiting for those readers would throw ObjectDisposedException in
+            //whichever thread was mid-take. The write lock is what Clear already relies on to
+            //know no de-queue is in flight; taking it here buys the same guarantee. Ordered
+            //before the lock's own disposal for the obvious reason.
             if (_dequeueCancellation.IsValueCreated)
             {
-                _dequeueCancellation.Value.Dispose();
+                _lock.EnterWriteLock();
+                try
+                {
+                    _dequeueCancellation.Value.Dispose();
+                }
+                finally
+                {
+                    _lock.ExitWriteLock();
+                }
             }
             if (Cleared)
             {

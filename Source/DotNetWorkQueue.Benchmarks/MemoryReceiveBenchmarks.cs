@@ -185,7 +185,9 @@ namespace DotNetWorkQueue.Benchmarks
             {
                 var id = Guid.NewGuid();
                 _rawData.TryAdd(id, _payload);
-                _rawQueue.Add(id);
+                //None rather than the queue's token: seeding the fixture is deliberately not
+                //cancellable, and the collection is unbounded so the add never blocks anyway
+                _rawQueue.Add(id, CancellationToken.None);
             }
 
             _sharedLinked?.Dispose();
