@@ -23,7 +23,6 @@ using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Linq;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Basic
 {
@@ -127,7 +126,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                 LoggedMissingDb = true;
             }
 
-            if (_cancelWork.Tokens.Any(m => m.IsCancellationRequested))
+            if (_cancelWork.AnyCancellationRequested())
             {
                 return false;
             }
@@ -156,6 +155,15 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         }
 
         #region Private Methods   
+        //Cached so the wiring below does not build a delegate for each of these method groups on
+        //every message: a subscribe and an unsubscribe each built their own, six per message. One
+        //instance of this class serves one worker, and even shared the worst case is a duplicate
+        //delegate that unsubscribes just as well, since removal compares target and method rather
+        //than reference.
+        private EventHandler _cachedCommit;
+        private EventHandler _cachedRollback;
+        private EventHandler _cachedCleanup;
+
 
         /// <summary>
         /// Creates the connection object for the parent caller and stores it on the worker context.
@@ -165,9 +173,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         private void SetActionsOnContext(IMessageContext context)
         {
             //wire up the context commit/rollback/dispose delegates
-            context.Commit += ContextOnCommit;
-            context.Rollback += ContextOnRollback;
-            context.Cleanup += Context_Cleanup;
+            context.Commit += _cachedCommit ??= ContextOnCommit;
+            context.Rollback += _cachedRollback ??= ContextOnRollback;
+            context.Cleanup += _cachedCleanup ??= Context_Cleanup;
         }
 
         /// <summary>
@@ -207,9 +215,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <param name="context">The context.</param>
         private void ContextCleanup(IMessageContext context)
         {
-            context.Commit -= ContextOnCommit;
-            context.Rollback -= ContextOnRollback;
-            context.Cleanup -= Context_Cleanup;
+            context.Commit -= _cachedCommit;
+            context.Rollback -= _cachedRollback;
+            context.Cleanup -= _cachedCleanup;
         }
 
         #endregion

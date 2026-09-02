@@ -28,19 +28,24 @@ namespace DotNetWorkQueue.Messages
         private readonly Dictionary<string, object> _items = new Dictionary<string, object>();
         private int _disposeCount;
 
+        //These start empty rather than at an empty delegate. One context is built per message and
+        //the receive path subscribes to all three, so seeding each with a handler meant every
+        //subscribe had to combine two delegates into a third, and every unsubscribe had to build
+        //another - allocation per message for a handler that does nothing.
+
         /// <summary>
         /// Will be raised when it is time to commit the message.
         /// </summary>
-        public event EventHandler Commit = delegate { };
+        public event EventHandler Commit;
 
         /// <summary>
         /// Will be raised if the message should be rolled back.
         /// </summary>
-        public event EventHandler Rollback = delegate { };
+        public event EventHandler Rollback;
         /// <summary>
         /// Will be raised after work is complete
         /// </summary>
-        public event EventHandler Cleanup = delegate { };
+        public event EventHandler Cleanup;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageContext"/> class.
@@ -102,14 +107,14 @@ namespace DotNetWorkQueue.Messages
         public void RaiseCommit()
         {
             ThrowIfDisposed();
-            Commit(this, EventArgs.Empty);
+            Commit?.Invoke(this, EventArgs.Empty);
         }
 
         /// <inheritdoc/>
         public void RaiseRollback()
         {
             ThrowIfDisposed();
-            Rollback(this, EventArgs.Empty);
+            Rollback?.Invoke(this, EventArgs.Empty);
         }
 
         /// <inheritdoc/>
@@ -117,7 +122,7 @@ namespace DotNetWorkQueue.Messages
         {
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
-            Cleanup(this, EventArgs.Empty);
+            Cleanup?.Invoke(this, EventArgs.Empty);
 
             foreach (var obj in _items.Values)
             {
