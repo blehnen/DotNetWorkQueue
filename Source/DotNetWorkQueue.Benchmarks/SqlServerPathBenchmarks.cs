@@ -18,6 +18,13 @@
 // ---------------------------------------------------------------------
 using System.Data;
 using BenchmarkDotNet.Attributes;
+using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Messages;
+using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
+using DotNetWorkQueue.Transport.SqlServer;
+using DotNetWorkQueue.Transport.SqlServer.Basic;
+using DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler;
 using Microsoft.Data.SqlClient;
 
 namespace DotNetWorkQueue.Benchmarks
@@ -73,6 +80,22 @@ namespace DotNetWorkQueue.Benchmarks
 
         private SqlConnection _heldConnection;
 
+        private QueueCreationContainer<SqlServerMessageQueueInit> _creation;
+        private QueueContainer<SqlServerMessageQueueInit> _container;
+        private IProducerQueue<Event> _producer;
+        private QueueConnection _queueConnection;
+        private string _payload;
+        private List<Event> _batch;
+        private const int BatchSize = 100;
+
+        //collaborators for the SQL-generation rung, taken from the producer's own container so it
+        //measures what the send path really calls rather than a stand-in
+        private ITableNameHelper _tableNameHelper;
+        private IHeaders _queueHeaders;
+        private SqlServerMessageQueueTransportOptions _options;
+        private IAdditionalMessageData _messageData;
+        private IMessage _message;
+
         private string _insertBodySql;
         private string _insertMetaSql;
         private string _oneRoundTripSql;
@@ -124,6 +147,36 @@ SELECT @id;";
 
             _heldConnection = new SqlConnection(_connectionString);
             _heldConnection.Open();
+
+            _payload = new string('x', PayloadBytes);
+            _batch = new List<Event>(BatchSize);
+            for (var i = 0; i < BatchSize; i++) _batch.Add(new Event { Body = _payload });
+
+            _queueConnection = new QueueConnection("benchSqlServer" + suffix, _connectionString);
+            _creation = new QueueCreationContainer<SqlServerMessageQueueInit>();
+            using (var creator = _creation.GetQueueCreation<SqlServerMessageQueueCreation>(_queueConnection))
+            {
+                var result = creator.CreateQueue();
+                if (!result.Success)
+                    throw new InvalidOperationException($"CreateQueue failed: {result.Status} {result.ErrorMessage}");
+            }
+            _container = new QueueContainer<SqlServerMessageQueueInit>();
+            _producer = _container.CreateProducer<Event>(_queueConnection);
+
+            var container = ConsumerInternals.ContainerOf(_container);
+            _tableNameHelper = container.GetInstance<ITableNameHelper>();
+            _queueHeaders = container.GetInstance<IHeaders>();
+            _options = container.GetInstance<ISqlServerMessageQueueTransportOptionsFactory>().Create();
+
+            //the correlation id is not optional here: BuildMetaCommand reads
+            //data.CorrelationId.Id.Value, and the real send path fills it in HeaderSetup before
+            //ever reaching the handler
+            _messageData = new AdditionalMessageData
+            {
+                CorrelationId = container.GetInstance<ICorrelationIdFactory>().Create()
+            };
+            _message = container.GetInstance<IMessageFactory>()
+                .Create(new Event { Body = _payload }, null);
         }
 
         /// <summary>
@@ -138,6 +191,22 @@ SELECT @id;";
         [GlobalCleanup]
         public void Cleanup()
         {
+            _producer?.Dispose();
+            _container?.Dispose();
+            if (_queueConnection != null)
+            {
+                try
+                {
+                    using var creator = _creation.GetQueueCreation<SqlServerMessageQueueCreation>(_queueConnection);
+                    creator.RemoveQueue();
+                }
+                catch (SqlException)
+                {
+                    //a queue left behind is not worth failing a run over
+                }
+            }
+            _creation?.Dispose();
+
             _heldConnection?.Dispose();
             try
             {
@@ -254,10 +323,54 @@ SELECT @id;";
             connection.Open();
         }
 
+        /// <summary>
+        /// The whole send, as a caller experiences it. Against the four-round-trip raw row, what
+        /// is left is the library.
+        /// </summary>
+        [Benchmark(Description = "DotNetWorkQueue SQL Server send (end to end)")]
+        public void Transport_Send()
+        {
+            var result = _producer.Send(new Event { Body = _payload });
+            if (result.HasError) throw result.SendingException ?? new InvalidOperationException("send failed");
+        }
+
+        /// <summary>
+        /// The batch path from 0.9.41, reported per batch - divide by <see cref="BatchSize"/> for
+        /// the per-message cost.
+        /// </summary>
+        [Benchmark(Description = "DotNetWorkQueue SQL Server batch send (100 messages)")]
+        public void Transport_SendBatch()
+        {
+            foreach (var result in _producer.Send(_batch))
+            {
+                if (result.HasError)
+                    throw result.SendingException ?? new InvalidOperationException("batch send failed");
+            }
+        }
+
+        /// <summary>
+        /// The meta insert's SQL, assembled per send. The other question this issue asks: on
+        /// SQLite, generating the de-queue script was 91% of everything a de-queue allocated.
+        /// </summary>
+        [Benchmark(Description = "meta insert SQL, built per send (no round trip)")]
+        public int MetaSql_Build()
+        {
+            using var command = _heldConnection.CreateCommand();
+            SendMessage.BuildMetaCommand(command, _tableNameHelper, _queueHeaders, _messageData,
+                _message, 1, _options, null, TimeSpan.Zero);
+            return command.CommandText.Length;
+        }
+
         private void AddBodyParameters(SqlCommand command)
         {
             command.Parameters.Add(BodyParameter, SqlDbType.VarBinary, -1).Value = _body;
             command.Parameters.Add(HeadersParameter, SqlDbType.VarBinary, -1).Value = _headers;
+        }
+
+        /// <summary>The message body these rungs send.</summary>
+        public sealed class Event
+        {
+            public string Body { get; set; }
         }
 
         private void Execute(string sql)
