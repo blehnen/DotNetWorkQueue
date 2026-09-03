@@ -24,7 +24,6 @@ using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 using System;
-using System.Linq;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
@@ -106,7 +105,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             try
             {
-                if (_cancelWork.Tokens.Any(m => m.IsCancellationRequested))
+                if (_cancelWork.AnyCancellationRequested())
                 {
                     return null;
                 }
@@ -145,6 +144,17 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         #endregion
 
         #region Private Methods   
+        //Cached so the wiring below does not build a delegate for each of these method groups on
+        //every message: a subscribe and an unsubscribe each built their own, six per message. One
+        //instance of this class serves one worker, and even shared the worst case is a duplicate
+        //delegate that unsubscribes just as well, since removal compares target and method rather
+        //than reference.
+        private EventHandler _cachedCommit;
+        private EventHandler _cachedCommitTransaction;
+        private EventHandler _cachedRollback;
+        private EventHandler _cachedRollbackTransaction;
+        private EventHandler _cachedCleanup;
+
         /// <summary>
         /// Creates the connection object for the parent caller and stores it on the worker context.
         /// </summary>
@@ -158,15 +168,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             //wire up the context commit/rollback/dispose delegates
             if (!_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
             {
-                context.Commit += ContextOnCommit;
-                context.Rollback += ContextOnRollback;
+                context.Commit += _cachedCommit ??= ContextOnCommit;
+                context.Rollback += _cachedRollback ??= ContextOnRollback;
             }
             else
             {
-                context.Commit += ContextOnCommitTransaction;
-                context.Rollback += ContextOnRollbackTransaction;
+                context.Commit += _cachedCommitTransaction ??= ContextOnCommitTransaction;
+                context.Rollback += _cachedRollbackTransaction ??= ContextOnRollbackTransaction;
             }
-            context.Cleanup += Context_Cleanup;
+            context.Cleanup += _cachedCleanup ??= Context_Cleanup;
 
             // Phase 4 inbox: if the resolved IWorkerNotification is the relational variant (selected
             // by PostgreSQLMessageQueueInit's factory delegate when EnableHoldTransactionUntilMessageCommitted
@@ -253,15 +263,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         {
             if (!_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
             {
-                context.Commit -= ContextOnCommit;
-                context.Rollback -= ContextOnRollback;
+                context.Commit -= _cachedCommit;
+                context.Rollback -= _cachedRollback;
             }
             else
             {
-                context.Commit -= ContextOnCommitTransaction;
-                context.Rollback -= ContextOnRollbackTransaction;
+                context.Commit -= _cachedCommitTransaction;
+                context.Rollback -= _cachedRollbackTransaction;
             }
-            context.Cleanup -= Context_Cleanup;
+            context.Cleanup -= _cachedCleanup;
             _disposeConnection(connectionHolder);
         }
         #endregion

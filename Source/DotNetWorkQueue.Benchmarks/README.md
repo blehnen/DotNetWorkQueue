@@ -192,6 +192,47 @@ End to end: the `core producer pipeline (Memory transport)` rung went from 2,990
 2,190 ns / 1.15 KB, and a SQLite send — measured back to back on the same machine from two build
 outputs — from 17.64 KB to 15.62 KB, with a 100-message batch from 1,562 KB to 1,364 KB.
 
+## MemoryReceiveBenchmarks
+
+The consume-side counterpart to `MemoryPathBenchmarks`: what it costs the core library to hand a
+caller one message, with no transport work in the number.
+
+| benchmark | isolates |
+|---|---|
+| raw store: take + lookup | the floor: taking an id off the collection and looking the item up |
+| `DataStorage.GetNextMessage` | the transport's storage layer |
+| `IReceiveMessages`, undecorated | *minus the row above* = the message context and the receive's own work |
+| `IReceiveMessages`, decorated | *minus the row above* = the four decorators: policy, trace, history and metrics |
+| component: `IMessageContextFactory.Create` / `IWorkerNotificationFactory.Create` | the two objects built per message |
+| component: `WorkerNotification` constructed directly | the same object without the container — *against the factory row* = what the resolve costs as opposed to the object |
+| component: container resolve / cached producer for `IMessageContext` | whether the resolve cost is the type lookup or the graph |
+| component: linked token source, per message / built once | the cancellation plumbing a de-queue does |
+| component: `IMessageFactory.Create` / `IReceivedMessageFactory.Create` | rebuilding the message out of the store |
+| component: event wiring, method groups / cached delegates | the commit, rollback and cleanup subscriptions |
+
+Every rung consumes exactly the messages seeded for the iteration and no more. That is not
+tidiness: a receive against an empty queue blocks for five seconds, so over-consuming would not
+report a slow benchmark, it would report a hung one.
+
+The consume loop's remaining half — the user's handler, the heartbeat worker and the commit — is
+not measured here. Reaching `ProcessMessage` means registering a handler through `Start`, which
+puts worker threads on the same queue the benchmark is draining.
+
+### Findings
+
+| finding | evidence |
+|---|---|
+| A receive spent about a third of its time inside the DI container | The path built two transients per message. `WorkerNotification` cost **437 ns to resolve and 20 ns to construct** — the container, not the object. The factories now build the default implementation directly and fall back to resolving when the registration has been replaced, which SQL Server and PostgreSQL both do. `IWorkerNotificationFactory.Create` 437 ns → 17.6 ns, `IMessageContextFactory.Create` 823 ns → 75 ns |
+| The cost is not the type lookup, so caching a producer does not help | Resolving `IMessageContext` through a `SimpleInjector.InstanceProducer` looked up once measured 666 ns against 690 ns for `Container.GetInstance`. Do not re-derive this — the answer was to stop resolving, not to resolve faster |
+| Subscribing the commit/rollback/cleanup handlers allocated twice over | Each `+=` and `-=` built a delegate for the method group (six per message, 384 B), and because the events were seeded with `delegate { }` every subscribe also had to combine two delegates and every unsubscribe to build another (313 B). Caching the delegates in the transports and dropping the seed in `MessageContext` took the wiring from 697 B to nothing |
+| The linked cancellation source was rebuilt per de-queue for a result that never changed | 80 B and 58 ns per message to combine two tokens fixed for the life of the storage object; built once, 0 B and 3.7 ns |
+| `Tokens.Any(t => t.IsCancellationRequested)` boxes an enumerator, twice per message, in every transport | `ICancelWork.Tokens` is a `List<T>` and LINQ reaches it as `IEnumerable<T>`. Replaced with `AnyCancellationRequested()`, a plain indexed loop |
+| The four receive decorators are cheap, unlike the send side | 2,058 B undecorated against 2,112 B decorated. Their time is not separable from the noise of these rungs. The send path's decorators cost ~206 B before they were fixed; the expectation did not carry over |
+| What is left is rebuilding the message | Of the storage layer's 1,637 B, `IMessageFactory.Create` is 416 B — it copies the header dictionary — and `IReceivedMessageFactory.Create` is 616 B. Those are the next candidates, and neither is a quick win |
+
+End to end, a de-queue through the full decorated chain went from **2,964 ns / 2,833 B to
+2,365 ns / 2,112 B**.
+
 ## LiteDbPathBenchmarks
 
 Decomposes a LiteDb send, the same ladder shape as `SendPathBenchmarks`. LiteDb is the other

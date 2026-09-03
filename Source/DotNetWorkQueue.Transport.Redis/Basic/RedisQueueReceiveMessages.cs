@@ -20,7 +20,6 @@ using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using System;
-using System.Linq;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
@@ -56,6 +55,15 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             _cancelWork = cancelWork;
             _workSubFactory = workSubFactory;
         }
+        //Cached so the wiring below does not build a delegate for each of these method groups on
+        //every message: a subscribe and an unsubscribe each built their own, six per message. One
+        //instance of this class serves one worker, and even shared the worst case is a duplicate
+        //delegate that unsubscribes just as well, since removal compares target and method rather
+        //than reference.
+        private EventHandler _cachedCommit;
+        private EventHandler _cachedRollback;
+        private EventHandler _cachedCleanup;
+
 
         /// <summary>
         /// Receives a new message.
@@ -64,16 +72,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <returns></returns>
         public IReceivedMessageInternal ReceiveMessage(IMessageContext context)
         {
-            context.Commit += ContextOnCommit;
-            context.Rollback += ContextOnRollback;
-            context.Cleanup += Context_Cleanup;
+            context.Commit += _cachedCommit ??= ContextOnCommit;
+            context.Rollback += _cachedRollback ??= ContextOnRollback;
+            context.Cleanup += _cachedCleanup ??= Context_Cleanup;
 
             using (
                 var workSub = _workSubFactory.Create())
             {
                 while (true)
                 {
-                    if (_cancelWork.Tokens.Any(m => m.IsCancellationRequested))
+                    if (_cancelWork.AnyCancellationRequested())
                     {
                         return null;
                     }
@@ -84,7 +92,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                         return message.Message;
                     }
 
-                    if (_cancelWork.Tokens.Any(m => m.IsCancellationRequested))
+                    if (_cancelWork.AnyCancellationRequested())
                     {
                         return null;
                     }
@@ -162,9 +170,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="context">The context.</param>
         private void ContextCleanup(IMessageContext context)
         {
-            context.Commit -= ContextOnCommit;
-            context.Rollback -= ContextOnRollback;
-            context.Cleanup -= Context_Cleanup;
+            context.Commit -= _cachedCommit;
+            context.Rollback -= _cachedRollback;
+            context.Cleanup -= _cachedCleanup;
         }
     }
 }

@@ -19,7 +19,6 @@
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Validation;
 using System;
-using System.Linq;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic.Message
 {
@@ -61,7 +60,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
         public IReceivedMessageInternal GetMessage(IMessageContext context)
         {
             //if stopping, exit now
-            if (_cancelToken.Tokens.Any(t => t.IsCancellationRequested))
+            if (_cancelToken.AnyCancellationRequested())
             {
                 return null;
             }

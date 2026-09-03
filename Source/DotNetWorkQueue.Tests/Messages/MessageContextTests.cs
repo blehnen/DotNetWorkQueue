@@ -77,6 +77,45 @@ namespace DotNetWorkQueue.Tests.Messages
             Assert.IsTrue(test.IsDisposed);
         }
 
+        //The three events used to be seeded with an empty handler so a raise could never hit
+        //null. That seed cost an allocation per message, so it is gone and the raise sites are
+        //null-conditional - these cover the branch that seed used to make unreachable.
+
+        [TestMethod]
+        public void RaiseCommit_With_No_Subscriber_Does_Nothing()
+        {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var test = fixture.Create<MessageContext>();
+            test.RaiseCommit();
+        }
+
+        [TestMethod]
+        public void RaiseRollback_With_No_Subscriber_Does_Nothing()
+        {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var test = fixture.Create<MessageContext>();
+            test.RaiseRollback();
+        }
+
+        [TestMethod]
+        public void Raise_Reaches_A_Subscriber()
+        {
+            //and the other half: a raise still calls what subscribed to it
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var test = fixture.Create<MessageContext>();
+
+            var commits = 0;
+            var rollbacks = 0;
+            test.Commit += (_, _) => commits++;
+            test.Rollback += (_, _) => rollbacks++;
+
+            test.RaiseCommit();
+            test.RaiseRollback();
+
+            Assert.AreEqual(1, commits);
+            Assert.AreEqual(1, rollbacks);
+        }
+
         [TestMethod]
         public void Disposed_Instance_Commit_Exception()
         {
