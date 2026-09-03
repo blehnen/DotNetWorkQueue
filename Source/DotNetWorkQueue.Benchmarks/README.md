@@ -233,6 +233,53 @@ puts worker threads on the same queue the benchmark is draining.
 End to end, a de-queue through the full decorated chain went from **2,964 ns / 2,833 B to
 2,365 ns / 2,112 B**.
 
+## LiteDbReceiveConcurrencyBenchmarks
+
+Whether concurrent consumers scale, which the send-only concurrency suite could not say.
+`ReceiveMessageQueryHandler` holds a process-wide `static` lock around every de-queue; the send
+path had a lock of exactly that shape and removing it was the largest single finding of the LiteDb
+pass, so the obvious hypothesis was that the same win was sitting here.
+
+**It is not.** The lock is the correctness mechanism, not removable overhead.
+
+| benchmark | isolates |
+|---|---|
+| 200 de-queues, 1 thread, one queue | the serial baseline |
+| 200 de-queues, 4 / 8 threads, one queue | whether more consumers help |
+| 200 de-queues, 4 threads, two separate queues | whether unrelated queues interfere |
+| 200 raw LiteDB claims, 1 / 4 threads | the floor: a correct claim with no transport in the way |
+
+Each iteration builds its queues from scratch. A de-queue marks a message processed rather than
+deleting it, and the walk from #241 steps over ineligible rows in key order — so rows left by a
+previous iteration would make each later iteration slower and quietly turn this into a
+queue-depth measurement.
+
+Not a `[MemoryDiagnoser]` suite, deliberately: with one invocation per iteration the diagnoser
+counts the per-iteration fixtures — two queues, six containers, sixteen receive chains, four
+hundred seeded messages — as de-queue cost, and read 98 MB per two hundred de-queues that way.
+Allocation on this path belongs to `LiteDbReceiveBenchmarks`.
+
+### Findings
+
+| finding | evidence |
+|---|---|
+| **A correct claim cannot be parallel in LiteDB direct mode, so the de-queue lock is not overhead** | `BeginTrans` does not block in direct mode, so unsynchronized claim transactions interleave and take the same row. The control, run without a lock, made 200 claims that left **only 63 of 200 rows claimed** — and ran *faster* (7.4 ms against 21.7 ms) precisely because most of the work was wrong. Any measurement showing the raw engine "scaling" here is measuring double-delivery. This is why `ReceiveMessageQueryHandler` holds its lock, and why removing it is not on the table |
+| Consumers do not scale on a LiteDb queue — they cost | 68.0 ms on one thread, **83.2 ms on four (1.23x slower)**, 85.0 ms on eight. The ceiling does not move between four and eight |
+| The floor behaves the same way, so this is not something the transport adds carelessly | A correct raw claim goes 11.9 ms on one thread to 21.7 ms on four — 1.83x slower — with no transport in the way at all |
+| Two unrelated queues are not made worse by sharing the process-wide lock, but they are not made better either | Four threads across two separate database files take 70.9 ms, which merely matches a *single* thread on one queue (68.0 ms) and beats four threads on one queue (83.2 ms). The lock still couples them; what is recovered is per-file contention, not parallelism |
+| Per-database lock keying remains the only available lever, and it is a trap | It would let unrelated queues proceed independently. It was tried on the send path in #238 and removed: `Path.GetFullPath` does not resolve symlinks, so two spellings of one file take different locks and the messages get delivered twice. Any retry needs a real file identity, and the failure mode is silent |
+
+Every rung asserts what it measured. A de-queue that finds no message throws, and each rung
+verifies it claimed exactly `TotalMessages` **distinct** messages — so these rows are also a
+positive statement that the de-queue stays exclusive under four and eight consumers and across two
+queues, not just a timing. The duplicate check keys on queue *and* id, because a message id is an
+auto-increment int scoped to its own database and the two-queue rung has an id 1 in each.
+
+Measured on net10, WSL2/ext4, 15 warm-up iterations. The warm-up matters: with one invocation per
+iteration the first benchmark in the process absorbs the JIT and file-cache cost and ran 223 ms on
+its first iteration against 63 ms by its twelfth. Five warm-ups were not enough and made the
+baseline look bimodal.
+
 ## LiteDbPathBenchmarks
 
 Decomposes a LiteDb send, the same ladder shape as `SendPathBenchmarks`. LiteDb is the other
@@ -275,6 +322,11 @@ Measured on net10, WSL2/ext4, ShortRun. Direct connection unless stated.
 | The only lever that works on shared mode is doing fewer operations, which the batch path does | A batch is one operation, so it pays the mutex-and-open cost once rather than once per message. A shared-mode batch of 100 is 6,862 us — **68.6 us a message against 2,566 us sending them one at a time, 37x**. It also takes shared mode from 17x a direct send to 2.8x a direct batch |
 | Disposing a written-to database is the expensive half, not constructing one | Open and close with no work is 31.9 us, but the same construction wrapped around two inserts is 2,034 us. All three GC generations collect on those rungs, so the cost is the flush and the large buffers a LiteDatabase brings, not the constructor |
 | The existence check is small here, unlike SQLite | 0.9 us and 1.42 KB per send against a 149 us send. It parses the connection string every time and is not cached, so it is worth fixing eventually, but it is under 1% and not the lever |
+| A LiteDb send has no unattributed overhead — the earlier "50 KB unexplained" was a measurement artifact | The comparison charged the transport for work its floor was not doing. `RawInsert_DnwqShape` writes the **256-byte payload** into a meta collection with **no indexes**; the transport writes the **serialized message** — 4,464 bytes for the same payload — into a collection carrying **four**. Correcting both: 46.9 KB for the old floor, 59.8 KB once the document is the real size, 114.2 KB once the indexes match. The transport's end-to-end send is **101–115 KB across runs**, at or slightly below that floor. There is nothing left to find; a send costs what LiteDB charges for the writes it does |
+| Half of a send is index maintenance, and 41.5 KB of it is the two optional indexes | Adding the structural pair (the key and the unique `QueueId`) to the corrected floor costs 13.0 KB; adding `Status` and `HeartBeat` on top costs a further **41.5 KB and 36 us**, about 36% of the send. Both are hard-coded `true` in `LiteDbMessageQueueTransportOptions`, so a caller cannot trade them away |
+| Which leaves a real trade-off, now quantified on both sides | #241 measured what dropping `Status` and `HeartBeat` does to reads: the heartbeat monitor goes 83 us to 2.2 ms, 26x worse, which is why they were kept. What was not measured then is the write side — they cost 41.5 KB and 36 us on **every send**, while the heartbeat monitor runs on a timer. Whether that is the right bargain depends on the workload, and today it is not adjustable |
+| The BSON mapper is not per-message work, and neither is the connection in direct mode | Two of this issue's hypotheses, answered by reading the code rather than measuring. `new LiteDatabase(connectionString)` uses `BsonMapper.Global`, which caches its entity mapper per type; and `LiteDbConnectionManager.GetDatabase` holds one `LiteDatabase` for the life of the manager in direct mode, handing out a non-owning wrapper per call. Only shared mode constructs one per operation, which is the mode measured above |
+| Nothing leaks a database file on this line | The integration helper deletes only the main file, not LiteDB's `-log.db`, and it swallows a failed delete after one 3-second retry — so a handle leak could never fail a test, which is the same shape as #229. Measured anyway: a full 100-test LiteDb run left **zero** new files behind. The 35 databases sitting in the test output are dated 2021 to 2026-03, all of them older than this work. The swallowed delete is worth hardening with #229, not here |
 
 ## LiteDbReceiveBenchmarks
 
