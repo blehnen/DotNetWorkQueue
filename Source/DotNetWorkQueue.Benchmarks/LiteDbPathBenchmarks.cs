@@ -44,6 +44,16 @@ namespace DotNetWorkQueue.Benchmarks
     public class LiteDbPathBenchmarks
     {
         private const int PayloadBytes = 256;
+
+        /// <summary>
+        /// What a 256-byte payload actually becomes on disk once the message is serialized -
+        /// measured at 4,464 bytes by <see cref="CorePathBenchmarks"/> for the Newtonsoft
+        /// serializer, which is the default.
+        /// </summary>
+        private const int SerializedBodyBytes = 4464;
+
+        /// <summary>The serialized header dictionary that travels with it.</summary>
+        private const int HeaderBytes = 512;
         private const int BatchSize = 100;
 
         private string _dir;
@@ -53,6 +63,8 @@ namespace DotNetWorkQueue.Benchmarks
         private LiteDatabase _heldDatabase;
         private ILiteCollection<RawQueue> _heldQueue;
         private ILiteCollection<RawMeta> _heldMeta;
+        private ILiteCollection<RawMetaIndexed> _heldMetaIndexed;
+        private ILiteCollection<RawMetaIndexed> _heldMetaStructural;
         private List<RawQueue> _rawBatch;
 
         private QueueCreationContainer<LiteDbMessageQueueInit> _directCreation;
@@ -80,6 +92,24 @@ namespace DotNetWorkQueue.Benchmarks
             public byte[] Headers { get; set; }
         }
 
+        /// <summary>
+        /// The transport's meta row, with the columns its indexes are built on.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="RawMeta"/> carries no indexes at all, so a rung using it charges the
+        /// transport for every index maintained on an insert. The transport's meta collection has
+        /// four by default - the key, a unique QueueId, Status and HeartBeat.
+        /// </remarks>
+        public sealed class RawMetaIndexed
+        {
+            public int Id { get; set; }
+            public int QueueId { get; set; }
+            public Guid CorrelationId { get; set; }
+            public int Status { get; set; }
+            public DateTime QueuedDateTime { get; set; }
+            public DateTime? HeartBeat { get; set; }
+        }
+
         /// <summary>Stands in for the transport's meta collection.</summary>
         public sealed class RawMeta
         {
@@ -101,6 +131,7 @@ namespace DotNetWorkQueue.Benchmarks
         }
 
         [GlobalSetup(Targets = new[] { nameof(RawInsert_OneCollection), nameof(RawInsert_DnwqShape),
+            nameof(RawInsert_DnwqShapeSerializedBody), nameof(RawInsert_DnwqShapeIndexed), nameof(RawInsert_DnwqShapeStructuralIndexes),
             nameof(RawBatch_OneTransaction), nameof(RawBatch_InsertBulk) })]
         public void SetupForRawHeld()
         {
@@ -109,6 +140,22 @@ namespace DotNetWorkQueue.Benchmarks
             _heldDatabase = new LiteDatabase($"Filename={_rawPath};Connection=direct;");
             _heldQueue = _heldDatabase.GetCollection<RawQueue>("q");
             _heldMeta = _heldDatabase.GetCollection<RawMeta>("qmeta");
+
+            //the same four indexes LiteDbMessageQueueCreation builds by default: the key, a unique
+            //QueueId, Status and HeartBeat. Maintaining them is work an insert has to do, and the
+            //unindexed collection above hides it.
+            _heldMetaIndexed = _heldDatabase.GetCollection<RawMetaIndexed>("qmetaidx");
+            _heldMetaIndexed.EnsureIndex(x => x.Id);
+            _heldMetaIndexed.EnsureIndex(x => x.QueueId, true);
+            _heldMetaIndexed.EnsureIndex(x => x.Status);
+            _heldMetaIndexed.EnsureIndex(x => x.HeartBeat);
+
+            //only the two indexes that are structural: the key, and the unique QueueId the body
+            //lookup needs. Status and HeartBeat are the optional pair, so the difference between
+            //this and the collection above is what they cost on every send.
+            _heldMetaStructural = _heldDatabase.GetCollection<RawMetaIndexed>("qmetastruct");
+            _heldMetaStructural.EnsureIndex(x => x.Id);
+            _heldMetaStructural.EnsureIndex(x => x.QueueId, true);
             _rawBatch = new List<RawQueue>(BatchSize);
             for (var i = 0; i < BatchSize; i++)
                 _rawBatch.Add(new RawQueue { Body = new byte[PayloadBytes], Headers = new byte[64] });
@@ -185,6 +232,71 @@ namespace DotNetWorkQueue.Benchmarks
                 QueueId = id,
                 CorrelationId = Guid.NewGuid(),
                 QueuedDateTime = DateTimeOffset.UtcNow
+            });
+            _heldDatabase.Commit();
+        }
+
+        /// <summary>
+        /// The same shape, but with a body the size the transport actually stores.
+        /// </summary>
+        /// <remarks>
+        /// The rung above writes the 256-byte payload. The transport does not store that - it
+        /// stores the serialized message, which Newtonsoft turns into roughly four and a half
+        /// kilobytes for the same payload. LiteDB pages and buffers scale with document size, so
+        /// comparing the transport against a 256-byte write charges the difference to the
+        /// transport. This rung is the honest floor for the end-to-end row.
+        /// </remarks>
+        [Benchmark(Description = "raw LiteDB, DNWQ shape, serialized-size body (held database)")]
+        public void RawInsert_DnwqShapeSerializedBody()
+        {
+            _heldDatabase.BeginTrans();
+            var id = _heldQueue.Insert(new RawQueue
+                { Body = new byte[SerializedBodyBytes], Headers = new byte[HeaderBytes] }).AsInt32;
+            _heldMeta.Insert(new RawMeta
+            {
+                QueueId = id,
+                CorrelationId = Guid.NewGuid(),
+                QueuedDateTime = DateTimeOffset.UtcNow
+            });
+            _heldDatabase.Commit();
+        }
+
+        /// <summary>
+        /// The complete floor: a serialized-size body and the indexes the transport actually
+        /// maintains. Against the end-to-end row, what is left is the library.
+        /// </summary>
+        [Benchmark(Description = "raw LiteDB, DNWQ shape, serialized body + the transport's indexes")]
+        public void RawInsert_DnwqShapeIndexed()
+        {
+            _heldDatabase.BeginTrans();
+            var id = _heldQueue.Insert(new RawQueue
+                { Body = new byte[SerializedBodyBytes], Headers = new byte[HeaderBytes] }).AsInt32;
+            _heldMetaIndexed.Insert(new RawMetaIndexed
+            {
+                QueueId = id,
+                CorrelationId = Guid.NewGuid(),
+                Status = 0,
+                QueuedDateTime = DateTime.UtcNow
+            });
+            _heldDatabase.Commit();
+        }
+
+        /// <summary>
+        /// The same, with only the structural indexes. Against the row above, this is what the
+        /// optional <c>Status</c> and <c>HeartBeat</c> indexes cost on every single send.
+        /// </summary>
+        [Benchmark(Description = "raw LiteDB, DNWQ shape, serialized body + structural indexes only")]
+        public void RawInsert_DnwqShapeStructuralIndexes()
+        {
+            _heldDatabase.BeginTrans();
+            var id = _heldQueue.Insert(new RawQueue
+                { Body = new byte[SerializedBodyBytes], Headers = new byte[HeaderBytes] }).AsInt32;
+            _heldMetaStructural.Insert(new RawMetaIndexed
+            {
+                QueueId = id,
+                CorrelationId = Guid.NewGuid(),
+                Status = 0,
+                QueuedDateTime = DateTime.UtcNow
             });
             _heldDatabase.Commit();
         }
