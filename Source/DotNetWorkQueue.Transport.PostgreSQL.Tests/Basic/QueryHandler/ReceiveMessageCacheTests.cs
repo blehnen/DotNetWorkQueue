@@ -79,22 +79,69 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.QueryHandler
         }
 
         [TestMethod]
-        public void A_Cached_Statement_Still_Returns_The_User_Parameters()
+        public void A_User_Clause_Still_Returns_Its_Parameters()
         {
-            //the trap. The parameters are not part of the text, so a cached return that skipped
-            //them would hand back a statement referencing @p1 with nothing bound to it.
             var context = new Context(additionalColumns: true);
             context.Configuration.AddUserParameter(new NpgsqlParameter("@p1", 1));
             context.Configuration.SetUserWhereClause("AND Col = @p1");
 
-            var cold = context.Build(null, out var coldParams);
-            var warm = context.Build(null, out var warmParams);
+            var first = context.Build(null, out var firstParams);
+            var second = context.Build(null, out var secondParams);
 
-            Assert.AreEqual(cold, warm, "the second call should come from the cache");
-            Assert.IsNotNull(coldParams);
-            Assert.IsNotNull(warmParams, "the cached path dropped the user parameters");
-            Assert.HasCount(1, warmParams);
-            Assert.AreEqual("@p1", warmParams[0].ParameterName);
+            Assert.AreEqual(first, second, "a fixed clause gives the same statement each time");
+            Assert.IsNotNull(firstParams);
+            Assert.IsNotNull(secondParams);
+            Assert.HasCount(1, secondParams);
+            Assert.AreEqual("@p1", secondParams[0].ParameterName);
+        }
+
+        [TestMethod]
+        public void A_Changing_User_Clause_Is_Honoured_Every_Time()
+        {
+            //The reason a user clause is not cached at all. SetUserParametersAndClause takes a
+            //factory that GetUserClause invokes on every de-queue, so the clause is free to differ
+            //each time. Keying the cache on its text would both serve a stale statement and add a
+            //permanent entry per poll until the process ran out of memory.
+            var context = new Context(additionalColumns: true);
+            var calls = 0;
+            context.Configuration.SetUserParametersAndClause(
+                () => new List<NpgsqlParameter> { new NpgsqlParameter("@p1", 1) },
+                () => $"AND Col{++calls} = @p1");
+
+            var first = context.Build(null);
+            var second = context.Build(null);
+            var third = context.Build(null);
+
+            Assert.Contains("Col1", first);
+            Assert.Contains("Col2", second);
+            Assert.Contains("Col3", third);
+            Assert.AreNotEqual(first, second);
+            Assert.AreNotEqual(second, third);
+        }
+
+        [TestMethod]
+        public void A_User_Clause_Is_Never_Cached()
+        {
+            //The actual regression test for the growth bug, and it has to assert on the cache
+            //rather than on the returned text: a per-clause key produces a *different* key each
+            //call, so a changing clause still returns correct SQL. What it does is add a permanent
+            //entry every poll, for as long as the consumer lives.
+            //
+            //The literals below are the keys a per-clause implementation would have written. None
+            //of them may exist, and the plain key must not be polluted either.
+            var context = new Context(additionalColumns: true);
+            var calls = 0;
+            context.Configuration.SetUserParametersAndClause(
+                () => new List<NpgsqlParameter> { new NpgsqlParameter("@p1", 1) },
+                () => $"AND Col{++calls} = @p1");
+
+            context.Build(null);
+            context.Build(null);
+
+            Assert.IsFalse(context.CacheContains("dequeueCommand|routes=0|user=AND Col1 = @p1"));
+            Assert.IsFalse(context.CacheContains("dequeueCommand|routes=0|user=AND Col2 = @p1"));
+            Assert.IsFalse(context.CacheContains("dequeueCommand"),
+                "a user-clause statement must not be stored under the plain key either");
         }
 
         [TestMethod]
@@ -140,6 +187,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.QueryHandler
 
                 _cache = new PostgreSqlCommandStringCache(_tableNameHelper);
             }
+
+            public bool CacheContains(string key) => _cache.Contains(key);
 
             public string Build(List<string> routes) => Build(routes, out _);
 

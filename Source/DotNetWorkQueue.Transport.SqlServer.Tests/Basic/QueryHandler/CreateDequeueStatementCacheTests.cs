@@ -79,22 +79,69 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.QueryHandler
         }
 
         [TestMethod]
-        public void A_Cached_Statement_Still_Returns_The_User_Parameters()
+        public void A_User_Clause_Still_Returns_Its_Parameters()
         {
-            //the trap. The parameters are not part of the text, so a cached return that skipped
-            //them would hand back a statement referencing @p1 with nothing bound to it.
             var create = Create(out var configuration, additionalColumns: true);
             configuration.AddUserParameter(new SqlParameter("@p1", 1));
             configuration.SetUserWhereClause("AND Col = @p1");
 
-            var cold = create.GetDeQueueCommand(out var coldParams);
-            var warm = create.GetDeQueueCommand(out var warmParams);
+            var first = create.GetDeQueueCommand(out var firstParams);
+            var second = create.GetDeQueueCommand(out var secondParams);
 
-            Assert.AreEqual(cold, warm, "the second call should come from the cache");
-            Assert.IsNotNull(coldParams);
-            Assert.IsNotNull(warmParams, "the cached path dropped the user parameters");
-            Assert.HasCount(1, warmParams);
-            Assert.AreEqual("@p1", warmParams[0].ParameterName);
+            Assert.AreEqual(first, second, "a fixed clause gives the same statement each time");
+            Assert.IsNotNull(firstParams);
+            Assert.IsNotNull(secondParams);
+            Assert.HasCount(1, secondParams);
+            Assert.AreEqual("@p1", secondParams[0].ParameterName);
+        }
+
+        [TestMethod]
+        public void A_Changing_User_Clause_Is_Honoured_Every_Time()
+        {
+            //The reason a user clause is not cached at all. SetUserParametersAndClause takes a
+            //factory that GetUserClause invokes on every de-queue, so the clause is free to differ
+            //each time. Keying the cache on its text would both serve a stale statement and add a
+            //permanent entry per poll until the process ran out of memory.
+            var create = Create(out var configuration, additionalColumns: true);
+            var calls = 0;
+            configuration.SetUserParametersAndClause(
+                () => new List<SqlParameter> { new SqlParameter("@p1", 1) },
+                () => $"AND Col{++calls} = @p1");
+
+            var first = create.GetDeQueueCommand(out _);
+            var second = create.GetDeQueueCommand(out _);
+            var third = create.GetDeQueueCommand(out _);
+
+            Assert.Contains("Col1", first);
+            Assert.Contains("Col2", second);
+            Assert.Contains("Col3", third);
+            Assert.AreNotEqual(first, second);
+            Assert.AreNotEqual(second, third);
+        }
+
+        [TestMethod]
+        public void A_User_Clause_Is_Never_Cached()
+        {
+            //The actual regression test for the growth bug, and it has to assert on the cache
+            //rather than on the returned text: a per-clause key produces a *different* key each
+            //call, so a changing clause still returns correct SQL. What it does is add a permanent
+            //entry every poll, for as long as the consumer lives.
+            //
+            //The literals below are the keys a per-clause implementation would have written. None
+            //of them may exist, and the plain key must not be polluted either.
+            var create = Create(out var configuration, out var cache, additionalColumns: true);
+            var calls = 0;
+            configuration.SetUserParametersAndClause(
+                () => new List<SqlParameter> { new SqlParameter("@p1", 1) },
+                () => $"AND Col{++calls} = @p1");
+
+            create.GetDeQueueCommand(out _);
+            create.GetDeQueueCommand(out _);
+
+            Assert.IsFalse(cache.Contains("dequeueCommand|routes=0|user=AND Col1 = @p1"));
+            Assert.IsFalse(cache.Contains("dequeueCommand|routes=0|user=AND Col2 = @p1"));
+            Assert.IsFalse(cache.Contains("dequeueCommand"),
+                "a user-clause statement must not be stored under the plain key either");
         }
 
         [TestMethod]
@@ -117,6 +164,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.QueryHandler
         private static CreateDequeueStatement Create(out QueueConsumerConfiguration configuration,
             bool additionalColumns = false)
         {
+            return Create(out configuration, out _, additionalColumns);
+        }
+
+        private static CreateDequeueStatement Create(out QueueConsumerConfiguration configuration,
+            out SqlServerCommandStringCache cache, bool additionalColumns = false)
+        {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             configuration = fixture.Create<QueueConsumerConfiguration>();
 
@@ -133,8 +186,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.QueryHandler
             tableNameHelper.QueueName.Returns("queue");
             tableNameHelper.StatusName.Returns("status");
 
-            return new CreateDequeueStatement(optionsFactory, tableNameHelper,
-                new SqlServerCommandStringCache(tableNameHelper, Substitute.For<ISqlSchema>()), configuration);
+            cache = new SqlServerCommandStringCache(tableNameHelper, Substitute.For<ISqlSchema>());
+            return new CreateDequeueStatement(optionsFactory, tableNameHelper, cache, configuration);
         }
     }
 }

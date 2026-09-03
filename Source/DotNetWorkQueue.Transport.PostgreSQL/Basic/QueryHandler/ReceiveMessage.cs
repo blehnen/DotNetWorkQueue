@@ -44,16 +44,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             var userQuery = configuration.GetUserClause();
             var cacheKey = BuildCacheKey(routes, userQuery);
 
-            if (commandCache.Contains(cacheKey))
+            if (cacheKey != null && commandCache.Contains(cacheKey))
             {
-                //The parameters are not part of the text, so they are produced whether the text
-                //was cached or built. Returning the cached statement without this would leave a
-                //consumer with a user clause holding a statement whose parameters were never
-                //supplied.
-                if (options.AdditionalColumnsOnMetaData && !string.IsNullOrEmpty(userQuery))
-                {
-                    userParams = configuration.GetUserParameters(); //NOTE - could be null
-                }
                 return commandCache.Get(cacheKey).CommandText;
             }
 
@@ -178,36 +170,41 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             sb.AppendLine(" AND q.QueueID = qm.QueueID");
             sb.AppendLine("returning q.queueid, qm.body, qm.Headers, q.CorrelationID");
 
-            return commandCache.Add(cacheKey, sb.ToString());
+            //a null key means this shape is not cacheable - see BuildCacheKey
+            return cacheKey == null ? sb.ToString() : commandCache.Add(cacheKey, sb.ToString());
         }
 
         /// <summary>
         /// The key the generated statement is cached under.
         /// </summary>
         /// <remarks>
-        /// Routes and a user clause used to bypass the cache, so a consumer using either rebuilt
-        /// the whole statement on every poll - measured at 2,648 bytes a time on a loop that never
-        /// stops.
+        /// Routes used to bypass the cache, so a routed consumer rebuilt the whole statement on
+        /// every poll - measured at 2,648 bytes a time on a loop that never stops. Only the route
+        /// <em>count</em> reaches the text, since routes become <c>@Route1..@RouteN</c>
+        /// placeholders and their values are bound as parameters, so the count is what it is keyed
+        /// on. Counts are small integers, which keeps the cache to a handful of entries.
         /// <para>
-        /// Both are safe to key on. Routes become <c>@Route1..@RouteN</c> placeholders, so only
-        /// their <em>count</em> reaches the text and never their values; the user clause is
-        /// inlined, so the clause itself is part of the key. Both are fixed for the life of a
-        /// consumer, which keeps this at one entry per consumer shape rather than one per poll.
+        /// A user clause is deliberately <b>not</b> cached, and must not be.
+        /// <c>SetUserParametersAndClause</c> takes a <c>Func&lt;string&gt;</c> that
+        /// <c>GetUserClause</c> invokes on every de-queue, so the clause is free to differ each
+        /// time. Keying on its text would put a new permanent entry in a cache that lives as long
+        /// as the consumer, once per poll, until the process ran out of memory. An earlier version
+        /// of this method did exactly that.
         /// </para>
         /// <para>
-        /// The plain key is kept for the common case so that statement, and its behaviour, are
-        /// exactly what they were before.
+        /// Returning null means "do not cache this one", which leaves a user-clause consumer with
+        /// the behaviour it had before any of this: the statement is rebuilt per poll.
         /// </para>
         /// </remarks>
         private static string BuildCacheKey(List<string> routes, string userQuery)
         {
-            var routeCount = routes?.Count ?? 0;
-            if (routeCount == 0 && string.IsNullOrEmpty(userQuery))
+            if (!string.IsNullOrEmpty(userQuery))
             {
-                return DequeueKey;
+                return null;
             }
 
-            return $"{DequeueKey}|routes={routeCount}|user={userQuery}";
+            var routeCount = routes?.Count ?? 0;
+            return routeCount == 0 ? DequeueKey : $"{DequeueKey}|routes={routeCount}";
         }
     }
 }
