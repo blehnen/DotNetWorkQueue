@@ -361,6 +361,46 @@ That was measured with a filter that compared a `DateTime` LiteDB had returned a
 hour into the future as ready and matched on the first page. Fast because it was wrong. The values
 the transport stores do come back as UTC, which `DateKindIsPreserved` now pins.
 
+## SqlServerPathBenchmarks and SqlServerReceiveBenchmarks
+
+Decompose a SQL Server send and de-queue. Both need a server: set
+`DNWQ_SQLSERVER_CONNECTION` to a connection string for a database the harness may create and drop
+tables in. It is read from the environment rather than the integration tests' `connectionstring.txt`
+because the harness runs from a copied output directory, and because a benchmark should not be the
+thing that reads a credential file.
+
+The shape of this transport is different enough from the embedded ones that most of the SQLite
+playbook does not apply, and the ladder is built to show why rather than to assume it.
+
+### Findings
+
+| finding | evidence |
+|---|---|
+| **The round trip is not the unit to optimise here — the write is** | A bare `SELECT 1` costs 496 us against 8,491 us for a single insert. The write dominates a round trip by seventeen to one. Any ladder here is unreadable until that floor is on the table, which is what the `SELECT 1` rungs are for |
+| The library adds 2.3% of a send's time | 9,654 us end to end against 9,429 us for a hand-written write of the same shape. Time optimisation on this path is close to pointless; the database is 97.7% of it. Allocation is the target — 30,522 B against a 16,594 B floor |
+| Collapsing the send's four round trips into one is worth 12%, and is not done | An ordinary send makes four: `BeginTransaction`, the body insert that returns the identity, the meta insert, `Commit`. The same work as a single batch with the transaction and the identity kept server-side is 8,284 us against 9,429 us — **1,145 us and ~7 KB**. Not attempted: it moves the transaction from client to server and touches the held-transaction inbox fork, the job-exists check and error handling. It needs its own change and a decision about the transaction contract |
+| The connection pool is free, so the largest SQLite win does not exist here | Pooled open plus close is 1.8 us. `Microsoft.Data.SqlClient` pools by default, unlike `System.Data.SQLite` |
+| The meta insert's SQL was rebuilt per send, and it is worth less than it first looked | Cached per table-and-option shape: a send goes 30,522 B to 29,298 B. **1,224 B, about 4%** — not the 16% the rung suggested. That rung measures `BuildMetaCommand` as a whole and only 1,224 B of it is the text; the rest is `SqlParameter` construction, which no cache removes. Do not re-read that rung as SQL-generation cost |
+| The de-queue statement was already cached, so the SQLite finding does not transfer | A cache hit is 11 ns and allocates nothing. On SQLite, generating the de-queue script was 91% of everything a de-queue allocated; here that work was already done |
+| **But routes and a user clause bypassed the cache, on the one loop that never stops** | `GetDeQueueCommand` returned the cached text only with no routes and no user clause, so a consumer using either rebuilt the whole statement — a table variable, a CTE, forty-odd appends — on **every poll**: 439 ns and **5,368 B**, which is 45% of everything an empty de-queue allocates. Keyed on the route count and the clause, it is now 41 ns and **80 B**, a 98.5% cut. Both are fixed for a consumer's life, so the cache is bounded at one entry per consumer shape. Note the `statement: routed consumer` rung changed meaning with the fix - it rebuilt before, and is a cache hit now - and is kept as the regression guard: if the route cache stops working it goes back to kilobytes a poll and says so |
+| Only the route *count* reaches the statement, which is what makes it safe to key on | Routes become `@Route1..@RouteN` placeholders; their values are bound as parameters. The user clause is inlined, so the clause text itself is part of the key |
+| The delay and the expiration are written into the SQL as literals | `DATEADD(ms,12345,GetUTCDate())`. That is why the send-side cache covers only the invariant shape, and it also means SQL Server compiles a fresh plan per distinct delay value. Parameterising the two would fix both at once and has not been done |
+
+### Two mistakes this ladder made first
+
+Both are recorded because the numbers looked plausible either way.
+
+**It reported the round trips as not worth collapsing, from a floor it had not measured.** The first
+version had no `SELECT 1` rung, so there was nothing to say whether 9 ms was a round trip or a
+write. It is a write, by a factor of seventeen — but that could only be stated once the bare round
+trip was on the table.
+
+**It reported the held-connection rung as the slowest**, at 14.1 ms against 8.4 ms for the same work
+on a pooled connection, which is backwards. The rungs insert and never delete, BenchmarkDotNet runs
+them in declaration order, and the later ones were paying for the data-file growth the earlier ones
+caused. Truncating per iteration and fixing the invocation count removes it, and the ladder is
+monotonic.
+
 ## Why this exists
 
 A scratch decomposition in August 2026 found that the write transaction was ~3% of the gap

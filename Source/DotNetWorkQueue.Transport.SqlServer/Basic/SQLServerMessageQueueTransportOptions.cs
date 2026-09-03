@@ -398,6 +398,24 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             }
         }
         /// <summary>
+        /// The option flags that decide the meta-insert SQL's shape, as a cache key.
+        /// </summary>
+        /// <remarks>
+        /// Exactly the flags <see cref="AddBuiltInColumns"/> and
+        /// <see cref="AddBuiltInColumnValues"/> branch on. If a flag is added to either of those,
+        /// it belongs here too, or two different shapes will share one cached string.
+        /// </remarks>
+        internal string GetMetaSqlShape()
+        {
+            return string.Concat(
+                EnableDelayedProcessing ? "d" : "-",
+                EnablePriority ? "p" : "-",
+                EnableRoute ? "r" : "-",
+                EnableStatus ? "s" : "-",
+                EnableMessageExpiration ? "e" : "-");
+        }
+
+        /// <summary>
         /// Adds the built in column values.
         /// </summary>
         /// <param name="delay">The delay.</param>
