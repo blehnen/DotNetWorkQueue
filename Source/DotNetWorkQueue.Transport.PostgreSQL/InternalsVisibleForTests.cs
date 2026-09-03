@@ -20,3 +20,7 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("DotNetWorkQueue.Transport.PostgreSQL.Tests")]
 [assembly: InternalsVisibleTo("DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests")]
+
+//The benchmark harness measures GetDeQueueCommand directly. Reaching it by reflection instead
+//would put the reflection cost inside the measured loop.
+[assembly: InternalsVisibleTo("DotNetWorkQueue.Benchmarks")]

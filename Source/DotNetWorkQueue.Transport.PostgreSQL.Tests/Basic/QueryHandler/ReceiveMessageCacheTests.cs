@@ -20,32 +20,32 @@ using System.Collections.Generic;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+using DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.SqlServer.Basic;
-using DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler;
-using Microsoft.Data.SqlClient;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Npgsql;
 using NSubstitute;
 
-namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.QueryHandler
+namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.QueryHandler
 {
     /// <summary>
     /// The de-queue statement is cached for routed and user-clause consumers too, not just the
     /// plain case. What the cache is keyed on has to cover everything that reaches the text.
     /// </summary>
     [TestClass]
-    public class CreateDequeueStatementCacheTests
+    public class ReceiveMessageCacheTests
     {
         [TestMethod]
         public void Each_Route_Count_Gets_Its_Own_Statement()
         {
             //routes become @Route1..@RouteN placeholders, so the count is in the text and two
             //different counts must not share one cached statement
-            var create = Create(out _);
+            var context = new Context();
 
-            var one = create.GetDeQueueCommand(out _, new List<string> { "a" });
-            var two = create.GetDeQueueCommand(out _, new List<string> { "a", "b" });
-            var three = create.GetDeQueueCommand(out _, new List<string> { "a", "b", "c" });
+            var one = context.Build(new List<string> { "a" });
+            var two = context.Build(new List<string> { "a", "b" });
+            var three = context.Build(new List<string> { "a", "b", "c" });
 
             Assert.AreNotEqual(one, two);
             Assert.AreNotEqual(two, three);
@@ -58,10 +58,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.QueryHandler
         public void The_Same_Route_Count_Is_Served_From_The_Cache()
         {
             //cold then warm; different values, same count, so it is the same statement
-            var create = Create(out _);
+            var context = new Context();
 
-            var first = create.GetDeQueueCommand(out _, new List<string> { "a", "b" });
-            var second = create.GetDeQueueCommand(out _, new List<string> { "x", "y" });
+            var first = context.Build(new List<string> { "a", "b" });
+            var second = context.Build(new List<string> { "x", "y" });
 
             Assert.AreEqual(first, second);
         }
@@ -69,10 +69,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.QueryHandler
         [TestMethod]
         public void No_Routes_Is_Not_Confused_With_Routes()
         {
-            var create = Create(out _);
+            var context = new Context();
 
-            var none = create.GetDeQueueCommand(out _);
-            var one = create.GetDeQueueCommand(out _, new List<string> { "a" });
+            var none = context.Build(null);
+            var one = context.Build(new List<string> { "a" });
 
             Assert.AreNotEqual(none, one);
             Assert.DoesNotContain("@Route1", none);
@@ -81,12 +81,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.QueryHandler
         [TestMethod]
         public void A_User_Clause_Still_Returns_Its_Parameters()
         {
-            var create = Create(out var configuration, additionalColumns: true);
-            configuration.AddUserParameter(new SqlParameter("@p1", 1));
-            configuration.SetUserWhereClause("AND Col = @p1");
+            var context = new Context(additionalColumns: true);
+            context.Configuration.AddUserParameter(new NpgsqlParameter("@p1", 1));
+            context.Configuration.SetUserWhereClause("AND Col = @p1");
 
-            var first = create.GetDeQueueCommand(out var firstParams);
-            var second = create.GetDeQueueCommand(out var secondParams);
+            var first = context.Build(null, out var firstParams);
+            var second = context.Build(null, out var secondParams);
 
             Assert.AreEqual(first, second, "a fixed clause gives the same statement each time");
             Assert.IsNotNull(firstParams);
@@ -102,15 +102,15 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.QueryHandler
             //factory that GetUserClause invokes on every de-queue, so the clause is free to differ
             //each time. Keying the cache on its text would both serve a stale statement and add a
             //permanent entry per poll until the process ran out of memory.
-            var create = Create(out var configuration, additionalColumns: true);
+            var context = new Context(additionalColumns: true);
             var calls = 0;
-            configuration.SetUserParametersAndClause(
-                () => new List<SqlParameter> { new SqlParameter("@p1", 1) },
+            context.Configuration.SetUserParametersAndClause(
+                () => new List<NpgsqlParameter> { new NpgsqlParameter("@p1", 1) },
                 () => $"AND Col{++calls} = @p1");
 
-            var first = create.GetDeQueueCommand(out _);
-            var second = create.GetDeQueueCommand(out _);
-            var third = create.GetDeQueueCommand(out _);
+            var first = context.Build(null);
+            var second = context.Build(null);
+            var third = context.Build(null);
 
             Assert.Contains("Col1", first);
             Assert.Contains("Col2", second);
@@ -129,65 +129,74 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.QueryHandler
             //
             //The literals below are the keys a per-clause implementation would have written. None
             //of them may exist, and the plain key must not be polluted either.
-            var create = Create(out var configuration, out var cache, additionalColumns: true);
+            var context = new Context(additionalColumns: true);
             var calls = 0;
-            configuration.SetUserParametersAndClause(
-                () => new List<SqlParameter> { new SqlParameter("@p1", 1) },
+            context.Configuration.SetUserParametersAndClause(
+                () => new List<NpgsqlParameter> { new NpgsqlParameter("@p1", 1) },
                 () => $"AND Col{++calls} = @p1");
 
-            create.GetDeQueueCommand(out _);
-            create.GetDeQueueCommand(out _);
+            context.Build(null);
+            context.Build(null);
 
-            Assert.IsFalse(cache.Contains("dequeueCommand|routes=0|user=AND Col1 = @p1"));
-            Assert.IsFalse(cache.Contains("dequeueCommand|routes=0|user=AND Col2 = @p1"));
-            Assert.IsFalse(cache.Contains("dequeueCommand"),
+            Assert.IsFalse(context.CacheContains("dequeueCommand|routes=0|user=AND Col1 = @p1"));
+            Assert.IsFalse(context.CacheContains("dequeueCommand|routes=0|user=AND Col2 = @p1"));
+            Assert.IsFalse(context.CacheContains("dequeueCommand"),
                 "a user-clause statement must not be stored under the plain key either");
         }
 
         [TestMethod]
         public void Two_User_Clauses_Do_Not_Share_One_Statement()
         {
-            var create = Create(out var configuration, additionalColumns: true);
-            configuration.AddUserParameter(new SqlParameter("@p1", 1));
+            var context = new Context(additionalColumns: true);
+            context.Configuration.AddUserParameter(new NpgsqlParameter("@p1", 1));
 
-            configuration.SetUserWhereClause("AND ColA = @p1");
-            var first = create.GetDeQueueCommand(out _);
+            context.Configuration.SetUserWhereClause("AND ColA = @p1");
+            var first = context.Build(null);
 
-            configuration.SetUserWhereClause("AND ColB = @p1");
-            var second = create.GetDeQueueCommand(out _);
+            context.Configuration.SetUserWhereClause("AND ColB = @p1");
+            var second = context.Build(null);
 
             Assert.AreNotEqual(first, second);
             Assert.Contains("ColA", first);
             Assert.Contains("ColB", second);
         }
 
-        private static CreateDequeueStatement Create(out QueueConsumerConfiguration configuration,
-            bool additionalColumns = false)
+        private sealed class Context
         {
-            return Create(out configuration, out _, additionalColumns);
-        }
+            private readonly PostgreSqlCommandStringCache _cache;
+            private readonly ITableNameHelper _tableNameHelper;
+            private readonly PostgreSqlMessageQueueTransportOptions _options;
 
-        private static CreateDequeueStatement Create(out QueueConsumerConfiguration configuration,
-            out SqlServerCommandStringCache cache, bool additionalColumns = false)
-        {
-            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            configuration = fixture.Create<QueueConsumerConfiguration>();
+            public QueueConsumerConfiguration Configuration { get; }
 
-            var options = new SqlServerMessageQueueTransportOptions
+            public Context(bool additionalColumns = false)
             {
-                EnableRoute = true,
-                AdditionalColumnsOnMetaData = additionalColumns
-            };
-            var optionsFactory = Substitute.For<ISqlServerMessageQueueTransportOptionsFactory>();
-            optionsFactory.Create().Returns(options);
+                var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+                Configuration = fixture.Create<QueueConsumerConfiguration>();
 
-            var tableNameHelper = Substitute.For<ITableNameHelper>();
-            tableNameHelper.MetaDataName.Returns("meta");
-            tableNameHelper.QueueName.Returns("queue");
-            tableNameHelper.StatusName.Returns("status");
+                _options = new PostgreSqlMessageQueueTransportOptions
+                {
+                    EnableRoute = true,
+                    AdditionalColumnsOnMetaData = additionalColumns
+                };
 
-            cache = new SqlServerCommandStringCache(tableNameHelper, Substitute.For<ISqlSchema>());
-            return new CreateDequeueStatement(optionsFactory, tableNameHelper, cache, configuration);
+                _tableNameHelper = Substitute.For<ITableNameHelper>();
+                _tableNameHelper.MetaDataName.Returns("meta");
+                _tableNameHelper.QueueName.Returns("queue");
+                _tableNameHelper.StatusName.Returns("status");
+
+                _cache = new PostgreSqlCommandStringCache(_tableNameHelper);
+            }
+
+            public bool CacheContains(string key) => _cache.Contains(key);
+
+            public string Build(List<string> routes) => Build(routes, out _);
+
+            public string Build(List<string> routes, out List<NpgsqlParameter> userParams)
+            {
+                return ReceiveMessage.GetDeQueueCommand(_cache, _tableNameHelper, _options,
+                    Configuration, routes, out userParams);
+            }
         }
     }
 }
