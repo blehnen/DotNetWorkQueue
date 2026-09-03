@@ -62,10 +62,19 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         {
             userParams = null;
             var userQuery = _configuration.GetUserClause();
-            if ((routes == null || routes.Count == 0) && string.IsNullOrEmpty(userQuery)
-                && _commandCache.Contains(DequeueKey))
+            var cacheKey = BuildCacheKey(routes, userQuery);
+
+            if (_commandCache.Contains(cacheKey))
             {
-                return _commandCache.Get(DequeueKey).CommandText;
+                //The parameters are not part of the text, so they are produced whether the text
+                //was cached or built. Returning the cached statement without this would leave a
+                //consumer with a user clause holding a statement whose parameters were never
+                //supplied.
+                if (HasUserClause(userQuery))
+                {
+                    userParams = _configuration.GetUserParameters(); //NOTE - could be null
+                }
+                return _commandCache.Get(cacheKey).CommandText;
             }
 
             var sb = new StringBuilder();
@@ -231,11 +240,46 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                 sb.AppendFormat("update {0} set status = {1} where {0}.QueueID = (select q.queueid from @Queue1 q)", _tableNameHelper.StatusName, Convert.ToInt16(QueueStatuses.Processing));
             }
 
-            if ((routes != null && routes.Count > 0) || !string.IsNullOrEmpty(userQuery))
-            { //NOTE: Route-based caching deferred; see CONCERNS.md L-4
-                return sb.ToString();
+            return _commandCache.Add(cacheKey, sb.ToString());
+        }
+
+        /// <summary>
+        /// Whether the user clause is part of the statement text.
+        /// </summary>
+        private bool HasUserClause(string userQuery)
+        {
+            return _options.Value.AdditionalColumnsOnMetaData && !string.IsNullOrEmpty(userQuery);
+        }
+
+        /// <summary>
+        /// The key the generated statement is cached under.
+        /// </summary>
+        /// <remarks>
+        /// Routes and a user clause used to bypass the cache entirely, so a consumer using either
+        /// rebuilt the whole statement - a table variable, a CTE and forty-odd appends - on every
+        /// poll: 5,368 bytes a time, 45% of everything an empty de-queue allocated, on a loop that
+        /// never stops.
+        /// <para>
+        /// Both are safe to key on. Routes become <c>@Route1..@RouteN</c> placeholders, so only
+        /// their <em>count</em> reaches the text and never their values; the user clause is
+        /// inlined, so the clause itself is part of the key. Both are fixed for the life of a
+        /// consumer, which is what keeps the cache bounded - one entry per consumer shape rather
+        /// than one per poll.
+        /// </para>
+        /// <para>
+        /// The plain key is kept for the common case so the cached text, and its behaviour, are
+        /// exactly what they were before.
+        /// </para>
+        /// </remarks>
+        private string BuildCacheKey(List<string> routes, string userQuery)
+        {
+            var routeCount = routes?.Count ?? 0;
+            if (routeCount == 0 && string.IsNullOrEmpty(userQuery))
+            {
+                return DequeueKey;
             }
-            return _commandCache.Add(DequeueKey, sb.ToString());
+
+            return $"{DequeueKey}|routes={routeCount}|user={userQuery}";
         }
     }
 }
