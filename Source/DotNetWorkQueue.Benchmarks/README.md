@@ -233,6 +233,47 @@ puts worker threads on the same queue the benchmark is draining.
 End to end, a de-queue through the full decorated chain went from **2,964 ns / 2,833 B to
 2,365 ns / 2,112 B**.
 
+## LiteDbReceiveConcurrencyBenchmarks
+
+Whether concurrent consumers scale, which the send-only concurrency suite could not say.
+`ReceiveMessageQueryHandler` holds a process-wide `static` lock around every de-queue; the send
+path had a lock of exactly that shape and removing it was the largest single finding of the LiteDb
+pass, so the obvious hypothesis was that the same win was sitting here.
+
+**It is not.** The lock is the correctness mechanism, not removable overhead.
+
+| benchmark | isolates |
+|---|---|
+| 200 de-queues, 1 thread, one queue | the serial baseline |
+| 200 de-queues, 4 / 8 threads, one queue | whether more consumers help |
+| 200 de-queues, 4 threads, two separate queues | whether unrelated queues interfere |
+| 200 raw LiteDB claims, 1 / 4 threads | the floor: a correct claim with no transport in the way |
+
+Each iteration builds its queues from scratch. A de-queue marks a message processed rather than
+deleting it, and the walk from #241 steps over ineligible rows in key order — so rows left by a
+previous iteration would make each later iteration slower and quietly turn this into a
+queue-depth measurement.
+
+Not a `[MemoryDiagnoser]` suite, deliberately: with one invocation per iteration the diagnoser
+counts the per-iteration fixtures — two queues, six containers, sixteen receive chains, four
+hundred seeded messages — as de-queue cost, and read 98 MB per two hundred de-queues that way.
+Allocation on this path belongs to `LiteDbReceiveBenchmarks`.
+
+### Findings
+
+| finding | evidence |
+|---|---|
+| **A correct claim cannot be parallel in LiteDB direct mode, so the de-queue lock is not overhead** | `BeginTrans` does not block in direct mode, so unsynchronized claim transactions interleave and take the same row. The control, run without a lock, made 200 claims that left **only 63 of 200 rows claimed** — and ran *faster* (7.4 ms against 21.1 ms) precisely because most of the work was wrong. Any measurement showing the raw engine "scaling" here is measuring double-delivery. This is why `ReceiveMessageQueryHandler` holds its lock, and why removing it is not on the table |
+| Consumers do not scale on a LiteDb queue — they cost | 66.7 ms on one thread, **80.4 ms on four (1.21x slower)**, 81.9 ms on eight. The ceiling does not move between four and eight |
+| The floor behaves the same way, so this is not something the transport adds carelessly | A correct raw claim goes 11.6 ms on one thread to 21.1 ms on four — 1.83x slower — with no transport in the way at all |
+| Two unrelated queues are not made worse by sharing the process-wide lock, but they are not made better either | Four threads across two separate database files take 67.6 ms, which merely matches a *single* thread on one queue (66.7 ms) and beats four threads on one queue (80.4 ms). The lock still couples them; what is recovered is per-file contention, not parallelism |
+| Per-database lock keying remains the only available lever, and it is a trap | It would let unrelated queues proceed independently. It was tried on the send path in #238 and removed: `Path.GetFullPath` does not resolve symlinks, so two spellings of one file take different locks and the messages get delivered twice. Any retry needs a real file identity, and the failure mode is silent |
+
+Measured on net10, WSL2/ext4, 15 warm-up iterations. The warm-up matters: with one invocation per
+iteration the first benchmark in the process absorbs the JIT and file-cache cost and ran 223 ms on
+its first iteration against 63 ms by its twelfth. Five warm-ups were not enough and made the
+baseline look bimodal.
+
 ## LiteDbPathBenchmarks
 
 Decomposes a LiteDb send, the same ladder shape as `SendPathBenchmarks`. LiteDb is the other

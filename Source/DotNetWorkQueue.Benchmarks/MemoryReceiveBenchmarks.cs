@@ -141,7 +141,7 @@ namespace DotNetWorkQueue.Benchmarks
             _consumerContainer = new QueueContainer<MemoryBasic.MemoryMessageQueueInit>();
             _consumer = _consumerContainer.CreateConsumer(_queueConnection);
 
-            var container = ConsumerContainer(_consumerContainer);
+            var container = ConsumerInternals.ContainerOf(_consumerContainer);
             _storage = container.GetInstance<IDataStorage>();
             _contextFactory = container.GetInstance<IMessageContextFactory>();
             _cancelWork = container.GetInstance<IQueueCancelWork>();
@@ -415,30 +415,6 @@ namespace DotNetWorkQueue.Benchmarks
         }
 
         private const BindingFlags Flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
-
-        /// <summary>
-        /// The consumer's own container, so the rungs resolve exactly the instances a running
-        /// consumer would use rather than a hand-built approximation.
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3011:Reflection should not be used to increase accessibility of classes, methods, or fields",
-            Justification = "Deliberate, and confined to a benchmark that is never shipped. Reading the consumer's container is " +
-                            "the point: the ladder measures the configured instances with their decorators, rather than a " +
-                            "hand-built approximation that could silently drift from the real receive path.")]
-        private static IContainer ConsumerContainer(object queueContainer)
-        {
-            var field = typeof(BaseContainer).GetField("Containers", Flags)
-                        ?? throw new InvalidOperationException(
-                            "BaseContainer no longer has a 'Containers' field; update MemoryReceiveBenchmarks.");
-
-            var bag = (ConcurrentBag<IDisposable>)field.GetValue(queueContainer);
-            foreach (var item in bag)
-            {
-                if (item is IContainer container) return container;
-            }
-
-            throw new InvalidOperationException(
-                "No IContainer found on the queue container; update MemoryReceiveBenchmarks.");
-        }
 
         /// <summary>
         /// The SimpleInjector container behind the wrapper, so the resolve the context factory
