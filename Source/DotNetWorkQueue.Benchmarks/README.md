@@ -401,6 +401,26 @@ them in declaration order, and the later ones were paying for the data-file grow
 caused. Truncating per iteration and fixing the invocation count removes it, and the ladder is
 monotonic.
 
+## PostgreSqlReceiveBenchmarks
+
+The same question SQL Server's receive suite answered, asked again here rather than assumed.
+`ReceiveMessage.GetDeQueueCommand` carried the identical deferral note, and the identical defect:
+the cached statement was returned only with no routes and no user clause, so a routed consumer
+reassembled it on every poll.
+
+Needs a server: set `DNWQ_POSTGRES_CONNECTION`.
+
+### Findings
+
+| finding | evidence |
+|---|---|
+| The defect transferred, but **the number did not** | 2,648 B a poll against SQL Server's 5,368 B - about half, because PostgreSQL uses an updating CTE with `FOR UPDATE SKIP LOCKED` rather than a table variable, so its statement is smaller. Real either way, and worth measuring rather than carrying the other transport's figure across |
+| Keyed on the route count and the clause, a routed poll allocates 80 B | 240 ns and 2,648 B rebuilding, **37 ns and 80 B** as a cache hit - a 97% cut. The unrouted path is unchanged at 10 ns and nothing |
+| The same reasoning makes it safe here | Routes become `@Route1..@RouteN` placeholders, so only their count reaches the text; the user clause is inlined, so the clause is part of the key. Both are fixed for a consumer's life, so the cache holds one entry per consumer shape |
+
+The routed rung changed meaning with the fix - it rebuilt before, and is a cache hit now - and is
+kept as the regression guard, exactly as SQL Server's is.
+
 ## Why this exists
 
 A scratch decomposition in August 2026 found that the write transaction was ~3% of the gap
