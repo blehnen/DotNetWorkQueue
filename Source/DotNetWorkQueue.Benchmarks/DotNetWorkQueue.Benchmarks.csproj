@@ -20,6 +20,7 @@
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue.Transport.SQLite\DotNetWorkQueue.Transport.SQLite.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue.Transport.LiteDB\DotNetWorkQueue.Transport.LiteDb.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.SqlServer\DotNetWorkQueue.Transport.SqlServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>

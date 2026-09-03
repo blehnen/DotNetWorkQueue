@@ -20,3 +20,8 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("DotNetWorkQueue.Transport.SqlServer.Tests")]
 [assembly: InternalsVisibleTo("DotNetWorkQueue.Transport.SqlServer.Integration.Tests")]
+
+//The benchmark harness measures BuildMetaCommand directly. Reaching it by reflection instead
+//would put the reflection cost inside the measured loop, which is a mistake this harness has
+//already had to correct once.
+[assembly: InternalsVisibleTo("DotNetWorkQueue.Benchmarks")]
