@@ -31,11 +31,16 @@ namespace DotNetWorkQueue.Benchmarks
     /// </summary>
     /// <remarks>
     /// <para>
-    /// On SQL Server it is already cached, so the SQLite finding does not transfer. But the cache
-    /// is conditional: <c>CreateDequeueStatement.GetDeQueueCommand</c> returns the cached text only
-    /// when there are no routes and no user clause. A consumer using either rebuilds the whole
-    /// statement - 43 <c>StringBuilder</c> appends, a table variable and a CTE - on every poll.
-    /// That is what these rungs measure.
+    /// On SQL Server it was already cached, so the SQLite finding does not transfer. The cache used
+    /// to be conditional, though: <c>CreateDequeueStatement.GetDeQueueCommand</c> returned the
+    /// cached text only when there were no routes and no user clause, so a consumer using either
+    /// rebuilt the whole statement - 43 <c>StringBuilder</c> appends, a table variable and a CTE -
+    /// on every poll, at 439 ns and 5,368 B.
+    /// </para>
+    /// <para>
+    /// Both shapes are cached now, keyed on the route count and the clause. These rungs therefore
+    /// measure cache hits, and exist as the regression guard: if that keying ever stops working,
+    /// the routed row goes back to allocating kilobytes per poll and says so.
     /// </para>
     /// <para>
     /// The de-queue rungs run against an <b>empty</b> queue. A de-queue consumes the row it finds,
@@ -79,7 +84,7 @@ namespace DotNetWorkQueue.Benchmarks
             _creation = new QueueCreationContainer<SqlServerMessageQueueInit>();
             using (var creator = _creation.GetQueueCreation<SqlServerMessageQueueCreation>(_queueConnection))
             {
-                //routes on, so the rebuilt-statement path is available to measure
+                //routes on, so the routed statement shape is available to measure
                 creator.Options.EnableRoute = true;
                 var result = creator.CreateQueue();
                 if (!result.Success)
@@ -94,8 +99,12 @@ namespace DotNetWorkQueue.Benchmarks
             _contextFactory = container.GetInstance<IMessageContextFactory>();
             _receive = container.GetInstance<IReceiveMessagesFactory>().Create();
 
-            //prime the cache so the cached rung measures a hit rather than the first build
+            //Prime both keys, so each rung measures a hit by construction rather than by relying on
+            //BenchmarkDotNet's warm-up to absorb the one build. The routed key is a different entry
+            //from the unrouted one, so priming only the latter left the routed rung's first call
+            //doing the build it claims not to measure.
             _statement.GetDeQueueCommand(out _);
+            _statement.GetDeQueueCommand(out _, _routes);
         }
 
         [GlobalCleanup]
