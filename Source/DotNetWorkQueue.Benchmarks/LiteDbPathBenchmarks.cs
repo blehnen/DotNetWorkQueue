@@ -108,6 +108,15 @@ namespace DotNetWorkQueue.Benchmarks
             public int Status { get; set; }
             public DateTime QueuedDateTime { get; set; }
             public DateTime? HeartBeat { get; set; }
+
+            //Present so the document has the same field count the transport writes. They stay null
+            //because the options that populate them - delayed processing, message expiration and
+            //routing - are all off by default, which is the configuration these rungs compare
+            //against. They are deliberately *not* indexed for the same reason: MetaDataTable only
+            //builds those indexes when the matching option is enabled.
+            public DateTime? QueueProcessTime { get; set; }
+            public DateTime? ExpirationTime { get; set; }
+            public string Route { get; set; }
         }
 
         /// <summary>Stands in for the transport's meta collection.</summary>

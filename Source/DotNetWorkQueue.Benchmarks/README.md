@@ -263,11 +263,17 @@ Allocation on this path belongs to `LiteDbReceiveBenchmarks`.
 
 | finding | evidence |
 |---|---|
-| **A correct claim cannot be parallel in LiteDB direct mode, so the de-queue lock is not overhead** | `BeginTrans` does not block in direct mode, so unsynchronized claim transactions interleave and take the same row. The control, run without a lock, made 200 claims that left **only 63 of 200 rows claimed** — and ran *faster* (7.4 ms against 21.1 ms) precisely because most of the work was wrong. Any measurement showing the raw engine "scaling" here is measuring double-delivery. This is why `ReceiveMessageQueryHandler` holds its lock, and why removing it is not on the table |
-| Consumers do not scale on a LiteDb queue — they cost | 66.7 ms on one thread, **80.4 ms on four (1.21x slower)**, 81.9 ms on eight. The ceiling does not move between four and eight |
-| The floor behaves the same way, so this is not something the transport adds carelessly | A correct raw claim goes 11.6 ms on one thread to 21.1 ms on four — 1.83x slower — with no transport in the way at all |
-| Two unrelated queues are not made worse by sharing the process-wide lock, but they are not made better either | Four threads across two separate database files take 67.6 ms, which merely matches a *single* thread on one queue (66.7 ms) and beats four threads on one queue (80.4 ms). The lock still couples them; what is recovered is per-file contention, not parallelism |
+| **A correct claim cannot be parallel in LiteDB direct mode, so the de-queue lock is not overhead** | `BeginTrans` does not block in direct mode, so unsynchronized claim transactions interleave and take the same row. The control, run without a lock, made 200 claims that left **only 63 of 200 rows claimed** — and ran *faster* (7.4 ms against 21.7 ms) precisely because most of the work was wrong. Any measurement showing the raw engine "scaling" here is measuring double-delivery. This is why `ReceiveMessageQueryHandler` holds its lock, and why removing it is not on the table |
+| Consumers do not scale on a LiteDb queue — they cost | 68.0 ms on one thread, **83.2 ms on four (1.23x slower)**, 85.0 ms on eight. The ceiling does not move between four and eight |
+| The floor behaves the same way, so this is not something the transport adds carelessly | A correct raw claim goes 11.9 ms on one thread to 21.7 ms on four — 1.83x slower — with no transport in the way at all |
+| Two unrelated queues are not made worse by sharing the process-wide lock, but they are not made better either | Four threads across two separate database files take 70.9 ms, which merely matches a *single* thread on one queue (68.0 ms) and beats four threads on one queue (83.2 ms). The lock still couples them; what is recovered is per-file contention, not parallelism |
 | Per-database lock keying remains the only available lever, and it is a trap | It would let unrelated queues proceed independently. It was tried on the send path in #238 and removed: `Path.GetFullPath` does not resolve symlinks, so two spellings of one file take different locks and the messages get delivered twice. Any retry needs a real file identity, and the failure mode is silent |
+
+Every rung asserts what it measured. A de-queue that finds no message throws, and each rung
+verifies it claimed exactly `TotalMessages` **distinct** messages — so these rows are also a
+positive statement that the de-queue stays exclusive under four and eight consumers and across two
+queues, not just a timing. The duplicate check keys on queue *and* id, because a message id is an
+auto-increment int scoped to its own database and the two-queue rung has an id 1 in each.
 
 Measured on net10, WSL2/ext4, 15 warm-up iterations. The warm-up matters: with one invocation per
 iteration the first benchmark in the process absorbs the JIT and file-cache cost and ran 223 ms on

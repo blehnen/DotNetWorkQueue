@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -81,6 +82,19 @@ namespace DotNetWorkQueue.Benchmarks
         private Fixture _a, _b;
 
         private static readonly object RawClaimLock = new object();
+
+        /// <summary>
+        /// Every message claimed during a rung, keyed by queue and id. The null guard in
+        /// <c>Fixture.Dequeue</c> proves a de-queue found something; this proves no two found the
+        /// *same* thing, which is the one failure this whole suite is about. Without it a
+        /// regression in the de-queue lock would still show 200 successful claims and pass.
+        /// <para>
+        /// The queue has to be part of the key. A message id is an auto-increment int scoped to
+        /// its own database, so the two-queue rung has an id 1 in each - keying on the id alone
+        /// reported the second one as a double claim.
+        /// </para>
+        /// </summary>
+        private static readonly ConcurrentDictionary<string, byte> Claimed = new();
         private int _rawClaims;
         private LiteDatabase _rawDatabase;
         private ILiteCollection<RawStatus> _rawMeta;
@@ -132,7 +146,9 @@ namespace DotNetWorkQueue.Benchmarks
         [Benchmark(Baseline = true, Description = "200 de-queues, 1 thread, one queue")]
         public void OneThread()
         {
+            Claimed.Clear();
             for (var i = 0; i < TotalMessages; i++) _a.Dequeue(0);
+            VerifyClaimedOnce();
         }
 
         /// <summary>
@@ -140,11 +156,21 @@ namespace DotNetWorkQueue.Benchmarks
         /// serializing the consumers.
         /// </summary>
         [Benchmark(Description = "200 de-queues, 4 threads, one queue")]
-        public void FourThreads() => Spread(4, t => _a.Dequeue(t));
+        public void FourThreads()
+        {
+            Claimed.Clear();
+            Spread(4, t => _a.Dequeue(t));
+            VerifyClaimedOnce();
+        }
 
         /// <summary>Eight threads, to show whether the ceiling moves at all.</summary>
         [Benchmark(Description = "200 de-queues, 8 threads, one queue")]
-        public void EightThreads() => Spread(8, t => _a.Dequeue(t));
+        public void EightThreads()
+        {
+            Claimed.Clear();
+            Spread(8, t => _a.Dequeue(t));
+            VerifyClaimedOnce();
+        }
 
         /// <summary>
         /// Four threads split across <b>two unrelated queues</b>, each with its own database file.
@@ -153,7 +179,11 @@ namespace DotNetWorkQueue.Benchmarks
         /// </summary>
         [Benchmark(Description = "200 de-queues, 4 threads, two separate queues")]
         public void FourThreadsTwoQueues()
-            => Spread(4, t => (t % 2 == 0 ? _a : _b).Dequeue(t));
+        {
+            Claimed.Clear();
+            Spread(4, t => (t % 2 == 0 ? _a : _b).Dequeue(t));
+            VerifyClaimedOnce();
+        }
 
         /// <summary>
         /// The control: the same claim-a-row transaction straight into LiteDB on four threads,
@@ -203,6 +233,16 @@ namespace DotNetWorkQueue.Benchmarks
                     _rawDatabase.Commit();
                 }
             }
+        }
+
+        /// <summary>
+        /// Every seeded message was claimed, and each exactly once.
+        /// </summary>
+        private static void VerifyClaimedOnce()
+        {
+            if (Claimed.Count != TotalMessages)
+                throw new InvalidOperationException(
+                    $"expected {TotalMessages} distinct messages, saw {Claimed.Count}. The de-queue is not exclusive.");
         }
 
         /// <summary>
@@ -258,6 +298,7 @@ namespace DotNetWorkQueue.Benchmarks
 
             private IMessageContextFactory _contextFactory;
             private IReceiveMessages[] _receivers;
+            private string _key;
 
             public static Fixture Create(string dir, string name, List<LiteDbPathBenchmarks.Event> seed)
             {
@@ -265,7 +306,7 @@ namespace DotNetWorkQueue.Benchmarks
                 var connectionString = $"Filename={file};Connection=direct;";
                 var queueName = $"benchRecvConc{name}{Guid.NewGuid():N}";
 
-                var fixture = new Fixture();
+                var fixture = new Fixture { _key = name + ":" };
                 (fixture._creation, fixture._producerContainer, fixture._producer) =
                     LiteDbPathBenchmarks.CreateQueue(queueName, connectionString);
 
@@ -303,10 +344,20 @@ namespace DotNetWorkQueue.Benchmarks
                 //turn every rung into a measurement of empty polls
                 if (message == null)
                     throw new InvalidOperationException("de-queue found nothing; the fixture is not seeded as expected");
+
+                if (!Claimed.TryAdd(_key + message.MessageId.Id.Value, 0))
+                    throw new InvalidOperationException(
+                        "the same message was claimed twice; the de-queue is no longer exclusive");
             }
+
+            private int _disposeCount;
 
             public void Dispose()
             {
+                //guarded the way the library guards its own disposal, so a second call - from a
+                //cleanup that runs after a failed iteration, say - is a no-op rather than a throw
+                if (Interlocked.Increment(ref _disposeCount) != 1) return;
+
                 _consumer?.Dispose();
                 _consumerContainer?.Dispose();
                 _producer?.Dispose();
