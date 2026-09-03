@@ -127,11 +127,23 @@ namespace DotNetWorkQueue.Benchmarks
         }
 
         /// <summary>
-        /// With routes, which bypasses the cache and rebuilds the statement. Against the row above,
-        /// this is what a routed consumer pays on every poll.
+        /// What a routed consumer pays per poll.
         /// </summary>
-        [Benchmark(Description = "statement: rebuilt (routes), no round trip")]
-        public int Statement_Rebuilt()
+        /// <remarks>
+        /// This rung changed meaning with the fix it was written to justify, which is worth being
+        /// explicit about. Before routes were cached it rebuilt the statement on every call - 439 ns
+        /// and 5,368 B - because routes bypassed the cache entirely. It now measures a cache hit for
+        /// the routed shape, at 41 ns and 80 B, the 80 B being the composite key.
+        /// <para>
+        /// It is kept rather than deleted because it is the regression guard: if the route cache
+        /// ever stops working, this row goes back to allocating kilobytes per poll and says so. A
+        /// rung that forces a genuine rebuild is not reachable through this API without inventing a
+        /// new route count on every call, which would grow the cache without bound - the thing the
+        /// key is designed to avoid.
+        /// </para>
+        /// </remarks>
+        [Benchmark(Description = "statement: routed consumer, no round trip")]
+        public int Statement_Routed()
         {
             return _statement.GetDeQueueCommand(out _, _routes).Length;
         }
