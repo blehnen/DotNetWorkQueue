@@ -422,6 +422,25 @@ Needs a server: set `DNWQ_POSTGRES_CONNECTION`.
 The routed rung changed meaning with the fix - it rebuilt before, and is a cache hit now - and is
 kept as the regression guard, exactly as SQL Server's is.
 
+## PostgreSqlAutoPrepareBenchmarks
+
+Whether Npgsql's automatic statement preparation is worth turning on — #232 names it as the
+PostgreSQL-specific lever, because it is off by default, has no equivalent in the other providers,
+and would be a connection-string change rather than code.
+
+Needs a server via `DNWQ_POSTGRES_CONNECTION`. The rungs are paired: identical work against two
+queues differing only in their connection string.
+
+### Findings
+
+| finding | evidence |
+|---|---|
+| It pays on batches, and only on batches | A batch of 100 is **13-17% faster** across two runs (37.4 ms to 32.5 ms, then 69.3 ms to 57.6 ms - the absolute numbers moved a lot between runs because the server was busier, so read the within-run ratios). A single send showed 6% in the first run and **nothing** in the second (7.174 ms against 7.365 ms), which makes the single-send figure noise rather than a small win. Allocation is unchanged either way |
+| The baseline has to state its setting, not inherit one | The first version passed the ambient connection string to the `off` rung unchanged. If a caller's string already enabled auto-prepare, that rung was not off and the suite would have compared a thing against itself - which looks exactly like "no effect" and is indistinguishable from a real result. Both rungs now say what they mean explicitly, and it was that change which showed the single-send gain was not there |
+| It is documented, not enabled | Turning it on by default would hand every PostgreSQL consumer the DDL exposure below in exchange for 6–13%. It is described in the transport's README as a tuning option instead |
+| **A dry run of this suite reported it as a five-fold win, and that was nonsense** | 55.8 ms against 10.5 ms, with one invocation per rung and the `off` fixture running first, so it paid the connection and warm-up cost for both. The same order-dependent trap the SQL Server ladder had to correct. Recorded because the number looked spectacular and meant nothing |
+| The DDL risk is real, and only partly evidenced | Prepared statements live on the physical connection, the pool hands it back, and dropping a table invalidates any statement referencing it — and this library creates and drops queues routinely. `AutoPrepareSurvivesDdl` drives create → send past the threshold → drop → recreate under the same name → send, and passes. But Npgsql exposes no public counter for auto-prepared statements, so that is evidence the scenario works rather than proof the invalidation path was exercised. Do not read it as a safety guarantee |
+
 ## Why this exists
 
 A scratch decomposition in August 2026 found that the write transaction was ~3% of the gap
