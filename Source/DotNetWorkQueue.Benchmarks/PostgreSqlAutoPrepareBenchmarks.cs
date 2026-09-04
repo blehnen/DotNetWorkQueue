@@ -54,6 +54,9 @@ namespace DotNetWorkQueue.Benchmarks
         /// </summary>
         private const string AutoPrepareSettings = "Max Auto Prepare=20;Auto Prepare Min Usages=2;";
 
+        /// <summary>Npgsql's own default, stated rather than assumed. See <c>Setup</c>.</summary>
+        private const string AutoPrepareDisabled = "Max Auto Prepare=0;";
+
         private string _payload;
         private Fixture _off;
         private Fixture _on;
@@ -68,8 +71,13 @@ namespace DotNetWorkQueue.Benchmarks
 
             _payload = new string('x', PayloadBytes);
 
+            //Both rungs state their setting explicitly rather than inheriting whatever the
+            //environment's connection string happens to say. Passing it through unchanged would
+            //mean a caller whose string already set Max Auto Prepare got a baseline that was not
+            //off, and a comparison of a thing against itself - which would look like "no effect"
+            //and be indistinguishable from a real result.
             var separator = baseConnection.TrimEnd().EndsWith(";", StringComparison.Ordinal) ? "" : ";";
-            _off = Fixture.Create(baseConnection, _payload);
+            _off = Fixture.Create(baseConnection + separator + AutoPrepareDisabled, _payload);
             _on = Fixture.Create(baseConnection + separator + AutoPrepareSettings, _payload);
         }
 

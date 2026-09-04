@@ -40,20 +40,20 @@ Off by default in Npgsql, and this transport does not turn it on. The send path 
 handful of statements repeatedly, which is the shape automatic preparation targets, so enabling it
 is worth considering — it is a connection-string change, not a code one:
 
-```
+```text
 Host=localhost;Database=MyDb;Username=user;Password=pass;Max Auto Prepare=20;Auto Prepare Min Usages=2;
 ```
 
-Measured on this transport (net10, LAN PostgreSQL, 256-byte payload):
+Measured on this transport (net10, LAN PostgreSQL, 256-byte payload), across two runs:
 
-| operation | default | with auto-prepare |
-|---|---|---|
-| single send | 5.94 ms | 5.57 ms (~6%) |
-| batch of 100 | 37.39 ms | 32.46 ms (~13%) |
+| operation | effect |
+|---|---|
+| single send | **no measurable difference** |
+| batch of 100 | **13-17% faster** |
 
-Allocation is unchanged. The batch figure is the reliable one; the single-send gain is within about
-one error bar of the measurement and should be treated as suggestive. Benefit concentrates in
-batch-heavy producers.
+Allocation is unchanged. The benefit is on the batch path and only there — a single send showed a
+6% gain in one run and none in another, which is noise rather than a small win. If you send one
+message at a time, this setting is not for you.
 
 **Before enabling it, know the trade-off.** Prepared statements live on the physical connection and
 the pool hands that connection back out, so dropping or recreating a table invalidates any prepared
