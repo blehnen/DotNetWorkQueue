@@ -235,12 +235,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             sb.AppendLine("SELECT @QueueID;");
 
             command.CommandText = sb.ToString();
-            if (cacheKey != null)
-            {
-                if (SingleRoundTripSqlCache.Count < MaxCachedStatements)
+            if (cacheKey != null && SingleRoundTripSqlCache.Count < MaxCachedStatements)
             {
                 SingleRoundTripSqlCache.TryAdd(cacheKey, command.CommandText);
-            }
             }
         }
 
@@ -310,12 +307,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             sbMeta.Append(')'); //close the VALUES
 
             command.CommandText = sbMeta.ToString();
-            if (cacheKey != null)
-            {
-                if (MetaSqlCache.Count < MaxCachedStatements)
+            if (cacheKey != null && MetaSqlCache.Count < MaxCachedStatements)
             {
                 MetaSqlCache.TryAdd(cacheKey, command.CommandText);
-            }
             }
 
             AddMetaParameters(command, data, id, options, includeQueueIdParameter);

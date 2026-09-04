@@ -155,10 +155,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                                 }
 
                                 CreateMetaDataRecord(commandSend.MessageData.GetDelay(), expiration, connection, id,
-                                    commandSend.MessageToSend, commandSend.MessageData, trans, _getTime.GetCurrentUtcDate());
+                                    commandSend.MessageData, trans, _getTime.GetCurrentUtcDate());
                                 if (_options.Value.EnableStatusTable)
                                 {
-                                    CreateStatusRecord(connection, id, commandSend.MessageToSend,
+                                    CreateStatusRecord(connection, id,
                                         commandSend.MessageData, trans);
                                 }
 
@@ -265,12 +265,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             // argument (see SendMessage.BuildMetaCommand). Materialize once via the injected
             // IGetTime so the metadata row matches the self-managed-transaction path's clock semantics.
             CreateMetaDataRecord(commandSend.MessageData.GetDelay(), expiration, npgsqlConn, id,
-                commandSend.MessageToSend, commandSend.MessageData, npgsqlTransaction,
+                commandSend.MessageData, npgsqlTransaction,
                 _getTime.GetCurrentUtcDate());
 
             if (_options.Value.EnableStatusTable)
             {
-                CreateStatusRecord(npgsqlConn, id, commandSend.MessageToSend, commandSend.MessageData, npgsqlTransaction);
+                CreateStatusRecord(npgsqlConn, id, commandSend.MessageData, npgsqlTransaction);
             }
 
             if (!string.IsNullOrWhiteSpace(jobName))
@@ -288,10 +288,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         /// </summary>
         /// <param name="connection">The connection.</param>
         /// <param name="id">The identifier.</param>
-        /// <param name="message">The message.</param>
         /// <param name="data">The data.</param>
         /// <param name="trans">The transaction.</param>
-        private void CreateStatusRecord(NpgsqlConnection connection, long id, IMessage message,
+        private void CreateStatusRecord(NpgsqlConnection connection, long id,
             IAdditionalMessageData data, NpgsqlTransaction trans)
         {
             using (var command = connection.CreateCommand())
@@ -310,11 +309,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         /// <param name="expiration">The expiration.</param>
         /// <param name="connection">The connection.</param>
         /// <param name="id">The identifier.</param>
-        /// <param name="message">The message.</param>
         /// <param name="data">The data.</param>
         /// <param name="trans">The transaction.</param>
         /// <param name="currentTime">The current time.</param>
-        private void CreateMetaDataRecord(TimeSpan? delay, TimeSpan expiration, NpgsqlConnection connection, long id, IMessage message, IAdditionalMessageData data,
+        private void CreateMetaDataRecord(TimeSpan? delay, TimeSpan expiration, NpgsqlConnection connection, long id, IAdditionalMessageData data,
             NpgsqlTransaction trans, DateTime currentTime)
         {
             using (var command = connection.CreateCommand())

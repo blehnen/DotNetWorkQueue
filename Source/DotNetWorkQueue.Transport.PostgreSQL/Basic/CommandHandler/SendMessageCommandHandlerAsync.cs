@@ -160,11 +160,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                                 await
                                     CreateMetaDataRecordAsync(commandSend.MessageData.GetDelay(), expiration, connection,
                                         id,
-                                        commandSend.MessageToSend, commandSend.MessageData, trans, _getTime.GetCurrentUtcDate()).ConfigureAwait(false);
+                                        commandSend.MessageData, trans, _getTime.GetCurrentUtcDate()).ConfigureAwait(false);
                                 if (_options.Value.EnableStatusTable)
                                 {
                                     await
-                                        CreateStatusRecordAsync(connection, id, commandSend.MessageToSend,
+                                        CreateStatusRecordAsync(connection, id,
                                             commandSend.MessageData, trans).ConfigureAwait(false);
                                 }
 
@@ -272,12 +272,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             // eighth argument. IGetTime.GetCurrentUtcDate() is synchronous — invoke directly,
             // no await needed.
             await CreateMetaDataRecordAsync(commandSend.MessageData.GetDelay(), expiration,
-                npgsqlConn, id, commandSend.MessageToSend, commandSend.MessageData, npgsqlTransaction,
+                npgsqlConn, id, commandSend.MessageData, npgsqlTransaction,
                 _getTime.GetCurrentUtcDate()).ConfigureAwait(false);
 
             if (_options.Value.EnableStatusTable)
             {
-                await CreateStatusRecordAsync(npgsqlConn, id, commandSend.MessageToSend,
+                await CreateStatusRecordAsync(npgsqlConn, id,
                     commandSend.MessageData, npgsqlTransaction).ConfigureAwait(false);
             }
 
@@ -296,11 +296,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         /// </summary>
         /// <param name="connection">The connection.</param>
         /// <param name="id">The identifier.</param>
-        /// <param name="message">The message.</param>
         /// <param name="data">The data.</param>
         /// <param name="trans">The transaction.</param>
         /// <returns></returns>
-        private async Task CreateStatusRecordAsync(NpgsqlConnection connection, long id, IMessage message,
+        private async Task CreateStatusRecordAsync(NpgsqlConnection connection, long id,
             IAdditionalMessageData data, NpgsqlTransaction trans)
         {
             using (var command = connection.CreateCommand())
@@ -320,13 +319,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         /// <param name="expiration">The expiration.</param>
         /// <param name="connection">The connection.</param>
         /// <param name="id">The identifier.</param>
-        /// <param name="message">The message.</param>
         /// <param name="data">The data.</param>
         /// <param name="trans">The transaction.</param>
         /// <param name="currentTime">The current time.</param>
         /// <returns></returns>
         private async Task CreateMetaDataRecordAsync(TimeSpan? delay, TimeSpan expiration, NpgsqlConnection connection, long id,
-            IMessage message, IAdditionalMessageData data, NpgsqlTransaction trans, DateTime currentTime)
+            IAdditionalMessageData data, NpgsqlTransaction trans, DateTime currentTime)
         {
             using (var command = connection.CreateCommand())
             {

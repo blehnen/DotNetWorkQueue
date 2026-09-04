@@ -218,12 +218,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             sb.Append($"SELECT QueueID FROM {BodyCte}");
 
             command.CommandText = sb.ToString();
-            if (cacheKey != null)
-            {
-                if (SingleRoundTripSqlCache.Count < MaxCachedStatements)
+            if (cacheKey != null && SingleRoundTripSqlCache.Count < MaxCachedStatements)
             {
                 SingleRoundTripSqlCache.TryAdd(cacheKey, command.CommandText);
-            }
             }
         }
 
