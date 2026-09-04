@@ -43,11 +43,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
         {
             var sql = Build(out _);
 
-            //XACT_ABORT is what replaces the client-side rollback. Without it an error inside a
-            //server-side transaction can leave it open.
+            //XACT_ABORT dooms the transaction on ordinary run-time errors, but it has no effect
+            //on RAISERROR - a trigger raising one would otherwise reach the COMMIT and leave a
+            //body row behind. The explicit rollback is what closes that.
             Assert.Contains("SET XACT_ABORT ON", sql);
             Assert.Contains("BEGIN TRANSACTION", sql);
             Assert.Contains("COMMIT TRANSACTION", sql);
+            Assert.Contains("BEGIN TRY", sql);
+            Assert.Contains("BEGIN CATCH", sql);
+            Assert.Contains("IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION", sql);
+            Assert.Contains("THROW", sql);
 
             //the identity never returns to the client mid-batch
             Assert.Contains("DECLARE @QueueID bigint", sql);
@@ -102,22 +107,87 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             Assert.Contains("10000", tenSeconds);
         }
 
+        [TestMethod]
+        public void The_Status_Table_Insert_Joins_The_Same_Batch()
+        {
+            //the status insert used to be excluded on the belief that its @CorrelationID would
+            //collide with the meta insert's. It does not - one SqlParameter serves every
+            //occurrence of the name - so a status-table queue gets the single round trip too.
+            var sql = Build(out var command, statusTable: true);
+
+            Assert.Contains("Insert into queue", sql);
+            Assert.Contains("Insert into meta", sql);
+            Assert.Contains("Insert into status", sql);
+
+            Assert.AreEqual(1, CountParameters(command, "@CorrelationID"),
+                "@CorrelationID must be bound once and referenced twice, not bound twice");
+            Assert.IsFalse(command.Parameters.Contains("@QueueID"),
+                "@QueueID is still the batch's own variable");
+        }
+
+        [TestMethod]
+        public void A_Status_Batch_Served_From_The_Cache_Still_Binds_Its_Parameters()
+        {
+            //the text can come from the cache, but the parameters never can - they carry this
+            //message's values. Building the status insert before the cache is consulted is what
+            //keeps that true.
+            Build(out _, statusTable: true);
+            var sql = Build(out var second, statusTable: true);
+
+            Assert.Contains("Insert into status", sql);
+            Assert.AreEqual(1, CountParameters(second, "@CorrelationID"));
+        }
+
+        [TestMethod]
+        public void A_Status_Batch_Carrying_User_Columns_Is_Not_Cached()
+        {
+            //with the user's columns on the status table rather than the meta table, their names
+            //are written into the status insert - so that text varies per message and caching it
+            //would serve one message's columns to another
+            var first = Build(out _, statusTable: true, userColumn: "OrderId");
+            var second = Build(out _, statusTable: true, userColumn: "CustomerId");
+
+            Assert.Contains("OrderId", first);
+            Assert.Contains("CustomerId", second);
+            Assert.AreNotEqual(first, second);
+        }
+
+        private static int CountParameters(SqlCommand command, string name)
+        {
+            var count = 0;
+            foreach (SqlParameter parameter in command.Parameters)
+            {
+                if (string.Equals(parameter.ParameterName, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+
         private static string Build(out SqlCommand command, TimeSpan? delay = null,
-            bool delayedProcessing = false)
+            bool delayedProcessing = false, bool statusTable = false, string userColumn = null)
         {
             var tableNameHelper = Substitute.For<ITableNameHelper>();
             tableNameHelper.QueueName.Returns("queue");
             tableNameHelper.MetaDataName.Returns("meta");
+            tableNameHelper.StatusName.Returns("status");
 
             var options = new SqlServerMessageQueueTransportOptions
             {
-                EnableDelayedProcessing = delayedProcessing
+                EnableDelayedProcessing = delayedProcessing,
+                EnableStatusTable = statusTable
             };
 
             var data = new AdditionalMessageData
             {
                 CorrelationId = new MessageCorrelationId<Guid>(Guid.NewGuid())
             };
+
+            if (userColumn != null)
+            {
+                data.AdditionalMetaData.Add(new AdditionalMetaData<string>(userColumn, "a-value"));
+            }
 
             command = new SqlCommand();
             SendMessage.BuildSingleRoundTripCommand(command, tableNameHelper, Substitute.For<IHeaders>(),

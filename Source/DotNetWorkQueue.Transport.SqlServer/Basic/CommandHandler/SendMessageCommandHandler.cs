@@ -118,7 +118,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 scheduledTime = _jobSchedulerMetaData.GetScheduledTime(commandSend.MessageData);
                 eventTime = _jobSchedulerMetaData.GetEventTime(commandSend.MessageData);
             }
-            else if (!_options.Value.EnableStatusTable)
+            else
             {
                 return HandleSingleRoundTrip(commandSend);
             }
@@ -190,15 +190,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         }
 
         /// <summary>
-        /// An ordinary send - no scheduled job, no caller-supplied transaction, no status table -
-        /// as a single round trip.
+        /// An ordinary send - no scheduled job and no caller-supplied transaction - as a single
+        /// round trip.
         /// </summary>
         /// <remarks>
         /// <para>
         /// The general path makes four: <c>BeginTransaction</c>, the body insert that returns the
-        /// identity, the meta insert, and <c>Commit</c>. Measured against a hand-written write of
-        /// the same shape, doing it in one batch is worth 1,145 us of a 9,429 us send - about 12% -
-        /// and roughly 7 KB. The transaction and the identity never leave the server.
+        /// identity, the meta insert, and <c>Commit</c>. The transaction and the identity never
+        /// leave the server here. Measured in one run against the same rungs, an end-to-end send
+        /// is 7.38 ms where a hand-written write of the four-round-trip shape is 8.67 ms and of
+        /// the one-round-trip shape is 7.63 ms - so the library send now beats the four-trip
+        /// write it used to lose to.
         /// </para>
         /// <para>
         /// <c>@QueueID</c> is declared by the batch and filled from <c>SCOPE_IDENTITY</c>, which is
@@ -207,17 +209,18 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// and the general one write identical rows.
         /// </para>
         /// <para>
-        /// <c>XACT_ABORT</c> is what makes the batch all-or-nothing. Without it an error inside a
-        /// server-side transaction can leave it open, where the client-side transaction the general
-        /// path uses would have rolled back. With it, any error aborts the batch and rolls back,
-        /// which is the same guarantee the caller had before.
+        /// The batch is all-or-nothing, which is what the client-side transaction it replaces
+        /// guaranteed. <c>TRY/CATCH</c> with an explicit <c>ROLLBACK</c> is what delivers that;
+        /// <c>XACT_ABORT</c> alone does not, because it has no effect on <c>RAISERROR</c> - see
+        /// <see cref="SendMessage.BuildSingleRoundTripCommand"/>.
         /// </para>
         /// <para>
-        /// The three cases this deliberately does not cover, each because it needs the client to
+        /// The two cases this deliberately does not cover, each because it needs the client to
         /// hold the transaction across more than one decision: a scheduled job, whose
-        /// "already queued?" check is a check-then-act; a caller-supplied transaction, which the
-        /// caller commits itself; and the status table, whose insert would need a second
-        /// <c>@CorrelationID</c> parameter in the same batch.
+        /// "already queued?" check is a check-then-act, and a caller-supplied transaction, which
+        /// the caller commits itself. A queue with the status table enabled <em>is</em> covered -
+        /// its insert goes into the same batch, and one <c>@CorrelationID</c> parameter serves
+        /// every occurrence of the name in the text.
         /// </para>
         /// </remarks>
         private long HandleSingleRoundTrip(SendMessageCommand commandSend)

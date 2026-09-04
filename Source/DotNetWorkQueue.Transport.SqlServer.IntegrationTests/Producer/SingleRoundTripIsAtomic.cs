@@ -32,10 +32,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
     /// </summary>
     /// <remarks>
     /// This is the property the single-round-trip path put at risk. The four-round-trip path holds
-    /// a <c>SqlTransaction</c> and rolls it back in a <c>catch</c>; the batch relies on
-    /// <c>SET XACT_ABORT ON</c> to do the same thing server-side. If that were missing or wrong,
-    /// the body row would be committed while the meta row was not - a message in the queue table
-    /// that no consumer can ever see, and nothing would have failed loudly.
+    /// a <c>SqlTransaction</c> and rolls it back in a <c>catch</c>; the batch has to do the same
+    /// thing server-side. If it did not, the body row would be committed while the meta row was
+    /// not - a message in the queue table that no consumer can ever see, and nothing would have
+    /// failed loudly.
+    /// <para>
+    /// There are two cases, and they do not share a mechanism, which is why both are tested.
+    /// <c>SET XACT_ABORT ON</c> covers an ordinary run-time error such as a constraint violation.
+    /// It does <b>not</b> cover <c>RAISERROR</c>, so the batch also needs <c>TRY/CATCH</c> with an
+    /// explicit <c>ROLLBACK</c>; with only the former, the trigger case below committed a body row
+    /// while reporting the send as failed.
+    /// </para>
     /// <para>
     /// The failure has to happen at <em>run</em> time, which is why it is forced with a CHECK
     /// constraint rather than by dropping the meta table. Dropping it makes the batch fail to
@@ -52,8 +59,40 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
     [TestClass]
     public class SingleRoundTripIsAtomic
     {
+        /// <summary>
+        /// A constraint violation - an ordinary run-time error, which <c>XACT_ABORT</c> covers.
+        /// </summary>
         [TestMethod]
         public void A_Failed_Send_Leaves_No_Body_Row()
+        {
+            AssertFailedSendLeavesNothing(meta =>
+                $"ALTER TABLE {meta} ADD CONSTRAINT chk_force_failure CHECK (QueueID < 0)");
+        }
+
+        /// <summary>
+        /// A trigger raising an error, which <c>XACT_ABORT</c> does <b>not</b> cover.
+        /// </summary>
+        /// <remarks>
+        /// <c>SET XACT_ABORT ON</c> has no effect on errors raised by <c>RAISERROR</c>, so this
+        /// case reaches the unconditional <c>COMMIT</c> and commits a body row whose send reported
+        /// a failure. That is why the batch is wrapped in <c>TRY/CATCH</c> with an explicit
+        /// rollback rather than relying on <c>XACT_ABORT</c> alone.
+        /// </remarks>
+        [TestMethod]
+        public void A_Trigger_Raising_An_Error_Leaves_No_Body_Row()
+        {
+            AssertFailedSendLeavesNothing(meta =>
+                $@"CREATE TRIGGER trg_force_raiserror ON {meta} AFTER INSERT AS
+                   BEGIN
+                       RAISERROR('forced failure from a trigger', 16, 1);
+                   END");
+        }
+
+        /// <summary>
+        /// Creates a queue, breaks the meta insert so that it fails <em>after</em> the body insert
+        /// has run, sends, and asserts nothing was left behind.
+        /// </summary>
+        private static void AssertFailedSendLeavesNothing(Func<string, string> breakMetaInsert)
         {
             var queueName = GenerateQueueName.Create();
             var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
@@ -68,16 +107,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
 
             try
             {
-                //every meta insert now violates this, and it is a run-time failure - so the body
-                //insert has already executed by the time the batch fails
-                Execute($"ALTER TABLE {tableNameHelper.MetaDataName} ADD CONSTRAINT chk_force_failure CHECK (QueueID < 0)");
+                //the failure must happen at run time, so that the body insert has already executed
+                //by the time the batch fails - see the remarks on this class
+                Execute(breakMetaInsert(tableNameHelper.MetaDataName));
 
                 using (var container = new QueueContainer<SqlServerMessageQueueInit>())
                 {
                     using var producer = container.CreateProducer<FakeMessage>(queueConnection);
 
                     var result = producer.Send(new FakeMessage());
-                    Assert.IsTrue(result.HasError, "the send should have failed on the constraint");
+                    Assert.IsTrue(result.HasError, "the send should have failed");
                 }
 
                 //the point of the test: the body insert ran first and must have been rolled back

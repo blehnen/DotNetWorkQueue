@@ -34,7 +34,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             IAdditionalMessageData data,
             IMessage message,
             long id,
-            SqlServerMessageQueueTransportOptions options)
+            SqlServerMessageQueueTransportOptions options,
+            bool includeSharedParameters = true)
         {
             var builder = new StringBuilder();
             builder.AppendLine("Insert into " + tableNameHelper.StatusName);
@@ -63,10 +64,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 
             command.CommandText = builder.ToString();
 
-            options.AddBuiltInColumnsParams(command, data);
+            //When composed into a single batch the meta insert has already bound these, and one
+            //SqlParameter serves every occurrence of its name in the text. @QueueID is a variable
+            //the batch declares rather than a parameter at all. The user columns are still added
+            //here, because when they live on the status table the meta insert never binds them.
+            if (includeSharedParameters)
+            {
+                options.AddBuiltInColumnsParams(command, data);
 
-            command.Parameters.Add("@QueueID", SqlDbType.BigInt, 8).Value = id;
-            command.Parameters.Add("@CorrelationID", SqlDbType.UniqueIdentifier, 16).Value = data.CorrelationId.Id.Value;
+                command.Parameters.Add("@QueueID", SqlDbType.BigInt, 8).Value = id;
+                command.Parameters.Add("@CorrelationID", SqlDbType.UniqueIdentifier, 16).Value = data.CorrelationId.Id.Value;
+            }
 
             //add configurable column command params - user
             if (!options.AdditionalColumnsOnMetaData)
@@ -133,9 +141,15 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// declares a variable of that name and fills it from <c>SCOPE_IDENTITY</c> - a parameter
         /// of the same name would collide with the declaration.
         /// <para>
-        /// <c>XACT_ABORT</c> is what makes this all-or-nothing. Without it an error inside a
-        /// server-side transaction can leave it open, where the client-side transaction would have
-        /// rolled back; with it, any error aborts the batch and rolls back.
+        /// The <c>TRY/CATCH</c> with an explicit <c>ROLLBACK</c> is what makes this all-or-nothing,
+        /// and <c>XACT_ABORT</c> alone is <b>not</b> enough to get there. <c>SET XACT_ABORT ON</c>
+        /// has no effect on errors raised by <c>RAISERROR</c>, so a trigger on the meta table that
+        /// raises one leaves the transaction alive, execution reaches the unconditional
+        /// <c>COMMIT</c>, and a body row is committed while the caller is told the send failed -
+        /// exactly the orphan the client-side transaction it replaces could not produce. Both are
+        /// kept: <c>XACT_ABORT</c> dooms the transaction on ordinary run-time errors, and the
+        /// <c>CATCH</c> covers what it does not. <c>THROW</c> re-raises so the caller still sees
+        /// the original error.
         /// </para>
         /// <para>
         /// Cached on the same terms as the meta SQL, and for the same reason: a message carrying a
@@ -158,8 +172,29 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 expiration, includeQueueIdParameter: false);
             var metaSql = command.CommandText;
 
-            var cacheKey = CanCacheMetaSql(data, options, delay, expiration)
-                ? tableNameHelper.QueueName + "|" + tableNameHelper.MetaDataName + "|" + options.GetMetaSqlShape()
+            //Built before the cache is consulted, because this binds parameters as well as
+            //producing text - a cache hit still needs them on the command.
+            string statusSql = null;
+            if (options.EnableStatusTable)
+            {
+                using var statusCommand = new SqlCommand();
+                BuildStatusCommand(statusCommand, tableNameHelper, headers, data, message, 0, options,
+                    includeSharedParameters: false);
+                foreach (SqlParameter statusParameter in statusCommand.Parameters)
+                {
+                    command.Parameters.Add(((ICloneable)statusParameter).Clone());
+                }
+                statusSql = statusCommand.CommandText;
+            }
+
+            //The status insert carries the user's own columns when they live on the status table,
+            //so its text varies per message and the batch must not be cached then. The meta insert
+            //has no equivalent case - CanCacheMetaSql already refuses AdditionalColumnsOnMetaData.
+            var statusEmbedsUserColumns = options.EnableStatusTable && data.AdditionalMetaData.Count > 0;
+
+            var cacheKey = CanCacheMetaSql(data, options, delay, expiration) && !statusEmbedsUserColumns
+                ? tableNameHelper.QueueName + "|" + tableNameHelper.MetaDataName + "|" +
+                  options.GetMetaSqlShape() + (options.EnableStatusTable ? "|status" : string.Empty)
                 : null;
 
             if (cacheKey != null && SingleRoundTripSqlCache.TryGetValue(cacheKey, out var cached))
@@ -172,11 +207,21 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             sb.AppendLine("SET NOCOUNT ON;");
             sb.AppendLine("SET XACT_ABORT ON;");
             sb.AppendLine("DECLARE @QueueID bigint;");
+            sb.AppendLine("BEGIN TRY");
             sb.AppendLine("BEGIN TRANSACTION;");
             sb.AppendLine($"Insert into {tableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers);");
             sb.AppendLine("SET @QueueID = SCOPE_IDENTITY();");
             sb.Append(metaSql).AppendLine(";");
+            if (statusSql != null)
+            {
+                sb.Append(statusSql).AppendLine(";");
+            }
             sb.AppendLine("COMMIT TRANSACTION;");
+            sb.AppendLine("END TRY");
+            sb.AppendLine("BEGIN CATCH");
+            sb.AppendLine("IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;");
+            sb.AppendLine("THROW;");
+            sb.AppendLine("END CATCH");
             sb.AppendLine("SELECT @QueueID;");
 
             command.CommandText = sb.ToString();
