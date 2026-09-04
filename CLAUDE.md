@@ -133,6 +133,12 @@ Historical engineering notes have been moved to [`docs/lessons-learned.md`](docs
 - New and changed features should be covered by either unit or integration Tests
 - Features that might vary by the transport implementation should have integration Tests; This has caused issues before with Redis History for example
 
+## Pull requests
+
+- A PR description explains the change to a reviewer: what it does, why, and what to look at. It is not a history of how the work got there.
+- Leave out process narration — dead ends, wrong turns, numbers that were nearly reported, corrections to earlier readings, "what I got wrong". None of that helps someone reviewing the diff.
+- Those things still get written down, just elsewhere: reasoning belongs in commit messages, and measurement dead ends belong in `Source/DotNetWorkQueue.Benchmarks/README.md`, which exists so they are not re-derived.
+
 ## Changelog.md
 
 - Prefer consise entries instead of verbose; too much detail just makes the log harder to read
