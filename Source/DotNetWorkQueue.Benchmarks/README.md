@@ -441,6 +441,26 @@ queues differing only in their connection string.
 | **A dry run of this suite reported it as a five-fold win, and that was nonsense** | 55.8 ms against 10.5 ms, with one invocation per rung and the `off` fixture running first, so it paid the connection and warm-up cost for both. The same order-dependent trap the SQL Server ladder had to correct. Recorded because the number looked spectacular and meant nothing |
 | The DDL risk is real, and only partly evidenced | Prepared statements live on the physical connection, the pool hands it back, and dropping a table invalidates any statement referencing it — and this library creates and drops queues routinely. `AutoPrepareSurvivesDdl` drives create → send past the threshold → drop → recreate under the same name → send, and passes. But Npgsql exposes no public counter for auto-prepared statements, so that is evidence the scenario works rather than proof the invalidation path was exercised. Do not read it as a safety guarantee |
 
+## RelationalDecoratorBenchmarks
+
+What the retry decorator costs per command, separated from the database call it wraps. Both #231
+and #232 ask this, noting that a win here would be shared by all three relational transports rather
+than transport-local.
+
+It cannot be answered from the send ladders — the decorator wraps a call taking milliseconds, so its
+own cost vanishes into the round trip. Here the inner handler does nothing, so what is left between
+the two rungs is the decorator: a registry lookup, Polly's `Execute`, and the closure that
+`pipeline.Execute(_ => _decorated.Handle(command))` allocates by capturing both the command and the
+handler. SQLite is used because it needs no server and carries the same decorator.
+
+### Findings
+
+| finding | evidence |
+|---|---|
+| **The decorator stack is not a lever on a relational transport** | 148.6 ns and 120 B per command, against a SQL Server send of 9,654 us and 30 KB — **0.0015% of the time and 0.4% of the allocation**. Removing the closure would recover a fraction of 120 B. There is nothing here worth changing, and this rung exists to stop the question being asked a fourth time |
+| It would matter if a command were cheap, which on these transports it never is | The floor rung is a handler that returns a constant, and the decorator is 148 ns on top of it. That ratio is what makes the stack look expensive in isolation and irrelevant in place. Measure the thing it wraps before optimising the wrapper |
+| The decorator is triplicated, and the copies differ | SQL Server, PostgreSQL and SQLite each hold their own `RetryCommandHandlerOutputDecorator`. SQL Server and PostgreSQL short-circuit on `IRetrySkippable`; SQLite does not. **This is not a bug**: `SkipRetry` is `ExternalTransaction != null`, and SQLite never builds the shared `RelationalSendMessageCommand` that implements it, so the branch is unreachable there. Worth knowing before someone "fixes" the divergence |
+
 ## Why this exists
 
 A scratch decomposition in August 2026 found that the write transaction was ~3% of the gap
