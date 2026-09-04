@@ -100,17 +100,89 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// The parameters, which are added the same way whether the text was cached or built.
         /// </summary>
         private static void AddMetaParameters(SqlCommand command, IAdditionalMessageData data, long id,
-            SqlServerMessageQueueTransportOptions options)
+            SqlServerMessageQueueTransportOptions options, bool includeQueueId)
         {
             options.AddBuiltInColumnsParams(command, data);
 
-            command.Parameters.Add("@QueueID", SqlDbType.BigInt, 8).Value = id;
+            //When the caller is composing this into a single batch, @QueueID is a variable the
+            //batch declares and fills from SCOPE_IDENTITY, not something the client can know yet.
+            //A parameter of the same name would collide with that declaration.
+            if (includeQueueId)
+            {
+                command.Parameters.Add("@QueueID", SqlDbType.BigInt, 8).Value = id;
+            }
             command.Parameters.Add("@CorrelationID", SqlDbType.UniqueIdentifier, 16).Value = data.CorrelationId.Id.Value;
 
             //add configurable column command params - user
             if (options.AdditionalColumnsOnMetaData)
             {
                 AddUserColumnsParams(command, data);
+            }
+        }
+
+        /// <summary>Composed single-round-trip batches, keyed like <see cref="MetaSqlCache"/>.</summary>
+        private static readonly ConcurrentDictionary<string, string> SingleRoundTripSqlCache = new();
+
+        /// <summary>
+        /// The whole of an ordinary send as one batch: the body insert, the identity, the meta
+        /// insert and the transaction, with nothing returning to the client in between.
+        /// </summary>
+        /// <remarks>
+        /// The meta statement is the same text the four-round-trip path uses, so both write
+        /// identical rows. It is built without its <c>@QueueID</c> parameter because the batch
+        /// declares a variable of that name and fills it from <c>SCOPE_IDENTITY</c> - a parameter
+        /// of the same name would collide with the declaration.
+        /// <para>
+        /// <c>XACT_ABORT</c> is what makes this all-or-nothing. Without it an error inside a
+        /// server-side transaction can leave it open, where the client-side transaction would have
+        /// rolled back; with it, any error aborts the batch and rolls back.
+        /// </para>
+        /// <para>
+        /// Cached on the same terms as the meta SQL, and for the same reason: a message carrying a
+        /// delay or an expiration has those written into the text as literals, so its batch differs
+        /// per message and must not be cached.
+        /// </para>
+        /// </remarks>
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        internal static void BuildSingleRoundTripCommand(SqlCommand command,
+            ITableNameHelper tableNameHelper,
+            IHeaders headers,
+            IAdditionalMessageData data,
+            IMessage message,
+            SqlServerMessageQueueTransportOptions options,
+            TimeSpan? delay,
+            TimeSpan expiration)
+        {
+            //this also adds the meta parameters to the command
+            BuildMetaCommand(command, tableNameHelper, headers, data, message, 0, options, delay,
+                expiration, includeQueueIdParameter: false);
+            var metaSql = command.CommandText;
+
+            var cacheKey = CanCacheMetaSql(data, options, delay, expiration)
+                ? tableNameHelper.QueueName + "|" + tableNameHelper.MetaDataName + "|" + options.GetMetaSqlShape()
+                : null;
+
+            if (cacheKey != null && SingleRoundTripSqlCache.TryGetValue(cacheKey, out var cached))
+            {
+                command.CommandText = cached;
+                return;
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendLine("SET NOCOUNT ON;");
+            sb.AppendLine("SET XACT_ABORT ON;");
+            sb.AppendLine("DECLARE @QueueID bigint;");
+            sb.AppendLine("BEGIN TRANSACTION;");
+            sb.AppendLine($"Insert into {tableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers);");
+            sb.AppendLine("SET @QueueID = SCOPE_IDENTITY();");
+            sb.Append(metaSql).AppendLine(";");
+            sb.AppendLine("COMMIT TRANSACTION;");
+            sb.AppendLine("SELECT @QueueID;");
+
+            command.CommandText = sb.ToString();
+            if (cacheKey != null)
+            {
+                SingleRoundTripSqlCache.TryAdd(cacheKey, command.CommandText);
             }
         }
 
@@ -123,7 +195,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             long id,
             SqlServerMessageQueueTransportOptions options,
             TimeSpan? delay,
-            TimeSpan expiration)
+            TimeSpan expiration,
+            bool includeQueueIdParameter = true)
         {
             //The text is fixed for a queue unless the message carries a delay, an expiration or
             //user columns - and with the default options none of those apply, because
@@ -143,7 +216,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             if (cacheKey != null && MetaSqlCache.TryGetValue(cacheKey, out var cached))
             {
                 command.CommandText = cached;
-                AddMetaParameters(command, data, id, options);
+                AddMetaParameters(command, data, id, options, includeQueueIdParameter);
                 return;
             }
 
@@ -184,8 +257,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 MetaSqlCache.TryAdd(cacheKey, command.CommandText);
             }
 
-            AddMetaParameters(command, data, id, options);
-
+            AddMetaParameters(command, data, id, options, includeQueueIdParameter);
         }
         /// <summary>
         /// Adds the SQL command params for the user specific meta data

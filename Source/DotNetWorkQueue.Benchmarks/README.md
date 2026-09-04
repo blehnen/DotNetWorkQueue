@@ -378,7 +378,7 @@ playbook does not apply, and the ladder is built to show why rather than to assu
 |---|---|
 | **The round trip is not the unit to optimise here — the write is** | A bare `SELECT 1` costs 496 us against 8,491 us for a single insert. The write dominates a round trip by seventeen to one. Any ladder here is unreadable until that floor is on the table, which is what the `SELECT 1` rungs are for |
 | The library adds 2.3% of a send's time | 9,654 us end to end against 9,429 us for a hand-written write of the same shape. Time optimisation on this path is close to pointless; the database is 97.7% of it. Allocation is the target — 30,522 B against a 16,594 B floor |
-| Collapsing the send's four round trips into one is worth 12%, and is not done | An ordinary send makes four: `BeginTransaction`, the body insert that returns the identity, the meta insert, `Commit`. The same work as a single batch with the transaction and the identity kept server-side is 8,284 us against 9,429 us — **1,145 us and ~7 KB**. Not attempted: it moves the transaction from client to server and touches the held-transaction inbox fork, the job-exists check and error handling. It needs its own change and a decision about the transaction contract |
+| **Collapsing the send's four round trips into one is worth 16%, and is now done** | An ordinary send made four: `BeginTransaction`, the body insert that returns the identity, the meta insert, `Commit`. As a single batch with the transaction and the identity kept server-side that is 8,066 us / 24,282 B against 9,601 us / 29,298 B - **1,535 us and 5,016 B**. Within a single run it matches the raw one-round-trip rung (8,085 us) and beats the raw four-round-trip rung (9,109 us), which is the check that the gain is the round trips and not something else that moved. Three shapes keep the old path because each interleaves work between the statements - a scheduled job, a caller-supplied transaction, and the status table |
 | The connection pool is free, so the largest SQLite win does not exist here | Pooled open plus close is 1.8 us. `Microsoft.Data.SqlClient` pools by default, unlike `System.Data.SQLite` |
 | The meta insert's SQL was rebuilt per send, and it is worth less than it first looked | Cached per table-and-option shape: a send goes 30,522 B to 29,298 B. **1,224 B, about 4%** — not the 16% the rung suggested. That rung measures `BuildMetaCommand` as a whole and only 1,224 B of it is the text; the rest is `SqlParameter` construction, which no cache removes. Do not re-read that rung as SQL-generation cost |
 | The de-queue statement was already cached, so the SQLite finding does not transfer | A cache hit is 11 ns and allocates nothing. On SQLite, generating the de-queue script was 91% of everything a de-queue allocated; here that work was already done |
@@ -400,6 +400,13 @@ on a pooled connection, which is backwards. The rungs insert and never delete, B
 them in declaration order, and the later ones were paying for the data-file growth the earlier ones
 caused. Truncating per iteration and fixing the invocation count removes it, and the ladder is
 monotonic.
+
+**A forced failure that fails at compile time proves nothing.** The atomicity test for the batch above first forced its failure by dropping the meta table. That makes the whole batch fail to
+*compile*, so nothing executes - there is no body row to roll back, and the test passed with the
+transaction removed entirely. Forcing it with a `CHECK` constraint instead makes the meta insert
+fail at *run* time, after the body insert has already run, and that version fails when the
+transaction is removed. Any test that asserts a rollback has to be checked against the un-fixed
+code, not just the fixed code.
 
 ## PostgreSqlReceiveBenchmarks
 
