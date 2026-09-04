@@ -34,7 +34,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             IAdditionalMessageData data,
             IMessage message,
             long id,
-            SqlServerMessageQueueTransportOptions options)
+            SqlServerMessageQueueTransportOptions options,
+            bool includeSharedParameters = true)
         {
             var builder = new StringBuilder();
             builder.AppendLine("Insert into " + tableNameHelper.StatusName);
@@ -63,10 +64,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 
             command.CommandText = builder.ToString();
 
-            options.AddBuiltInColumnsParams(command, data);
+            //When composed into a single batch the meta insert has already bound these, and one
+            //SqlParameter serves every occurrence of its name in the text. @QueueID is a variable
+            //the batch declares rather than a parameter at all. The user columns are still added
+            //here, because when they live on the status table the meta insert never binds them.
+            if (includeSharedParameters)
+            {
+                options.AddBuiltInColumnsParams(command, data);
 
-            command.Parameters.Add("@QueueID", SqlDbType.BigInt, 8).Value = id;
-            command.Parameters.Add("@CorrelationID", SqlDbType.UniqueIdentifier, 16).Value = data.CorrelationId.Id.Value;
+                command.Parameters.Add("@QueueID", SqlDbType.BigInt, 8).Value = id;
+                command.Parameters.Add("@CorrelationID", SqlDbType.UniqueIdentifier, 16).Value = data.CorrelationId.Id.Value;
+            }
 
             //add configurable column command params - user
             if (!options.AdditionalColumnsOnMetaData)
@@ -100,17 +108,126 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// The parameters, which are added the same way whether the text was cached or built.
         /// </summary>
         private static void AddMetaParameters(SqlCommand command, IAdditionalMessageData data, long id,
-            SqlServerMessageQueueTransportOptions options)
+            SqlServerMessageQueueTransportOptions options, bool includeQueueId)
         {
             options.AddBuiltInColumnsParams(command, data);
 
-            command.Parameters.Add("@QueueID", SqlDbType.BigInt, 8).Value = id;
+            //When the caller is composing this into a single batch, @QueueID is a variable the
+            //batch declares and fills from SCOPE_IDENTITY, not something the client can know yet.
+            //A parameter of the same name would collide with that declaration.
+            if (includeQueueId)
+            {
+                command.Parameters.Add("@QueueID", SqlDbType.BigInt, 8).Value = id;
+            }
             command.Parameters.Add("@CorrelationID", SqlDbType.UniqueIdentifier, 16).Value = data.CorrelationId.Id.Value;
 
             //add configurable column command params - user
             if (options.AdditionalColumnsOnMetaData)
             {
                 AddUserColumnsParams(command, data);
+            }
+        }
+
+        /// <summary>Composed single-round-trip batches, keyed like <see cref="MetaSqlCache"/>.</summary>
+        private static readonly ConcurrentDictionary<string, string> SingleRoundTripSqlCache = new();
+
+        /// <summary>
+        /// The whole of an ordinary send as one batch: the body insert, the identity, the meta
+        /// insert and the transaction, with nothing returning to the client in between.
+        /// </summary>
+        /// <remarks>
+        /// The meta statement is the same text the four-round-trip path uses, so both write
+        /// identical rows. It is built without its <c>@QueueID</c> parameter because the batch
+        /// declares a variable of that name and fills it from <c>SCOPE_IDENTITY</c> - a parameter
+        /// of the same name would collide with the declaration.
+        /// <para>
+        /// The <c>TRY/CATCH</c> with an explicit <c>ROLLBACK</c> is what makes this all-or-nothing,
+        /// and <c>XACT_ABORT</c> alone is <b>not</b> enough to get there. <c>SET XACT_ABORT ON</c>
+        /// has no effect on errors raised by <c>RAISERROR</c>, so a trigger on the meta table that
+        /// raises one leaves the transaction alive, execution reaches the unconditional
+        /// <c>COMMIT</c>, and a body row is committed while the caller is told the send failed -
+        /// exactly the orphan the client-side transaction it replaces could not produce. Both are
+        /// kept: <c>XACT_ABORT</c> dooms the transaction on ordinary run-time errors, and the
+        /// <c>CATCH</c> covers what it does not. <c>THROW</c> re-raises so the caller still sees
+        /// the original error.
+        /// </para>
+        /// <para>
+        /// Cached on the same terms as the meta SQL, and for the same reason: a message carrying a
+        /// delay or an expiration has those written into the text as literals, so its batch differs
+        /// per message and must not be cached.
+        /// </para>
+        /// </remarks>
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        internal static void BuildSingleRoundTripCommand(SqlCommand command,
+            ITableNameHelper tableNameHelper,
+            IHeaders headers,
+            IAdditionalMessageData data,
+            IMessage message,
+            SqlServerMessageQueueTransportOptions options,
+            TimeSpan? delay,
+            TimeSpan expiration)
+        {
+            //this also adds the meta parameters to the command
+            BuildMetaCommand(command, tableNameHelper, headers, data, message, 0, options, delay,
+                expiration, includeQueueIdParameter: false);
+            var metaSql = command.CommandText;
+
+            //Built before the cache is consulted, because this binds parameters as well as
+            //producing text - a cache hit still needs them on the command.
+            string statusSql = null;
+            if (options.EnableStatusTable)
+            {
+                using var statusCommand = new SqlCommand();
+                BuildStatusCommand(statusCommand, tableNameHelper, headers, data, message, 0, options,
+                    includeSharedParameters: false);
+                foreach (SqlParameter statusParameter in statusCommand.Parameters)
+                {
+                    command.Parameters.Add(((ICloneable)statusParameter).Clone());
+                }
+                statusSql = statusCommand.CommandText;
+            }
+
+            //The status insert carries the user's own columns when they live on the status table,
+            //so its text varies per message and the batch must not be cached then. The meta insert
+            //has no equivalent case - CanCacheMetaSql already refuses AdditionalColumnsOnMetaData.
+            var statusEmbedsUserColumns = options.EnableStatusTable && data.AdditionalMetaData.Count > 0;
+
+            var cacheKey = CanCacheMetaSql(data, options, delay, expiration) && !statusEmbedsUserColumns
+                ? tableNameHelper.QueueName + "|" + tableNameHelper.MetaDataName + "|" +
+                  options.GetMetaSqlShape() + (options.EnableStatusTable ? "|status" : string.Empty)
+                : null;
+
+            if (cacheKey != null && SingleRoundTripSqlCache.TryGetValue(cacheKey, out var cached))
+            {
+                command.CommandText = cached;
+                return;
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendLine("SET NOCOUNT ON;");
+            sb.AppendLine("SET XACT_ABORT ON;");
+            sb.AppendLine("DECLARE @QueueID bigint;");
+            sb.AppendLine("BEGIN TRY");
+            sb.AppendLine("BEGIN TRANSACTION;");
+            sb.AppendLine($"Insert into {tableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers);");
+            sb.AppendLine("SET @QueueID = SCOPE_IDENTITY();");
+            sb.Append(metaSql).AppendLine(";");
+            if (statusSql != null)
+            {
+                sb.Append(statusSql).AppendLine(";");
+            }
+            sb.AppendLine("COMMIT TRANSACTION;");
+            sb.AppendLine("END TRY");
+            sb.AppendLine("BEGIN CATCH");
+            sb.AppendLine("IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;");
+            sb.AppendLine("THROW;");
+            sb.AppendLine("END CATCH");
+            sb.AppendLine("SELECT @QueueID;");
+
+            command.CommandText = sb.ToString();
+            if (cacheKey != null)
+            {
+                SingleRoundTripSqlCache.TryAdd(cacheKey, command.CommandText);
             }
         }
 
@@ -123,7 +240,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             long id,
             SqlServerMessageQueueTransportOptions options,
             TimeSpan? delay,
-            TimeSpan expiration)
+            TimeSpan expiration,
+            bool includeQueueIdParameter = true)
         {
             //The text is fixed for a queue unless the message carries a delay, an expiration or
             //user columns - and with the default options none of those apply, because
@@ -143,7 +261,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             if (cacheKey != null && MetaSqlCache.TryGetValue(cacheKey, out var cached))
             {
                 command.CommandText = cached;
-                AddMetaParameters(command, data, id, options);
+                AddMetaParameters(command, data, id, options, includeQueueIdParameter);
                 return;
             }
 
@@ -184,8 +302,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 MetaSqlCache.TryAdd(cacheKey, command.CommandText);
             }
 
-            AddMetaParameters(command, data, id, options);
-
+            AddMetaParameters(command, data, id, options, includeQueueIdParameter);
         }
         /// <summary>
         /// Adds the SQL command params for the user specific meta data

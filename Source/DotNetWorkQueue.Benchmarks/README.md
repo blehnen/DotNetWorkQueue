@@ -377,8 +377,8 @@ playbook does not apply, and the ladder is built to show why rather than to assu
 | finding | evidence |
 |---|---|
 | **The round trip is not the unit to optimise here — the write is** | A bare `SELECT 1` costs 496 us against 8,491 us for a single insert. The write dominates a round trip by seventeen to one. Any ladder here is unreadable until that floor is on the table, which is what the `SELECT 1` rungs are for |
-| The library adds 2.3% of a send's time | 9,654 us end to end against 9,429 us for a hand-written write of the same shape. Time optimisation on this path is close to pointless; the database is 97.7% of it. Allocation is the target — 30,522 B against a 16,594 B floor |
-| Collapsing the send's four round trips into one is worth 12%, and is not done | An ordinary send makes four: `BeginTransaction`, the body insert that returns the identity, the meta insert, `Commit`. The same work as a single batch with the transaction and the identity kept server-side is 8,284 us against 9,429 us — **1,145 us and ~7 KB**. Not attempted: it moves the transaction from client to server and touches the held-transaction inbox fork, the job-exists check and error handling. It needs its own change and a decision about the transaction contract |
+| ~~The library adds 2.3% of a send's time~~ - it now adds *less than nothing* against the shape it replaced | 9,654 us end to end against 9,429 us for a hand-written write of the same shape. Time optimisation on this path is close to pointless; the database is 97.7% of it. Allocation is the target — 30,522 B against a 16,594 B floor | **Superseded by the row above**: with the round trips collapsed, an end-to-end send (7.38 ms) is faster than a hand-written write of the four-round-trip shape (8.67 ms). Allocation remains the target - 24,648 B against a ~16 KB raw floor |
+| **Collapsing the send's four round trips into one is done, and the library send is now faster than the raw four-round-trip shape** | An ordinary send made four: `BeginTransaction`, the body insert that returns the identity, the meta insert, `Commit`. As a single batch with the transaction and the identity kept server-side, the end-to-end send measures **7.38 ms against 8.67 ms for the raw four-round-trip rung and 7.63 ms for the raw one-round-trip rung, in the same run** - it beats the hand-written four-trip write it used to lose to, and sits at the one-trip floor. Allocation, which is deterministic and so comparable across runs, goes 29,298 B to 24,648 B. **Quote the within-run comparison, not a cross-run before/after**: absolute times on this ladder move by ~10% between runs, which is larger than the effect being measured. Two shapes keep the old path because each interleaves work between the statements - a scheduled job and a caller-supplied transaction. A status-table queue does **not**: its insert joins the same batch, since one `@CorrelationID` parameter serves every occurrence of the name in the text |
 | The connection pool is free, so the largest SQLite win does not exist here | Pooled open plus close is 1.8 us. `Microsoft.Data.SqlClient` pools by default, unlike `System.Data.SQLite` |
 | The meta insert's SQL was rebuilt per send, and it is worth less than it first looked | Cached per table-and-option shape: a send goes 30,522 B to 29,298 B. **1,224 B, about 4%** — not the 16% the rung suggested. That rung measures `BuildMetaCommand` as a whole and only 1,224 B of it is the text; the rest is `SqlParameter` construction, which no cache removes. Do not re-read that rung as SQL-generation cost |
 | The de-queue statement was already cached, so the SQLite finding does not transfer | A cache hit is 11 ns and allocates nothing. On SQLite, generating the de-queue script was 91% of everything a de-queue allocated; here that work was already done |
@@ -400,6 +400,20 @@ on a pooled connection, which is backwards. The rungs insert and never delete, B
 them in declaration order, and the later ones were paying for the data-file growth the earlier ones
 caused. Truncating per iteration and fixing the invocation count removes it, and the ladder is
 monotonic.
+
+**A forced failure that fails at compile time proves nothing.** The atomicity test for the batch above first forced its failure by dropping the meta table. That makes the whole batch fail to
+*compile*, so nothing executes - there is no body row to roll back, and the test passed with the
+transaction removed entirely. Forcing it with a `CHECK` constraint instead makes the meta insert
+fail at *run* time, after the body insert has already run, and that version fails when the
+transaction is removed. Any test that asserts a rollback has to be checked against the un-fixed
+code, not just the fixed code.
+
+That check is what caught the real defect. The batch first relied on `SET XACT_ABORT ON` alone, and
+the constraint test passed. `XACT_ABORT` has **no effect on errors raised by `RAISERROR`**, so a
+trigger on the meta table raising one left the transaction alive, execution reached the unconditional
+`COMMIT`, and a body row was committed while the caller was told the send failed - an orphan the
+client-side transaction being replaced could not produce. `TRY/CATCH` with an explicit `ROLLBACK` is
+what actually delivers the guarantee. One forced-failure mode is not enough to establish atomicity.
 
 ## PostgreSqlReceiveBenchmarks
 

@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Data.SqlClient;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
@@ -117,6 +118,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 scheduledTime = _jobSchedulerMetaData.GetScheduledTime(commandSend.MessageData);
                 eventTime = _jobSchedulerMetaData.GetEventTime(commandSend.MessageData);
             }
+            else
+            {
+                return await HandleSingleRoundTripAsync(commandSend).ConfigureAwait(false);
+            }
 
             using (var connection = new SqlConnection(_configurationSend.ConnectionInfo.ConnectionString))
             {
@@ -186,6 +191,50 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                         "Failed to insert record - the job has already been queued or processed");
                 }
             }
+        }
+
+        /// <summary>
+        /// An ordinary send - no scheduled job and no caller-supplied transaction - as a single
+        /// round trip. The asynchronous mirror of
+        /// <see cref="SendMessageCommandHandler.Handle(SendMessageCommand)"/>'s fast path; see the
+        /// remarks there for why the batch is shaped as it is and what it deliberately excludes.
+        /// </summary>
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
+        private async Task<long> HandleSingleRoundTripAsync(SendMessageCommand commandSend)
+        {
+            var expiration = TimeSpan.Zero;
+            if (_messageExpirationEnabled.Value)
+            {
+                expiration = MessageExpiration.GetExpiration(commandSend, data => data.GetExpiration());
+            }
+
+            using var connection = new SqlConnection(_configurationSend.ConnectionInfo.ConnectionString);
+            await connection.OpenAsync().ConfigureAwait(false);
+            using var command = connection.CreateCommand();
+
+            //the whole batch and the meta parameters, minus @QueueID - see the remarks
+            SendMessage.BuildSingleRoundTripCommand(command, _tableNameHelper, _headers,
+                commandSend.MessageData, commandSend.MessageToSend, _options.Value,
+                commandSend.MessageData.GetDelay(), expiration);
+
+            var serialization = _serializer.Serializer.MessageToBytes(
+                new MessageBody { Body = commandSend.MessageToSend.Body }, commandSend.MessageToSend.Headers);
+
+            command.Parameters.Add(BodyParameter, SqlDbType.VarBinary, -1).Value = serialization.Output;
+
+            commandSend.MessageToSend.SetHeader(_headers.StandardHeaders.MessageInterceptorGraph,
+                serialization.Graph);
+
+            command.Parameters.Add(HeadersParameter, SqlDbType.VarBinary, -1).Value =
+                _serializer.InternalSerializer.ConvertToBytes(commandSend.MessageToSend.Headers);
+
+            var id = Convert.ToInt64(await command.ExecuteScalarAsync().ConfigureAwait(false));
+            if (id <= 0)
+            {
+                throw new DotNetWorkQueueException(
+                    "Failed to insert record - the ID of the new record returned by SQL server was 0");
+            }
+            return id;
         }
 
         /// <summary>
