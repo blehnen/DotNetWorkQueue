@@ -50,6 +50,23 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
         [TestMethod]
         public void A_Failed_Send_Leaves_No_Body_Row()
         {
+            AssertFailedSendLeavesNothing(producer => producer.Send(new FakeMessage()));
+        }
+
+        /// <summary>
+        /// The asynchronous handler has its own copy of the fast path, with its own connection and
+        /// command execution, so it needs its own coverage rather than inheriting the synchronous
+        /// one's.
+        /// </summary>
+        [TestMethod]
+        public void A_Failed_Async_Send_Leaves_No_Body_Row()
+        {
+            AssertFailedSendLeavesNothing(producer =>
+                producer.SendAsync(new FakeMessage()).GetAwaiter().GetResult());
+        }
+
+        private static void AssertFailedSendLeavesNothing(Func<IProducerQueue<FakeMessage>, IQueueOutputMessage> send)
+        {
             var queueName = GenerateQueueName.Create();
             var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
             var tableNameHelper = new TableNameHelper(new SqlConnectionInformation(queueConnection));
@@ -71,7 +88,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
                 {
                     using var producer = container.CreateProducer<FakeMessage>(queueConnection);
 
-                    var result = producer.Send(new FakeMessage());
+                    var result = send(producer);
                     Assert.IsTrue(result.HasError, "the send should have failed on the constraint");
 
                     //Proves the test is not vacuous. A statement that failed to plan - which is

@@ -109,17 +109,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                 return HandleExternalTransaction(commandSend);
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
-            var scheduledTime = DateTimeOffset.MinValue;
-            var eventTime = DateTimeOffset.MinValue;
-            if (!string.IsNullOrWhiteSpace(jobName))
-            {
-                scheduledTime = _jobSchedulerMetaData.GetScheduledTime(commandSend.MessageData);
-                eventTime = _jobSchedulerMetaData.GetEventTime(commandSend.MessageData);
-            }
-            else
+            if (string.IsNullOrWhiteSpace(jobName))
             {
                 return HandleSingleRoundTrip(commandSend);
             }
+
+            var scheduledTime = _jobSchedulerMetaData.GetScheduledTime(commandSend.MessageData);
+            var eventTime = _jobSchedulerMetaData.GetEventTime(commandSend.MessageData);
 
             using (var connection = new NpgsqlConnection(_configurationSend.ConnectionInfo.ConnectionString))
             {
@@ -300,7 +296,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         {
             using (var command = connection.CreateCommand())
             {
-                SendMessage.BuildStatusCommand(command, _tableNameHelper, _headers, data, message, id, _options.Value);
+                SendMessage.BuildStatusCommand(command, _tableNameHelper, data, id, _options.Value);
                 command.Transaction = trans;
                 command.ExecuteNonQuery();
             }
@@ -323,8 +319,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         {
             using (var command = connection.CreateCommand())
             {
-                SendMessage.BuildMetaCommand(command, _tableNameHelper, _headers,
-                   data, message, id, _options.Value, delay, expiration, currentTime);
+                SendMessage.BuildMetaCommand(command, _tableNameHelper,
+                   data, id, _options.Value, delay, expiration, currentTime);
                 command.Transaction = trans;
                 command.ExecuteNonQuery();
             }
@@ -370,8 +366,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             using var command = connection.CreateCommand();
 
             //the whole statement and the meta parameters, minus @QueueID
-            SendMessage.BuildSingleRoundTripCommand(command, _tableNameHelper, _headers,
-                commandSend.MessageData, commandSend.MessageToSend, _options.Value,
+            SendMessage.BuildSingleRoundTripCommand(command, _tableNameHelper,
+                commandSend.MessageData, _options.Value,
                 commandSend.MessageData.GetDelay(), expiration, _getTime.GetCurrentUtcDate());
 
             var serialization = _serializer.Serializer.MessageToBytes(

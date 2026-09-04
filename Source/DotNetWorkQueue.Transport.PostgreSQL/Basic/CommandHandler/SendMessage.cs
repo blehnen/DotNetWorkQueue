@@ -34,9 +34,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         internal static void BuildStatusCommand(NpgsqlCommand command,
             ITableNameHelper tableNameHelper,
-            IHeaders headers,
             IAdditionalMessageData data,
-            IMessage message,
             long id,
             PostgreSqlMessageQueueTransportOptions options,
             string queueIdFromCte = null,
@@ -98,6 +96,16 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             }
         }
 
+        /// <summary>
+        /// How many distinct statements either cache will hold. The key includes the queue's table
+        /// names, and a queue name is whatever the caller chose, so an application that creates
+        /// short-lived queues under generated names would otherwise add an entry per queue and
+        /// never drop one - the benchmarks and the integration tests do exactly that. Past the cap
+        /// nothing is evicted and nothing is added; a statement is simply rebuilt per send, which
+        /// is what already happens for every shape that is not cacheable.
+        /// </summary>
+        private const int MaxCachedStatements = 500;
+
         /// <summary>Composed single-round-trip statements, keyed by table names and option shape.</summary>
         private static readonly ConcurrentDictionary<string, string> SingleRoundTripSqlCache = new();
 
@@ -154,16 +162,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         internal static void BuildSingleRoundTripCommand(NpgsqlCommand command,
             ITableNameHelper tableNameHelper,
-            IHeaders headers,
             IAdditionalMessageData data,
-            IMessage message,
             PostgreSqlMessageQueueTransportOptions options,
             TimeSpan? delay,
             TimeSpan expiration,
             DateTime currentDateTime)
         {
             //this also binds the meta parameters, minus @QueueID
-            BuildMetaCommand(command, tableNameHelper, headers, data, message, 0, options, delay,
+            BuildMetaCommand(command, tableNameHelper, data, 0, options, delay,
                 expiration, currentDateTime, queueIdFromCte: BodyCte);
             var metaSql = command.CommandText;
 
@@ -173,7 +179,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             if (options.EnableStatusTable)
             {
                 using var statusCommand = new NpgsqlCommand();
-                BuildStatusCommand(statusCommand, tableNameHelper, headers, data, message, 0, options,
+                BuildStatusCommand(statusCommand, tableNameHelper, data, 0, options,
                     queueIdFromCte: BodyCte, includeSharedParameters: false);
                 foreach (NpgsqlParameter statusParameter in statusCommand.Parameters)
                 {
@@ -182,10 +188,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                 statusSql = statusCommand.CommandText;
             }
 
-            var cacheKey = CanCacheSingleRoundTripSql(data, options, expiration)
-                ? tableNameHelper.QueueName + "|" + tableNameHelper.MetaDataName + "|" +
-                  options.GetMetaSqlShape() + (options.EnableStatusTable ? "|status" : string.Empty)
-                : null;
+            string cacheKey = null;
+            if (CanCacheSingleRoundTripSql(data, options, expiration))
+            {
+                var statusPart = options.EnableStatusTable ? "|status" : string.Empty;
+                cacheKey = tableNameHelper.QueueName + "|" + tableNameHelper.MetaDataName + "|" +
+                           options.GetMetaSqlShape() + statusPart;
+            }
 
             if (cacheKey != null && SingleRoundTripSqlCache.TryGetValue(cacheKey, out var cached))
             {
@@ -211,16 +220,17 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             command.CommandText = sb.ToString();
             if (cacheKey != null)
             {
+                if (SingleRoundTripSqlCache.Count < MaxCachedStatements)
+            {
                 SingleRoundTripSqlCache.TryAdd(cacheKey, command.CommandText);
+            }
             }
         }
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
         internal static void BuildMetaCommand(NpgsqlCommand command,
             ITableNameHelper tableNameHelper,
-            IHeaders headers,
             IAdditionalMessageData data,
-            IMessage message,
             long id,
             PostgreSqlMessageQueueTransportOptions options,
             TimeSpan? delay,

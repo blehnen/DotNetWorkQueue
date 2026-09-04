@@ -96,6 +96,8 @@ namespace DotNetWorkQueue.Benchmarks
         private IAdditionalMessageData _messageData;
         private IMessage _message;
 
+        private ITableNameHelper _transportTables;
+
         private string _insertBodySql;
         private string _insertMetaSql;
         private string _oneRoundTripSql;
@@ -160,6 +162,8 @@ SELECT @id;";
                 if (!result.Success)
                     throw new InvalidOperationException($"CreateQueue failed: {result.Status} {result.ErrorMessage}");
             }
+            _transportTables = new SqlServerTableNameHelper(new SqlConnectionInformation(_queueConnection));
+
             _container = new QueueContainer<SqlServerMessageQueueInit>();
             _producer = _container.CreateProducer<Event>(_queueConnection);
 
@@ -185,7 +189,16 @@ SELECT @id;";
         [IterationSetup]
         public void IterationSetup()
         {
+            //An iteration must not pay for the rows the last one left behind - see the remarks.
+            //This has to cover the transport's own tables as well as the raw ones: Transport_Send
+            //and Transport_SendBatch write to the queue created from _queueConnection, and
+            //truncating only the raw tables left them inserting into a table that grew all run.
             Execute($"TRUNCATE TABLE [{_metaTable}]; TRUNCATE TABLE [{_queueTable}];");
+            //OBJECT_ID guards the status table, which exists only when the queue was created
+            //with EnableStatusTable - this one is not, and naming a missing table fails the batch.
+            Execute($"IF OBJECT_ID('{_transportTables.MetaDataName}','U') IS NOT NULL DELETE FROM {_transportTables.MetaDataName};" +
+                    $"IF OBJECT_ID('{_transportTables.StatusName}','U') IS NOT NULL DELETE FROM {_transportTables.StatusName};" +
+                    $"IF OBJECT_ID('{_transportTables.QueueName}','U') IS NOT NULL DELETE FROM {_transportTables.QueueName};");
         }
 
         [GlobalCleanup]

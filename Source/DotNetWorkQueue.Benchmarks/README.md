@@ -430,19 +430,33 @@ collapsing on *this* transport? The SQL Server answer does not transfer on its o
 | finding | evidence |
 |---|---|
 | The write dominates the round trip here too, but less than on SQL Server | A bare `SELECT 1` is 392 us against 4,741 us for a single insert - about 12 to 1, where SQL Server is 17 to 1 |
-| **Collapsing the send's four round trips into one is worth ~10%, and is now done** | The raw four-round-trip shape is 5,376 us against 4,846 us for the same work as one statement - **530 us**. The collapsed form lands within 105 us of a *bare single insert*, so the meta write costs almost nothing once folded in; as separate round trips it costs 635 us |
-| The end-to-end send moved by what the raw rungs predicted | 5,642 us to 5,111 us, a 531 us drop against a predicted 530 us |
-| **Quote the ratio to a bare insert, not the absolute time** | Between the before and after runs the machine drifted ~7% *slower* (the raw four-trip rung went 5,376 -> 5,747 us), which is larger than the effect. Normalised within each run, the send went from **1.19x a bare single insert to 1.03x** - and from 4.9% slower than the raw four-round-trip write to 11% faster than it. That framing is run-independent; the absolute pair is not |
+| **Collapsing the send's four round trips into one is worth ~11%, and is now done** | The raw four-round-trip shape is 5,471 us against 4,874 us for the same work as one statement - **597 us**. The collapsed form is indistinguishable from a *bare single insert* (4,917 us), so the meta write is free once folded in |
+| The end-to-end send, measured before and after with the same benchmark against `master` and the branch | **5,767 us to 5,073 us**, and **18,598 B to 17,254 B**. Normalised to a bare single insert in each run, **1.223x to 1.032x**. It went from 5% slower than the raw four-round-trip write to 7% faster than it |
+| **Quote the ratio to a bare insert, not the absolute time** | The bare-insert rung itself moved 4,716 -> 4,917 us between the before and after runs. Ratios within a run are stable; absolute times are not. Get the "before" by running the *same* benchmark against `master` in a worktree - not by comparing against an older run of a different version of the benchmark |
 | PostgreSQL's version is a single statement, not a batch | Data-modifying CTEs with `RETURNING`. A single statement is atomic in PostgreSQL, so there is no `BEGIN`/`COMMIT` and no error handling to get wrong - unlike the SQL Server batch, which needed `TRY/CATCH` with an explicit rollback because `XACT_ABORT` does not cover `RAISERROR` |
 | The transport had no send-side SQL cache at all | SQL Server gained one in #231; PostgreSQL rebuilt the meta insert's text on every send. The composed statement is now cached per table and option shape |
 | ⚠️ **A delayed-processing queue cannot use that cache, and re-plans on every send** | `AddBuiltInColumnValues` inlines `currentDateTime.Ticks` whenever `EnableDelayedProcessing` is on - **even for a message carrying no delay** - so every send produces a different statement. SQL Server writes an invariant `GetUTCDate()` in that position. Parameterising the delay and expiration values fixes this and SQL Server's plan-per-delay problem at once, and has not been done |
 
-### A note on the second run
+### The defect that made the first numbers wrong
 
-The `raw: DNWQ shape, 1 round trip` rung was unusable in the after-run: 6,978 us with a standard
-deviation of 1,731 us, against 4,846 us and a clean interval in the before-run. Nothing about that
-rung changed - it is raw SQL the transport does not touch. It is recorded here so the number is not
-read as a regression; the rungs with tight intervals are the ones to quote.
+`IterationSetup` truncated only the raw benchmark tables, not the tables the *transport* queue
+writes to - so `Transport_Send` inserted into a table that grew for the whole run, and its numbers
+were measured against state earlier iterations left behind. `SqlServerPathBenchmarks` had the
+identical defect; it is fixed there too.
+
+This is the same class of mistake this file already documents twice. What is different is that it
+hit the *transport* rung specifically: the raw rungs used tables the reset did cover, so the ladder
+looked internally consistent and nothing in the output seemed wrong. It was caught in review.
+
+Two details worth keeping:
+
+- The status table exists only when a queue is created with `EnableStatusTable`, which these
+  benchmark queues are not. Naming a missing table in a `TRUNCATE` fails the whole iteration, so
+  the reset has to check which tables exist first. The first attempt at the fix did not, and every
+  rung reported `NA` - loudly, which is the good outcome.
+- Re-measuring changed the numbers but not the conclusion (1.190 -> 1.029 measured dirty, against
+  1.223 -> 1.032 measured clean). That is luck. The dirty numbers had no claim to being right, and
+  a contaminated measurement that happens to agree is still not evidence.
 
 ## PostgreSqlReceiveBenchmarks
 

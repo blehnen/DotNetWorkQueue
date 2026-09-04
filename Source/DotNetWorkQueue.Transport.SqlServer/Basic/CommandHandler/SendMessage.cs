@@ -84,6 +84,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         }
 
         /// <summary>
+        /// How many distinct statements either cache will hold. The key includes the queue's table
+        /// names, and a queue name is whatever the caller chose, so an application that creates
+        /// short-lived queues under generated names would otherwise add an entry per queue and
+        /// never drop one - the benchmarks and the integration tests do exactly that. Past the cap
+        /// nothing is evicted and nothing is added; a statement is simply rebuilt per send, which
+        /// is what already happens for every shape that is not cacheable.
+        /// </summary>
+        private const int MaxCachedStatements = 500;
+
+        /// <summary>
         /// Meta-insert SQL, keyed by table name and the option shape that produced it. Bounded by
         /// the number of queues times the option combinations in use, and only ever holds the
         /// shape that carries no per-message literals.
@@ -227,7 +237,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             command.CommandText = sb.ToString();
             if (cacheKey != null)
             {
+                if (SingleRoundTripSqlCache.Count < MaxCachedStatements)
+            {
                 SingleRoundTripSqlCache.TryAdd(cacheKey, command.CommandText);
+            }
             }
         }
 
@@ -299,7 +312,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             command.CommandText = sbMeta.ToString();
             if (cacheKey != null)
             {
+                if (MetaSqlCache.Count < MaxCachedStatements)
+            {
                 MetaSqlCache.TryAdd(cacheKey, command.CommandText);
+            }
             }
 
             AddMetaParameters(command, data, id, options, includeQueueIdParameter);

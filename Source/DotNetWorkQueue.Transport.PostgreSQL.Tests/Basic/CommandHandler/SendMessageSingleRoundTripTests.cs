@@ -180,8 +180,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
             }
 
             command = new NpgsqlCommand();
-            SendMessage.BuildSingleRoundTripCommand(command, tableNameHelper, Substitute.For<IHeaders>(),
-                data, Substitute.For<IMessage>(), options, null, TimeSpan.Zero,
+            SendMessage.BuildSingleRoundTripCommand(command, tableNameHelper,
+                data, options, null, TimeSpan.Zero,
                 currentTime ?? new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
             return command.CommandText;
         }
