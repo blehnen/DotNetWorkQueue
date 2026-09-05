@@ -43,7 +43,8 @@ namespace DotNetWorkQueue.Benchmarks
     /// </para>
     /// <list type="bullet">
     /// <item><description><b>ping → separate commands</b> is what the round trips cost, and
-    /// therefore what collapsing them into one script is worth.</description></item>
+    /// therefore what collapsing them into one script is worth. An enqueue is seven commands, so
+    /// this rung is seven round trips against the one every rung below it makes.</description></item>
     /// <item><description><b>separate commands → script by hash</b> is that collapse, done the
     /// cheapest way the client offers: <c>EVALSHA</c> with explicit key and value arrays.</description></item>
     /// <item><description><b>script by hash → script with object parameters</b> is the cost of
@@ -101,7 +102,6 @@ namespace DotNetWorkQueue.Benchmarks
 
         private byte[] _scriptHash;
         private LoadedLuaScript _loadedScript;
-        private long _counter;
 
         private string _queueName;
         private QueueConnection _queueConnection;
@@ -154,7 +154,7 @@ namespace DotNetWorkQueue.Benchmarks
 
             _multiplexer = ConnectionMultiplexer.Connect(_connectionString);
             _database = _multiplexer.GetDatabase();
-            _server = _multiplexer.GetServer(_multiplexer.GetEndPoints().First());
+            _server = SingleServer(_multiplexer);
 
             var suffix = Guid.NewGuid().ToString("N");
             _rawPrefix = "{bench_" + suffix + "}";
@@ -309,6 +309,28 @@ namespace DotNetWorkQueue.Benchmarks
         {
             var result = await _producer.SendAsync(new Event { Body = _payload }).ConfigureAwait(false);
             if (result.HasError) throw result.SendingException ?? new InvalidOperationException("send failed");
+        }
+
+        /// <summary>
+        /// The one server this harness supports, or a clear failure.
+        /// </summary>
+        /// <remarks>
+        /// Scripts are loaded on one endpoint and keys are scanned from one endpoint. Against a
+        /// cluster both are wrong: <c>EVALSHA</c> can route to a node that never loaded the
+        /// script, and a scan misses the keys other nodes own - so the per-iteration cleanup would
+        /// silently leave data behind and every later rung would measure a queue that grew. The
+        /// second failure is the dangerous one, because it produces numbers rather than an error.
+        /// Refusing to run is the honest response; this harness measures a single instance.
+        /// </remarks>
+        internal static IServer SingleServer(ConnectionMultiplexer multiplexer)
+        {
+            var endpoints = multiplexer.GetEndPoints();
+            if (endpoints.Length != 1)
+                throw new NotSupportedException(
+                    $"These benchmarks measure a single Redis instance, and the connection names {endpoints.Length} " +
+                    "endpoints. Scripts would be loaded on one node and keys scanned from one node, so the " +
+                    "per-iteration cleanup would miss data and the numbers would drift without failing.");
+            return multiplexer.GetServer(endpoints[0]);
         }
 
         private void DeleteKeys(string pattern)

@@ -518,7 +518,7 @@ share of wall time would be much larger. The allocation column is the one that t
 | rung | mean | allocated |
 |---|---|---|
 | round trip only: PING | 378.4 us | 128 B |
-| raw: DNWQ shape, separate commands (6 round trips) | 2,384.1 us | 1,489 B |
+| raw: DNWQ shape, separate commands (7 round trips) | 2,384.1 us | 1,489 B |
 | raw: DNWQ shape, one script (EVALSHA, keys/values) | 360.5 us | 881 B |
 | raw: DNWQ shape, one script (object parameters, as the transport calls it) | 341.1 us | 1,161 B |
 | DotNetWorkQueue Redis send (end to end) | 562.6 us | 18,232 B |
@@ -538,7 +538,7 @@ share of wall time would be much larger. The allocation column is the one that t
 
 | finding | evidence |
 |---|---|
-| **The round trips are already collapsed, and that is where the win was** | The same writes as separate commands cost **2,384 us against 341 us** as one script - 6.6x. The transport has always sent them as one Lua script, so this is banked, not available. It is also the only large factor the ladder found on the send path |
+| **The round trips are already collapsed, and that is where the win was** | The same seven writes as separate commands cost **2,384 us against 341 us** as one script - **7.0x**. That is 341 us per command, which is one round trip, so the ladder is measuring round trips and nothing else here. The transport has always sent them as one Lua script, so this is banked, not available. It is also the only large factor the ladder found on the send path |
 | **Argument marshalling is not a lever, which kills the hypothesis this pass opened with** | `BaseLua` passes an anonymous object to `ScriptEvaluate`, so StackExchange.Redis maps `@name` placeholders onto members through its own extractor - the obvious suspect. Measured against the same script invoked by hash with explicit key and value arrays it is **341.1 us / 1,161 B against 360.5 us / 881 B**: no slower in time, and **280 B** more. That is 1.5% of what a send allocates. Rewriting the call sites would buy nothing |
 | **Scripts are loaded once and invoked by hash** | `BaseLua.LoadScript` prepares and loads on first use and holds the `LoadedLuaScript`; `TryExecute` reloads only on a `NOSCRIPT` reply. Confirmed by reading, not measurement - there is nothing to measure, because no script text is re-sent |
 | **The Redis server clock is not a per-de-queue round trip** | `RedisServerUnixTime` looked like one - the receive handler asks `IUnixTimeFactory` for a timestamp on every de-queue, and the transport's default `TimeServer` is `RedisServer`. It caches the offset and only round-trips when `TimeExpired()`, so a de-queue is one round trip, not two. Another hypothesis killed by reading |
@@ -553,8 +553,8 @@ remaining cost is core serialization and message construction, which is shared w
 Redis work, and the throughput ceiling under concurrent synchronous load is the missing async
 receive path in the core - #256, which is a larger piece of work than a transport pass.
 
-#233 closed on the measurements rather than on a change. That was named as a legitimate outcome
-when the issue was written, and it is the one that happened.
+Issue #233 closed on the measurements rather than on a change. That was named as a legitimate
+outcome when the issue was written, and it is the one that happened.
 
 
 ## RelationalDecoratorBenchmarks

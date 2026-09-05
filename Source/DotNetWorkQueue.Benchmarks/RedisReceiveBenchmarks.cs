@@ -128,7 +128,7 @@ namespace DotNetWorkQueue.Benchmarks
 
             _multiplexer = ConnectionMultiplexer.Connect(_connectionString);
             _database = _multiplexer.GetDatabase();
-            _server = _multiplexer.GetServer(_multiplexer.GetEndPoints().First());
+            _server = RedisPathBenchmarks.SingleServer(_multiplexer);
 
             var suffix = Guid.NewGuid().ToString("N");
             _rawPrefix = "{bench_" + suffix + "}";
