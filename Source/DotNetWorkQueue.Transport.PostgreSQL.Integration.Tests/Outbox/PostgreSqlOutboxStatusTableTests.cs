@@ -148,6 +148,41 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Outbox
             }
         }
 
+        [TestMethod]
+        public async Task SendAsync_StatusTable_Rollback_WritesNoStatusRow()
+        {
+            var qc = new QueueConnection(NewQueueName(), ConnectionInfo.ConnectionString);
+            var businessTable = NewBusinessTableName();
+
+            using var queue = CreateQueue(qc, enableStatusTable: true);
+            await using var conn = new NpgsqlConnection(ConnectionInfo.ConnectionString);
+            await conn.OpenAsync();
+            try
+            {
+                CreateBusinessTable(conn, businessTable);
+                using var producer = CreateRelationalProducer(qc);
+
+                await using (var transaction = await conn.BeginTransactionAsync())
+                {
+                    var msg = GenerateMessage.Create<FakeMessage>();
+                    var result = await producer.RelationalProducer.SendAsync(msg, transaction);
+                    Assert.IsFalse(result.HasError, result.SendingException?.ToString());
+                    InsertBusinessRow(conn, (NpgsqlTransaction)transaction, businessTable, 1, "first");
+                    await transaction.RollbackAsync();
+                }
+
+                AssertQueueRowCount(qc, 0);
+                AssertBusinessRowExists(conn, businessTable, 0);
+                Assert.AreEqual(0, CountStatusRows(qc),
+                    "the status row must be enrolled in the caller's transaction like the others - "
+                    + "a row left behind here is a message the queue thinks exists");
+            }
+            finally
+            {
+                DropBusinessTable(conn, businessTable);
+            }
+        }
+
         private static long CountStatusRows(QueueConnection queueConnection)
         {
             var helper = new TableNameHelper(new SqlConnectionInformation(queueConnection));
