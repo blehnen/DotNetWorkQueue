@@ -22,3 +22,6 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 [assembly: InternalsVisibleTo("DotNetWorkQueue.Transport.Redis.Integration.Tests")]
 [assembly: InternalsVisibleTo("DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests")]
+//the benchmark harness measures the dequeue query handler directly; reaching it by
+//reflection instead would measure the reflection - the same reason SqlServer grants this.
+[assembly: InternalsVisibleTo("DotNetWorkQueue.Benchmarks")]

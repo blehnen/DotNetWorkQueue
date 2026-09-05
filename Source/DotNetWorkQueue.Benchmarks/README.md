@@ -498,6 +498,65 @@ queues differing only in their connection string.
 | **A dry run of this suite reported it as a five-fold win, and that was nonsense** | 55.8 ms against 10.5 ms, with one invocation per rung and the `off` fixture running first, so it paid the connection and warm-up cost for both. The same order-dependent trap the SQL Server ladder had to correct. Recorded because the number looked spectacular and meant nothing |
 | The DDL risk is real, and only partly evidenced | Prepared statements live on the physical connection, the pool hands it back, and dropping a table invalidates any statement referencing it — and this library creates and drops queues routinely. `AutoPrepareSurvivesDdl` drives create → send past the threshold → drop → recreate under the same name → send, and passes. But Npgsql exposes no public counter for auto-prepared statements, so that is evidence the scenario works rather than proof the invalidation path was exercised. Do not read it as a safety guarantee |
 
+## RedisPathBenchmarks and RedisReceiveBenchmarks
+
+What a Redis send and de-queue cost, and where. Opens and closes the investigation in #233.
+
+Redis is shaped differently from the relational transports, so the rungs ask different questions.
+There is no connection per operation, no SQL generation and no statement compilation - the three
+costs that dominated the SQLite pass. What is left is round trips, how the Lua script and its
+arguments are marshalled, and thread-pool behaviour.
+
+**Measured against Redis 192.168.0.2:6379 from WSL2, payload 256 bytes, `InvocationCount(16)`,
+default job, `--inProcess` from `/tmp`.** The round trip to that host is ~335-380 us, which is the
+single most important thing to know when reading these tables: it swamps everything else, and every
+single-round-trip rung lands on top of it. On a Redis reachable in tens of microseconds the library
+share of wall time would be much larger. The allocation column is the one that transfers.
+
+### Send
+
+| rung | mean | allocated |
+|---|---|---|
+| round trip only: PING | 378.4 us | 128 B |
+| raw: DNWQ shape, separate commands (6 round trips) | 2,384.1 us | 1,489 B |
+| raw: DNWQ shape, one script (EVALSHA, keys/values) | 360.5 us | 881 B |
+| raw: DNWQ shape, one script (object parameters, as the transport calls it) | 341.1 us | 1,161 B |
+| DotNetWorkQueue Redis send (end to end) | 562.6 us | 18,232 B |
+| DotNetWorkQueue Redis SendAsync (end to end) | 569.6 us | 20,256 B |
+
+### Receive
+
+| rung | mean | allocated |
+|---|---|---|
+| round trip only: PING | 334.7 us | 128 B |
+| raw: de-queue script, empty queue | 343.3 us | 897 B |
+| raw: de-queue script, message waiting | 363.7 us | 1,577 B |
+| DotNetWorkQueue Redis de-queue, empty queue | 367.9 us | 1,329 B |
+| DotNetWorkQueue Redis de-queue, message waiting | 468.3 us | 15,556 B |
+
+### Findings
+
+| finding | evidence |
+|---|---|
+| **The round trips are already collapsed, and that is where the win was** | The same writes as separate commands cost **2,384 us against 341 us** as one script - 6.6x. The transport has always sent them as one Lua script, so this is banked, not available. It is also the only large factor the ladder found on the send path |
+| **Argument marshalling is not a lever, which kills the hypothesis this pass opened with** | `BaseLua` passes an anonymous object to `ScriptEvaluate`, so StackExchange.Redis maps `@name` placeholders onto members through its own extractor - the obvious suspect. Measured against the same script invoked by hash with explicit key and value arrays it is **341.1 us / 1,161 B against 360.5 us / 881 B**: no slower in time, and **280 B** more. That is 1.5% of what a send allocates. Rewriting the call sites would buy nothing |
+| **Scripts are loaded once and invoked by hash** | `BaseLua.LoadScript` prepares and loads on first use and holds the `LoadedLuaScript`; `TryExecute` reloads only on a `NOSCRIPT` reply. Confirmed by reading, not measurement - there is nothing to measure, because no script text is re-sent |
+| **The Redis server clock is not a per-de-queue round trip** | `RedisServerUnixTime` looked like one - the receive handler asks `IUnixTimeFactory` for a timestamp on every de-queue, and the transport's default `TimeServer` is `RedisServer`. It caches the offset and only round-trips when `TimeExpired()`, so a de-queue is one round trip, not two. Another hypothesis killed by reading |
+| **The idle poll is already at the floor** | An empty de-queue through the whole decorated library is **367.9 us / 1,329 B against 343.3 us / 897 B** for the bare script - the library adds ~25 us and **432 B** to a poll that collects nothing. This is where SQLite had its largest win, and Redis has no equivalent of it: there is no SQL to generate, so there is nothing to stop generating |
+| **What is left is the core, not the transport** | A send allocates **18,232 B** where the same Redis work costs 1,161 B, and a de-queue that collects a message allocates **15,556 B** against 1,577 B. That is serialization and message construction - shared by every transport, already decomposed in `CorePathBenchmarks`, and not reachable from inside the Redis transport |
+| Sync and async are the same single-threaded, and that says nothing about concurrency | 562.6 us against 569.6 us; async allocates 2 KB more. The sync path's problem is contention at concurrency, not per-operation cost - see #161 and #256. A single-threaded number cannot show it, which is exactly why it must not be quoted as though it could |
+
+### The conclusion, and why there is no code change
+
+Every lever this issue listed was either already pulled or measured as not worth pulling. The
+remaining cost is core serialization and message construction, which is shared work rather than
+Redis work, and the throughput ceiling under concurrent synchronous load is the missing async
+receive path in the core - #256, which is a larger piece of work than a transport pass.
+
+#233 closed on the measurements rather than on a change. That was named as a legitimate outcome
+when the issue was written, and it is the one that happened.
+
+
 ## RelationalDecoratorBenchmarks
 
 What the retry decorator costs per command, separated from the database call it wraps. Both #231
