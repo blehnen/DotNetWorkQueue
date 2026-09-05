@@ -191,7 +191,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             string cacheKey = null;
             if (CanCacheSingleRoundTripSql(data, options, expiration))
             {
-                var statusPart = options.EnableStatusTable ? "|status" : string.Empty;
+                //every table the statement writes to is named in the key. Both shipped helpers
+                //derive StatusName from QueueName, but ITableNameHelper exposes the two
+                //independently - keying on the derivation rather than the name would serve one
+                //helper's SQL to another whose status table is somewhere else.
+                var statusPart = options.EnableStatusTable
+                    ? "|" + tableNameHelper.StatusName
+                    : string.Empty;
                 cacheKey = tableNameHelper.QueueName + "|" + tableNameHelper.MetaDataName + "|" +
                            options.GetMetaSqlShape() + statusPart;
             }

@@ -202,9 +202,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             //has no equivalent case - CanCacheMetaSql already refuses AdditionalColumnsOnMetaData.
             var statusEmbedsUserColumns = options.EnableStatusTable && data.AdditionalMetaData.Count > 0;
 
+            //every table the statement writes to is named in the key. Both shipped helpers derive
+            //StatusName from QueueName, but ITableNameHelper exposes the two independently -
+            //keying on the derivation rather than the name would serve one helper's SQL to
+            //another whose status table is somewhere else.
             var cacheKey = CanCacheMetaSql(data, options, delay, expiration) && !statusEmbedsUserColumns
                 ? tableNameHelper.QueueName + "|" + tableNameHelper.MetaDataName + "|" +
-                  options.GetMetaSqlShape() + (options.EnableStatusTable ? "|status" : string.Empty)
+                  options.GetMetaSqlShape() +
+                  (options.EnableStatusTable ? "|" + tableNameHelper.StatusName : string.Empty)
                 : null;
 
             if (cacheKey != null && SingleRoundTripSqlCache.TryGetValue(cacheKey, out var cached))
