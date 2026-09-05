@@ -129,8 +129,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             PostgreSqlMessageQueueTransportOptions options, TimeSpan expiration)
         {
             if (options.AdditionalColumnsOnMetaData) return false;
-            if (options.EnableDelayedProcessing) return false;
-            if (options.EnableMessageExpiration && expiration != TimeSpan.Zero) return false;
             if (options.EnableStatusTable && data.AdditionalMetaData.Count > 0) return false;
             return true;
         }
@@ -271,7 +269,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             }
 
             //add the values for built in fields
-            options.AddBuiltInColumnValues(delay, expiration, currentDateTime, sbMeta);
+            options.AddBuiltInColumnValues(sbMeta);
 
             //add configurable column value - user
             if (options.AdditionalColumnsOnMetaData)
@@ -283,6 +281,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 
             command.CommandText = sbMeta.ToString();
 
+            options.AddBuiltInTimeParams(command, delay, expiration, currentDateTime);
             options.AddBuiltInColumnsParams(command, data);
 
             if (queueIdFromCte == null)

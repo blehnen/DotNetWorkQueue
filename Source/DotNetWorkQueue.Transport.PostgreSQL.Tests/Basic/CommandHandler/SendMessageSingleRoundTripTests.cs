@@ -117,15 +117,45 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
         }
 
         [TestMethod]
-        public void A_Delayed_Processing_Queue_Is_Never_Cached()
+        public void A_Delayed_Processing_Queue_Is_Cached()
         {
-            //PostgreSQL inlines the current time as a literal tick count whenever delayed
-            //processing is on - even for a message carrying no delay - so every send produces a
-            //different statement. Caching it would serve one message's timestamp to another.
-            var first = Build(out _, delayedProcessing: true, currentTime: new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-            var second = Build(out _, delayedProcessing: true, currentTime: new DateTime(2026, 1, 1, 0, 0, 1, DateTimeKind.Utc));
+            //the clock used to be inlined as a literal tick count whenever delayed processing was
+            //on - even for a message carrying no delay - so every send produced a different
+            //statement and the cache could never serve one. It rides as a parameter now.
+            var first = Build(out _, delayedProcessing: true, currentTime: BaseTime);
+            var second = Build(out _, delayedProcessing: true, currentTime: BaseTime.AddSeconds(1));
 
-            Assert.AreNotEqual(first, second);
+            Assert.AreEqual(first, second);
+            Assert.Contains("@QueueProcessTime", first);
+        }
+
+        [TestMethod]
+        public void The_Delay_Rides_As_A_Parameter_Not_As_Text()
+        {
+            var five = Build(out var fiveCommand, delayedProcessing: true,
+                delay: TimeSpan.FromSeconds(5), currentTime: BaseTime);
+            var ten = Build(out var tenCommand, delayedProcessing: true,
+                delay: TimeSpan.FromSeconds(10), currentTime: BaseTime);
+
+            Assert.AreEqual(five, ten, "two different delays must produce the same statement");
+            Assert.AreEqual(BaseTime.AddSeconds(5).Ticks, ParameterValue(fiveCommand, "@QueueProcessTime"));
+            Assert.AreEqual(BaseTime.AddSeconds(10).Ticks, ParameterValue(tenCommand, "@QueueProcessTime"));
+        }
+
+        [TestMethod]
+        public void An_Expiring_Message_Shares_The_Statement_With_One_That_Never_Expires()
+        {
+            var never = Build(out var neverCommand, messageExpiration: true,
+                expiration: TimeSpan.Zero, currentTime: BaseTime);
+            var expires = Build(out var expiresCommand, messageExpiration: true,
+                expiration: TimeSpan.FromMinutes(5), currentTime: BaseTime);
+
+            Assert.AreEqual(never, expires);
+            //NULL is what the inlined form wrote for a message that never expires, and the
+            //de-queue reads it as such - the parameter has to carry the same value, not a
+            //sentinel tick count
+            Assert.AreEqual(DBNull.Value, ParameterValue(neverCommand, "@ExpirationTime"));
+            Assert.AreEqual(BaseTime.AddMinutes(5).Ticks, ParameterValue(expiresCommand, "@ExpirationTime"));
         }
 
         [TestMethod]
@@ -155,6 +185,22 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
             Assert.Contains("Insert into status_b", second);
         }
 
+        private static readonly DateTime BaseTime = new(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        private static object ParameterValue(NpgsqlCommand command, string name)
+        {
+            foreach (NpgsqlParameter parameter in command.Parameters)
+            {
+                if (string.Equals(parameter.ParameterName, name.TrimStart('@'), StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(parameter.ParameterName, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return parameter.Value;
+                }
+            }
+            Assert.Fail($"{name} was never bound");
+            return null;
+        }
+
         private static int CountParameters(NpgsqlCommand command, string name)
         {
             var count = 0;
@@ -171,7 +217,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
 
         private static string Build(out NpgsqlCommand command, bool statusTable = false,
             bool delayedProcessing = false, string userColumn = null, DateTime? currentTime = null,
-            string statusName = "status")
+            string statusName = "status", TimeSpan? delay = null, bool messageExpiration = false,
+            TimeSpan expiration = default)
         {
             var tableNameHelper = Substitute.For<ITableNameHelper>();
             tableNameHelper.QueueName.Returns("queue");
@@ -181,7 +228,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
             var options = new PostgreSqlMessageQueueTransportOptions
             {
                 EnableStatusTable = statusTable,
-                EnableDelayedProcessing = delayedProcessing
+                EnableDelayedProcessing = delayedProcessing,
+                EnableMessageExpiration = messageExpiration
             };
 
             var data = new AdditionalMessageData
@@ -196,8 +244,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
 
             command = new NpgsqlCommand();
             SendMessage.BuildSingleRoundTripCommand(command, tableNameHelper,
-                data, options, null, TimeSpan.Zero,
-                currentTime ?? new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+                data, options, delay, expiration, currentTime ?? BaseTime);
             return command.CommandText;
         }
     }

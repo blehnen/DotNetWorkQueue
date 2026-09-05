@@ -365,22 +365,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <summary>
         /// Adds the built in column values.
         /// </summary>
-        /// <param name="delay">The delay.</param>
-        /// <param name="expiration">The expiration.</param>
-        /// <param name="currentDateTime">The current date time.</param>
         /// <param name="command">The command.</param>
-        internal void AddBuiltInColumnValues(TimeSpan? delay, TimeSpan expiration, DateTime currentDateTime, StringBuilder command)
+        internal void AddBuiltInColumnValues(StringBuilder command)
         {
             if (EnableDelayedProcessing)
             {
-                if (delay.HasValue && delay != TimeSpan.Zero)
-                {
-                    command.Append($", {currentDateTime.Add(delay.Value).Ticks} ");
-                }
-                else
-                {
-                    command.Append($", {currentDateTime.Ticks}");
-                }
+                command.Append(", @QueueProcessTime ");
             }
 
             if (EnablePriority)
@@ -400,10 +390,50 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             if (EnableMessageExpiration)
             {
-                command.Append(expiration != TimeSpan.Zero ? $", {currentDateTime.Add(expiration).Ticks} " : ", NULL ");
+                command.Append(", @ExpirationTime ");
             }
 
         }
+        /// <summary>
+        /// Binds the delay and expiration values for the meta insert.
+        /// </summary>
+        /// <remarks>
+        /// Separate from <see cref="AddBuiltInColumnsParams"/> because only the meta insert has
+        /// these two columns - the status insert shares that method but would be binding values
+        /// its statement never names.
+        /// <para>
+        /// The values used to be written into the statement text, which made every send a
+        /// distinct statement and put the send cache permanently out of reach for a queue with
+        /// delayed processing on - see GitHub #255. Both columns are bigint .NET ticks, so there
+        /// is no server-side expression to use instead the way SQL Server has one.
+        /// </para>
+        /// </remarks>
+        /// <param name="command">The command.</param>
+        /// <param name="delay">The delay, if the message carries one.</param>
+        /// <param name="expiration">The expiration, or <see cref="TimeSpan.Zero"/> for a message that never expires.</param>
+        /// <param name="currentDateTime">The current UTC time, which both values are relative to.</param>
+        internal void AddBuiltInTimeParams(NpgsqlCommand command, TimeSpan? delay,
+            TimeSpan expiration, DateTime currentDateTime)
+        {
+            if (EnableDelayedProcessing)
+            {
+                command.Parameters.Add("@QueueProcessTime", NpgsqlDbType.Bigint, 8).Value =
+                    delay.HasValue && delay != TimeSpan.Zero
+                        ? currentDateTime.Add(delay.Value).Ticks
+                        : currentDateTime.Ticks;
+            }
+
+            if (EnableMessageExpiration)
+            {
+                //NULL for a message that never expires - what the inlined form wrote, and what
+                //the de-queue reads
+                command.Parameters.Add("@ExpirationTime", NpgsqlDbType.Bigint, 8).Value =
+                    expiration != TimeSpan.Zero
+                        ? currentDateTime.Add(expiration).Ticks
+                        : (object)DBNull.Value;
+            }
+        }
+
         /// <summary>
         /// Adds the built in columns parameters.
         /// </summary>
