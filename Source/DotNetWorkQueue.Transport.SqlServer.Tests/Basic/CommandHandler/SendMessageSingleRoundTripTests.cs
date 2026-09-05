@@ -152,6 +152,20 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             Assert.AreNotEqual(first, second);
         }
 
+        [TestMethod]
+        public void A_Different_Status_Table_Is_Not_Served_From_The_Cache()
+        {
+            //same queue and meta table, different status table. ITableNameHelper exposes
+            //StatusName independently of QueueName, so a key that named the status table only as
+            //"enabled" would hand the first helper's batch to the second and write the status row
+            //to the wrong table.
+            var first = Build(out _, statusTable: true, statusName: "status_a");
+            var second = Build(out _, statusTable: true, statusName: "status_b");
+
+            Assert.Contains("Insert into status_a", first);
+            Assert.Contains("Insert into status_b", second);
+        }
+
         private static int CountParameters(SqlCommand command, string name)
         {
             var count = 0;
@@ -166,12 +180,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
         }
 
         private static string Build(out SqlCommand command, TimeSpan? delay = null,
-            bool delayedProcessing = false, bool statusTable = false, string userColumn = null)
+            bool delayedProcessing = false, bool statusTable = false, string userColumn = null,
+            string statusName = "status")
         {
             var tableNameHelper = Substitute.For<ITableNameHelper>();
             tableNameHelper.QueueName.Returns("queue");
             tableNameHelper.MetaDataName.Returns("meta");
-            tableNameHelper.StatusName.Returns("status");
+            tableNameHelper.StatusName.Returns(statusName);
 
             var options = new SqlServerMessageQueueTransportOptions
             {

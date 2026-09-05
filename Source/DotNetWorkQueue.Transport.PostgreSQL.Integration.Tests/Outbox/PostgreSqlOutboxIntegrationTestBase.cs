@@ -51,12 +51,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Outbox
             }
         }
 
-        protected QueueScope CreateQueue(QueueConnection queueConnection, bool enablePriority = false)
+        protected QueueScope CreateQueue(QueueConnection queueConnection, bool enablePriority = false,
+            bool enableStatusTable = false)
         {
             var queueCreator = new QueueCreationContainer<PostgreSqlMessageQueueInit>();
             var oCreation = queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
             oCreation.Options.EnableStatus = true;
-            oCreation.Options.EnableStatusTable = false;
+            oCreation.Options.EnableStatusTable = enableStatusTable;
             oCreation.Options.EnableHeartBeat = false;
             oCreation.Options.EnableDelayedProcessing = false;
             oCreation.Options.EnableMessageExpiration = false;

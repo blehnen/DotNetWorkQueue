@@ -38,7 +38,11 @@ Real releases are published by the tag-triggered `.github/workflows/publish.yml`
 
 ## Running Tests
 
-Tests use MSTest 3.x, NSubstitute for mocking, AutoFixture for test data, and FluentAssertions.
+Tests use **MSTest 4.2.3**, NSubstitute for mocking, and AutoFixture for test data. Assertions are MSTest's own (`Assert.AreEqual`, `Assert.IsTrue`, `Assert.Contains`, `Assert.Throws<T>` / `Assert.ThrowsExactly<T>`).
+
+- **FluentAssertions is not used and must not be reintroduced** - it was deliberately removed in #159 on licensing grounds (version 8 changed to a paid licence for commercial use).
+- **The MSTest version is not per-project.** It is pinned centrally in `Source/Directory.Packages.props`, so a single test project cannot opt in or out of a different version.
+- MSTest 4.x removed `Assert.ThrowsException`; use `Assert.Throws<T>` or `Assert.ThrowsExactly<T>`.
 
 ```bash
 # Run all unit tests for a specific project

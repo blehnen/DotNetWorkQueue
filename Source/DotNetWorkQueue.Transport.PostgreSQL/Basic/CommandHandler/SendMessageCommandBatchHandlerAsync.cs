@@ -226,7 +226,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
 
                 using (var commandMeta = connection.CreateCommand())
                 {
-                    SendMessage.BuildMetaCommand(commandMeta, _tableNameHelper, _headers, m.MessageData, m.Message,
+                    SendMessage.BuildMetaCommand(commandMeta, _tableNameHelper, m.MessageData,
                         id, options, m.MessageData.GetDelay(), expiration, _getTime.GetCurrentUtcDate());
                     commandMeta.Transaction = trans;
                     await commandMeta.ExecuteNonQueryAsync().ConfigureAwait(false);
@@ -236,8 +236,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
                 {
                     using (var commandStatus = connection.CreateCommand())
                     {
-                        SendMessage.BuildStatusCommand(commandStatus, _tableNameHelper, _headers,
-                            m.MessageData, m.Message, id, options);
+                        SendMessage.BuildStatusCommand(commandStatus, _tableNameHelper,
+                            m.MessageData, id, options);
                         commandStatus.Transaction = trans;
                         await commandStatus.ExecuteNonQueryAsync().ConfigureAwait(false);
                     }

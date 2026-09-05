@@ -84,6 +84,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         }
 
         /// <summary>
+        /// How many distinct statements either cache will hold. The key includes the queue's table
+        /// names, and a queue name is whatever the caller chose, so an application that creates
+        /// short-lived queues under generated names would otherwise add an entry per queue and
+        /// never drop one - the benchmarks and the integration tests do exactly that. Past the cap
+        /// nothing is evicted and nothing is added; a statement is simply rebuilt per send, which
+        /// is what already happens for every shape that is not cacheable.
+        /// </summary>
+        private const int MaxCachedStatements = 500;
+
+        /// <summary>
         /// Meta-insert SQL, keyed by table name and the option shape that produced it. Bounded by
         /// the number of queues times the option combinations in use, and only ever holds the
         /// shape that carries no per-message literals.
@@ -192,9 +202,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             //has no equivalent case - CanCacheMetaSql already refuses AdditionalColumnsOnMetaData.
             var statusEmbedsUserColumns = options.EnableStatusTable && data.AdditionalMetaData.Count > 0;
 
+            //every table the statement writes to is named in the key. Both shipped helpers derive
+            //StatusName from QueueName, but ITableNameHelper exposes the two independently -
+            //keying on the derivation rather than the name would serve one helper's SQL to
+            //another whose status table is somewhere else.
             var cacheKey = CanCacheMetaSql(data, options, delay, expiration) && !statusEmbedsUserColumns
                 ? tableNameHelper.QueueName + "|" + tableNameHelper.MetaDataName + "|" +
-                  options.GetMetaSqlShape() + (options.EnableStatusTable ? "|status" : string.Empty)
+                  options.GetMetaSqlShape() +
+                  (options.EnableStatusTable ? "|" + tableNameHelper.StatusName : string.Empty)
                 : null;
 
             if (cacheKey != null && SingleRoundTripSqlCache.TryGetValue(cacheKey, out var cached))
@@ -225,7 +240,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             sb.AppendLine("SELECT @QueueID;");
 
             command.CommandText = sb.ToString();
-            if (cacheKey != null)
+            if (cacheKey != null && SingleRoundTripSqlCache.Count < MaxCachedStatements)
             {
                 SingleRoundTripSqlCache.TryAdd(cacheKey, command.CommandText);
             }
@@ -297,7 +312,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             sbMeta.Append(')'); //close the VALUES
 
             command.CommandText = sbMeta.ToString();
-            if (cacheKey != null)
+            if (cacheKey != null && MetaSqlCache.Count < MaxCachedStatements)
             {
                 MetaSqlCache.TryAdd(cacheKey, command.CommandText);
             }
