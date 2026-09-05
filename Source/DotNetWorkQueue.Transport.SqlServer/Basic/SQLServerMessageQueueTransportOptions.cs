@@ -422,7 +422,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         {
             if (EnableDelayedProcessing)
             {
-                command.Append(", DATEADD(ms, @QueueProcessOffset, GetUTCDate()) ");
+                command.Append(", DATEADD(ms, @QueueProcessTime, GetUTCDate()) ");
             }
 
             if (EnablePriority)
@@ -442,7 +442,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             if (EnableMessageExpiration)
             {
-                command.Append(", DATEADD(ms, @ExpirationOffset, GetUTCDate()) ");
+                command.Append(", DATEADD(ms, @ExpirationTime, GetUTCDate()) ");
             }
 
         }
@@ -463,6 +463,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// delays missed the send cache and made SQL Server compile a fresh plan per distinct
         /// value - see GitHub #255.
         /// </para>
+        /// <para>
+        /// Each parameter is named for the column it feeds rather than for the offset it carries,
+        /// which is the convention the built-in columns already follow - <c>@Priority</c>,
+        /// <c>@Route</c> and <c>@Status</c> are named the same way. It is what keeps them from
+        /// colliding with a user's additional meta column: those bind as <c>"@" + column name</c>,
+        /// and a column carrying a built-in name cannot exist alongside the built-in one.
+        /// </para>
         /// </remarks>
         /// <param name="command">The command.</param>
         /// <param name="delay">The delay, if the message carries one.</param>
@@ -472,9 +479,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             if (EnableDelayedProcessing)
             {
                 //no delay is an offset of zero, which is what a bare GetUTCDate() was
-                command.Parameters.Add("@QueueProcessOffset", SqlDbType.Int, 4).Value =
+                command.Parameters.Add("@QueueProcessTime", SqlDbType.Int, 4).Value =
                     delay.HasValue && delay != TimeSpan.Zero
-                        ? Convert.ToInt32(delay.Value.TotalMilliseconds)
+                        ? OffsetMilliseconds(delay.Value)
                         : 0;
             }
 
@@ -482,12 +489,27 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             {
                 //DATEADD returns NULL when its offset is NULL, which is the value the inlined
                 //form wrote for a message that never expires
-                command.Parameters.Add("@ExpirationOffset", SqlDbType.Int, 4).Value =
+                command.Parameters.Add("@ExpirationTime", SqlDbType.Int, 4).Value =
                     expiration != TimeSpan.Zero
-                        ? Convert.ToInt32(expiration.TotalMilliseconds)
+                        ? OffsetMilliseconds(expiration)
                         : (object)DBNull.Value;
             }
         }
+
+        /// <summary>
+        /// The offset in whole milliseconds, truncated rather than rounded.
+        /// </summary>
+        /// <remarks>
+        /// The value used to reach SQL Server as a decimal literal - <c>DATEADD(ms,1.5,...)</c> -
+        /// and SQL Server truncates when it converts that to the int the function takes, so 1.5 ms
+        /// meant 1 ms. <c>Convert.ToInt32</c> would round it to 2 and quietly move the message.
+        /// <para>
+        /// Checked so that a delay too large for an int fails loudly. It failed before too, on the
+        /// server, when <c>DATEADD</c> refused the out-of-range literal.
+        /// </para>
+        /// </remarks>
+        /// <param name="value">The delay or expiration.</param>
+        private static int OffsetMilliseconds(TimeSpan value) => checked((int)value.TotalMilliseconds);
         /// <summary>
         /// Adds the built in columns parameters.
         /// </summary>

@@ -102,8 +102,20 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
 
             Assert.AreEqual(fiveSeconds, tenSeconds);
             Assert.DoesNotContain("5000", fiveSeconds);
-            Assert.AreEqual(5000, ParameterValue(fiveCommand, "@QueueProcessOffset"));
-            Assert.AreEqual(10000, ParameterValue(tenCommand, "@QueueProcessOffset"));
+            Assert.AreEqual(5000, ParameterValue(fiveCommand, "@QueueProcessTime"));
+            Assert.AreEqual(10000, ParameterValue(tenCommand, "@QueueProcessTime"));
+        }
+
+        [TestMethod]
+        public void A_Fractional_Millisecond_Offset_Is_Truncated_Not_Rounded()
+        {
+            //the value used to reach the server as a decimal literal - DATEADD(ms,1.5,...) - and
+            //SQL Server truncates converting that to the int the function takes. Rounding it here
+            //would move the message by a millisecond it never had.
+            Build(out var command, delay: TimeSpan.FromTicks(TimeSpan.TicksPerMillisecond * 3 / 2),
+                delayedProcessing: true);
+
+            Assert.AreEqual(1, ParameterValue(command, "@QueueProcessTime"));
         }
 
         [TestMethod]
@@ -113,7 +125,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             //the queue onto a different clock, which is not what this change is for.
             var sql = Build(out _, delay: TimeSpan.FromSeconds(5), delayedProcessing: true);
 
-            Assert.Contains("DATEADD(ms, @QueueProcessOffset, GetUTCDate())", sql);
+            Assert.Contains("DATEADD(ms, @QueueProcessTime, GetUTCDate())", sql);
         }
 
         [TestMethod]
@@ -125,8 +137,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             Assert.AreEqual(never, expires);
             //DATEADD returns NULL when its offset is NULL, which is the value the inlined form
             //wrote for a message that never expires
-            Assert.AreEqual(DBNull.Value, ParameterValue(neverCommand, "@ExpirationOffset"));
-            Assert.AreEqual(300000, ParameterValue(expiresCommand, "@ExpirationOffset"));
+            Assert.AreEqual(DBNull.Value, ParameterValue(neverCommand, "@ExpirationTime"));
+            Assert.AreEqual(300000, ParameterValue(expiresCommand, "@ExpirationTime"));
         }
 
         [TestMethod]
