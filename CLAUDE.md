@@ -145,4 +145,14 @@ Historical engineering notes have been moved to [`docs/lessons-learned.md`](docs
 
 ## Changelog.md
 
-- Prefer consise entries instead of verbose; too much detail just makes the log harder to read
+The changelog is for **consumers of the queue, not for us**. An entry answers "what changed, and does it affect me?" — if a reader wants the how or why, the commit history is a better record of it than a bullet will ever be.
+
+Test every entry: **does a consumer act differently knowing this?** If not, it belongs in the commit message.
+
+- One bullet per user-visible change, not one per aspect of it
+- Target 200 characters; over 300 needs a reason
+- Performance entries get one before/after pair — the practical effect, never the methodology that produced it
+- ⚠️ only where a consumer must change configuration or expectations
+- No implementation internals, no measurement narration, no "here is what we tried"
+
+The detail has homes already: reasoning → the commit message; measurement methodology and dead ends → `Source/DotNetWorkQueue.Benchmarks/README.md`; implementation detail → code comments, next to the code.
