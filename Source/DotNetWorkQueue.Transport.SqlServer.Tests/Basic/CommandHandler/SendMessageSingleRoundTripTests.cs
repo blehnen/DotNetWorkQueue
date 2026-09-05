@@ -93,18 +93,40 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
         }
 
         [TestMethod]
-        public void A_Delayed_Message_Gets_Its_Own_Batch()
+        public void Two_Delays_Share_One_Batch()
         {
-            //a delay is written into the meta statement as a literal, so its batch differs per
-            //message and must not come from the cache
-            var none = Build(out _);
-            var fiveSeconds = Build(out _, delay: TimeSpan.FromSeconds(5), delayedProcessing: true);
-            var tenSeconds = Build(out _, delay: TimeSpan.FromSeconds(10), delayedProcessing: true);
+            //the delay used to be written into the batch as a literal, so every distinct value
+            //produced its own text - a cache miss here, and a freshly compiled plan on the server
+            var fiveSeconds = Build(out var fiveCommand, delay: TimeSpan.FromSeconds(5), delayedProcessing: true);
+            var tenSeconds = Build(out var tenCommand, delay: TimeSpan.FromSeconds(10), delayedProcessing: true);
 
-            Assert.AreNotEqual(none, fiveSeconds);
-            Assert.AreNotEqual(fiveSeconds, tenSeconds);
-            Assert.Contains("5000", fiveSeconds);
-            Assert.Contains("10000", tenSeconds);
+            Assert.AreEqual(fiveSeconds, tenSeconds);
+            Assert.DoesNotContain("5000", fiveSeconds);
+            Assert.AreEqual(5000, ParameterValue(fiveCommand, "@QueueProcessOffset"));
+            Assert.AreEqual(10000, ParameterValue(tenCommand, "@QueueProcessOffset"));
+        }
+
+        [TestMethod]
+        public void The_Server_Clock_Still_Sets_The_Base_Time()
+        {
+            //only the offset is parameterised. Binding the base time from the client would move
+            //the queue onto a different clock, which is not what this change is for.
+            var sql = Build(out _, delay: TimeSpan.FromSeconds(5), delayedProcessing: true);
+
+            Assert.Contains("DATEADD(ms, @QueueProcessOffset, GetUTCDate())", sql);
+        }
+
+        [TestMethod]
+        public void An_Expiring_Message_Shares_The_Batch_With_One_That_Never_Expires()
+        {
+            var never = Build(out var neverCommand, messageExpiration: true, expiration: TimeSpan.Zero);
+            var expires = Build(out var expiresCommand, messageExpiration: true, expiration: TimeSpan.FromMinutes(5));
+
+            Assert.AreEqual(never, expires);
+            //DATEADD returns NULL when its offset is NULL, which is the value the inlined form
+            //wrote for a message that never expires
+            Assert.AreEqual(DBNull.Value, ParameterValue(neverCommand, "@ExpirationOffset"));
+            Assert.AreEqual(300000, ParameterValue(expiresCommand, "@ExpirationOffset"));
         }
 
         [TestMethod]
@@ -166,6 +188,19 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             Assert.Contains("Insert into status_b", second);
         }
 
+        private static object ParameterValue(SqlCommand command, string name)
+        {
+            foreach (SqlParameter parameter in command.Parameters)
+            {
+                if (string.Equals(parameter.ParameterName, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return parameter.Value;
+                }
+            }
+            Assert.Fail($"{name} was never bound");
+            return null;
+        }
+
         private static int CountParameters(SqlCommand command, string name)
         {
             var count = 0;
@@ -181,7 +216,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
 
         private static string Build(out SqlCommand command, TimeSpan? delay = null,
             bool delayedProcessing = false, bool statusTable = false, string userColumn = null,
-            string statusName = "status")
+            string statusName = "status", bool messageExpiration = false, TimeSpan expiration = default)
         {
             var tableNameHelper = Substitute.For<ITableNameHelper>();
             tableNameHelper.QueueName.Returns("queue");
@@ -191,7 +226,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             var options = new SqlServerMessageQueueTransportOptions
             {
                 EnableDelayedProcessing = delayedProcessing,
-                EnableStatusTable = statusTable
+                EnableStatusTable = statusTable,
+                EnableMessageExpiration = messageExpiration
             };
 
             var data = new AdditionalMessageData
@@ -206,7 +242,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
 
             command = new SqlCommand();
             SendMessage.BuildSingleRoundTripCommand(command, tableNameHelper, Substitute.For<IHeaders>(),
-                data, Substitute.For<IMessage>(), options, delay, TimeSpan.Zero);
+                data, Substitute.For<IMessage>(), options, delay, expiration);
             return command.CommandText;
         }
     }

@@ -19,7 +19,6 @@
 using System;
 using System.Data;
 using Microsoft.Data.SqlClient;
-using System.Globalization;
 using System.Text;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
@@ -418,21 +417,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <summary>
         /// Adds the built in column values.
         /// </summary>
-        /// <param name="delay">The delay.</param>
-        /// <param name="expiration">The expiration.</param>
         /// <param name="command">The command.</param>
-        internal void AddBuiltInColumnValues(TimeSpan? delay, TimeSpan expiration, StringBuilder command)
+        internal void AddBuiltInColumnValues(StringBuilder command)
         {
             if (EnableDelayedProcessing)
             {
-                if (delay.HasValue && delay != TimeSpan.Zero)
-                {
-                    command.Append(", DATEADD(ms," + delay.Value.TotalMilliseconds.ToString(CultureInfo.InvariantCulture) + ", GetUTCDate()) ");
-                }
-                else
-                {
-                    command.Append(", GetUTCDate() ");
-                }
+                command.Append(", DATEADD(ms, @QueueProcessOffset, GetUTCDate()) ");
             }
 
             if (EnablePriority)
@@ -452,16 +442,51 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             if (EnableMessageExpiration)
             {
-                if (expiration != TimeSpan.Zero)
-                {
-                    command.Append(", DATEADD(ms," + expiration.TotalMilliseconds.ToString(CultureInfo.InvariantCulture) + ",GetUTCDate()) ");
-                }
-                else
-                {
-                    command.Append(", NULL ");
-                }
+                command.Append(", DATEADD(ms, @ExpirationOffset, GetUTCDate()) ");
             }
 
+        }
+
+        /// <summary>
+        /// Binds the delay and expiration offsets for the meta insert.
+        /// </summary>
+        /// <remarks>
+        /// Separate from <see cref="AddBuiltInColumnsParams"/> because only the meta insert has
+        /// these two columns - the status insert shares that method but has neither.
+        /// <para>
+        /// Only the <em>offset</em> is a parameter: the base time stays <c>GetUTCDate()</c>, so
+        /// the server's clock still sets the value as it always has. Binding the computed time
+        /// from the client instead would have moved the queue onto a different clock.
+        /// </para>
+        /// <para>
+        /// The offsets used to be written into the statement as literals, so a queue with varying
+        /// delays missed the send cache and made SQL Server compile a fresh plan per distinct
+        /// value - see GitHub #255.
+        /// </para>
+        /// </remarks>
+        /// <param name="command">The command.</param>
+        /// <param name="delay">The delay, if the message carries one.</param>
+        /// <param name="expiration">The expiration, or <see cref="TimeSpan.Zero"/> for a message that never expires.</param>
+        internal void AddBuiltInTimeParams(SqlCommand command, TimeSpan? delay, TimeSpan expiration)
+        {
+            if (EnableDelayedProcessing)
+            {
+                //no delay is an offset of zero, which is what a bare GetUTCDate() was
+                command.Parameters.Add("@QueueProcessOffset", SqlDbType.Int, 4).Value =
+                    delay.HasValue && delay != TimeSpan.Zero
+                        ? Convert.ToInt32(delay.Value.TotalMilliseconds)
+                        : 0;
+            }
+
+            if (EnableMessageExpiration)
+            {
+                //DATEADD returns NULL when its offset is NULL, which is the value the inlined
+                //form wrote for a message that never expires
+                command.Parameters.Add("@ExpirationOffset", SqlDbType.Int, 4).Value =
+                    expiration != TimeSpan.Zero
+                        ? Convert.ToInt32(expiration.TotalMilliseconds)
+                        : (object)DBNull.Value;
+            }
         }
         /// <summary>
         /// Adds the built in columns parameters.

@@ -109,8 +109,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             SqlServerMessageQueueTransportOptions options, TimeSpan? delay, TimeSpan expiration)
         {
             if (options.AdditionalColumnsOnMetaData) return false;
-            if (options.EnableDelayedProcessing && delay.HasValue && delay != TimeSpan.Zero) return false;
-            if (options.EnableMessageExpiration && expiration != TimeSpan.Zero) return false;
             return true;
         }
 
@@ -118,8 +116,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         /// The parameters, which are added the same way whether the text was cached or built.
         /// </summary>
         private static void AddMetaParameters(SqlCommand command, IAdditionalMessageData data, long id,
-            SqlServerMessageQueueTransportOptions options, bool includeQueueId)
+            SqlServerMessageQueueTransportOptions options, bool includeQueueId, TimeSpan? delay,
+            TimeSpan expiration)
         {
+            options.AddBuiltInTimeParams(command, delay, expiration);
             options.AddBuiltInColumnsParams(command, data);
 
             //When the caller is composing this into a single batch, @QueueID is a variable the
@@ -264,11 +264,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             //send cost 4,986 bytes, 16% of everything a send allocated and 36% of what the library
             //added over a hand-written write of the same shape.
             //
-            //Only the invariant shape is cached. A delay or an expiration is written into the SQL
-            //as a literal - DATEADD(ms,12345,...) - so those texts differ per message and caching
-            //them would be unbounded. Parameterising those two would let this cover every message
-            //and would stop SQL Server compiling a fresh plan per distinct delay, which is worth
-            //doing separately.
+            //The delay and the expiration ride as parameters rather than literals, so the text
+            //no longer varies per message and this covers every send rather than only the
+            //invariant shape - which also stops SQL Server compiling a fresh plan per distinct
+            //delay value.
             var cacheKey = CanCacheMetaSql(data, options, delay, expiration)
                 ? tableNameHelper.MetaDataName + "|" + options.GetMetaSqlShape()
                 : null;
@@ -276,7 +275,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             if (cacheKey != null && MetaSqlCache.TryGetValue(cacheKey, out var cached))
             {
                 command.CommandText = cached;
-                AddMetaParameters(command, data, id, options, includeQueueIdParameter);
+                AddMetaParameters(command, data, id, options, includeQueueIdParameter, delay, expiration);
                 return;
             }
 
@@ -301,7 +300,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             sbMeta.Append("@QueueID, @CorrelationID, GetUTCDate() ");
 
             //add the values for built in fields
-            options.AddBuiltInColumnValues(delay, expiration, sbMeta);
+            options.AddBuiltInColumnValues(sbMeta);
 
             //add configurable column value - user
             if (options.AdditionalColumnsOnMetaData)
@@ -317,7 +316,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 MetaSqlCache.TryAdd(cacheKey, command.CommandText);
             }
 
-            AddMetaParameters(command, data, id, options, includeQueueIdParameter);
+            AddMetaParameters(command, data, id, options, includeQueueIdParameter, delay, expiration);
         }
         /// <summary>
         /// Adds the SQL command params for the user specific meta data

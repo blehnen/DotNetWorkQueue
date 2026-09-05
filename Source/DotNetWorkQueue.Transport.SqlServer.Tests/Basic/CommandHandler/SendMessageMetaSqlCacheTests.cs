@@ -95,10 +95,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
         }
 
         [TestMethod]
-        public void A_Delay_Is_Not_Served_From_The_Cache()
+        public void Every_Delay_Is_Served_From_One_Cached_Statement()
         {
-            //a delay is written into the text as a literal, so two different delays are two
-            //different statements and neither may come from the cached shape
+            //the delay was a literal in the text, so every distinct value was its own statement
+            //and none of them could be cached. It is a parameter now, so one entry serves them all
             var options = new SqlServerMessageQueueTransportOptions { EnableDelayedProcessing = true };
             var table = "delayed" + Guid.NewGuid().ToString("N");
 
@@ -106,14 +106,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             var fiveSeconds = BuildFor(options, table, TimeSpan.FromSeconds(5));
             var tenSeconds = BuildFor(options, table, TimeSpan.FromSeconds(10));
 
-            Assert.AreNotEqual(noDelay, fiveSeconds);
-            Assert.AreNotEqual(fiveSeconds, tenSeconds);
-            Assert.Contains("5000", fiveSeconds);
-            Assert.Contains("10000", tenSeconds);
+            Assert.AreEqual(noDelay, fiveSeconds);
+            Assert.AreEqual(fiveSeconds, tenSeconds);
+            Assert.DoesNotContain("5000", fiveSeconds);
+            Assert.DoesNotContain("10000", tenSeconds);
         }
 
         [TestMethod]
-        public void An_Expiration_Is_Not_Served_From_The_Cache()
+        public void Every_Expiration_Is_Served_From_One_Cached_Statement()
         {
             var options = new SqlServerMessageQueueTransportOptions { EnableMessageExpiration = true };
             var table = "expiring" + Guid.NewGuid().ToString("N");
@@ -121,8 +121,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             var none = BuildFor(options, table, expiration: TimeSpan.Zero);
             var oneMinute = BuildFor(options, table, expiration: TimeSpan.FromMinutes(1));
 
-            Assert.AreNotEqual(none, oneMinute);
-            Assert.Contains("60000", oneMinute);
+            Assert.AreEqual(none, oneMinute);
+            Assert.DoesNotContain("60000", oneMinute);
         }
 
         private static string BuildFor(SqlServerMessageQueueTransportOptions options, string table,
