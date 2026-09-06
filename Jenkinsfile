@@ -403,6 +403,12 @@ pipeline {
                         sleep(time: 70, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh '''
+                                # One line that says whether the image carries the browsers,
+                                # so a failure here is not ambiguous between a stale image and
+                                # the browsers not being found. Never fails the stage itself.
+                                echo "PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH:-<unset>}"
+                                ls -d "${PLAYWRIGHT_BROWSERS_PATH:-/ms-playwright}"/* 2>&1 | head -5 || true
+
                                 dotnet build "Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/DotNetWorkQueue.Dashboard.Ui.E2E.Tests.csproj" -c Debug
 
                                 dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/DotNetWorkQueue.Dashboard.Ui.E2E.Tests.csproj" \
