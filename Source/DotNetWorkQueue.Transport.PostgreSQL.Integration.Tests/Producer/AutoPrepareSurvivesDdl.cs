@@ -81,7 +81,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
 
         private static string WithAutoPrepare(string connectionString)
         {
-            var separator = connectionString.TrimEnd().EndsWith(";", StringComparison.Ordinal) ? "" : ";";
+            var separator = connectionString.TrimEnd().EndsWith(';') ? "" : ";";
             return connectionString + separator + AutoPrepare;
         }
 

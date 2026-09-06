@@ -73,12 +73,12 @@ namespace DotNetWorkQueue.Tests.Metrics.Net
             using (var context = test.NewContext())
             {
                 System.Threading.Thread.Sleep(5);
-                Assert.IsTrue(context.Elapsed > TimeSpan.Zero, "the scope should be timing");
+                Assert.IsGreaterThan(TimeSpan.Zero, context.Elapsed, "the scope should be timing");
             }
 
             listener.Dispose();
             Assert.HasCount(1, recorded);
-            Assert.IsTrue(recorded[0] > 0, "the recorded duration should be greater than zero");
+            Assert.IsGreaterThan(0, recorded[0], "the recorded duration should be greater than zero");
         }
 
         [TestMethod]

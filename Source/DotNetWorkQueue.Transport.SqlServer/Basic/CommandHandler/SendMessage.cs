@@ -101,15 +101,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
         private static readonly ConcurrentDictionary<string, string> MetaSqlCache = new();
 
         /// <summary>
-        /// Whether this message's meta SQL is the invariant shape. Anything that writes a literal
-        /// into the text - a delay, an expiration - or that varies with the message's own columns
-        /// is built fresh.
+        /// Whether this message's meta SQL is the invariant shape.
         /// </summary>
-        private static bool CanCacheMetaSql(IAdditionalMessageData data,
-            SqlServerMessageQueueTransportOptions options, TimeSpan? delay, TimeSpan expiration)
+        /// <remarks>
+        /// The delay and the expiration used to be literals in the text, so any message carrying
+        /// one was built fresh. They ride as parameters since #255, which leaves the user's own
+        /// columns as the only thing that still varies the text per message.
+        /// </remarks>
+        private static bool CanCacheMetaSql(SqlServerMessageQueueTransportOptions options)
         {
-            if (options.AdditionalColumnsOnMetaData) return false;
-            return true;
+            return !options.AdditionalColumnsOnMetaData;
         }
 
         /// <summary>
@@ -206,10 +207,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             //StatusName from QueueName, but ITableNameHelper exposes the two independently -
             //keying on the derivation rather than the name would serve one helper's SQL to
             //another whose status table is somewhere else.
-            var cacheKey = CanCacheMetaSql(data, options, delay, expiration) && !statusEmbedsUserColumns
+            var statusPart = options.EnableStatusTable
+                ? "|" + tableNameHelper.StatusName
+                : string.Empty;
+            var cacheKey = CanCacheMetaSql(options) && !statusEmbedsUserColumns
                 ? tableNameHelper.QueueName + "|" + tableNameHelper.MetaDataName + "|" +
-                  options.GetMetaSqlShape() +
-                  (options.EnableStatusTable ? "|" + tableNameHelper.StatusName : string.Empty)
+                  options.GetMetaSqlShape() + statusPart
                 : null;
 
             if (cacheKey != null && SingleRoundTripSqlCache.TryGetValue(cacheKey, out var cached))
@@ -268,7 +271,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             //no longer varies per message and this covers every send rather than only the
             //invariant shape - which also stops SQL Server compiling a fresh plan per distinct
             //delay value.
-            var cacheKey = CanCacheMetaSql(data, options, delay, expiration)
+            var cacheKey = CanCacheMetaSql(options)
                 ? tableNameHelper.MetaDataName + "|" + options.GetMetaSqlShape()
                 : null;
 

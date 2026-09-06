@@ -80,7 +80,6 @@ namespace DotNetWorkQueue.Benchmarks
     {
         private const int PayloadBytes = 256;
 
-        private string _connectionString;
         private ConnectionMultiplexer _multiplexer;
         private IDatabase _database;
         private IServer _server;
@@ -142,8 +141,8 @@ namespace DotNetWorkQueue.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            _connectionString = Environment.GetEnvironmentVariable("DNWQ_REDIS_CONNECTION");
-            if (string.IsNullOrWhiteSpace(_connectionString))
+            var connectionString = Environment.GetEnvironmentVariable("DNWQ_REDIS_CONNECTION");
+            if (string.IsNullOrWhiteSpace(connectionString))
                 throw new InvalidOperationException(
                     "Set DNWQ_REDIS_CONNECTION to a Redis connection string. See the class remarks.");
 
@@ -152,7 +151,7 @@ namespace DotNetWorkQueue.Benchmarks
             _meta = new byte[64];
             _payload = new string('x', PayloadBytes);
 
-            _multiplexer = ConnectionMultiplexer.Connect(_connectionString);
+            _multiplexer = ConnectionMultiplexer.Connect(connectionString);
             _database = _multiplexer.GetDatabase();
             _server = SingleServer(_multiplexer);
 
@@ -171,7 +170,7 @@ namespace DotNetWorkQueue.Benchmarks
 
             //the transport's own queue, for the end-to-end rungs
             _queueName = "bench" + suffix;
-            _queueConnection = new QueueConnection(_queueName, _connectionString);
+            _queueConnection = new QueueConnection(_queueName, connectionString);
             _creation = new QueueCreationContainer<RedisQueueInit>();
             using (var creator = _creation.GetQueueCreation<RedisQueueCreation>(_queueConnection))
             {
@@ -275,7 +274,7 @@ namespace DotNetWorkQueue.Benchmarks
         {
             return _database.ScriptEvaluate(_loadedScript, new
             {
-                field = (RedisValue)RedisValue.EmptyString,
+                field = RedisValue.EmptyString,
                 key = _rawValues,
                 value = (RedisValue)_body,
                 headerskey = _rawHeaders,

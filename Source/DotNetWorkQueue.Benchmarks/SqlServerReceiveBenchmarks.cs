@@ -56,7 +56,6 @@ namespace DotNetWorkQueue.Benchmarks
     [MemoryDiagnoser]
     public class SqlServerReceiveBenchmarks
     {
-        private string _connectionString;
         private QueueConnection _queueConnection;
         private QueueCreationContainer<SqlServerMessageQueueInit> _creation;
         private QueueContainer<SqlServerMessageQueueInit> _container;
@@ -71,15 +70,15 @@ namespace DotNetWorkQueue.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            _connectionString = Environment.GetEnvironmentVariable("DNWQ_SQLSERVER_CONNECTION");
-            if (string.IsNullOrWhiteSpace(_connectionString))
+            var connectionString = Environment.GetEnvironmentVariable("DNWQ_SQLSERVER_CONNECTION");
+            if (string.IsNullOrWhiteSpace(connectionString))
                 throw new InvalidOperationException(
                     "Set DNWQ_SQLSERVER_CONNECTION to a SQL Server connection string.");
 
             _routes = new List<string> { "a-route" };
 
             _queueConnection = new QueueConnection(
-                "benchSqlServerRecv" + Guid.NewGuid().ToString("N"), _connectionString);
+                "benchSqlServerRecv" + Guid.NewGuid().ToString("N"), connectionString);
 
             _creation = new QueueCreationContainer<SqlServerMessageQueueInit>();
             using (var creator = _creation.GetQueueCreation<SqlServerMessageQueueCreation>(_queueConnection))

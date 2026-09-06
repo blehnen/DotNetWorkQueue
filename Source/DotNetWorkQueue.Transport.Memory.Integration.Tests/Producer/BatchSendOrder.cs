@@ -92,17 +92,17 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Producer
             var results = send(producer, batch);
 
             Assert.HasCount(messageCount, results);
-            Assert.IsFalse(results.Any(r => r.HasError),
+            Assert.DoesNotContain(r => r.HasError, results,
                 results.FirstOrDefault(r => r.HasError)?.SendingException?.ToString() ?? "no error");
 
             var returned = results.Select(r => (Guid)r.SentMessage.CorrelationId.Id.Value).ToList();
             CollectionAssert.AreEqual(sent, returned,
                 "results came back in a different order than the messages were sent");
 
-            Assert.IsFalse(results.Any(r => (Guid)r.SentMessage.MessageId.Id.Value == Guid.Empty),
+            Assert.DoesNotContain(r => (Guid)r.SentMessage.MessageId.Id.Value == Guid.Empty, results,
                 "every message should come back with a real id");
-            Assert.AreEqual(messageCount,
-                results.Select(r => (Guid)r.SentMessage.MessageId.Id.Value).Distinct().Count(),
+            Assert.HasCount(messageCount,
+                results.Select(r => (Guid)r.SentMessage.MessageId.Id.Value).Distinct().ToList(),
                 "ids should be unique");
         }
     }

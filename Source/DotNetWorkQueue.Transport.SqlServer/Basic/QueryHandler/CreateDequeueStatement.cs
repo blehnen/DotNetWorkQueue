@@ -260,7 +260,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
         /// the behaviour it had before any of this: the statement is rebuilt per poll.
         /// </para>
         /// </remarks>
-        private string BuildCacheKey(List<string> routes, string userQuery)
+        private static string BuildCacheKey(List<string> routes, string userQuery)
         {
             if (!string.IsNullOrEmpty(userQuery))
             {

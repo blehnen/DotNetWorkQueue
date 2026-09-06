@@ -64,12 +64,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
             var results = producer.Send(batch).ToList();
 
             Assert.HasCount(messageCount, results);
-            Assert.IsFalse(results.Any(r => r.HasError),
+            Assert.DoesNotContain(r => r.HasError, results,
                 results.FirstOrDefault(r => r.HasError)?.SendingException?.ToString() ?? "no error");
 
             var ids = results.Select(r => (int)r.SentMessage.MessageId.Id.Value).ToList();
-            Assert.IsFalse(ids.Any(id => id <= 0), "every message should come back with a real id");
-            Assert.AreEqual(messageCount, ids.Distinct().Count(), "ids should be unique");
+            Assert.DoesNotContain(id => id <= 0, ids, "every message should come back with a real id");
+            Assert.HasCount(messageCount, ids.Distinct().ToList(), "ids should be unique");
 
             //inserted sequentially in one transaction, so the caller's order is the id order
             CollectionAssert.AreEqual(ids.OrderBy(id => id).ToList(), ids,
@@ -157,7 +157,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
             var results = producer.Send(batch).ToList();
 
             Assert.HasCount(batch.Count, results);
-            Assert.IsFalse(results.Any(r => r.HasError),
+            Assert.DoesNotContain(r => r.HasError, results,
                 results.FirstOrDefault(r => r.HasError)?.SendingException?.ToString() ?? "no error");
         }
 
