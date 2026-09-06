@@ -1,5 +1,5 @@
 ﻿### 0.11.0 — 2026-09-06
-- SQL Server and PostgreSQL: an ordinary send is one round trip instead of four, on `Send` and `SendAsync`. A SQL Server send goes 8.67 ms to 7.38 ms against a local instance and allocates 16% less; the gain grows with distance to the server (GitHub #231, #232)
+- SQL Server and PostgreSQL: an ordinary send is one round trip instead of four, on `Send` and `SendAsync`. A SQL Server send allocates 16% less — 29,298 B down to 24,648 B — and the time saved grows with distance to the server (GitHub #231, #232)
 - SQL Server and PostgreSQL: queues using `EnableDelayedProcessing` or `EnableMessageExpiration` no longer pay a per-send penalty, and SQL Server no longer fills its plan cache with one plan per delay value (GitHub #255)
 - SQL Server and PostgreSQL: a routed consumer no longer rebuilds its de-queue statement on every poll — 5,368 B down to 80 B a poll on SQL Server, 2,648 B down to 80 B on PostgreSQL (GitHub #231, #232)
 - LiteDb: finding the next message no longer scans the queue, so a de-queue costs the same at any depth — 31 ms against ten thousand waiting messages down to 55 us. No schema change (GitHub #234)
@@ -17,10 +17,12 @@
 - Deprecated the `Guard` overloads taking `Expression<Func<T>>` (`[Obsolete]`; they still work). Use the overloads taking the value alone — the reported `ParamName` is unchanged
 
 ### 0.10.0 — 2026-08-27
-- **SQLite transport is substantially faster.** A single send goes from ~8.5 ms to ~80 us, and an empty-queue de-queue from 29.9 us and 22.1 KB to 5.8 us and 648 B
+- **SQLite transport is substantially faster.** A single send goes from ~8.5 ms to ~80 us
+- SQLite: an empty-queue de-queue goes from 29.9 us and 22.1 KB to 5.8 us and 648 B
 - ⚠️ **Breaking for callers that delete SQLite database files.** Connection pooling is on by default now, so the file handle stays open for the lifetime of the queue and `File.Delete` fails where it used to succeed. Dispose the producer or consumer first and delete the `-wal` and `-shm` files alongside it — `SqLiteMessageQueueCreation.RemoveQueue()` does both. `SQLiteConnection.ClearAllPools()` is not sufficient. Opt out with `Pooling=False` in the connection string
 - SQLite: in-memory databases are never pooled — pooling one with `cache=shared` would keep a database alive past the point the caller disposed of it
-- SQLite: two additive API changes — `IDbFactory` gains `CreateCommand(IDbConnection, string)` as a default interface method, and `DbFactory` now implements `IDisposable`, since disposing it is what closes the pooled connections
+- SQLite: `IDbFactory` gains `CreateCommand(IDbConnection, string)` as a default interface method, so existing implementations keep working unchanged
+- SQLite: `DbFactory` now implements `IDisposable` — disposing it is what closes the pooled connections
 
 ### 0.9.43 — 2026-07-06
 - Added `AesMessageInterceptor` (AES-256-GCM authenticated encryption) as the recommended built-in message encryption, with a per-message nonce and tamper detection
