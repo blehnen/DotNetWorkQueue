@@ -56,6 +56,10 @@
     <PackageVersion Include="Microsoft.Testing.Extensions.Retry" Version="2.2.3" />
     <PackageVersion Include="MSTest.TestAdapter" Version="4.2.3" />
     <PackageVersion Include="MSTest.TestFramework" Version="4.2.3" />
+    <!-- Bumping these means rebuilding blehnen74/dotnetworkqueue-ci. The browser
+         builds live in that image and ship as a pair with this package, so a
+         mismatch fails the E2E tests with "Executable doesn't exist at
+         /ms-playwright/chromium-XXXX". See blehnen/dotnetworkqueue-ci#1. -->
     <PackageVersion Include="Microsoft.Playwright" Version="1.60.0" />
     <PackageVersion Include="Microsoft.Playwright.MSTest" Version="1.60.0" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />

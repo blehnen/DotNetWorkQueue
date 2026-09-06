@@ -377,23 +377,25 @@ pipeline {
                 }
 
                 stage('Dashboard UI E2E') {
-                    // Uses the repo's standard docker-labeled agent (same as other stages)
-                    // and installs Chromium + its system dependencies at stage time via
-                    // Microsoft.Playwright.dll's embedded install command. The earlier
-                    // approach of pulling mcr.microsoft.com/playwright/dotnet failed
-                    // because the agent lacks a Docker CLI for docker-in-docker.
+                    // Uses the repo's standard docker-labeled agent (same as other stages).
+                    // Chromium and its system dependencies are baked into that image at
+                    // build time and found via PLAYWRIGHT_BROWSERS_PATH, so there is
+                    // nothing to install here.
+                    //
+                    // This stage used to install them per build with `--with-deps`, which
+                    // shells out to apt and so needs root. That broke when the agents
+                    // stopped running as root. Installing in the image fixes it where the
+                    // cause is and drops a ~150 MB download plus an apt run from every
+                    // build - see blehnen/dotnetworkqueue-ci#1.
+                    //
+                    // Bumping Microsoft.Playwright means rebuilding that image: the .NET
+                    // package and its browser builds ship as a pair.
                     agent { label 'docker' }
                     steps {
                         sleep(time: 70, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh '''
                                 dotnet build "Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/DotNetWorkQueue.Dashboard.Ui.E2E.Tests.csproj" -c Debug
-
-                                # Install Playwright browsers (Chromium only) + apt system deps.
-                                dotnet exec \
-                                    --runtimeconfig Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/bin/Debug/net10.0/DotNetWorkQueue.Dashboard.Ui.E2E.Tests.runtimeconfig.json \
-                                    Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/bin/Debug/net10.0/Microsoft.Playwright.dll \
-                                    install --with-deps chromium
 
                                 dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/DotNetWorkQueue.Dashboard.Ui.E2E.Tests.csproj" \
                                     --no-build -c Debug \

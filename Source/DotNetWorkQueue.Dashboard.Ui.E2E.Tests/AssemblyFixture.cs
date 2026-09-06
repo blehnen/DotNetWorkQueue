@@ -39,7 +39,18 @@ namespace DotNetWorkQueue.Dashboard.Ui.E2E.Tests
             Playwright = await Microsoft.Playwright.Playwright.CreateAsync();
             Browser = await Playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
             {
-                Headless = true
+                Headless = true,
+
+                //Chromium's sandbox needs unprivileged user namespaces, which the CI
+                //container does not have - it aborts with "No usable sandbox!" as soon
+                //as it tries to start a renderer. Dropping the sandbox is what the
+                //Playwright container documentation recommends for exactly this case,
+                //and these tests only ever load the dashboard this repository builds.
+                //
+                //--disable-dev-shm-usage because a container gets a 64 MB /dev/shm by
+                //default, which Chromium will exhaust and crash on for anything larger
+                //than the pages here.
+                Args = ["--no-sandbox", "--disable-dev-shm-usage"]
             });
         }
 
