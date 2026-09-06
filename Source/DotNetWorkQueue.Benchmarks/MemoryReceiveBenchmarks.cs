@@ -68,7 +68,6 @@ namespace DotNetWorkQueue.Benchmarks
         private const int PayloadBytes = 256;
 
         private string _payload;
-        private QueueConnection _queueConnection;
 
         private QueueCreationContainer<MemoryBasic.MemoryMessageQueueInit> _creation;
         private QueueContainer<MemoryBasic.MemoryMessageQueueInit> _producerContainer;
@@ -116,10 +115,10 @@ namespace DotNetWorkQueue.Benchmarks
         [IterationSetup]
         public void IterationSetup()
         {
-            _queueConnection = new QueueConnection("benchMemoryReceive" + Guid.NewGuid().ToString("N"), "memory");
+            var queueConnection = new QueueConnection("benchMemoryReceive" + Guid.NewGuid().ToString("N"), "memory");
 
             _creation = new QueueCreationContainer<MemoryBasic.MemoryMessageQueueInit>();
-            using (var creator = _creation.GetQueueCreation<MemoryBasic.MessageQueueCreation>(_queueConnection))
+            using (var creator = _creation.GetQueueCreation<MemoryBasic.MessageQueueCreation>(queueConnection))
             {
                 var result = creator.CreateQueue();
                 if (!result.Success)
@@ -127,7 +126,7 @@ namespace DotNetWorkQueue.Benchmarks
             }
 
             _producerContainer = new QueueContainer<MemoryBasic.MemoryMessageQueueInit>();
-            _producer = _producerContainer.CreateProducer<Event>(_queueConnection);
+            _producer = _producerContainer.CreateProducer<Event>(queueConnection);
             for (var i = 0; i < Messages; i++)
             {
                 var result = _producer.Send(new Event { Body = _payload });
@@ -139,7 +138,7 @@ namespace DotNetWorkQueue.Benchmarks
             //queue this benchmark is draining. It exists so the container builds the receive chain
             //exactly as a running consumer would, and the pieces are then driven directly.
             _consumerContainer = new QueueContainer<MemoryBasic.MemoryMessageQueueInit>();
-            _consumer = _consumerContainer.CreateConsumer(_queueConnection);
+            _consumer = _consumerContainer.CreateConsumer(queueConnection);
 
             var container = ConsumerInternals.ContainerOf(_consumerContainer);
             _storage = container.GetInstance<IDataStorage>();
@@ -199,7 +198,7 @@ namespace DotNetWorkQueue.Benchmarks
         public void IterationCleanup()
         {
             _sharedLinked?.Dispose();
-            (_storage as IDataStorage)?.Clear();
+            _storage?.Clear();
             _consumer?.Dispose();
             _consumerContainer?.Dispose();
             _producer?.Dispose();

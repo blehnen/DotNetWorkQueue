@@ -113,20 +113,18 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
         /// Whether this message's statement is the invariant shape and may be cached.
         /// </summary>
         /// <remarks>
-        /// A delay or an expiration is written into the meta insert as a literal tick count, so
-        /// those texts differ per message. <see cref="PostgreSqlMessageQueueTransportOptions.EnableDelayedProcessing"/>
-        /// is stricter than it looks: with it on, the current time is inlined even when the message
-        /// carries <b>no</b> delay, so every send produces a different statement. SQL Server writes
-        /// an invariant <c>GetUTCDate()</c> in that position instead. Parameterising the two would
-        /// let this cover every message and is worth doing separately - it is why a delayed-processing
-        /// queue re-plans on every send.
+        /// The delay and the expiration used to be written into the meta insert as literal tick
+        /// counts, which kept a delayed-processing queue out of this cache entirely and made it
+        /// re-plan on every send. They ride as parameters since #255, so neither excludes a
+        /// message any more.
         /// <para>
-        /// User columns on the status table are written into that insert by name, so those are
-        /// excluded too.
+        /// What remains are the two shapes whose <em>text</em> still varies per message: user
+        /// columns on the meta insert, and user columns on the status insert, both written in by
+        /// name.
         /// </para>
         /// </remarks>
         private static bool CanCacheSingleRoundTripSql(IAdditionalMessageData data,
-            PostgreSqlMessageQueueTransportOptions options, TimeSpan expiration)
+            PostgreSqlMessageQueueTransportOptions options)
         {
             if (options.AdditionalColumnsOnMetaData) return false;
             if (options.EnableStatusTable && data.AdditionalMetaData.Count > 0) return false;
@@ -187,7 +185,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             }
 
             string cacheKey = null;
-            if (CanCacheSingleRoundTripSql(data, options, expiration))
+            if (CanCacheSingleRoundTripSql(data, options))
             {
                 //every table the statement writes to is named in the key. Both shipped helpers
                 //derive StatusName from QueueName, but ITableNameHelper exposes the two

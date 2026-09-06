@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
                 "delayed messages early");
 
             //and the comparison the de-queue makes gives the right answer
-            Assert.IsTrue(row.QueueProcessTime.Value >= DateTime.UtcNow,
+            Assert.IsGreaterThanOrEqualTo(DateTime.UtcNow, row.QueueProcessTime.Value,
                 "a message deferred an hour ahead should compare as not yet due");
         }
     }

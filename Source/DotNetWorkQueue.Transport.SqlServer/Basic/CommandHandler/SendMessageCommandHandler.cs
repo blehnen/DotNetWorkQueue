@@ -111,17 +111,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 return HandleExternalTransaction(commandSend);
 
             var jobName = _jobSchedulerMetaData.GetJobName(commandSend.MessageData);
-            var scheduledTime = DateTimeOffset.MinValue;
-            var eventTime = DateTimeOffset.MinValue;
-            if (!string.IsNullOrWhiteSpace(jobName))
-            {
-                scheduledTime = _jobSchedulerMetaData.GetScheduledTime(commandSend.MessageData);
-                eventTime = _jobSchedulerMetaData.GetEventTime(commandSend.MessageData);
-            }
-            else
+            if (string.IsNullOrWhiteSpace(jobName))
             {
                 return HandleSingleRoundTrip(commandSend);
             }
+
+            var scheduledTime = _jobSchedulerMetaData.GetScheduledTime(commandSend.MessageData);
+            var eventTime = _jobSchedulerMetaData.GetEventTime(commandSend.MessageData);
 
             using (var connection = new SqlConnection(_configurationSend.ConnectionInfo.ConnectionString))
             {

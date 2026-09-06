@@ -76,7 +76,6 @@ namespace DotNetWorkQueue.Benchmarks
         private const int MaxThreads = 8;
 
         private string _dir;
-        private string _payload;
         private List<LiteDbPathBenchmarks.Event> _seed;
 
         private Fixture _a, _b;
@@ -102,10 +101,10 @@ namespace DotNetWorkQueue.Benchmarks
         [GlobalSetup]
         public void GlobalSetup()
         {
-            _payload = new string('x', PayloadBytes);
+            var payload = new string('x', PayloadBytes);
             _seed = new List<LiteDbPathBenchmarks.Event>(TotalMessages);
             for (var i = 0; i < TotalMessages; i++)
-                _seed.Add(new LiteDbPathBenchmarks.Event { Body = _payload });
+                _seed.Add(new LiteDbPathBenchmarks.Event { Body = payload });
 
             _dir = Path.Combine(Path.GetTempPath(), "dnwq-litedb-recv-conc", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(_dir);

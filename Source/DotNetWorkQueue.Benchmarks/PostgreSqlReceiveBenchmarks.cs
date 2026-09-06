@@ -54,7 +54,6 @@ namespace DotNetWorkQueue.Benchmarks
     [MemoryDiagnoser]
     public class PostgreSqlReceiveBenchmarks
     {
-        private string _connectionString;
         private QueueConnection _queueConnection;
         private QueueCreationContainer<PostgreSqlMessageQueueInit> _creation;
         private QueueContainer<PostgreSqlMessageQueueInit> _container;
@@ -70,15 +69,15 @@ namespace DotNetWorkQueue.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            _connectionString = Environment.GetEnvironmentVariable("DNWQ_POSTGRES_CONNECTION");
-            if (string.IsNullOrWhiteSpace(_connectionString))
+            var connectionString = Environment.GetEnvironmentVariable("DNWQ_POSTGRES_CONNECTION");
+            if (string.IsNullOrWhiteSpace(connectionString))
                 throw new InvalidOperationException(
                     "Set DNWQ_POSTGRES_CONNECTION to a PostgreSQL connection string.");
 
             _routes = new List<string> { "a-route" };
 
             _queueConnection = new QueueConnection(
-                "benchpgrecv" + Guid.NewGuid().ToString("N"), _connectionString);
+                "benchpgrecv" + Guid.NewGuid().ToString("N"), connectionString);
 
             _creation = new QueueCreationContainer<PostgreSqlMessageQueueInit>();
             using (var creator = _creation.GetQueueCreation<PostgreSqlMessageQueueCreation>(_queueConnection))

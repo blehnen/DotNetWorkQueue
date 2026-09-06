@@ -60,7 +60,6 @@ namespace DotNetWorkQueue.Benchmarks
         private const int MessagesPerIteration = 24;
         private const int PayloadBytes = 256;
 
-        private string _connectionString;
         private ConnectionMultiplexer _multiplexer;
         private IDatabase _database;
         private IServer _server;
@@ -87,7 +86,6 @@ namespace DotNetWorkQueue.Benchmarks
 
         //an idle consumer polls a queue that stays empty. Sharing one queue with the populated
         //rung would have had the "empty" rung collecting the messages the setup just wrote.
-        private string _idleQueueName;
         private QueueConnection _idleQueueConnection;
         private QueueContainer<RedisQueueInit> _idleConsumerContainer;
         private IConsumerQueue _idleConsumer;
@@ -118,15 +116,15 @@ namespace DotNetWorkQueue.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            _connectionString = Environment.GetEnvironmentVariable("DNWQ_REDIS_CONNECTION");
-            if (string.IsNullOrWhiteSpace(_connectionString))
+            var connectionString = Environment.GetEnvironmentVariable("DNWQ_REDIS_CONNECTION");
+            if (string.IsNullOrWhiteSpace(connectionString))
                 throw new InvalidOperationException(
                     "Set DNWQ_REDIS_CONNECTION to a Redis connection string. See the class remarks.");
 
             _body = new byte[PayloadBytes];
             _payload = new string('x', PayloadBytes);
 
-            _multiplexer = ConnectionMultiplexer.Connect(_connectionString);
+            _multiplexer = ConnectionMultiplexer.Connect(connectionString);
             _database = _multiplexer.GetDatabase();
             _server = RedisPathBenchmarks.SingleServer(_multiplexer);
 
@@ -141,7 +139,7 @@ namespace DotNetWorkQueue.Benchmarks
             _scriptHash = _server.ScriptLoad(DequeueScriptPositional);
 
             _queueName = "bench" + suffix;
-            _queueConnection = new QueueConnection(_queueName, _connectionString);
+            _queueConnection = new QueueConnection(_queueName, connectionString);
             _creation = new QueueCreationContainer<RedisQueueInit>();
             using (var creator = _creation.GetQueueCreation<RedisQueueCreation>(_queueConnection))
             {
@@ -159,8 +157,8 @@ namespace DotNetWorkQueue.Benchmarks
             _receive = container.GetInstance<IQueryHandler<ReceiveMessageQuery, RedisMessage>>();
             _contextFactory = container.GetInstance<IMessageContextFactory>();
 
-            _idleQueueName = "benchidle" + suffix;
-            _idleQueueConnection = new QueueConnection(_idleQueueName, _connectionString);
+            var idleQueueName = "benchidle" + suffix;
+            _idleQueueConnection = new QueueConnection(idleQueueName, connectionString);
             using (var creator = _creation.GetQueueCreation<RedisQueueCreation>(_idleQueueConnection))
             {
                 var created = creator.CreateQueue();

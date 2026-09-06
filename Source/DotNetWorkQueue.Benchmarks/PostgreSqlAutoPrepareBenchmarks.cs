@@ -76,7 +76,7 @@ namespace DotNetWorkQueue.Benchmarks
             //mean a caller whose string already set Max Auto Prepare got a baseline that was not
             //off, and a comparison of a thing against itself - which would look like "no effect"
             //and be indistinguishable from a real result.
-            var separator = baseConnection.TrimEnd().EndsWith(";", StringComparison.Ordinal) ? "" : ";";
+            var separator = baseConnection.TrimEnd().EndsWith(';') ? "" : ";";
             _off = Fixture.Create(baseConnection + separator + AutoPrepareDisabled, _payload);
             _on = Fixture.Create(baseConnection + separator + AutoPrepareSettings, _payload);
         }
