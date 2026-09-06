@@ -16,6 +16,14 @@ pipeline {
         DOTNET_CLI_TELEMETRY_OPTOUT = '1'
         DOTNET_NOLOGO = '1'
         NUGET_XMLDOC_MODE = 'skip'
+
+        // Where the CI image keeps the Playwright browsers. The image sets this
+        // itself, but it is repeated here so the pipeline does not depend on
+        // image ENV surviving the agent launcher - and so a stale image fails
+        // with "Executable doesn't exist at /ms-playwright/..." which names the
+        // cause, rather than falling back to ~/.cache and looking like a
+        // missing install step. See blehnen/dotnetworkqueue-ci#1.
+        PLAYWRIGHT_BROWSERS_PATH = '/ms-playwright'
     }
 
     stages {
