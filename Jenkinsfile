@@ -16,6 +16,14 @@ pipeline {
         DOTNET_CLI_TELEMETRY_OPTOUT = '1'
         DOTNET_NOLOGO = '1'
         NUGET_XMLDOC_MODE = 'skip'
+
+        // Where the CI image keeps the Playwright browsers. The image sets this
+        // itself, but it is repeated here so the pipeline does not depend on
+        // image ENV surviving the agent launcher - and so a stale image fails
+        // with "Executable doesn't exist at /ms-playwright/..." which names the
+        // cause, rather than falling back to ~/.cache and looking like a
+        // missing install step. See blehnen/dotnetworkqueue-ci#1.
+        PLAYWRIGHT_BROWSERS_PATH = '/ms-playwright'
     }
 
     stages {
@@ -377,23 +385,31 @@ pipeline {
                 }
 
                 stage('Dashboard UI E2E') {
-                    // Uses the repo's standard docker-labeled agent (same as other stages)
-                    // and installs Chromium + its system dependencies at stage time via
-                    // Microsoft.Playwright.dll's embedded install command. The earlier
-                    // approach of pulling mcr.microsoft.com/playwright/dotnet failed
-                    // because the agent lacks a Docker CLI for docker-in-docker.
+                    // Uses the repo's standard docker-labeled agent (same as other stages).
+                    // Chromium and its system dependencies are baked into that image at
+                    // build time and found via PLAYWRIGHT_BROWSERS_PATH, so there is
+                    // nothing to install here.
+                    //
+                    // This stage used to install them per build with `--with-deps`, which
+                    // shells out to apt and so needs root. That broke when the agents
+                    // stopped running as root. Installing in the image fixes it where the
+                    // cause is and drops a ~150 MB download plus an apt run from every
+                    // build - see blehnen/dotnetworkqueue-ci#1.
+                    //
+                    // Bumping Microsoft.Playwright means rebuilding that image: the .NET
+                    // package and its browser builds ship as a pair.
                     agent { label 'docker' }
                     steps {
                         sleep(time: 70, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh '''
-                                dotnet build "Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/DotNetWorkQueue.Dashboard.Ui.E2E.Tests.csproj" -c Debug
+                                # One line that says whether the image carries the browsers,
+                                # so a failure here is not ambiguous between a stale image and
+                                # the browsers not being found. Never fails the stage itself.
+                                echo "PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH:-<unset>}"
+                                ls -d "${PLAYWRIGHT_BROWSERS_PATH:-/ms-playwright}"/* 2>&1 | head -5 || true
 
-                                # Install Playwright browsers (Chromium only) + apt system deps.
-                                dotnet exec \
-                                    --runtimeconfig Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/bin/Debug/net10.0/DotNetWorkQueue.Dashboard.Ui.E2E.Tests.runtimeconfig.json \
-                                    Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/bin/Debug/net10.0/Microsoft.Playwright.dll \
-                                    install --with-deps chromium
+                                dotnet build "Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/DotNetWorkQueue.Dashboard.Ui.E2E.Tests.csproj" -c Debug
 
                                 dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.E2E.Tests/DotNetWorkQueue.Dashboard.Ui.E2E.Tests.csproj" \
                                     --no-build -c Debug \

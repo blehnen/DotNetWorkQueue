@@ -56,8 +56,15 @@ For each Docker host, create a cloud entry:
 - **Container Cap**: number of concurrent containers this host can run (depends on CPU/RAM)
 - **Docker Agent Template**:
   - **Labels**: `docker`
-  - **Docker Image**: `blehnen74/dotnetworkqueue-ci:latest`
-  - **Pull strategy**: **Pull once** (or periodically, to pick up the weekly rebuild)
+  - **Docker Image**: `blehnen74/dotnetworkqueue-ci:weekly`
+  - **Pull strategy**: **Pull all images every time**
+
+> ⚠️ The pull strategy and the tag have to be chosen together. *Pull once and update
+> latest* re-pulls only when the tag is literally `latest`; with any other tag —
+> including `weekly` — it behaves as *pull once*, and the agents keep whatever they
+> cached the first time. Because `weekly` is a rolling tag, that combination looks
+> configured for freshness while never actually refreshing, and a rebuilt image
+> silently never reaches the agents. It cost two builds to find once already.
   - **Remote Filing System Root**: `/home/jenkins`
   - **Connect method**: Attach Docker container
 
