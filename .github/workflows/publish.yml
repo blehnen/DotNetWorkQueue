@@ -14,10 +14,10 @@ concurrency:
   group: publish-${{ github.ref }}
   cancel-in-progress: false
 
-permissions:
-  contents: read
-  statuses: read
-
+# Permissions are declared per job rather than at workflow level, so each job states
+# exactly what it needs (githubactions:S8264). Every job must set them -- with no
+# workflow-level block, an unset job falls back to the repository default, which may
+# be broader than contents: read.
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_NOLOGO: true
@@ -26,6 +26,9 @@ jobs:
   verify-gate:
     name: Verify tag, version, and Jenkins status
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: read       # reads the Jenkins branch status on the tagged commit
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -68,6 +71,8 @@ jobs:
   build-pack:
     name: Build, pack, and upload NuGet packages
     needs: verify-gate
+    permissions:
+      contents: read
     uses: ./.github/workflows/build-pack.yml
     with:
       upload_artifacts: true
@@ -137,6 +142,8 @@ jobs:
   docker-publish:
     name: Build and push dashboard Docker image
     needs: publish
+    permissions:
+      contents: read
     # Same dry-run semantics as the NuGet publish job: skipped entirely when
     # workflow_dispatch is invoked with dry_run=true.
     if: ${{ github.event_name == 'push' || inputs.dry_run == false }}
