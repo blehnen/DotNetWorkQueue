@@ -102,7 +102,7 @@ pipeline {
                     steps {
                         sleep(time: 0, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                            sh 'dotnet build "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/DotNetWorkQueue.Transport.SqlServer.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN')]) {
                                 sh 'echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/bin/Debug/net10.0/connectionstring.txt"'
                             }
@@ -124,7 +124,7 @@ pipeline {
                     steps {
                         sleep(time: 5, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                            sh 'dotnet build "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN')]) {
                                 sh 'echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"'
                             }
@@ -146,7 +146,7 @@ pipeline {
                     steps {
                         sleep(time: 10, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                            sh 'dotnet build "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')]) {
                                 sh 'echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"'
                             }
@@ -168,7 +168,7 @@ pipeline {
                     steps {
                         sleep(time: 15, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                            sh 'dotnet build "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')]) {
                                 sh 'echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"'
                             }
@@ -190,7 +190,7 @@ pipeline {
                     steps {
                         sleep(time: 20, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                            sh 'dotnet build "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'redis-connstring', variable: 'REDIS_CONN')]) {
                                 sh 'echo "$REDIS_CONN" > "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/bin/Debug/net10.0/connectionstring.txt"'
                             }
@@ -213,7 +213,7 @@ pipeline {
                     steps {
                         sleep(time: 25, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                            sh 'dotnet build "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'redis-connstring', variable: 'REDIS_CONN')]) {
                                 sh 'echo "$REDIS_CONN" > "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"'
                             }
@@ -236,7 +236,7 @@ pipeline {
                     steps {
                         sleep(time: 30, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                            sh 'dotnet build "Source/DotNetWorkQueue.Transport.SQLite.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Integration.Tests.csproj" -c Debug'
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
@@ -254,7 +254,7 @@ pipeline {
                     steps {
                         sleep(time: 35, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                            sh 'dotnet build "Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj" -c Debug'
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
@@ -272,7 +272,7 @@ pipeline {
                     steps {
                         sleep(time: 40, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                            sh 'dotnet build "Source/DotNetWorkQueue.Transport.LiteDB.IntegrationTests/DotNetWorkQueue.Transport.LiteDb.IntegrationTests.csproj" -c Debug'
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.LiteDB.IntegrationTests/DotNetWorkQueue.Transport.LiteDb.IntegrationTests.csproj" \
                                     -f net10.0 -c Debug \
@@ -290,7 +290,7 @@ pipeline {
                     steps {
                         sleep(time: 45, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                            sh 'dotnet build "Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.csproj" -c Debug'
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
@@ -308,7 +308,7 @@ pipeline {
                     steps {
                         sleep(time: 50, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                            sh 'dotnet build "Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj" -c Debug'
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
@@ -326,7 +326,7 @@ pipeline {
                     steps {
                         sleep(time: 55, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                            sh 'dotnet build "Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj" -c Debug'
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
@@ -344,7 +344,7 @@ pipeline {
                     steps {
                         sleep(time: 60, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                            sh 'dotnet build "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" -c Debug'
                             withCredentials([
                                 string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN'),
                                 string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN'),
@@ -373,7 +373,7 @@ pipeline {
                     steps {
                         sleep(time: 65, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug'
+                            sh 'dotnet build "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" -c Debug'
                             sh '''
                                 dotnet test "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
