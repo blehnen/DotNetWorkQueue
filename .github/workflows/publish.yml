@@ -14,10 +14,10 @@ concurrency:
   group: publish-${{ github.ref }}
   cancel-in-progress: false
 
-permissions:
-  contents: read
-  statuses: read
-
+# Permissions are declared per job rather than at workflow level, so each job states
+# exactly what it needs (githubactions:S8264). Every job must set them -- with no
+# workflow-level block, an unset job falls back to the repository default, which may
+# be broader than contents: read.
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_NOLOGO: true
@@ -26,6 +26,9 @@ jobs:
   verify-gate:
     name: Verify tag, version, and Jenkins status
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: read       # reads the Jenkins branch status on the tagged commit
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -68,6 +71,8 @@ jobs:
   build-pack:
     name: Build, pack, and upload NuGet packages
     needs: verify-gate
+    permissions:
+      contents: read
     uses: ./.github/workflows/build-pack.yml
     with:
       upload_artifacts: true
@@ -86,7 +91,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Download artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: nuget-packages
           path: deploy/
@@ -137,6 +142,8 @@ jobs:
   docker-publish:
     name: Build and push dashboard Docker image
     needs: publish
+    permissions:
+      contents: read
     # Same dry-run semantics as the NuGet publish job: skipped entirely when
     # workflow_dispatch is invoked with dry_run=true.
     if: ${{ github.event_name == 'push' || inputs.dry_run == false }}
@@ -150,16 +157,16 @@ jobs:
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push image
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
           file: docker/dashboard/Dockerfile
