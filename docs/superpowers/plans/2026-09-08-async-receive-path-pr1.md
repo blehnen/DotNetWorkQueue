@@ -33,6 +33,22 @@ rather than assumed.
   `dotnet build "Source/DotNetWorkQueueNoTests.sln" -c Release -p:CI=true` before the
   final commit.
 
+## These are breaking API changes
+
+`IWaitForEventOrCancel` and `IWaitForEventOrCancelThreadPool` are both **public**, and
+`ATaskScheduler` exposes the latter — so anyone with a custom scheduler implementation
+breaks on rebuild.
+
+That is accepted and already decided: the spec chose to extend existing interfaces rather
+than add parallel async ones, matching `ISendMessages`, which carries `Send` and
+`SendAsync` together. It is recorded here because the decision was taken about the six
+transport interfaces and these two were not named at the time. The release note must cover
+them as well.
+
+If that is not wanted, stop and say so before Task 2 — the alternative is a separate
+`IWaitForEventOrCancelAsync`, which costs a second interface and a "which one does this
+implement" question at every call site.
+
 ## File Structure
 
 | file | responsibility |
@@ -101,8 +117,10 @@ dotnet_diagnostic.CA2012.severity = error
 - [ ] **Step 3: Verify the rule now fires**
 
 ```bash
-cd /tmp/ca2012 && cp /mnt/f/git/dotnetworkqueue/.editorconfig . && dotnet build -c Release
+cd /tmp/ca2012 && cp "$(git -C "$OLDPWD" rev-parse --show-toplevel)/.editorconfig" . && dotnet build -c Release
 ```
+
+(Resolved from git rather than hard-coded: the checkout path differs per developer and per CI agent.)
 
 Expected: **Build FAILED** with `error CA2012: ValueTask instances should not have their result directly accessed`.
 
@@ -234,6 +252,66 @@ public async Task WaitAsync_IfDisposed_Exception()
     test.Dispose();
     await Assert.ThrowsExactlyAsync<ObjectDisposedException>(async () => await test.WaitAsync());
 }
+
+[TestMethod]
+public async Task WaitAsync_PendingWait_IsReleasedByDispose()
+{
+    //an async waiter holds only a Task - disposing the primitives underneath does not
+    //fault it, so without explicit completion this waits forever on a dead object
+    var test = Create();
+    test.Reset();
+    var waiter = test.WaitAsync().AsTask();
+
+    test.Dispose();
+
+    var completed = await Task.WhenAny(waiter, Task.Delay(TimeSpan.FromSeconds(5)));
+    Assert.AreSame(waiter, completed, "Dispose left a waiter hanging");
+    Assert.IsFalse(await waiter);
+}
+
+[TestMethod]
+public async Task WaitAsync_AfterCancelThenReset_StillReturnsFalse()
+{
+    //Cancel completes the source; Reset then sees "completed" and re-arms it. The
+    //synchronous Wait would still return false because it consults the token, so the
+    //async path must too, or it waits on an object that can never be signaled again.
+    using var test = Create();
+    test.Cancel();
+    test.Reset();
+
+    var waiter = test.WaitAsync().AsTask();
+    var completed = await Task.WhenAny(waiter, Task.Delay(TimeSpan.FromSeconds(5)));
+    Assert.AreSame(waiter, completed, "a cancelled instance must not block an async waiter");
+    Assert.IsFalse(await waiter);
+}
+
+[TestMethod]
+public void SetAndReset_Concurrently_LeaveSyncAndAsyncAgreeing()
+{
+    //the interleaving that lock-free code got wrong: Reset reads the completed source,
+    //Set signals the event and that same source, then Reset installs a fresh incomplete
+    //one. The event ends signaled while the async source does not - so a synchronous
+    //waiter proceeds and an async waiter hangs.
+    for (var attempt = 0; attempt < 2000; attempt++)
+    {
+        using var test = Create();
+        var start = new ManualResetEventSlim(false);
+
+        var setter = Task.Run(() => { start.Wait(); test.Set(); });
+        var resetter = Task.Run(() => { start.Wait(); test.Reset(); });
+
+        start.Set();
+        Task.WaitAll(setter, resetter);
+
+        //whatever order they landed in, the two views must agree: if the synchronous
+        //wait returns immediately then the asynchronous one must too
+        var syncSignaled = test.Wait();
+        var asyncTask = test.WaitAsync().AsTask();
+
+        if (syncSignaled && !asyncTask.IsCompleted)
+            Assert.Fail($"attempt {attempt}: sync signaled but async still pending");
+    }
+}
 ```
 
 - [ ] **Step 2: Run the tests to verify they fail**
@@ -267,6 +345,15 @@ Add `using System.Threading.Tasks;` to the file's usings if it is not already pr
 
 - [ ] **Step 4: Implement it**
 
+`Set`, `Reset`, `Cancel`, `Dispose` and `WaitAsync` all mutate or read a three-part state
+machine — the `ManualResetEventSlim`, the completion source, and the cancellation token.
+**Those parts must stay coherent, so every transition is taken under one lock.** Lock-free
+primitives were tried in an earlier draft of this plan and produced three separate races;
+the lock is cheap here because these calls are rare relative to message throughput.
+
+`RunContinuationsAsynchronously` is what makes completing a source inside a lock safe: a
+continuation cannot run inline on the thread holding it.
+
 In `Source/DotNetWorkQueue/Queue/WaitForEventOrCancel.cs`:
 
 Add to the usings:
@@ -275,13 +362,20 @@ Add to the usings:
 using System.Threading.Tasks;
 ```
 
-Add the field beside `_resetEvent`:
+Add the fields beside `_resetEvent`:
 
 ```csharp
         //ManualResetEventSlim has no WaitAsync, so async waiters park on this instead.
-        //RunContinuationsAsynchronously matters: without it a continuation runs inline on
-        //whichever thread called Set, which is a scheduler thread we must not occupy.
+        //RunContinuationsAsynchronously matters twice over: a continuation must not run
+        //inline on a scheduler thread we need back, and must not run inline while this
+        //object holds _asyncSync.
         private TaskCompletionSource<bool> _asyncWait;
+
+        //Serialises every transition of the (reset event, completion source, token)
+        //triple. Without it the reset event and the completion source can disagree - the
+        //event signaled while the source is not - and an async waiter then waits for a
+        //Set that has already happened.
+        private readonly object _asyncSync = new object();
 ```
 
 In the constructor, after `_cancellationTokenSource = new CancellationTokenSource();`:
@@ -305,13 +399,21 @@ Add these members:
         }
 
         /// <inheritdoc />
-        public async ValueTask<bool> WaitAsync()
+        public ValueTask<bool> WaitAsync()
         {
             ThrowIfDisposed();
 
-            //volatile read - Reset may swap this between the read and the await
-            var wait = Volatile.Read(ref _asyncWait);
-            return await wait.Task.ConfigureAwait(false);
+            //Cancellation is terminal: the synchronous Wait returns false for the rest of
+            //this object's life once cancelled, because it always consults the token. A
+            //Reset after a Cancel would otherwise re-arm the source and leave an async
+            //caller waiting on an object that can never be signaled again.
+            if (_cancellationTokenSource.IsCancellationRequested)
+                return new ValueTask<bool>(false);
+
+            lock (_asyncSync)
+            {
+                return new ValueTask<bool>(_asyncWait.Task);
+            }
         }
 ```
 
@@ -324,15 +426,16 @@ Change `Reset` to:
         public void Reset()
         {
             ThrowIfDisposed();
-            _resetEvent.Reset();
+            lock (_asyncSync)
+            {
+                _resetEvent.Reset();
 
-            //Only re-arm a wait that has already completed. Replacing one that still has
-            //waiters would orphan them: the next Set would complete the new instance while
-            //they went on awaiting the old one, and a worker would stop dequeuing until
-            //something unrelated freed a thread.
-            var current = Volatile.Read(ref _asyncWait);
-            if (current.Task.IsCompleted)
-                Interlocked.CompareExchange(ref _asyncWait, CreateWait(), current);
+                //Only re-arm a source that has already completed. Replacing one that still
+                //has waiters would orphan them: the next Set would complete the new
+                //instance while they went on awaiting the old one.
+                if (_asyncWait.Task.IsCompleted)
+                    _asyncWait = CreateWait();
+            }
         }
 ```
 
@@ -345,8 +448,11 @@ Change `Set` to:
         public void Set()
         {
             ThrowIfDisposed();
-            _resetEvent.Set();
-            Volatile.Read(ref _asyncWait).TrySetResult(true);
+            lock (_asyncSync)
+            {
+                _resetEvent.Set();
+                _asyncWait.TrySetResult(true);
+            }
         }
 ```
 
@@ -360,10 +466,34 @@ Change `Cancel` to:
         {
             ThrowIfDisposed();
             _cancellationTokenSource.Cancel();
+            lock (_asyncSync)
+            {
+                //false is what the synchronous Wait returns when cancelled; async waiters
+                //get the same answer rather than an exception
+                _asyncWait.TrySetResult(false);
+            }
+        }
+```
 
-            //false is what the synchronous Wait returns when cancelled; async waiters
-            //get the same answer rather than an exception
-            Volatile.Read(ref _asyncWait).TrySetResult(false);
+Change `Dispose` to release anyone still waiting. Add the `lock` block **before** the two
+existing `Dispose()` calls:
+
+```csharp
+        public void Dispose()
+        {
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
+
+            GC.SuppressFinalize(this);
+
+            //An async waiter holds only a Task; disposing the underlying primitives does
+            //not fault it, so without this it waits forever on an object that is gone.
+            lock (_asyncSync)
+            {
+                _asyncWait.TrySetResult(false);
+            }
+
+            _resetEvent.Dispose();
+            _cancellationTokenSource.Dispose();
         }
 ```
 
@@ -433,10 +563,32 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
     public class WaitForEventOrCancelThreadPoolTests
     {
         [TestMethod]
-        public async Task WaitAsync_NullGroup_UsesTheSharedWait()
+        public async Task WaitAsync_NullGroup_RoutesToTheSharedWait()
+        {
+            //asserting only the initial signaled state would also pass for an
+            //implementation that gave null its own private source, so drive it
+            using var test = Create();
+
+            test.Reset(null);
+            var waiter = test.WaitAsync(null).AsTask();
+            Assert.IsFalse(waiter.IsCompleted, "must not complete while the shared wait is reset");
+
+            test.Set(null);
+            Assert.IsTrue(await waiter);
+        }
+
+        [TestMethod]
+        public void WaitAsync_NullGroup_NotReleasedByAGroupSet()
         {
             using var test = Create();
-            Assert.IsTrue(await test.WaitAsync(null));
+            var group = Substitute.For<IWorkGroup>();
+
+            test.Reset(null);
+            var waiter = test.WaitAsync(null).AsTask();
+
+            test.Set(group);
+
+            Assert.IsFalse(waiter.IsCompleted, "a group Set released the shared waiter");
         }
 
         [TestMethod]
