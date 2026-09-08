@@ -151,12 +151,19 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
                 pipeline.Execute(() =>
                 {
                     callCount++;
-                    throw new SQLiteException((SQLiteErrorCode)errorCode, "test");
+
+                    //Fail once, then succeed. What this test decides is whether the code is
+                    //classified as retryable, and the first retry settles that. Throwing every
+                    //time instead makes the test sit through the whole production ladder -
+                    //eight attempts from a 500ms base, exponential - which measured 50-83
+                    //seconds per case and 99% of this project's test time.
+                    if (callCount == 1)
+                        throw new SQLiteException((SQLiteErrorCode)errorCode, "test");
                 });
             }
             catch (SQLiteException)
             {
-                // expected after retries exhausted or no retry
+                // a non-retryable code surfaces that first failure
             }
 
             if (shouldRetry)
