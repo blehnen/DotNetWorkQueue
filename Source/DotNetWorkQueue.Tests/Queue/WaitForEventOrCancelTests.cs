@@ -282,50 +282,29 @@ namespace DotNetWorkQueue.Tests.Queue
         }
 
         [TestMethod]
-        public void SetAndReset_Concurrently_LeaveSyncAndAsyncAgreeing()
+        public void SetRacingReset_AlwaysReleasesAPendingWaiter()
         {
-            //The interleaving that lock-free code got wrong: Reset reads the completed source,
-            //Set signals the event and that same source, then Reset installs a fresh incomplete
-            //one - leaving the event signaled while the async source is not. A synchronous
-            //waiter would proceed and an async waiter would hang.
-            //
-            //Wait() has no timeout overload, so it is probed on a task and released with Cancel()
-            //rather than called directly - calling it unguarded would hang this test.
-            string failure = null;
-
-            for (var attempt = 0; attempt < 100 && failure == null; attempt++)
+            //A pending async waiter holds one completion source. Whichever order the racing
+            //Set and Reset land in, that source must end up completed: Reset cannot swap out
+            //an incomplete source, and if Set went first it completed that source directly.
+            //So a Set that happened must always release a waiter that was already waiting -
+            //which is the orphaning this lock exists to prevent.
+            for (var attempt = 0; attempt < 200; attempt++)
             {
                 using var test = Create();
-                using var start = new ManualResetEventSlim(false);
+                test.Reset();
+                var waiter = test.WaitAsync().AsTask();
 
+                using var start = new ManualResetEventSlim(false);
                 var setter = Task.Run(() => { start.Wait(); test.Set(); });
                 var resetter = Task.Run(() => { start.Wait(); test.Reset(); });
 
                 start.Set();
                 Task.WaitAll(setter, resetter);
 
-                var syncProbe = Task.Run(() => test.Wait());
-                try
-                {
-                    var syncSignaled = syncProbe.Wait(TimeSpan.FromMilliseconds(250)) && syncProbe.Result;
-                    var asyncSignaled = test.WaitAsync().AsTask().Wait(TimeSpan.FromMilliseconds(250));
-
-                    //the implication is what matters: the two views must not disagree in the
-                    //direction that hangs a consumer
-                    if (syncSignaled && !asyncSignaled)
-                        failure = $"attempt {attempt}: reset event signaled but async waiter still pending";
-                }
-                finally
-                {
-                    //release the probe if it is still blocked, so it isn't left inside
-                    //Wait() when the "using" disposes test - even on Assert.Fail/exception
-                    test.Cancel();
-                    syncProbe.Wait(TimeSpan.FromSeconds(1));
-                }
+                Assert.IsTrue(waiter.Wait(TimeSpan.FromSeconds(1)),
+                    $"attempt {attempt}: a Set happened but the pending waiter was never released");
             }
-
-            if (failure != null)
-                Assert.Fail(failure);
         }
 
         [TestMethod]
