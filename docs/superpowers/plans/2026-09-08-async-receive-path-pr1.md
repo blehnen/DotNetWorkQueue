@@ -45,9 +45,9 @@ than add parallel async ones, matching `ISendMessages`, which carries `Send` and
 transport interfaces and these two were not named at the time. The release note must cover
 them as well.
 
-If that is not wanted, stop and say so before Task 2 — the alternative is a separate
-`IWaitForEventOrCancelAsync`, which costs a second interface and a "which one does this
-implement" question at every call site.
+**Confirmed by the maintainer on 2026-09-08**, explicitly covering these two interfaces
+and not only the six transport ones. Proceed; the alternative — a separate
+`IWaitForEventOrCancelAsync` — is not being taken.
 
 ## File Structure
 
