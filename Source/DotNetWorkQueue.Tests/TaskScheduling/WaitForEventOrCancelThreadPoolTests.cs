@@ -188,11 +188,102 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             }
         }
 
+        [TestMethod]
+        public async Task WaitAsync_NullGroup_RoutesToTheSharedWait()
+        {
+            //asserting only the initial signaled state would also pass for an
+            //implementation that gave null its own private source, so drive it
+            using (var test = CreateWithRealWait())
+            {
+                test.Reset(null);
+                var waiter = test.WaitAsync(null).AsTask();
+                Assert.IsFalse(waiter.IsCompleted, "must not complete while the shared wait is reset");
+
+                test.Set(null);
+                Assert.IsTrue(await waiter);
+            }
+        }
+
+        [TestMethod]
+        public void WaitAsync_NullGroup_NotReleasedByAGroupSet()
+        {
+            using (var test = CreateWithRealWait())
+            {
+                var group = Substitute.For<IWorkGroup>();
+
+                test.Reset(null);
+                var waiter = test.WaitAsync(null).AsTask();
+
+                test.Set(group);
+
+                Assert.IsFalse(waiter.IsCompleted, "a group Set released the shared waiter");
+            }
+        }
+
+        [TestMethod]
+        public async Task WaitAsync_Group_ReturnsAfterSet()
+        {
+            using (var test = CreateWithRealWait())
+            {
+                var group = Substitute.For<IWorkGroup>();
+
+                test.Reset(group);
+                var waiter = test.WaitAsync(group).AsTask();
+                Assert.IsFalse(waiter.IsCompleted, "must not complete while the group is reset");
+
+                test.Set(group);
+                Assert.IsTrue(await waiter);
+            }
+        }
+
+        [TestMethod]
+        public async Task WaitAsync_GroupsAreIndependent()
+        {
+            //a full group must not release a waiter on a different group
+            using (var test = CreateWithRealWait())
+            {
+                var groupOne = Substitute.For<IWorkGroup>();
+                var groupTwo = Substitute.For<IWorkGroup>();
+
+                test.Reset(groupOne);
+                test.Reset(groupTwo);
+
+                var waiterOne = test.WaitAsync(groupOne).AsTask();
+                test.Set(groupTwo);
+
+                Assert.IsFalse(waiterOne.IsCompleted, "setting another group released this one");
+
+                test.Set(groupOne);
+                Assert.IsTrue(await waiterOne);
+            }
+        }
+
+        [TestMethod]
+        public async Task WaitAsync_IfDisposed_Exception()
+        {
+            var test = CreateWithRealWait();
+            test.Dispose();
+            await Assert.ThrowsExactlyAsync<ObjectDisposedException>(
+                async () => await test.WaitAsync(null));
+        }
+
         private WaitForEventOrCancelThreadPool Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             fixture.Inject(fixture.Create<WaitForEventOrCancelFactory>());
             return fixture.Create<WaitForEventOrCancelThreadPool>();
+        }
+
+        //the async tests above assert on real signaled/unsignaled state, which the plain
+        //AutoNSubstituteCustomization Create() helper can't provide - it auto-mocks
+        //IWaitForEventOrCancelFactory.Create() into returning another substitute
+        //(NSubstitute recursively mocks interface return values), not a working
+        //WaitForEventOrCancel. Wire the factory to return real instances instead.
+        private static WaitForEventOrCancelThreadPool CreateWithRealWait()
+        {
+            var factory = Substitute.For<IWaitForEventOrCancelFactory>();
+            factory.Create().Returns(_ => new DotNetWorkQueue.Queue.WaitForEventOrCancel());
+            return new WaitForEventOrCancelThreadPool(factory);
         }
     }
 }

@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue
 {
@@ -31,6 +32,12 @@ namespace DotNetWorkQueue
         /// <param name="group">The group.</param>
         /// <returns></returns>
         bool Wait(IWorkGroup group);
+        /// <summary>
+        /// Waits until notified to stop waiting, without blocking a thread.
+        /// </summary>
+        /// <param name="group">The group.</param>
+        /// <returns><c>true</c> if signaled; <c>false</c> if cancelled.</returns>
+        ValueTask<bool> WaitAsync(IWorkGroup group);
         /// <summary>
         /// Resets the wait status, causing <see cref="Wait" /> calls to wait.
         /// </summary>

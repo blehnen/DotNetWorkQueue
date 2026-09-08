@@ -20,6 +20,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.TaskScheduling
@@ -61,6 +62,19 @@ namespace DotNetWorkQueue.TaskScheduling
             }
 
             return GetOrAddGroup(group).Wait();
+        }
+
+        /// <inheritdoc />
+        public ValueTask<bool> WaitAsync(IWorkGroup group)
+        {
+            ThrowIfDisposed();
+
+            if (group == null)
+            {
+                return _waitForEvent.Value.WaitAsync();
+            }
+
+            return GetOrAddGroup(group).WaitAsync();
         }
 
         /// <summary>
