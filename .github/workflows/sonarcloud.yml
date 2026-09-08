@@ -12,6 +12,12 @@ jobs:
   build:
     name: Build and analyze
     runs-on: windows-latest
+    # The scanner reads the working tree and uploads to SonarCloud with SONAR_TOKEN.
+    # It does not use GITHUB_TOKEN to reach the GitHub API - PR decoration is done
+    # by SonarCloud's own GitHub App - so contents: read is the whole requirement.
+    # The checkout already sets persist-credentials: false for the same reason.
+    permissions:
+      contents: read
     steps:
       - name: Set up JDK 17
         uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5.4.0
