@@ -52,7 +52,7 @@ pipeline {
                 stage('Unit Tests') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 75, unit: 'SECONDS')
+                        sleep(time: 65, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet restore "Source/DotNetWorkQueue.sln"'
                             sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug --no-restore'
@@ -123,7 +123,7 @@ pipeline {
                 stage('SqlServer') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 0, unit: 'SECONDS')
+                        sleep(time: 25, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/DotNetWorkQueue.Transport.SqlServer.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN')]) {
@@ -133,8 +133,7 @@ pipeline {
                                 dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/DotNetWorkQueue.Transport.SqlServer.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
                                     /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-sqlserver/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml" \
-                                    -- --retry-failed-tests 1
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
                             '''
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-sqlserver', allowEmpty: true
@@ -145,7 +144,7 @@ pipeline {
                 stage('SqlServer Linq') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 5, unit: 'SECONDS')
+                        sleep(time: 15, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN')]) {
@@ -155,8 +154,7 @@ pipeline {
                                 dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
                                     /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-sqlserver-linq/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml" \
-                                    -- --retry-failed-tests 1
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
                             '''
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-sqlserver-linq', allowEmpty: true
@@ -167,7 +165,7 @@ pipeline {
                 stage('PostgreSQL') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 10, unit: 'SECONDS')
+                        sleep(time: 5, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')]) {
@@ -177,8 +175,7 @@ pipeline {
                                 dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
                                     /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-postgresql/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml" \
-                                    -- --retry-failed-tests 1
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
                             '''
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-postgresql', allowEmpty: true
@@ -189,7 +186,7 @@ pipeline {
                 stage('PostgreSQL Linq') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 15, unit: 'SECONDS')
+                        sleep(time: 20, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')]) {
@@ -199,8 +196,7 @@ pipeline {
                                 dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" \
                                     -f net10.0 -c Debug \
                                     /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-postgresql-linq/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml" \
-                                    -- --retry-failed-tests 1
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
                             '''
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-postgresql-linq', allowEmpty: true
@@ -211,7 +207,7 @@ pipeline {
                 stage('Redis') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 20, unit: 'SECONDS')
+                        sleep(time: 50, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'redis-connstring', variable: 'REDIS_CONN')]) {
@@ -222,8 +218,7 @@ pipeline {
                                     -f net10.0 -c Debug \
                                     --filter "TestCategory!=StarvationBaseline" \
                                     /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-redis/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml" \
-                                    -- --retry-failed-tests 1
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
                             '''
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-redis', allowEmpty: true
@@ -234,7 +229,7 @@ pipeline {
                 stage('Redis Linq') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 25, unit: 'SECONDS')
+                        sleep(time: 30, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'redis-connstring', variable: 'REDIS_CONN')]) {
@@ -245,8 +240,7 @@ pipeline {
                                     -f net10.0 -c Debug \
                                     --filter "TestCategory!=StarvationBaseline" \
                                     /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-redis-linq/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml" \
-                                    -- --retry-failed-tests 1
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
                             '''
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-redis-linq', allowEmpty: true
@@ -257,7 +251,7 @@ pipeline {
                 stage('SQLite') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 30, unit: 'SECONDS')
+                        sleep(time: 10, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.SQLite.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Integration.Tests.csproj" -c Debug'
                             sh '''
@@ -275,7 +269,7 @@ pipeline {
                 stage('SQLite Linq') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 35, unit: 'SECONDS')
+                        sleep(time: 0, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj" -c Debug'
                             sh '''
@@ -293,7 +287,7 @@ pipeline {
                 stage('LiteDB') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 40, unit: 'SECONDS')
+                        sleep(time: 55, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.LiteDB.IntegrationTests/DotNetWorkQueue.Transport.LiteDb.IntegrationTests.csproj" -c Debug'
                             sh '''
@@ -311,7 +305,7 @@ pipeline {
                 stage('LiteDB Linq') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 45, unit: 'SECONDS')
+                        sleep(time: 40, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.csproj" -c Debug'
                             sh '''
@@ -329,7 +323,7 @@ pipeline {
                 stage('Memory') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 50, unit: 'SECONDS')
+                        sleep(time: 60, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj" -c Debug'
                             sh '''
@@ -347,7 +341,7 @@ pipeline {
                 stage('Memory Linq') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 55, unit: 'SECONDS')
+                        sleep(time: 45, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj" -c Debug'
                             sh '''
@@ -365,7 +359,7 @@ pipeline {
                 stage('Dashboard') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 60, unit: 'SECONDS')
+                        sleep(time: 35, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" -c Debug'
                             withCredentials([
@@ -394,7 +388,7 @@ pipeline {
                 stage('TaskScheduler Distributed') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 65, unit: 'SECONDS')
+                        sleep(time: 70, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" -c Debug'
                             sh '''
@@ -423,7 +417,7 @@ pipeline {
                     // package and its browser builds ship as a pair.
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 70, unit: 'SECONDS')
+                        sleep(time: 75, unit: 'SECONDS')
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh '''
                                 # One line that says whether the image carries the browsers,
