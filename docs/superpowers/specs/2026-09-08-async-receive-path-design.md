@@ -211,7 +211,7 @@ cleanly by interface.
 
 | PR | surface |
 |---|---|
-| 1 | CA2012 + awaitable throttle. No interface changes, breaks nothing |
+| 1 | CA2012 + awaitable throttle. No interface changes, breaks nothing — but see below; this is the subtlest PR, not the warm-up |
 | 2 | **`IReceiveMessages`** — 4 decorators, 6 transports, consumer loop. The starvation twin goes green here |
 | 3 | `ICommitMessage` — 3 decorators, 6 transports |
 | 4 | failure paths — `IRollbackMessage`, `IReceiveMessagesError`, `IReceivePoisonMessage` — 10 decorators |
@@ -229,6 +229,28 @@ half-async receive path.
 
 **Breaking change.** Added interface members break any external transport. The changelog
 needs a ⚠️ bullet: one line, consumer-facing.
+
+## PR 1 is harder than its size suggests
+
+`WaitForEventOrCancel` wraps `ManualResetEventSlim`, and **`ManualResetEventSlim` has no
+`WaitAsync`**. Making the throttle awaitable is therefore not a signature change; it needs
+an async manual-reset-event built on `TaskCompletionSource` with
+`RunContinuationsAsynchronously`, where `Reset()` swaps in a fresh TCS.
+
+The hazard is the Set/Reset interleaving. Reset between a waiter's check and its await and
+that waiter sleeps until the *next* Set — which here means a worker that stops dequeuing
+until something else happens to free a thread. That is a hang, and an intermittent one,
+which is the worst kind to find in an integration suite.
+
+It belongs first regardless: small, self-contained, no interface changes, and testable in
+isolation with no transport involved. Tests must cover the interleavings specifically —
+Set during a pending wait, Reset during a pending wait, Set-then-Reset before the waiter
+resumes, cancellation mid-wait, and many waiters released by one Set — rather than only
+the happy path.
+
+**Work groups themselves are not being reworked and need no changes.** The per-group
+dictionary, the counting in `WorkGroupWithItem`, and the configured concurrency level are
+sound and stay as they are. Only the wait primitive underneath gains an async path.
 
 ## Done means
 
