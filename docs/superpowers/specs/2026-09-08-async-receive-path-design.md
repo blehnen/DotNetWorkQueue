@@ -86,7 +86,7 @@ Three moving parts.
 | what | count | change |
 |---|---|---|
 | core interfaces | 6 | one async method each |
-| `IQueueWait` | 1 | `WaitAsync` using `Task.Delay` + the existing cancellation token |
+| `IQueueWait` | 1 | `WaitAsync` — see the cancellation contract below |
 | decorator classes | 20 | one async method each; **zero DI changes** |
 | throttle | 1 + impl | `WaitAsync` |
 | consumer loop | 3 classes | await rather than block |
@@ -103,6 +103,58 @@ comment, or someone will "fix" it later.
 
 The measurable win is concentrated in Redis, SQL Server and PostgreSQL — which is where
 the evidence of a problem is.
+
+## The `IQueueWait.WaitAsync` contract
+
+`WaitAsync` must **not throw on stop**. Today `WaitInternal` uses
+`StopWorkToken.WaitHandle.WaitOne(t)`, which returns normally when the token fires and
+lets `Wait` advance the back-off index. `await Task.Delay(t, token)` throws instead, and
+that difference is not cosmetic: the caller is
+
+```
+_noMessageToProcessBackOffHelper.Value.Wait();
+return;
+```
+
+so a throw would land in the outer `catch (OperationCanceledException)`, which performs a
+rollback and fires a rollback notification — for a poll that found no message and has
+nothing to roll back.
+
+The contract to preserve, exactly:
+
+- bind to `ICancelWork.StopWorkToken`, **not** `CancelWorkToken`. The existing code notes
+  it deliberately uses only the stop token, and that the ordering between the two is
+  enforced by implementation rather than contract
+- return normally when the token fires, as `WaitOne` does
+- advance `_currentIndex` in both cases, so the back-off ladder behaves identically
+- return immediately for a zero wait or an already-signalled token
+- `QueueWaitNoOp` stays a no-op
+
+Which means swallowing the cancellation rather than propagating it:
+
+```csharp
+try { await Task.Delay(timeToWait, _tokenWorkerCanceled.StopWorkToken).ConfigureAwait(false); }
+catch (OperationCanceledException) { /* stop requested — same as WaitOne returning */ }
+Interlocked.Increment(ref _currentIndex);
+```
+
+## Invariants each async implementation must preserve
+
+Receive is not a pure fetch, and an async rewrite that treats it as one would compile,
+return messages, and fail in ways the happy-path tests may not catch. Each async
+implementation must preserve everything its sync twin does:
+
+| transport | beyond returning a message |
+|---|---|
+| all relational | attach `context.Commit +=` / `context.Rollback +=` handlers, transactional and non-transactional variants; store the connection on the context; register the cached cleanup handler |
+| Redis | the `while (true)` loop over expired messages, and `workSub.Reset()` on the work signal |
+| all | `SetMessageAndHeaders` on the poison path, so the context carries message id, correlation id and headers |
+
+**These need explicit tests**, because the four `ConsumerAsync*` scenarios exercise the
+happy path and may pass with a dropped cleanup handler or a lost expired-message retry.
+Per transport: commit and rollback handlers fire; headers and message id survive a poison
+message; Redis retries an expired message rather than returning it; the work signal is
+reset. This is the part of the work most likely to go wrong quietly.
 
 ## Error handling
 
