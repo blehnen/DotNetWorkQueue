@@ -23,6 +23,8 @@ using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.LiteDb.Basic
 {
@@ -108,6 +110,17 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                 throw new ReceiveMessageException("An error occurred while attempting to read messages from the queue",
                     exception);
             }
+        }
+
+        /// <inheritdoc />
+        public ValueTask<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context, CancellationToken cancellation)
+        {
+            //Correct as written, not unfinished. This is an embedded database with no real
+            //asynchronous I/O - the LiteDB driver has no *Async API at all, it is a purely
+            //synchronous file-based engine - and a de-queue is on the order of microseconds,
+            //so there is nothing to release the thread for. Deliberately NOT Task.Run, which
+            //would only move the work to another pool thread.
+            return new ValueTask<IReceivedMessageInternal>(ReceiveMessage(context));
         }
 
         /// <inheritdoc />

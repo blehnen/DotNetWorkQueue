@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 
@@ -63,6 +64,31 @@ namespace DotNetWorkQueue.Trace.Decorator
                 start = end;
 
             using (var scope = _tracer.StartActivity("ReceiveMessage", ActivityKind.Internal, activityContext, startTime: start))
+            {
+                scope?.AddMessageIdTag(message);
+                scope?.SetTag("IsBlockingOperation", IsBlockingOperation);
+                scope?.SetEndTime(end);
+                return message;
+            }
+        }
+
+        /// <inheritdoc />
+        public async ValueTask<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context, CancellationToken cancellation)
+        {
+            //we can't attach the span since we don't have the parent until after we get a message
+            //so save off the start and end times, and replace those in the child span below
+            var start = DateTime.UtcNow;
+            var message = await _handler.ReceiveMessageAsync(context, cancellation).ConfigureAwait(false);
+            var end = DateTime.UtcNow;
+            if (message == null) return null;
+            var activityContext = message.Extract(_tracer, _headers.StandardHeaders);
+
+            //blocking operations can last forever for queues that can signal for new messages
+            //so, we will treat this is a 0 ms operation, rather than have it possibly last for N
+            if (IsBlockingOperation)
+                start = end;
+
+            using (var scope = _tracer.StartActivity("ReceiveMessageAsync", ActivityKind.Internal, activityContext, startTime: start))
             {
                 scope?.AddMessageIdTag(message);
                 scope?.SetTag("IsBlockingOperation", IsBlockingOperation);

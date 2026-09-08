@@ -17,6 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.History.Decorator
@@ -42,6 +44,24 @@ namespace DotNetWorkQueue.History.Decorator
         public IReceivedMessageInternal ReceiveMessage(IMessageContext context)
         {
             var result = _handler.ReceiveMessage(context);
+            if (result != null && _options.EnableHistory && _options.HistoryOptions.TrackProcessing && context.MessageId != null && context.MessageId.HasValue)
+            {
+                try
+                {
+                    _history.RecordProcessingStart(context.MessageId.Id.Value.ToString());
+                }
+                catch (Exception ex)
+                {
+                    _log.LogWarning(ex, "Failed to record history for processing start of message {MessageId}", context.MessageId.Id.Value);
+                }
+            }
+            return result;
+        }
+
+        /// <inheritdoc />
+        public async ValueTask<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context, CancellationToken cancellation)
+        {
+            var result = await _handler.ReceiveMessageAsync(context, cancellation).ConfigureAwait(false);
             if (result != null && _options.EnableHistory && _options.HistoryOptions.TrackProcessing && context.MessageId != null && context.MessageId.HasValue)
             {
                 try
