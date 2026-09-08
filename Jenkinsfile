@@ -47,8 +47,24 @@ pipeline {
 
         stage('Tests') {
             parallel {
-                // Last in the clone stagger: this branch is ~7 minutes against a
-                // 10-minute critical path, so a late start costs nothing.
+                // About the sleeps below. They pace nuget.org, not git.
+                //
+                // A stage-level agent does an implicit checkout before its steps run, and
+                // nothing here sets skipDefaultCheckout, so every sleep lands *after* that
+                // stage has already cloned and *before* its `dotnet build`, which is where
+                // the restore happens. Sixteen restores arriving together is what
+                // nuget.org rate-limits, and that is what the spacing prevents.
+                //
+                // So the clones do all go out at once, and always have. That has never
+                // been the thing that fails, which is why this is left as it is. If clone
+                // pacing is ever wanted, it needs options { skipDefaultCheckout() } plus
+                // an explicit checkout scm after the sleep, in all sixteen stages.
+                //
+                // Slots run longest-work-first so the critical-path stage starts at zero.
+                // Only the slot the longest stage occupies affects wall clock.
+                //
+                // This branch is ~3 minutes of work against a 9m25s critical path, so its
+                // late slot costs nothing.
                 stage('Unit Tests') {
                     agent { label 'docker' }
                     steps {
