@@ -17,6 +17,12 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    # Checks out, builds and tests. It writes nothing back to the repository,
+    # so it needs no more than read access to the contents. Declared on the job
+    # rather than the workflow to match publish.yml and to satisfy S8264, which
+    # objects to a workflow-level grant covering jobs that do not need it.
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v5
 
@@ -73,4 +79,10 @@ jobs:
 
   build-release:
     name: build-release
+    # build-pack.yml declares contents: read for itself, so the effective grant is
+    # already read-only. Stated here as well because a caller's permissions are the
+    # ceiling: without this, a later change to the reusable workflow would silently
+    # inherit the repository default again.
+    permissions:
+      contents: read
     uses: ./.github/workflows/build-pack.yml
