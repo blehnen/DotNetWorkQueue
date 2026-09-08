@@ -32,6 +32,9 @@ namespace DotNetWorkQueue.Queue
         //RunContinuationsAsynchronously matters twice over: a continuation must not run
         //inline on a scheduler thread we need back, and must not run inline while this
         //object holds _asyncSync.
+        //Null until the first WaitAsync call: nothing allocates a TaskCompletionSource
+        //until an async waiter actually exists, so Set/Reset stay allocation-free on the
+        //synchronous-only path (e.g. the saturated TaskScheduler hot path).
         private TaskCompletionSource<bool> _asyncWait;
 
         //Serialises every transition of the (reset event, completion source, token)
@@ -47,9 +50,6 @@ namespace DotNetWorkQueue.Queue
         {
             _resetEvent = new ManualResetEventSlim(true);
             _cancellationTokenSource = new CancellationTokenSource();
-
-            //constructed signaled, matching ManualResetEventSlim(true) above
-            _asyncWait = CreateCompletedWait();
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace DotNetWorkQueue.Queue
             {
                 //false is what the synchronous Wait returns when cancelled; async waiters
                 //get the same answer rather than an exception
-                _asyncWait.TrySetResult(false);
+                _asyncWait?.TrySetResult(false);
             }
         }
 
@@ -90,15 +90,23 @@ namespace DotNetWorkQueue.Queue
         {
             ThrowIfDisposed();
 
-            //Cancellation is terminal: the synchronous Wait returns false for the rest of
-            //this object's life once cancelled, because it always consults the token. A
-            //Reset after a Cancel would otherwise re-arm the source and leave an async
-            //caller waiting on an object that can never be signaled again.
-            if (_cancellationTokenSource.IsCancellationRequested)
-                return new ValueTask<bool>(false);
-
             lock (_asyncSync)
             {
+                //Cancellation is terminal: the synchronous Wait returns false for the rest
+                //of this object's life once cancelled, because it always consults the
+                //token. A Reset after a Cancel would otherwise re-arm the source and leave
+                //an async caller waiting on an object that can never be signaled again.
+                //Checked under the lock so it is atomic with the read/creation of
+                //_asyncWait below - otherwise a Cancel between the check and the lock can
+                //be missed.
+                if (_cancellationTokenSource.IsCancellationRequested)
+                    return new ValueTask<bool>(false);
+
+                //Created lazily: seed it from the current event state so a first-ever
+                //WaitAsync on an already-signaled instance completes immediately, just
+                //like before this was lazy.
+                _asyncWait ??= _resetEvent.IsSet ? CreateCompletedWait() : CreateWait();
+
                 return new ValueTask<bool>(_asyncWait.Task);
             }
         }
@@ -115,8 +123,9 @@ namespace DotNetWorkQueue.Queue
 
                 //Only re-arm a source that has already completed. Replacing one that still
                 //has waiters would orphan them: the next Set would complete the new
-                //instance while they went on awaiting the old one.
-                if (_asyncWait.Task.IsCompleted)
+                //instance while they went on awaiting the old one. Nothing to do while no
+                //async waiter has ever existed.
+                if (_asyncWait != null && _asyncWait.Task.IsCompleted)
                     _asyncWait = CreateWait();
             }
         }
@@ -130,7 +139,7 @@ namespace DotNetWorkQueue.Queue
             lock (_asyncSync)
             {
                 _resetEvent.Set();
-                _asyncWait.TrySetResult(true);
+                _asyncWait?.TrySetResult(true);
             }
         }
 
@@ -167,7 +176,7 @@ namespace DotNetWorkQueue.Queue
             //not fault it, so without this it waits forever on an object that is gone.
             lock (_asyncSync)
             {
-                _asyncWait.TrySetResult(false);
+                _asyncWait?.TrySetResult(false);
             }
 
             _resetEvent.Dispose();

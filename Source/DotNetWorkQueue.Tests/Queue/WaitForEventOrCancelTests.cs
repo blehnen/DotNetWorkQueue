@@ -207,18 +207,36 @@ namespace DotNetWorkQueue.Tests.Queue
         [TestMethod]
         public async Task WaitAsync_ManyWaiters_AllReleasedByOneSet()
         {
+            //a real fan-out across distinct completion sources, not one Task awaited 50
+            //times: Reset only swaps in a fresh source once the current one has completed,
+            //so each earlier batch is released with Set() before the next batch is
+            //acquired on the next source. Only the last batch is still pending when the
+            //final Set() runs, and that final Set must release it.
             using var test = Create();
             test.Reset();
 
-            var waiters = new Task<bool>[50];
-            for (var i = 0; i < waiters.Length; i++)
-                waiters[i] = test.WaitAsync().AsTask();
+            const int batches = 5;
+            const int perBatch = 10;
+            var waiters = new Task<bool>[batches * perBatch];
 
+            for (var batch = 0; batch < batches; batch++)
+            {
+                for (var i = 0; i < perBatch; i++)
+                    waiters[batch * perBatch + i] = test.WaitAsync().AsTask();
+
+                if (batch < batches - 1)
+                {
+                    test.Set();     // completes this batch's source
+                    test.Reset();   // source is now completed, so this swaps in a new one
+                }
+            }
+
+            // only the final batch is still pending at this point
             test.Set();
 
             var all = Task.WhenAll(waiters);
             var completed = await Task.WhenAny(all, Task.Delay(TimeSpan.FromSeconds(10)));
-            Assert.AreSame(all, completed, "one Set must release every waiter");
+            Assert.AreSame(all, completed, "the final Set must release every waiter still outstanding");
             foreach (var r in await all)
                 Assert.IsTrue(r);
         }
@@ -273,7 +291,9 @@ namespace DotNetWorkQueue.Tests.Queue
             //
             //Wait() has no timeout overload, so it is probed on a task and released with Cancel()
             //rather than called directly - calling it unguarded would hang this test.
-            for (var attempt = 0; attempt < 100; attempt++)
+            string failure = null;
+
+            for (var attempt = 0; attempt < 100 && failure == null; attempt++)
             {
                 using var test = Create();
                 using var start = new ManualResetEventSlim(false);
@@ -285,18 +305,27 @@ namespace DotNetWorkQueue.Tests.Queue
                 Task.WaitAll(setter, resetter);
 
                 var syncProbe = Task.Run(() => test.Wait());
-                var syncSignaled = syncProbe.Wait(TimeSpan.FromMilliseconds(10)) && syncProbe.Result;
-                var asyncSignaled = test.WaitAsync().AsTask().Wait(TimeSpan.FromMilliseconds(10));
+                try
+                {
+                    var syncSignaled = syncProbe.Wait(TimeSpan.FromMilliseconds(250)) && syncProbe.Result;
+                    var asyncSignaled = test.WaitAsync().AsTask().Wait(TimeSpan.FromMilliseconds(250));
 
-                //release the probe if it is still blocked, so the loop does not leak threads
-                test.Cancel();
-                syncProbe.Wait(TimeSpan.FromSeconds(1));
-
-                //the implication is what matters: the two views must not disagree in the
-                //direction that hangs a consumer
-                if (syncSignaled && !asyncSignaled)
-                    Assert.Fail($"attempt {attempt}: reset event signaled but async waiter still pending");
+                    //the implication is what matters: the two views must not disagree in the
+                    //direction that hangs a consumer
+                    if (syncSignaled && !asyncSignaled)
+                        failure = $"attempt {attempt}: reset event signaled but async waiter still pending";
+                }
+                finally
+                {
+                    //release the probe if it is still blocked, so it isn't left inside
+                    //Wait() when the "using" disposes test - even on Assert.Fail/exception
+                    test.Cancel();
+                    syncProbe.Wait(TimeSpan.FromSeconds(1));
+                }
             }
+
+            if (failure != null)
+                Assert.Fail(failure);
         }
 
         private IWaitForEventOrCancel Create()
