@@ -26,6 +26,11 @@ dotnet_diagnostic.CA2263.severity = none
 # CA1859: recommends concrete return types for performance, but the public API
 # deliberately returns interfaces (IQueueOutputMessage, etc.) as the contract.
 dotnet_diagnostic.CA1859.severity = none
+# ValueTask has usage rules a test suite will not catch: a ValueTask over an
+# already-completed result tolerates double-await and .Result silently, and only
+# breaks under IValueTaskSource pooling. The analyzer is deterministic where a test
+# is incidental. Raised to error deliberately - see the async receive path spec.
+dotnet_diagnostic.CA2012.severity = error
 
 # Test projects only: rules that are noise in tests but kept active in production code.
 [**/*Tests*/**.cs]

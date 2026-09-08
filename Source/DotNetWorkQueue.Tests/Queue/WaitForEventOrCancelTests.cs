@@ -139,6 +139,234 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
+        [TestMethod]
+        public async Task WaitAsync_ReturnsImmediately_WhenAlreadySignaled()
+        {
+            using var test = Create();
+            // constructed signaled, per ManualResetEventSlim(true)
+            Assert.IsTrue(await test.WaitAsync());
+        }
+
+        [TestMethod]
+        public async Task WaitAsync_Blocks_UntilSet()
+        {
+            using var test = Create();
+            test.Reset();
+
+            var waiter = test.WaitAsync().AsTask();
+            Assert.IsFalse(waiter.IsCompleted, "must not complete while reset");
+
+            test.Set();
+            Assert.IsTrue(await waiter);
+        }
+
+        [TestMethod]
+        public async Task WaitAsync_ReturnsFalse_WhenCancelled()
+        {
+            using var test = Create();
+            test.Reset();
+
+            var waiter = test.WaitAsync().AsTask();
+            test.Cancel();
+
+            Assert.IsFalse(await waiter);
+        }
+
+        [TestMethod]
+        public async Task WaitAsync_ResetDuringPendingWait_DoesNotOrphanTheWaiter()
+        {
+            //the lost wake-up case: Reset must not swap out a TCS that already has waiters,
+            //or this waiter sleeps until some later Set that it was never told about
+            using var test = Create();
+            test.Reset();
+
+            var waiter = test.WaitAsync().AsTask();
+            test.Reset();                       // second reset, waiter already pending
+            test.Set();
+
+            var completed = await Task.WhenAny(waiter, Task.Delay(TimeSpan.FromSeconds(5)));
+            Assert.AreSame(waiter, completed, "waiter was orphaned by Reset");
+            Assert.IsTrue(await waiter);
+        }
+
+        [TestMethod]
+        public async Task WaitAsync_SetThenReset_BeforeWaiterResumes_StillReleases()
+        {
+            using var test = Create();
+            test.Reset();
+
+            var waiter = test.WaitAsync().AsTask();
+            test.Set();
+            test.Reset();                       // immediately re-armed
+
+            var completed = await Task.WhenAny(waiter, Task.Delay(TimeSpan.FromSeconds(5)));
+            Assert.AreSame(waiter, completed, "a Set that happened must release its waiter");
+            Assert.IsTrue(await waiter);
+        }
+
+        [TestMethod]
+        public async Task WaitAsync_ManyWaiters_AllReleasedByOneSet()
+        {
+            //a real fan-out across distinct completion sources, not one Task awaited 50
+            //times: Reset only swaps in a fresh source once the current one has completed,
+            //so each earlier batch is released with Set() before the next batch is
+            //acquired on the next source. Only the last batch is still pending when the
+            //final Set() runs, and that final Set must release it.
+            using var test = Create();
+            test.Reset();
+
+            const int batches = 5;
+            const int perBatch = 10;
+            var waiters = new Task<bool>[batches * perBatch];
+
+            for (var batch = 0; batch < batches; batch++)
+            {
+                for (var i = 0; i < perBatch; i++)
+                    waiters[batch * perBatch + i] = test.WaitAsync().AsTask();
+
+                if (batch < batches - 1)
+                {
+                    test.Set();     // completes this batch's source
+                    test.Reset();   // source is now completed, so this swaps in a new one
+                }
+            }
+
+            // only the final batch is still pending at this point
+            test.Set();
+
+            var all = Task.WhenAll(waiters);
+            var completed = await Task.WhenAny(all, Task.Delay(TimeSpan.FromSeconds(10)));
+            Assert.AreSame(all, completed, "the final Set must release every waiter still outstanding");
+            foreach (var r in await all)
+                Assert.IsTrue(r);
+        }
+
+        [TestMethod]
+        public async Task WaitAsync_IfDisposed_Exception()
+        {
+            var test = Create();
+            test.Dispose();
+            await Assert.ThrowsExactlyAsync<ObjectDisposedException>(async () => await test.WaitAsync());
+        }
+
+        [TestMethod]
+        public async Task WaitAsync_PendingWait_IsReleasedByDispose()
+        {
+            //an async waiter holds only a Task - disposing the primitives underneath does
+            //not fault it, so without explicit completion this waits forever on a dead object
+            var test = Create();
+            test.Reset();
+            var waiter = test.WaitAsync().AsTask();
+
+            test.Dispose();
+
+            var completed = await Task.WhenAny(waiter, Task.Delay(TimeSpan.FromSeconds(5)));
+            Assert.AreSame(waiter, completed, "Dispose left a waiter hanging");
+            Assert.IsFalse(await waiter);
+        }
+
+        [TestMethod]
+        public async Task WaitAsync_AfterCancelThenReset_StillReturnsFalse()
+        {
+            //Cancel completes the source; Reset then sees "completed" and re-arms it. The
+            //synchronous Wait would still return false because it consults the token, so the
+            //async path must too, or it waits on an object that can never be signaled again.
+            using var test = Create();
+            test.Cancel();
+            test.Reset();
+
+            var waiter = test.WaitAsync().AsTask();
+            var completed = await Task.WhenAny(waiter, Task.Delay(TimeSpan.FromSeconds(5)));
+            Assert.AreSame(waiter, completed, "a cancelled instance must not block an async waiter");
+            Assert.IsFalse(await waiter);
+        }
+
+        [TestMethod]
+        public void SetRacingReset_AlwaysReleasesAPendingWaiter()
+        {
+            //A pending async waiter holds one completion source. Whichever order the racing
+            //Set and Reset land in, that source must end up completed: Reset cannot swap out
+            //an incomplete source, and if Set went first it completed that source directly.
+            //So a Set that happened must always release a waiter that was already waiting -
+            //which is the orphaning this lock exists to prevent.
+            for (var attempt = 0; attempt < 200; attempt++)
+            {
+                using var test = Create();
+                test.Reset();
+                var waiter = test.WaitAsync().AsTask();
+
+                using var start = new ManualResetEventSlim(false);
+                var setter = Task.Run(() => { start.Wait(); test.Set(); });
+                var resetter = Task.Run(() => { start.Wait(); test.Reset(); });
+
+                start.Set();
+                Task.WaitAll(setter, resetter);
+
+                Assert.IsTrue(waiter.Wait(TimeSpan.FromSeconds(1)),
+                    $"attempt {attempt}: a Set happened but the pending waiter was never released");
+            }
+        }
+
+        [TestMethod]
+        public void WaitAsync_RacingDispose_NeverHangs()
+        {
+            //The gap this closes: a first-ever WaitAsync can pass ThrowIfDisposed, then lose
+            //the race to a Dispose that runs to completion before WaitAsync takes the lock.
+            //Dispose's _asyncWait?.TrySetResult(false) is a no-op because no async waiter has
+            //ever registered, so without a disposal check inside the lock, WaitAsync would go
+            //on to manufacture a fresh TaskCompletionSource that nothing can ever complete -
+            //Set/Reset/Cancel all throw once disposed, and Dispose has already made its one
+            //pass. The interleaving can't be forced deterministically through the public API,
+            //so this races the two calls repeatedly and asserts every returned task settles.
+            //WaitAsync may legitimately throw ObjectDisposedException when disposal wins the
+            //race outright - that is fine and is not a hang.
+            string failure = null;
+
+            for (var attempt = 0; attempt < 500 && failure == null; attempt++)
+            {
+                var test = Create();
+                using var start = new ManualResetEventSlim(false);
+
+                Task<bool> waiterTask = null;
+                var waiter = Task.Run(() =>
+                {
+                    start.Wait();
+                    try
+                    {
+                        waiterTask = test.WaitAsync().AsTask();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        //disposal won the race before WaitAsync's own ThrowIfDisposed check -
+                        //not a hang
+                    }
+                });
+                var disposer = Task.Run(() => { start.Wait(); test.Dispose(); });
+
+                start.Set();
+                Task.WaitAll(waiter, disposer);
+
+                if (waiterTask == null)
+                    continue; //ObjectDisposedException case above - not a hang
+
+                bool completed;
+                try
+                {
+                    completed = waiterTask.Wait(TimeSpan.FromSeconds(5));
+                }
+                catch (AggregateException)
+                {
+                    continue; //the task itself faulted (e.g. ObjectDisposedException) - not a hang
+                }
+
+                if (!completed)
+                    failure = $"attempt {attempt}: WaitAsync's task never completed - a permanent hang";
+            }
+
+            if (failure != null)
+                Assert.Fail(failure);
+        }
+
         private IWaitForEventOrCancel Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
