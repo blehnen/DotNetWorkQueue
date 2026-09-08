@@ -328,6 +328,66 @@ namespace DotNetWorkQueue.Tests.Queue
                 Assert.Fail(failure);
         }
 
+        [TestMethod]
+        public void WaitAsync_RacingDispose_NeverHangs()
+        {
+            //The gap this closes: a first-ever WaitAsync can pass ThrowIfDisposed, then lose
+            //the race to a Dispose that runs to completion before WaitAsync takes the lock.
+            //Dispose's _asyncWait?.TrySetResult(false) is a no-op because no async waiter has
+            //ever registered, so without a disposal check inside the lock, WaitAsync would go
+            //on to manufacture a fresh TaskCompletionSource that nothing can ever complete -
+            //Set/Reset/Cancel all throw once disposed, and Dispose has already made its one
+            //pass. The interleaving can't be forced deterministically through the public API,
+            //so this races the two calls repeatedly and asserts every returned task settles.
+            //WaitAsync may legitimately throw ObjectDisposedException when disposal wins the
+            //race outright - that is fine and is not a hang.
+            string failure = null;
+
+            for (var attempt = 0; attempt < 500 && failure == null; attempt++)
+            {
+                var test = Create();
+                using var start = new ManualResetEventSlim(false);
+
+                Task<bool> waiterTask = null;
+                var waiter = Task.Run(() =>
+                {
+                    start.Wait();
+                    try
+                    {
+                        waiterTask = test.WaitAsync().AsTask();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        //disposal won the race before WaitAsync's own ThrowIfDisposed check -
+                        //not a hang
+                    }
+                });
+                var disposer = Task.Run(() => { start.Wait(); test.Dispose(); });
+
+                start.Set();
+                Task.WaitAll(waiter, disposer);
+
+                if (waiterTask == null)
+                    continue; //ObjectDisposedException case above - not a hang
+
+                bool completed;
+                try
+                {
+                    completed = waiterTask.Wait(TimeSpan.FromSeconds(5));
+                }
+                catch (AggregateException)
+                {
+                    continue; //the task itself faulted (e.g. ObjectDisposedException) - not a hang
+                }
+
+                if (!completed)
+                    failure = $"attempt {attempt}: WaitAsync's task never completed - a permanent hang";
+            }
+
+            if (failure != null)
+                Assert.Fail(failure);
+        }
+
         private IWaitForEventOrCancel Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());

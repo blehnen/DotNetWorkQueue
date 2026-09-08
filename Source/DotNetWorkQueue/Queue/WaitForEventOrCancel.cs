@@ -96,10 +96,14 @@ namespace DotNetWorkQueue.Queue
                 //of this object's life once cancelled, because it always consults the
                 //token. A Reset after a Cancel would otherwise re-arm the source and leave
                 //an async caller waiting on an object that can never be signaled again.
-                //Checked under the lock so it is atomic with the read/creation of
-                //_asyncWait below - otherwise a Cancel between the check and the lock can
-                //be missed.
-                if (_cancellationTokenSource.IsCancellationRequested)
+                //Disposal is terminal the same way: Dispose only resolves an _asyncWait
+                //that already exists, so a caller racing Dispose before this method has
+                //ever created one would otherwise manufacture a fresh, incomplete source
+                //that nothing can ever complete - Set/Reset/Cancel all throw once disposed,
+                //and Dispose has already made its one pass. Both are checked under the lock
+                //so they are atomic with the read/creation of _asyncWait below - otherwise a
+                //Cancel or Dispose between the check and the lock can be missed.
+                if (_cancellationTokenSource.IsCancellationRequested || IsDisposed)
                     return new ValueTask<bool>(false);
 
                 //Created lazily: seed it from the current event state so a first-ever
