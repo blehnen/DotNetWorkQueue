@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue
 {
@@ -31,6 +32,16 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <returns></returns>
         bool Wait();
+        /// <summary>
+        /// Waits to be notified to stop waiting, without blocking a thread.
+        /// </summary>
+        /// <returns><c>true</c> if signaled; <c>false</c> if cancelled.</returns>
+        /// <remarks>
+        /// The asynchronous twin of <see cref="Wait"/> and returns the same values.
+        /// Exists because a consumer that blocks a thread-pool thread here cannot complete
+        /// the very continuations that would release it.
+        /// </remarks>
+        ValueTask<bool> WaitAsync();
         /// <summary>
         /// Resets the wait status, causing <see cref="Wait"/> calls to wait.
         /// </summary>
