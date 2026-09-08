@@ -48,6 +48,11 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Gets a value indicating whether calling <see cref="ReceiveMessage"/> is a blocking operation
         /// </summary>
+        /// <remarks>
+        /// <see cref="ReceiveMessageAsync"/> does not block a thread while waiting, but a transport that
+        /// signals for new messages still has no upper bound on how long a receive may take; this flag
+        /// reports that property of the transport and applies to both methods.
+        /// </remarks>
         /// <value>
         ///   <c>true</c> if this instance is blocking operation; otherwise, <c>false</c>.
         /// </value>

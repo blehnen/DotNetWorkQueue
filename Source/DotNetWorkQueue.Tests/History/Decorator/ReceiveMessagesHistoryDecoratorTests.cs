@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using DotNetWorkQueue.History.Decorator;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -78,6 +80,72 @@ namespace DotNetWorkQueue.Tests.History.Decorator
         }
 
         [TestMethod]
+        public async Task ReceiveMessageAsync_Calls_Inner_Handler_And_Returns_Result()
+        {
+            var (decorator, inner, _, _, _) = CreateDecorator(enabled: false);
+            var context = CreateContext();
+            var expectedResult = Substitute.For<IReceivedMessageInternal>();
+            SetupAsyncReceive(inner, context, expectedResult);
+
+            var result = await decorator.ReceiveMessageAsync(context, CancellationToken.None);
+
+            Assert.AreSame(expectedResult, result);
+        }
+
+        [TestMethod]
+        public async Task ReceiveMessageAsync_When_Enabled_Records_Processing_Start()
+        {
+            var (decorator, inner, history, _, _) = CreateDecorator(enabled: true, trackProcessing: true);
+            var context = CreateContext();
+            var receivedMessage = Substitute.For<IReceivedMessageInternal>();
+            SetupAsyncReceive(inner, context, receivedMessage);
+
+            await decorator.ReceiveMessageAsync(context, CancellationToken.None);
+
+            history.Received(1).RecordProcessingStart(Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public async Task ReceiveMessageAsync_When_Disabled_Does_Not_Record()
+        {
+            var (decorator, inner, history, _, _) = CreateDecorator(enabled: false);
+            var context = CreateContext();
+            var receivedMessage = Substitute.For<IReceivedMessageInternal>();
+            SetupAsyncReceive(inner, context, receivedMessage);
+
+            await decorator.ReceiveMessageAsync(context, CancellationToken.None);
+
+            history.DidNotReceive().RecordProcessingStart(Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public async Task ReceiveMessageAsync_When_Null_Result_Does_Not_Record()
+        {
+            var (decorator, inner, history, _, _) = CreateDecorator(enabled: true, trackProcessing: true);
+            var context = CreateContext();
+            SetupAsyncReceive(inner, context, null);
+
+            await decorator.ReceiveMessageAsync(context, CancellationToken.None);
+
+            history.DidNotReceive().RecordProcessingStart(Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public async Task ReceiveMessageAsync_When_History_Throws_Exception_Is_Swallowed()
+        {
+            var (decorator, inner, history, _, _) = CreateDecorator(enabled: true, trackProcessing: true);
+            var context = CreateContext();
+            var receivedMessage = Substitute.For<IReceivedMessageInternal>();
+            SetupAsyncReceive(inner, context, receivedMessage);
+            history.When(h => h.RecordProcessingStart(Arg.Any<string>()))
+                .Do(_ => throw new InvalidOperationException("history write failed"));
+
+            var result = await decorator.ReceiveMessageAsync(context, CancellationToken.None);
+
+            Assert.AreSame(receivedMessage, result);
+        }
+
+        [TestMethod]
         public void IsBlockingOperation_Delegates_To_Inner()
         {
             var (decorator, inner, _, _, _) = CreateDecorator(enabled: false);
@@ -88,6 +156,18 @@ namespace DotNetWorkQueue.Tests.History.Decorator
             inner.IsBlockingOperation.Returns(false);
 
             Assert.IsFalse(decorator.IsBlockingOperation);
+        }
+
+        private static void SetupAsyncReceive(IReceiveMessages inner, IMessageContext context,
+            IReceivedMessageInternal result)
+        {
+            //Configuring a substitute is the one case where the returned ValueTask is not meant to be
+            //consumed at all - NSubstitute intercepts the call to record the setup. Kept in this single
+            //helper so the suppression does not spread across the tests.
+#pragma warning disable CA2012
+            inner.ReceiveMessageAsync(context, Arg.Any<CancellationToken>())
+                .Returns(new ValueTask<IReceivedMessageInternal>(result));
+#pragma warning restore CA2012
         }
 
         private static IMessageContext CreateContext()

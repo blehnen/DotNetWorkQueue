@@ -119,7 +119,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             //asynchronous I/O - the LiteDB driver has no *Async API at all, it is a purely
             //synchronous file-based engine - and a de-queue is on the order of microseconds,
             //so there is nothing to release the thread for. Deliberately NOT Task.Run, which
-            //would only move the work to another pool thread.
+            //would only move the work to another pool thread. The token is ignored for the same
+            //reason - the call returns in microseconds, so there is no wait to cancel.
             return new ValueTask<IReceivedMessageInternal>(ReceiveMessage(context));
         }
 
