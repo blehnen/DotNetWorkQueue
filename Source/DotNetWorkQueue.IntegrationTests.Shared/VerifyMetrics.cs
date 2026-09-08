@@ -29,7 +29,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         /// Polls live metrics until <c>PoisonHandleMeter</c> reaches the expected value or times out.
         /// Fixes a race where the handler callback signals completion before the poison meter is incremented.
         /// </summary>
-        public static void VerifyPoisonMessageCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 15000)
+        public static void VerifyPoisonMessageCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 30000)
         {
             const string name = "PoisonHandleMeter";
             PollUntil(
@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         /// Polls live metrics until the combined expired-message counters reach the expected value or times out.
         /// Mirrors the GetExpiredMessageCount logic (sums ClearMessages.ResetCounter + HandleAsync.Expired).
         /// </summary>
-        public static void VerifyExpiredMessageCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 15000)
+        public static void VerifyExpiredMessageCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 30000)
         {
             PollUntil(
                 metrics,
@@ -128,7 +128,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         /// and the snapshot finalAssert checks both — so polling on rollback alone would
         /// still leave a window where finalAssert fails on the retry-meter lag.
         /// </summary>
-        public static void VerifyRollBackCount(string queueName, IMetrics metrics, long messageCount, int rollbackCount, int failedCount, int timeoutMs = 15000)
+        public static void VerifyRollBackCount(string queueName, IMetrics metrics, long messageCount, int rollbackCount, int failedCount, int timeoutMs = 30000)
         {
             const string rollbackName = "RollbackMessage.RollbackCounter";
             const string retryName = "MessageFailedProcessingRetryMeter";
@@ -194,7 +194,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             }
         }
 
-        public static void VerifyProducedAsyncCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 15000)
+        public static void VerifyProducedAsyncCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 30000)
         {
             const string name = "SendMessagesMeter";
             PollUntil(
@@ -230,7 +230,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             }
         }
 
-        public static void VerifyProducedCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 15000)
+        public static void VerifyProducedCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 30000)
         {
             const string name = "SendMessagesMeter";
             PollUntil(
@@ -305,9 +305,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         /// <summary>
         /// Polls the live metrics until CommitCounter reaches the expected value or times out.
         /// Fixes a race where the handler callback signals completion before the commit metric is incremented.
-        /// Default timeout is generous enough to survive chaos + hold-transaction scenarios under CI load.
+        /// Default timeout covers chaos + hold-transaction scenarios under CI load. Raised from 15s
+        /// when the integration suites moved to 4-way parallelism: a PostgreSQL MultiConsumerAsync
+        /// chaos row reported 24 of 25 commits because the last counter had not caught up in 15s.
         /// </summary>
-        public static void VerifyProcessedCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 15000)
+        public static void VerifyProcessedCount(string queueName, IMetrics metrics, long messageCount, int timeoutMs = 30000)
         {
             const string name = "CommitMessage.CommitCounter";
             PollUntil(
