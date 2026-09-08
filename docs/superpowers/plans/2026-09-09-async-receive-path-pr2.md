@@ -135,7 +135,11 @@ Each decorator's async method does what its sync one does. Add `using System.Thr
         }
 ```
 
-`Metrics.Decorator.ReceiveMessagesDecorator` — note it needs its own async timer, registered beside the existing one in the constructor, mirroring how `ISendMessagesDecorator` names `SendAsyncTimer`:
+`Metrics.Decorator.ReceiveMessagesDecorator` — a straight mirror. **No timer.** An earlier
+draft of this plan said to add an async timer beside the existing one; that was wrong. The
+synchronous `ReceiveMessage` in this decorator does not time anything either — the class's
+`_waitTimer` belongs to a different member — so adding one to the async path would make the
+two paths report different metrics for the same operation:
 
 ```csharp
         /// <inheritdoc />
@@ -415,6 +419,26 @@ Omitting these compiles and returns messages, and breaks commit and rollback sil
 
 Delete the temporary implementation Task 1 added to this class.
 
+- [ ] **Step 4a: Be explicit about what the cancellation token does here**
+
+`ReceiveMessageAsync` takes a `CancellationToken`, but on the Redis path **nothing
+downstream accepts one**: `IQueryHandlerAsync.HandleAsync(query)` takes no token,
+`DequeueLua.ExecuteAsync(long unixTime)` takes no token, and SE.Redis's
+`ScriptEvaluateAsync` is not given one either.
+
+Do **not** plumb a token through those signatures to make it look wired. Redis cancels the
+way it already does synchronously, and both mechanisms must survive:
+
+- the `while (true)` loop keeps its `_cancelWork.AnyCancellationRequested()` checks — there
+  are two in the sync version, at the top of each iteration and again before the second
+  `GetMessage`; keep both
+- `workSub.WaitAsync()` observes the work-sub's own cancellation and returns `false`,
+  exactly as `Wait()` does today via `_waitHandle.Wait(cts.Token)`
+
+Add a comment on the async method saying this, so the parameter does not read as an
+oversight to the next person. The parameter still earns its place: SQL Server and
+PostgreSQL take real tokens on their async ADO calls in tasks 5 and 6.
+
 - [ ] **Step 5: Verify against a real Redis**
 
 ```bash
@@ -450,20 +474,59 @@ Read `StarvationBaselineTests.cs` end to end. Note its `WorkerCap = 6`, `Concurr
 
 - [ ] **Step 2: Add the async twin**
 
-Add a second test method in the same class, with the same `[TestCategory("StarvationBaseline")]`, the same pool cap, the same sender flood, and the same restore-in-finally. The single difference: it drives the **asynchronous** consumer path rather than the synchronous one.
+**The existing test genuinely fails.** Its last statement is:
 
-Its assertion is the inverse of the existing test's: where that one expects a `RedisTimeoutException`, this one expects the messages to be consumed without one.
-
-Name it so the pairing is obvious, for example `AsyncPath_CappedPool_ConcurrentFlood_DoesNotStarve`, and give it a comment explaining that the two tests are a matched pair and that the sync one remaining red is what makes the async one meaningful.
-
-- [ ] **Step 3: Run both**
-
-```bash
-dotnet test "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" \
-  -f net10.0 --filter "TestCategory=StarvationBaseline"
+```csharp
+Assert.IsNull(caughtException, $"Thread-pool starvation reproduced ...");
 ```
 
-Expected: **the sync test RED, the async test GREEN.** Report both outcomes exactly.
+Starvation reproduces, so `caughtException` is non-null and the assertion fails. It is a
+red diagnostic, not a test that passes by expecting an exception. That matters for how the
+gate is run — see Step 3.
+
+Add a second test method in the same class with the same pool cap, the same sender flood,
+and the same restore-in-`finally`. Two differences from the existing one:
+
+1. It drives the **asynchronous** consumer path rather than the synchronous one.
+2. **It gets its own category — `[TestCategory("StarvationAsync")]`, not
+   `StarvationBaseline`.** This is load-bearing. The Jenkinsfile runs Redis with
+   `--filter "TestCategory!=StarvationBaseline"`, so reusing that category would exclude
+   the new test from CI permanently — and the spec's plan is to promote it to a CI gate. A
+   separate category is what makes it selectable on its own.
+
+Its assertion is the inverse of the existing one: the flood completes and the messages are
+consumed, with no `RedisTimeoutException` anywhere.
+
+Name it `AsyncPath_CappedPool_ConcurrentFlood_DoesNotStarve`, and comment that the two are
+a matched pair — the synchronous one staying red is what makes the asynchronous one mean
+anything.
+
+- [ ] **Step 3: Run each separately — one command, one expected exit code**
+
+Running both together gives an ambiguous result: `dotnet test` exits non-zero either way,
+because the synchronous test fails by design. A single run cannot distinguish "the async
+path regressed" from "the baseline is red as intended". So run them apart, and read the
+exit codes:
+
+```bash
+PROJ="Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj"
+
+# The baseline. MUST fail - exit code non-zero. A pass here means the pool cap
+# stopped reproducing starvation, and the gate below proves nothing.
+dotnet test "$PROJ" -f net10.0 --filter "TestCategory=StarvationBaseline"
+echo "baseline exit=$?   (expected: NON-ZERO)"
+
+# The gate. MUST pass - exit code zero.
+dotnet test "$PROJ" -f net10.0 --filter "TestCategory=StarvationAsync"
+echo "gate exit=$?       (expected: 0)"
+```
+
+**The gate is passed only when the first is non-zero and the second is zero.** Report both
+numbers literally, not a summary.
+
+If the *baseline* passes, stop and report that too — it means the harness is no longer
+reproducing the condition the gate is measured against, and a green async test would be
+meaningless rather than good news.
 
 - [ ] **Step 4: If the async test is RED, stop**
 
