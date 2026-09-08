@@ -27,76 +27,99 @@ pipeline {
     }
 
     stages {
-        stage('Build & Unit Tests') {
+        // Compile gate. The integration stages build only their own test project
+        // (#269), so this full-solution build is the only thing that compiles
+        // Dashboard.Ui, the benchmarks and the examples - a compile error in an
+        // untested project would otherwise reach master. It is also fast: 6s to
+        // restore and 12s to build on a warm agent.
+        //
+        // Unit tests used to live here and gated everything behind them. They are
+        // now a parallel branch below: nothing downstream consumes their output,
+        // and at ~7 minutes they hide entirely under the 10-minute critical path,
+        // which took the whole build from ~17m40s to ~11m.
+        stage('Build') {
             agent { label 'docker' }
             steps {
                 sh 'dotnet restore "Source/DotNetWorkQueue.sln"'
                 sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug --no-restore'
-
-                sh '''
-                    dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj" \
-                        -f net10.0 -c Debug \
-                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-core/ \
-                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-
-                    dotnet test "Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj" \
-                        -f net10.0 -c Debug \
-                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-relational/ \
-                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-
-                    dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.Tests/DotNetWorkQueue.Transport.SqlServer.Tests.csproj" \
-                        -f net10.0 -c Debug \
-                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-sqlserver/ \
-                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-
-                    dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Tests/DotNetWorkQueue.Transport.PostgreSQL.Tests.csproj" \
-                        -f net10.0 -c Debug \
-                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-postgresql/ \
-                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-
-                    dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" \
-                        -f net10.0 -c Debug \
-                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-redis/ \
-                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-
-                    dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Tests/DotNetWorkQueue.Transport.SQLite.Tests.csproj" \
-                        -f net10.0 -c Debug \
-                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-sqlite/ \
-                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-
-                    dotnet test "Source/DotNetWorkQueue.Transport.LiteDb.Tests/DotNetWorkQueue.Transport.LiteDb.Tests.csproj" \
-                        -f net10.0 -c Debug \
-                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-litedb/ \
-                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-
-                    dotnet test "Source/DotNetWorkQueue.Transport.Memory.Tests/DotNetWorkQueue.Transport.Memory.Tests.csproj" \
-                        -f net10.0 -c Debug \
-                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-memory/ \
-                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-
-                    dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Tests/DotNetWorkQueue.Dashboard.Api.Tests.csproj" \
-                        -f net10.0 -c Debug \
-                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-dashboard-api/ \
-                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-
-                    dotnet test "Source/DotNetWorkQueue.Dashboard.Client.Tests/DotNetWorkQueue.Dashboard.Client.Tests.csproj" \
-                        -f net10.0 -c Debug \
-                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-dashboard-client/ \
-                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-
-                    dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj" \
-                        -f net10.0 -c Debug \
-                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-dashboard-ui/ \
-                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-                '''
-
-                stash includes: 'coverage/**/*.xml', name: 'unit-coverage'
-                stash includes: 'junit-results/**/*.xml', name: 'junit-unit', allowEmpty: true
             }
         }
 
-        stage('Integration Tests') {
+        stage('Tests') {
             parallel {
+                // Last in the clone stagger: this branch is ~7 minutes against a
+                // 10-minute critical path, so a late start costs nothing.
+                stage('Unit Tests') {
+                    agent { label 'docker' }
+                    steps {
+                        sleep(time: 75, unit: 'SECONDS')
+                        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                            sh 'dotnet restore "Source/DotNetWorkQueue.sln"'
+                            sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug --no-restore'
+
+                            sh '''
+                                dotnet test "Source/DotNetWorkQueue.Tests/DotNetWorkQueue.Tests.csproj" \
+                                    -f net10.0 -c Debug \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-core/ \
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+
+                                dotnet test "Source/DotNetWorkQueue.Transport.RelationalDatabase.Tests/DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj" \
+                                    -f net10.0 -c Debug \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-relational/ \
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+
+                                dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.Tests/DotNetWorkQueue.Transport.SqlServer.Tests.csproj" \
+                                    -f net10.0 -c Debug \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-sqlserver/ \
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+
+                                dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Tests/DotNetWorkQueue.Transport.PostgreSQL.Tests.csproj" \
+                                    -f net10.0 -c Debug \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-postgresql/ \
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+
+                                dotnet test "Source/DotNetWorkQueue.Transport.Redis.Tests/DotNetWorkQueue.Transport.Redis.Tests.csproj" \
+                                    -f net10.0 -c Debug \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-redis/ \
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+
+                                dotnet test "Source/DotNetWorkQueue.Transport.SQLite.Tests/DotNetWorkQueue.Transport.SQLite.Tests.csproj" \
+                                    -f net10.0 -c Debug \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-sqlite/ \
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+
+                                dotnet test "Source/DotNetWorkQueue.Transport.LiteDb.Tests/DotNetWorkQueue.Transport.LiteDb.Tests.csproj" \
+                                    -f net10.0 -c Debug \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-litedb/ \
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+
+                                dotnet test "Source/DotNetWorkQueue.Transport.Memory.Tests/DotNetWorkQueue.Transport.Memory.Tests.csproj" \
+                                    -f net10.0 -c Debug \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-memory/ \
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+
+                                dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Tests/DotNetWorkQueue.Dashboard.Api.Tests.csproj" \
+                                    -f net10.0 -c Debug \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-dashboard-api/ \
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+
+                                dotnet test "Source/DotNetWorkQueue.Dashboard.Client.Tests/DotNetWorkQueue.Dashboard.Client.Tests.csproj" \
+                                    -f net10.0 -c Debug \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-dashboard-client/ \
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+
+                                dotnet test "Source/DotNetWorkQueue.Dashboard.Ui.Tests/DotNetWorkQueue.Dashboard.Ui.Tests.csproj" \
+                                    -f net10.0 -c Debug \
+                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-dashboard-ui/ \
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+                            '''
+                        }
+
+                        stash includes: 'coverage/**/*.xml', name: 'unit-coverage', allowEmpty: true
+                        stash includes: 'junit-results/**/*.xml', name: 'junit-unit', allowEmpty: true
+                    }
+                }
+
                 stage('SqlServer') {
                     agent { label 'docker' }
                     steps {
