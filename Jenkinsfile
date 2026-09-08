@@ -1,3 +1,38 @@
+// Point restores at an internal NuGet mirror when the controller offers one.
+//
+// NUGET_SOURCE is a global environment variable on the Jenkins controller and is
+// deliberately not committed: it resolves only on the internal network, and this
+// repository is public. When it is unset - anyone else running this Jenkinsfile,
+// or a local reproduction - nothing is written and restores go to nuget.org
+// exactly as they did before. That is why this is a conditional helper rather
+// than a NuGet.Config in the tree.
+//
+// Why it matters: sixteen agents restoring the same 146 packages at once is what
+// nuget.org rate-limits, and a rate-limited restore fails the stage. The stagger
+// below paces those restores apart to stay under the limit. A mirror removes the
+// cause instead - the full solution restores from one in about 23 seconds - so
+// once this is in use the stagger should be re-measured and probably shrunk.
+//
+// The file lands at the workspace root rather than in a user profile because
+// NuGet searches ancestor directories of the project being restored, which makes
+// it independent of whichever uid the Docker Cloud plugin gives the container.
+def useInternalNugetMirror() {
+    sh '''
+        set -eu
+        [ -n "${NUGET_SOURCE:-}" ] || exit 0
+        cat > "$WORKSPACE/NuGet.Config" <<XML
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <clear />
+    <add key="internal" value="${NUGET_SOURCE}" />
+  </packageSources>
+</configuration>
+XML
+        echo "Restores will use the internal mirror at ${NUGET_SOURCE}"
+    '''
+}
+
 pipeline {
     agent none
 
@@ -40,6 +75,7 @@ pipeline {
         stage('Build') {
             agent { label 'docker' }
             steps {
+                useInternalNugetMirror()
                 sh 'dotnet restore "Source/DotNetWorkQueue.sln"'
                 sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug --no-restore'
             }
@@ -69,6 +105,7 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sleep(time: 65, unit: 'SECONDS')
+                        useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet restore "Source/DotNetWorkQueue.sln"'
                             sh 'dotnet build "Source/DotNetWorkQueue.sln" -c Debug --no-restore'
@@ -140,6 +177,7 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sleep(time: 25, unit: 'SECONDS')
+                        useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/DotNetWorkQueue.Transport.SqlServer.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN')]) {
@@ -161,6 +199,7 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sleep(time: 15, unit: 'SECONDS')
+                        useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN')]) {
@@ -182,6 +221,7 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sleep(time: 5, unit: 'SECONDS')
+                        useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')]) {
@@ -203,6 +243,7 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sleep(time: 20, unit: 'SECONDS')
+                        useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')]) {
@@ -224,6 +265,7 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sleep(time: 50, unit: 'SECONDS')
+                        useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'redis-connstring', variable: 'REDIS_CONN')]) {
@@ -246,6 +288,7 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sleep(time: 30, unit: 'SECONDS')
+                        useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" -c Debug'
                             withCredentials([string(credentialsId: 'redis-connstring', variable: 'REDIS_CONN')]) {
@@ -268,6 +311,7 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sleep(time: 10, unit: 'SECONDS')
+                        useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.SQLite.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Integration.Tests.csproj" -c Debug'
                             sh '''
@@ -286,6 +330,7 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sleep(time: 0, unit: 'SECONDS')
+                        useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj" -c Debug'
                             sh '''
@@ -304,6 +349,7 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sleep(time: 55, unit: 'SECONDS')
+                        useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.LiteDB.IntegrationTests/DotNetWorkQueue.Transport.LiteDb.IntegrationTests.csproj" -c Debug'
                             sh '''
@@ -322,6 +368,7 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sleep(time: 40, unit: 'SECONDS')
+                        useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.csproj" -c Debug'
                             sh '''
@@ -340,6 +387,7 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sleep(time: 60, unit: 'SECONDS')
+                        useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj" -c Debug'
                             sh '''
@@ -358,6 +406,7 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sleep(time: 45, unit: 'SECONDS')
+                        useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj" -c Debug'
                             sh '''
@@ -376,6 +425,7 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sleep(time: 35, unit: 'SECONDS')
+                        useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" -c Debug'
                             withCredentials([
@@ -405,6 +455,7 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sleep(time: 70, unit: 'SECONDS')
+                        useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" -c Debug'
                             sh '''
@@ -434,6 +485,7 @@ pipeline {
                     agent { label 'docker' }
                     steps {
                         sleep(time: 75, unit: 'SECONDS')
+                        useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh '''
                                 # One line that says whether the image carries the browsers,
