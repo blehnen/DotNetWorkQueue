@@ -76,6 +76,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                 _prepareCommand.Handle(new DeleteMessageCommand<long>(command.QueueId), commandSql, CommandStringTypes.DeleteFromErrorTracking);
                 await commandSql.ExecuteNonQueryAsync().ConfigureAwait(false);
 
+                _prepareCommand.Handle(new DeleteMessageCommand<long>(command.QueueId), commandSql, CommandStringTypes.DeleteFromMetaDataErrors);
+                await commandSql.ExecuteNonQueryAsync().ConfigureAwait(false);
+
                 //delete status record
                 if (!_options.Value.EnableStatusTable) return 1;
 

@@ -52,7 +52,9 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <inheritdoc />
         public RemoveMessageStatus Remove(IMessageId id, RemoveMessageReason reason)
         {
-            var header = _getHeader.GetHeaders(id);
+            //Header lookup needs an id to look up: Redis' reader dereferences it, so asking first would
+            //throw on exactly the input every implementation answers with NotFound.
+            var header = HasId(id) ? _getHeader.GetHeaders(id) : null;
             if (header != null)
             {
                 var activityContext = header.Extract(_tracer, _headers);
@@ -86,7 +88,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         /// <inheritdoc />
         public async Task<RemoveMessageStatus> RemoveAsync(IMessageId id, RemoveMessageReason reason)
         {
-            var header = _getHeader.GetHeaders(id);
+            var header = HasId(id) ? _getHeader.GetHeaders(id) : null;
             if (header != null)
             {
                 var activityContext = header.Extract(_tracer, _headers);
@@ -116,5 +118,7 @@ namespace DotNetWorkQueue.Trace.Decorator
                 return await _handler.RemoveAsync(context, reason).ConfigureAwait(false);
             }
         }
+
+        private static bool HasId(IMessageId id) => id != null && id.HasValue;
     }
 }
