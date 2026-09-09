@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue
 {
@@ -46,6 +47,22 @@ namespace DotNetWorkQueue
         /// <summary>
         /// Processes a message
         /// </summary>
-        void Handle();
+        /// <summary>
+        /// Looks for and processes a new message.
+        /// </summary>
+        /// <returns>
+        /// A task that completes when this processor is ready to de-queue the NEXT message - not when
+        /// the message just received has finished processing.
+        /// </returns>
+        /// <remarks>
+        /// The worker loop waits on this, and that is what bounds how many de-queues can be in flight.
+        /// It used to be <c>void</c>, which made the loop's pacing an accident of wherever the first
+        /// blocking call happened to be - the synchronous receive. Once the receive is awaited that
+        /// accident stops working, and an unbounded number of de-queues start at once.
+        ///
+        /// Waiting on this is cheap: worker loops own dedicated threads
+        /// (<c>TaskCreationOptions.LongRunning</c>), so they hold no thread-pool thread.
+        /// </remarks>
+        Task HandleAsync();
     }
 }

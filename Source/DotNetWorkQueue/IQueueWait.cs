@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue
 {
@@ -38,5 +39,16 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <param name="waitTime">The how long the wait will last.</param>
         void Wait(Action<TimeSpan> waitTime);
+
+        /// <summary>
+        /// Waits out the current back-off interval without holding a thread.
+        /// </summary>
+        /// <remarks>
+        /// Returns normally when the queue is stopping, exactly as <see cref="Wait()"/> does, and
+        /// advances the back-off ladder either way. It must not throw on stop: the caller polls for a
+        /// message, finds none and waits, so a cancellation exception here would surface as a rollback
+        /// of a message that was never received.
+        /// </remarks>
+        ValueTask WaitAsync();
     }
 }

@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Queue;
@@ -12,20 +13,20 @@ namespace DotNetWorkQueue.Tests.Queue
     public class MessageProcessingTests
     {
         [TestMethod]
-        public void Handle()
+        public async Task Handle()
         {
             var wrapper = new MessageProcessingWrapper();
             var test = wrapper.Create();
-            test.Handle();
+            await test.HandleAsync();
             wrapper.MessageContextFactory.Received(1).Create();
         }
 
         [TestMethod]
-        public void Handle_Receive_Message()
+        public async Task Handle_Receive_Message()
         {
             var wrapper = new MessageProcessingWrapper();
             var test = wrapper.Create();
-            test.Handle();
+            await test.HandleAsync();
             wrapper.ReceiveMessages.ReceivedWithAnyArgs(1).ReceiveMessage(null);
         }
 
