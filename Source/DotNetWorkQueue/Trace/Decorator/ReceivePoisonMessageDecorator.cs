@@ -72,6 +72,7 @@ namespace DotNetWorkQueue.Trace.Decorator
                 {
                     scope?.AddMessageIdTag(context);
                     scope?.AddException(exception);
+                    scope?.SetStatus(ActivityStatusCode.Error);
                     _handler.Handle(context, exception);
                 }
             }
@@ -98,6 +99,7 @@ namespace DotNetWorkQueue.Trace.Decorator
                 {
                     scope?.AddMessageIdTag(context);
                     scope?.AddException(exception);
+                    scope?.SetStatus(ActivityStatusCode.Error);
                     await _handler.HandleAsync(context, exception).ConfigureAwait(false);
                 }
             }

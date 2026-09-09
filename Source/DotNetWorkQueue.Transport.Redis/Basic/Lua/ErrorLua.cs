@@ -56,10 +56,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 return null;
             return (int)result;
         }
-        /// <summary>Gets the parameters.</summary>
-        /// <param name="messageId">The message identifier.</param>
-        /// <param name="unixTime">current time</param>
-        /// <returns></returns>
         /// <summary>
         /// Moves a message to the error queue without blocking a thread across the call.
         /// </summary>
@@ -76,7 +72,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 return null;
             return (int)result;
         }
-
+        /// <summary>Gets the parameters.</summary>
+        /// <param name="messageId">The message identifier.</param>
+        /// <param name="unixTime">current time</param>
+        /// <returns></returns>
         private object GetParameters(string messageId, long unixTime)
         {
             return new

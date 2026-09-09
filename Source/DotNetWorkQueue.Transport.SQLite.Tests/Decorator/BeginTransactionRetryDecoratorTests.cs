@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Data;
 using System.Data.Common;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Decorator;
@@ -85,6 +86,64 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Decorator
 
             Assert.AreSame(decoratedTxn, result);
             decorated.Received(1).BeginTransaction();
+            registry.Dispose();
+        }
+
+        [TestMethod]
+        public async Task BeginTransactionAsync_WhenRegistryDisposed_FallsThroughToDecorated()
+        {
+            var decoratedTxn = Substitute.For<DbTransaction>();
+            var decorated = Substitute.For<ISQLiteTransactionWrapper>();
+            decorated.BeginTransactionAsync().Returns(Task.FromResult(decoratedTxn));
+            var policies = Substitute.For<IPolicies>();
+            var registry = new ResiliencePipelineRegistry<string>();
+            registry.Dispose();
+            policies.Registry.Returns(registry);
+
+            var sut = new BeginTransactionRetryDecorator(decorated, policies);
+
+            var result = await sut.BeginTransactionAsync().ConfigureAwait(false);
+
+            Assert.AreSame(decoratedTxn, result);
+            await decorated.Received(1).BeginTransactionAsync().ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task BeginTransactionAsync_WhenPipelineRegistered_ExecutesThroughPipeline()
+        {
+            var decoratedTxn = Substitute.For<DbTransaction>();
+            var decorated = Substitute.For<ISQLiteTransactionWrapper>();
+            decorated.BeginTransactionAsync().Returns(Task.FromResult(decoratedTxn));
+            var policies = Substitute.For<IPolicies>();
+            var registry = new ResiliencePipelineRegistry<string>();
+            registry.TryAddBuilder(TransportPolicyDefinitions.BeginTransaction, (_, _) => { });
+            policies.Registry.Returns(registry);
+
+            var sut = new BeginTransactionRetryDecorator(decorated, policies);
+
+            var result = await sut.BeginTransactionAsync().ConfigureAwait(false);
+
+            Assert.AreSame(decoratedTxn, result);
+            await decorated.Received(1).BeginTransactionAsync().ConfigureAwait(false);
+            registry.Dispose();
+        }
+
+        [TestMethod]
+        public async Task BeginTransactionAsync_WhenNoPipelineRegistered_CallsDecoratedDirectly()
+        {
+            var decoratedTxn = Substitute.For<DbTransaction>();
+            var decorated = Substitute.For<ISQLiteTransactionWrapper>();
+            decorated.BeginTransactionAsync().Returns(Task.FromResult(decoratedTxn));
+            var policies = Substitute.For<IPolicies>();
+            var registry = new ResiliencePipelineRegistry<string>();
+            policies.Registry.Returns(registry);
+
+            var sut = new BeginTransactionRetryDecorator(decorated, policies);
+
+            var result = await sut.BeginTransactionAsync().ConfigureAwait(false);
+
+            Assert.AreSame(decoratedTxn, result);
+            await decorated.Received(1).BeginTransactionAsync().ConfigureAwait(false);
             registry.Dispose();
         }
     }

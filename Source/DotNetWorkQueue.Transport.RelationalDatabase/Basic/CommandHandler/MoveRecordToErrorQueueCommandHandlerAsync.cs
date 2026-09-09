@@ -95,7 +95,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                 using (var conn = _dbConnectionFactory.Create())
                 {
                     await conn.OpenAsync().ConfigureAwait(false);
-                    using (var trans = _transactionFactory.Create(conn).BeginTransaction())
+                    using (var trans = await _transactionFactory.Create(conn).BeginTransactionAsync().ConfigureAwait(false))
                     {
                         using (var commandSql = conn.CreateCommand())
                         {

@@ -205,6 +205,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 typeof(MoveRecordToErrorQueueCommandDecorator), LifeStyles.Singleton);
 
             container.RegisterDecorator(
+                typeof(ICommandHandlerAsync<MoveRecordToErrorQueueCommand<long>>),
+                typeof(MoveRecordToErrorQueueCommandDecoratorAsync), LifeStyles.Singleton);
+
+            container.RegisterDecorator(
                 typeof(IQueryHandler<GetErrorRecordExistsQuery<long>, bool>),
                 typeof(GetErrorRecordExistsQueryDecorator), LifeStyles.Singleton);
 

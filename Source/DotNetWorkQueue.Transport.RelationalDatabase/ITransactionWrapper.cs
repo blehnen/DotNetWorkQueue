@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data.Common;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
@@ -38,5 +39,17 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// </summary>
         /// <returns></returns>
         DbTransaction BeginTransaction();
+        /// <summary>
+        /// Begins the transaction without blocking a thread across the call.
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>
+        /// On SQL Server and PostgreSQL beginning a transaction is a round trip, so the asynchronous
+        /// consumer needs this rather than the synchronous member; the send path already awaits
+        /// <see cref="DbConnection.BeginTransactionAsync(System.Threading.CancellationToken)"/> directly.
+        /// A provider that does not override it runs the synchronous version on the calling thread,
+        /// which is what SQLite does.
+        /// </remarks>
+        Task<DbTransaction> BeginTransactionAsync();
     }
 }

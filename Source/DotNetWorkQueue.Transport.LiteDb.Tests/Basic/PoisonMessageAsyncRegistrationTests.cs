@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
@@ -17,8 +18,22 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
     [TestClass]
     public class PoisonMessageAsyncRegistrationTests
     {
-        private static readonly string FakeConnection =
-            Path.Combine(Path.GetTempPath(), "dnwq-poison-registration.db");
+        private string _database;
+
+        [TestInitialize]
+        public void Setup()
+        {
+            //A path of its own per run: the container reaches the file, and a shared name would make
+            //this test depend on whatever a previous run left behind.
+            _database = Path.Combine(Path.GetTempPath(),
+                $"dnwq-poison-registration-{Guid.NewGuid():N}.db");
+        }
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+            try { File.Delete(_database); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+        }
 
         [TestMethod]
         public void MoveRecordToErrorQueue_ResolvesForTheAsynchronousPath()
@@ -34,7 +49,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                     poisonMessage = container.GetInstance<IReceivePoisonMessage>();
                 }))
             {
-                try { qc.CreateConsumer(new QueueConnection("poison_registration", FakeConnection)); }
+                try { qc.CreateConsumer(new QueueConnection("poison_registration", _database)); }
                 catch { /* the database does not exist; the resolutions above are the point */ }
             }
 
