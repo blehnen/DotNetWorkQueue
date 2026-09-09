@@ -19,6 +19,7 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Validation;
 using Polly;
@@ -57,20 +58,33 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         /// <inheritdoc />
         public DbTransaction BeginTransaction()
         {
-            if (_pipeline == null)
+            var pipeline = Pipeline();
+            if (pipeline == null) return _decorated.BeginTransaction();
+            return pipeline.Execute(_ => _decorated.BeginTransaction());
+        }
+
+        /// <inheritdoc />
+        public async Task<DbTransaction> BeginTransactionAsync()
+        {
+            var pipeline = Pipeline();
+            if (pipeline == null) return await _decorated.BeginTransactionAsync().ConfigureAwait(false);
+            return await pipeline.ExecuteAsync(async _ =>
+                await _decorated.BeginTransactionAsync().ConfigureAwait(false)).ConfigureAwait(false);
+        }
+
+        private ResiliencePipeline Pipeline()
+        {
+            if (_pipeline != null) return _pipeline;
+            try
             {
-                try
-                {
-                    _policies.Registry.TryGetPipeline(TransportPolicyDefinitions.BeginTransaction, out _pipeline);
-                }
-                catch (ObjectDisposedException)
-                {
-                    // Shutdown race: registry disposed before first invocation.
-                    // Fall through to direct handler — same semantics as the "no pipeline" path.
-                }
+                _policies.Registry.TryGetPipeline(TransportPolicyDefinitions.BeginTransaction, out _pipeline);
             }
-            if (_pipeline == null) return _decorated.BeginTransaction();
-            return _pipeline.Execute(_ => _decorated.BeginTransaction());
+            catch (ObjectDisposedException)
+            {
+                // Shutdown race: registry disposed before first invocation.
+                // Fall through to the direct handler - same semantics as the "no pipeline" path.
+            }
+            return _pipeline;
         }
     }
 }

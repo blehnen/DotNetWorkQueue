@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
@@ -28,13 +29,17 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     internal class RedisQueueReceivePoisonMessage : IReceivePoisonMessage
     {
         private readonly ICommandHandler<MoveRecordToErrorQueueCommand<string>> _commandMoveRecord;
+        private readonly ICommandHandlerAsync<MoveRecordToErrorQueueCommand<string>> _commandMoveRecordAsync;
         /// <summary>
         /// Initializes a new instance of the <see cref="RedisQueueReceivePoisonMessage"/> class.
         /// </summary>
         /// <param name="commandMoveRecord">The command move record.</param>
-        public RedisQueueReceivePoisonMessage(ICommandHandler<MoveRecordToErrorQueueCommand<string>> commandMoveRecord)
+        /// <param name="commandMoveRecordAsync">The command move record, for the asynchronous consumer.</param>
+        public RedisQueueReceivePoisonMessage(ICommandHandler<MoveRecordToErrorQueueCommand<string>> commandMoveRecord,
+            ICommandHandlerAsync<MoveRecordToErrorQueueCommand<string>> commandMoveRecordAsync)
         {
             _commandMoveRecord = commandMoveRecord;
+            _commandMoveRecordAsync = commandMoveRecordAsync;
         }
 
         /// <summary>
@@ -47,6 +52,18 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             if (context.MessageId != null && context.MessageId.HasValue)
             {
                 _commandMoveRecord.Handle(new MoveRecordToErrorQueueCommand<string>(exception, context.MessageId.Id.Value.ToString(), context));
+            }
+            context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);
+        }
+
+        /// <inheritdoc />
+        public async Task HandleAsync(IMessageContext context, PoisonMessageException exception)
+        {
+            if (context.MessageId != null && context.MessageId.HasValue)
+            {
+                await _commandMoveRecordAsync.HandleAsync(
+                    new MoveRecordToErrorQueueCommand<string>(exception, context.MessageId.Id.Value.ToString(), context))
+                    .ConfigureAwait(false);
             }
             context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);
         }

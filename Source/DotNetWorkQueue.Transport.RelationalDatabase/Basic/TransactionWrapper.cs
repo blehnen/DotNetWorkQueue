@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data.Common;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
@@ -39,6 +40,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         public DbTransaction BeginTransaction()
         {
             return Connection.BeginTransaction();
+        }
+        /// <inheritdoc />
+        public async Task<DbTransaction> BeginTransactionAsync()
+        {
+            return await Connection.BeginTransactionAsync().ConfigureAwait(false);
         }
     }
 }

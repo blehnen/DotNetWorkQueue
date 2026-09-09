@@ -195,7 +195,7 @@ namespace DotNetWorkQueue.Queue
                 }
                 catch (PoisonMessageException exception)
                 {
-                    _receivePoisonMessage.Handle(context, exception);
+                    await _receivePoisonMessage.HandleAsync(context, exception).ConfigureAwait(false);
                     _consumerQueueErrorNotification.InvokePoisonMessageError(new PoisonMessageNotification(exception));
                 }
                 catch (ReceiveMessageException e)

@@ -206,6 +206,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container
                 .Register<ICommandHandler<MoveRecordToErrorQueueCommand<long>>,
                     MoveRecordToErrorQueueCommandHandler<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>>(LifeStyles.Singleton);
+            container
+                .Register<ICommandHandlerAsync<MoveRecordToErrorQueueCommand<long>>,
+                    MoveRecordToErrorQueueCommandHandlerAsync<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>>(LifeStyles.Singleton);
 
             //explicit registration of options
             container

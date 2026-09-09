@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Data;
 using System.Data.Common;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
@@ -32,6 +33,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         public DbTransaction BeginTransaction()
         {
             return Connection.BeginTransaction();
+        }
+
+        public async Task<DbTransaction> BeginTransactionAsync()
+        {
+            return await Connection.BeginTransactionAsync().ConfigureAwait(false);
         }
     }
 }

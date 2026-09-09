@@ -187,6 +187,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container
                 .Register<ICommandHandler<MoveRecordToErrorQueueCommand<long>>,
                     MoveRecordToErrorQueueCommandHandler<SqlConnection, SqlTransaction, SqlCommand>>(LifeStyles.Singleton);
+            container
+                .Register<ICommandHandlerAsync<MoveRecordToErrorQueueCommand<long>>,
+                    MoveRecordToErrorQueueCommandHandlerAsync<SqlConnection, SqlTransaction, SqlCommand>>(LifeStyles.Singleton);
 
             //explicit registration of options
             container

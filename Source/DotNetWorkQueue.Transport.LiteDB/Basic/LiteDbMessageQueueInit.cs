@@ -135,6 +135,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             container.Register(typeof(ICommandHandler<>), LifeStyles.Singleton,
                 target);
 
+            container.Register(typeof(ICommandHandlerAsync<>), LifeStyles.Singleton,
+                target);
+
             container.Register(typeof(IQueryHandler<,>), LifeStyles.Singleton,
                 target);
 

@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 
 namespace DotNetWorkQueue
@@ -32,5 +33,17 @@ namespace DotNetWorkQueue
         /// <param name="context">The context.</param>
         /// <param name="exception">The exception.</param>
         void Handle(IMessageContext context, PoisonMessageException exception);
+
+        /// <summary>
+        /// Moves a message that cannot be processed to the error queue, without blocking a thread.
+        /// </summary>
+        /// <param name="context">The message context.</param>
+        /// <param name="exception">The exception that made the message poison.</param>
+        /// <remarks>
+        /// Called from the asynchronous consumer, where the synchronous twin would block a thread-pool
+        /// thread: after the receive became awaitable this runs in a continuation rather than on the
+        /// worker's own dedicated thread.
+        /// </remarks>
+        Task HandleAsync(IMessageContext context, PoisonMessageException exception);
     }
 }

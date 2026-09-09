@@ -151,6 +151,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 .Register<ICommandHandler<MoveRecordToErrorQueueCommand<long>>,
                     MoveRecordToErrorQueueCommandHandler<DbConnection, DbTransaction, DbCommand>>(LifeStyles
                     .Singleton);
+            container
+                .Register<ICommandHandlerAsync<MoveRecordToErrorQueueCommand<long>>,
+                    MoveRecordToErrorQueueCommandHandlerAsync<DbConnection, DbTransaction, DbCommand>>(LifeStyles
+                    .Singleton);
 
             //expired messages
             container
@@ -199,6 +203,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.RegisterDecorator(
                 typeof(ICommandHandler<MoveRecordToErrorQueueCommand<long>>),
                 typeof(MoveRecordToErrorQueueCommandDecorator), LifeStyles.Singleton);
+
+            container.RegisterDecorator(
+                typeof(ICommandHandlerAsync<MoveRecordToErrorQueueCommand<long>>),
+                typeof(MoveRecordToErrorQueueCommandDecoratorAsync), LifeStyles.Singleton);
 
             container.RegisterDecorator(
                 typeof(IQueryHandler<GetErrorRecordExistsQuery<long>, bool>),

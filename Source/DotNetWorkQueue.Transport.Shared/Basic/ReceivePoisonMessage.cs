@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
@@ -26,15 +27,20 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
     public class ReceivePoisonMessage<T> : IReceivePoisonMessage
     {
         private readonly ICommandHandler<MoveRecordToErrorQueueCommand<T>> _commandMoveRecord;
+        private readonly ICommandHandlerAsync<MoveRecordToErrorQueueCommand<T>> _commandMoveRecordAsync;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceivePoisonMessage{T}"/> class.
         /// </summary>
         /// <param name="commandMoveRecord">The command move record.</param>
-        public ReceivePoisonMessage(ICommandHandler<MoveRecordToErrorQueueCommand<T>> commandMoveRecord)
+        /// <param name="commandMoveRecordAsync">The command move record, for the asynchronous consumer.</param>
+        public ReceivePoisonMessage(ICommandHandler<MoveRecordToErrorQueueCommand<T>> commandMoveRecord,
+            ICommandHandlerAsync<MoveRecordToErrorQueueCommand<T>> commandMoveRecordAsync)
         {
             Guard.NotNull(commandMoveRecord);
+            Guard.NotNull(commandMoveRecordAsync);
             _commandMoveRecord = commandMoveRecord;
+            _commandMoveRecordAsync = commandMoveRecordAsync;
         }
         /// <inheritdoc />
         public void Handle(IMessageContext context, PoisonMessageException exception)
@@ -47,6 +53,19 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
             var messageId = (T)context.MessageId.Id.Value;
             _commandMoveRecord.Handle(
                 new MoveRecordToErrorQueueCommand<T>(exception, messageId, context));
+            context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);
+        }
+
+        /// <inheritdoc />
+        public async Task HandleAsync(IMessageContext context, PoisonMessageException exception)
+        {
+            Guard.NotNull(context);
+            Guard.NotNull(exception);
+
+            if (context.MessageId == null || !context.MessageId.HasValue) return;
+            var messageId = (T)context.MessageId.Id.Value;
+            await _commandMoveRecordAsync.HandleAsync(
+                new MoveRecordToErrorQueueCommand<T>(exception, messageId, context)).ConfigureAwait(false);
             context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);
         }
     }
