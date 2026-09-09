@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
@@ -75,7 +76,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             // Should call Handle 3 times: DashboardRequeueAllErrors, ErrorTracking, MetaDataErrors
             prepareCommand.Received(3).Handle(
                 Arg.Any<DashboardRequeueAllErrorMessagesCommand>(),
-                Arg.Any<IDbCommand>(),
+                Arg.Any<DbCommand>(),
                 Arg.Any<CommandStringTypes>());
         }
 
@@ -91,7 +92,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             // Should call Handle 4 times: DashboardRequeueAllErrors, ErrorTracking, StatusTable, MetaDataErrors
             prepareCommand.Received(4).Handle(
                 Arg.Any<DashboardRequeueAllErrorMessagesCommand>(),
-                Arg.Any<IDbCommand>(),
+                Arg.Any<DbCommand>(),
                 Arg.Any<CommandStringTypes>());
         }
 
@@ -135,19 +136,19 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 
             prepareCommand.Received(1).Handle(
                 Arg.Any<DashboardRequeueAllErrorMessagesCommand>(),
-                Arg.Any<IDbCommand>(),
+                Arg.Any<DbCommand>(),
                 CommandStringTypes.DashboardRequeueAllErrors);
             prepareCommand.Received(1).Handle(
                 Arg.Any<DashboardRequeueAllErrorMessagesCommand>(),
-                Arg.Any<IDbCommand>(),
+                Arg.Any<DbCommand>(),
                 CommandStringTypes.DashboardRequeueAllErrors_ErrorTracking);
             prepareCommand.Received(1).Handle(
                 Arg.Any<DashboardRequeueAllErrorMessagesCommand>(),
-                Arg.Any<IDbCommand>(),
+                Arg.Any<DbCommand>(),
                 CommandStringTypes.DashboardRequeueAllErrors_StatusTable);
             prepareCommand.Received(1).Handle(
                 Arg.Any<DashboardRequeueAllErrorMessagesCommand>(),
-                Arg.Any<IDbCommand>(),
+                Arg.Any<DbCommand>(),
                 CommandStringTypes.DashboardRequeueAllErrors_MetaDataErrors);
         }
 
@@ -160,7 +161,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 
             prepareCommand.DidNotReceive().Handle(
                 Arg.Any<DashboardRequeueAllErrorMessagesCommand>(),
-                Arg.Any<IDbCommand>(),
+                Arg.Any<DbCommand>(),
                 CommandStringTypes.DashboardRequeueAllErrors_StatusTable);
         }
 
@@ -178,7 +179,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 
         private static (DashboardRequeueAllErrorMessagesCommandHandler handler,
             IPrepareCommandHandler<DashboardRequeueAllErrorMessagesCommand> prepareCommand,
-            IDbCommand dbCommand)
+            DbCommand dbCommand)
             CreateHandlerWithMocks(bool enableStatusTable)
         {
             var (handler, prepareCommand, dbCommand) = CreateHandlerWithMocks(enableStatusTable, out _, out _, out _);
@@ -187,10 +188,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 
         private static (DashboardRequeueAllErrorMessagesCommandHandler handler,
             IPrepareCommandHandler<DashboardRequeueAllErrorMessagesCommand> prepareCommand,
-            IDbCommand dbCommand)
+            DbCommand dbCommand)
             CreateHandlerWithMocks(bool enableStatusTable,
-                out IDbConnection connection,
-                out IDbTransaction transaction,
+                out DbConnection connection,
+                out DbTransaction transaction,
                 out ITransactionWrapper transactionWrapper)
         {
             var optionsFactory = Substitute.For<ITransportOptionsFactory>();
@@ -198,11 +199,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             options.EnableStatusTable.Returns(enableStatusTable);
             optionsFactory.Create().Returns(options);
 
-            connection = Substitute.For<IDbConnection>();
-            var dbCommand = Substitute.For<IDbCommand>();
+            connection = Substitute.For<DbConnection>();
+            var dbCommand = Substitute.For<DbCommand>();
             connection.CreateCommand().Returns(dbCommand);
 
-            transaction = Substitute.For<IDbTransaction>();
+            transaction = Substitute.For<DbTransaction>();
             transactionWrapper = Substitute.For<ITransactionWrapper>();
             transactionWrapper.BeginTransaction().Returns(transaction);
 

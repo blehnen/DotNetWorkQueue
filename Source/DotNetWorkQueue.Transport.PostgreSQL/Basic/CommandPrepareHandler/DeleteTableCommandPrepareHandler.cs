@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -40,7 +41,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandPrepareHandler
         }
 
         /// <inheritdoc />
-        public void Handle(DeleteTableCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(DeleteTableCommand command, DbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText =
                 _commandCache.GetCommand(commandType, command.Table.ToLowerInvariant());

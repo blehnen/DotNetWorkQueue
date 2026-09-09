@@ -16,7 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Data;
+using System.Data.Common;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
@@ -32,11 +32,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <value>
         /// The connection.
         /// </value>
-        IDbConnection Connection { get; set; }
+        DbConnection Connection { get; set; }
         /// <summary>
         /// Begins the transaction.
         /// </summary>
         /// <returns></returns>
-        IDbTransaction BeginTransaction();
+        DbTransaction BeginTransaction();
     }
 }

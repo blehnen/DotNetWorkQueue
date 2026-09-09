@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
@@ -24,8 +25,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 {
     /// <inheritdoc />
     public class DoesJobExistQueryPrepareHandler<TConnection, TTransaction> : IPrepareQueryHandler<DoesJobExistQuery<TConnection, TTransaction>, QueueStatuses>
-        where TConnection : class, IDbConnection
-        where TTransaction : class, IDbTransaction
+        where TConnection : DbConnection
+        where TTransaction : DbTransaction
     {
         private readonly CommandStringCache _commandCache;
         /// <summary>
@@ -38,7 +39,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
             _commandCache = commandCache;
         }
         /// <inheritdoc />
-        public void Handle(DoesJobExistQuery<TConnection, TTransaction> query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(DoesJobExistQuery<TConnection, TTransaction> query, DbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
 

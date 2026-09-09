@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
@@ -66,7 +67,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         /// <param name="tableNameHelper">Supplies the queue (body) table name.</param>
         /// <param name="rows">The serialized body and header bytes per message, in input order.</param>
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Table name is from configuration; values are parameterized")]
-        internal static void BuildBodyInsertReturningCommand(IDbCommand command,
+        internal static void BuildBodyInsertReturningCommand(DbCommand command,
             ITableNameHelper tableNameHelper,
             IReadOnlyList<(byte[] Body, byte[] Headers)> rows)
         {

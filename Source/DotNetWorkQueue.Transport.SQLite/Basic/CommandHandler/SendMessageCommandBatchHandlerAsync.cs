@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
@@ -143,7 +144,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         }
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
-        private async Task<int> ProcessChunkAsync(IDbConnection connection, IDbTransaction trans,
+        private async Task<int> ProcessChunkAsync(DbConnection connection, DbTransaction trans,
             IReadOnlyList<QueueMessage<IMessage, IAdditionalMessageData>> chunk,
             SqLiteMessageQueueTransportOptions options,
             IQueueOutputMessage[] results, int globalIndex)

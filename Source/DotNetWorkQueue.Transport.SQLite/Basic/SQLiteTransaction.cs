@@ -17,18 +17,19 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
     internal class SqLiteTransactionWrapper : ISQLiteTransactionWrapper
     {
-        public IDbConnection Connection
+        public DbConnection Connection
         {
             get;
             set;
         }
 
-        public IDbTransaction BeginTransaction()
+        public DbTransaction BeginTransaction()
         {
             return Connection.BeginTransaction();
         }

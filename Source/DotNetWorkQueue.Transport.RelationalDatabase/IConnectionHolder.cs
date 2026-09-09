@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
@@ -31,9 +32,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
     /// <seealso cref="System.IDisposable" />
     /// <seealso cref="DotNetWorkQueue.IIsDisposed" />
     public interface IConnectionHolder<TConnection, TTransaction, out TCommand> : IDisposable, IIsDisposed
-        where TConnection : IDbConnection
-        where TTransaction : IDbTransaction
-        where TCommand : IDbCommand
+        where TConnection : DbConnection
+        where TTransaction : DbTransaction
+        where TCommand : DbCommand
     {
         /// <summary>
         /// Gets or sets the connection.

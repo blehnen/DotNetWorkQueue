@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 
 namespace DotNetWorkQueue.Transport.SQLite
 {
@@ -31,14 +32,14 @@ namespace DotNetWorkQueue.Transport.SQLite
         /// <param name="connectionString">The connection string.</param>
         /// <param name="forMemoryHold">if set to <c>true</c> [this connection is our master in-memory connection. This connection keeps the in-memory database alive].</param>
         /// <returns></returns>
-        IDbConnection CreateConnection(string connectionString, bool forMemoryHold);
+        DbConnection CreateConnection(string connectionString, bool forMemoryHold);
 
         /// <summary>
         /// Creates the command.
         /// </summary>
         /// <param name="connection">The connection.</param>
         /// <returns></returns>
-        IDbCommand CreateCommand(IDbConnection connection);
+        DbCommand CreateCommand(DbConnection connection);
 
         /// <summary>
         /// Creates a command for the supplied text, reusing the statements SQLite compiled for it
@@ -55,7 +56,7 @@ namespace DotNetWorkQueue.Transport.SQLite
         /// <param name="connection">The connection.</param>
         /// <param name="commandText">The command text.</param>
         /// <returns></returns>
-        IDbCommand CreateCommand(IDbConnection connection, string commandText)
+        DbCommand CreateCommand(DbConnection connection, string commandText)
         {
             var command = CreateCommand(connection);
             command.CommandText = commandText;
@@ -67,6 +68,6 @@ namespace DotNetWorkQueue.Transport.SQLite
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        ISQLiteTransactionWrapper CreateTransaction(IDbConnection connection);
+        ISQLiteTransactionWrapper CreateTransaction(DbConnection connection);
     }
 }

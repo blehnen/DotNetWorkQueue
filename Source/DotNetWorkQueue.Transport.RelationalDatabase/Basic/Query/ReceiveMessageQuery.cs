@@ -28,8 +28,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
     /// Dequeue a message from the queue.
     /// </summary>
     public class ReceiveMessageQuery<TConnection, TTransaction> : IQuery<IReceivedMessageInternal>
-        where TConnection : IDbConnection
-        where TTransaction : IDbTransaction
+        where TConnection : DbConnection
+        where TTransaction : DbTransaction
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceiveMessageQuery{TConnection, TTransaction}" /> class.

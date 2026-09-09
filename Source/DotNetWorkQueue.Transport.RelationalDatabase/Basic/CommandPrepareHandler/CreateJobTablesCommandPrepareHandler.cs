@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 
@@ -27,7 +28,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
     public class CreateJobTablesCommandPrepareHandler : IPrepareCommandHandler<CreateJobTablesCommand<ITable>>
     {
         /// <inheritdoc />
-        public void Handle(CreateJobTablesCommand<ITable> command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(CreateJobTablesCommand<ITable> command, DbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = command.Tables.Aggregate(string.Empty, (current, table) => current + table.Script() + Environment.NewLine);
         }

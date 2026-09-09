@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
@@ -32,7 +33,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
             _commandCache = commandCache;
         }
 
-        public void Handle(GetDashboardErrorMessageCountQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(GetDashboardErrorMessageCountQuery query, DbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(CommandStringTypes.GetDashboardErrorMessageCount);
         }

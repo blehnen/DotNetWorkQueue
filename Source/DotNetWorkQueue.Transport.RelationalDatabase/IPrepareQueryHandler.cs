@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.Shared;
 
@@ -35,6 +36,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <param name="query">The query.</param>
         /// <param name="dbCommand">The database command.</param>
         /// <param name="commandType">Type of the command.</param>
-        void Handle(TQuery query, IDbCommand dbCommand, CommandStringTypes commandType);
+        void Handle(TQuery query, DbCommand dbCommand, CommandStringTypes commandType);
     }
 }

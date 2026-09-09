@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Text;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
@@ -451,7 +452,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="delay">The delay.</param>
         /// <param name="expiration">The expiration.</param>
         /// <param name="currentDateTime">The current date time.</param>
-        internal void AddBuiltInColumnsParams(IDbCommand command, IAdditionalMessageData data, TimeSpan? delay, TimeSpan expiration, DateTime currentDateTime)
+        internal void AddBuiltInColumnsParams(DbCommand command, IAdditionalMessageData data, TimeSpan? delay, TimeSpan expiration, DateTime currentDateTime)
         {
             if (EnableDelayedProcessing)
             {

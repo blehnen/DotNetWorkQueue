@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
@@ -34,12 +35,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             Assert.IsEmpty(command.Parameters);
         }
 
-        private static IDbCommand CreateDbCommand()
+        private static DbCommand CreateDbCommand()
         {
-            var command = Substitute.For<IDbCommand>();
+            var command = Substitute.For<DbCommand>();
             var parameters = new DataParameterCollection();
             command.Parameters.Returns(parameters);
-            command.CreateParameter().Returns(_ => Substitute.For<IDbDataParameter>());
+            command.CreateParameter().Returns(_ => Substitute.For<DbParameter>());
             return command;
         }
     }

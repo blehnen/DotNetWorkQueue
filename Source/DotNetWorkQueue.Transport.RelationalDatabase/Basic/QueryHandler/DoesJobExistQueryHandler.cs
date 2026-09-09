@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
@@ -25,8 +26,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 {
     /// <inheritdoc />
     public class DoesJobExistQueryHandler<TConnection, TTransaction> : IQueryHandler<DoesJobExistQuery<TConnection, TTransaction>, QueueStatuses>
-        where TConnection : class, IDbConnection
-        where TTransaction : class, IDbTransaction
+        where TConnection : DbConnection
+        where TTransaction : DbTransaction
     {
         private readonly CommandStringCache _commandCache;
         private readonly IConnectionInformation _connectionInformation;
@@ -95,7 +96,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 
         }
 
-        private QueueStatuses RunQuery(DoesJobExistQuery<TConnection, TTransaction> query, IDbConnection connection, IDbTransaction transaction)
+        private QueueStatuses RunQuery(DoesJobExistQuery<TConnection, TTransaction> query, DbConnection connection, DbTransaction transaction)
         {
             var returnStatus = QueueStatuses.NotQueued;
             using (var command = connection.CreateCommand())

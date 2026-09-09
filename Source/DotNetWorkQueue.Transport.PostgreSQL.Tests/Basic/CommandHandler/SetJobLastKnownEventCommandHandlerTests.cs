@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
@@ -124,23 +125,23 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic.CommandHandler
             public SetJobLastKnownEventCommandHandler Handler { get; set; }
             public PostgreSqlCommandStringCache CommandCache { get; set; }
             public IDbConnectionFactory DbConnectionFactory { get; set; }
-            public IDbConnection Connection { get; set; }
-            public IDbCommand Command { get; set; }
-            public System.Collections.Generic.List<IDbDataParameter> Parameters { get; set; }
+            public DbConnection Connection { get; set; }
+            public DbCommand Command { get; set; }
+            public System.Collections.Generic.List<DbParameter> Parameters { get; set; }
         }
 
         private static HandleFixture CreateHandleFixture()
         {
             var commandCache = CreateCommandCache();
             var dbConnectionFactory = Substitute.For<IDbConnectionFactory>();
-            var connection = Substitute.For<IDbConnection>();
-            var command = Substitute.For<IDbCommand>();
-            var parametersList = new System.Collections.Generic.List<IDbDataParameter>();
-            var parameters = Substitute.For<IDataParameterCollection>();
-            parameters.Add(Arg.Do<object>(p => parametersList.Add((IDbDataParameter)p)));
+            var connection = Substitute.For<DbConnection>();
+            var command = Substitute.For<DbCommand>();
+            var parametersList = new System.Collections.Generic.List<DbParameter>();
+            var parameters = Substitute.For<DbParameterCollection>();
+            parameters.Add(Arg.Do<object>(p => parametersList.Add((DbParameter)p)));
 
             command.Parameters.Returns(parameters);
-            command.CreateParameter().Returns(_ => Substitute.For<IDbDataParameter>());
+            command.CreateParameter().Returns(_ => Substitute.For<DbParameter>());
             connection.CreateCommand().Returns(command);
             dbConnectionFactory.Create().Returns(connection);
 

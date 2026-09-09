@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.SQLite
@@ -31,18 +32,18 @@ namespace DotNetWorkQueue.Transport.SQLite
         /// </summary>
         /// <param name="command">The command.</param>
         /// <returns></returns>
-        Task<int> ExecuteNonQueryAsync(IDbCommand command);
+        Task<int> ExecuteNonQueryAsync(DbCommand command);
         /// <summary>
         /// Executes a scalar method asynchronous.
         /// </summary>
         /// <param name="command">The command.</param>
         /// <returns></returns>
-        Task<object> ExecuteScalarAsync(IDbCommand command);
+        Task<object> ExecuteScalarAsync(DbCommand command);
         /// <summary>
         /// Executes the reader asynchronous.
         /// </summary>
         /// <param name="command">The command.</param>
         /// <returns></returns>
-        Task<IDataReader> ExecuteReaderAsync(IDbCommand command);
+        Task<IDataReader> ExecuteReaderAsync(DbCommand command);
     }
 }

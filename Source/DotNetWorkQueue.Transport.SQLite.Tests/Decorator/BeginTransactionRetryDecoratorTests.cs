@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Decorator;
@@ -32,7 +33,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Decorator
         [TestMethod]
         public void BeginTransaction_WhenRegistryDisposed_FallsThroughToDecorated()
         {
-            var decoratedTxn = Substitute.For<IDbTransaction>();
+            var decoratedTxn = Substitute.For<DbTransaction>();
             var decorated = Substitute.For<ISQLiteTransactionWrapper>();
             decorated.BeginTransaction().Returns(decoratedTxn);
             var policies = Substitute.For<IPolicies>();
@@ -51,7 +52,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Decorator
         [TestMethod]
         public void BeginTransaction_WhenPipelineRegistered_ExecutesThroughPipeline()
         {
-            var decoratedTxn = Substitute.For<IDbTransaction>();
+            var decoratedTxn = Substitute.For<DbTransaction>();
             var decorated = Substitute.For<ISQLiteTransactionWrapper>();
             decorated.BeginTransaction().Returns(decoratedTxn);
             var policies = Substitute.For<IPolicies>();
@@ -71,7 +72,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Decorator
         [TestMethod]
         public void BeginTransaction_WhenNoPipelineRegistered_CallsDecoratedDirectly()
         {
-            var decoratedTxn = Substitute.For<IDbTransaction>();
+            var decoratedTxn = Substitute.For<DbTransaction>();
             var decorated = Substitute.For<ISQLiteTransactionWrapper>();
             decorated.BeginTransaction().Returns(decoratedTxn);
             var policies = Substitute.For<IPolicies>();

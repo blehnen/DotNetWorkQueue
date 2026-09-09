@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -52,7 +53,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandPrepareHandler
         /// <param name="command">The command.</param>
         /// <param name="dbCommand">The database command.</param>
         /// <param name="commandType">Type of the command.</param>
-        public void Handle(MoveRecordToErrorQueueCommand<long> command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(MoveRecordToErrorQueueCommand<long> command, DbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _buildSql.Create();
             var commandSql = dbCommand;

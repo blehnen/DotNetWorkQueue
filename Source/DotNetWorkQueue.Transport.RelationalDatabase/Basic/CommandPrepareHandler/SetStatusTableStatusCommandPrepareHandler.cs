@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
@@ -38,7 +39,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
             _commandCache = commandCache;
         }
         /// <inheritdoc />
-        public void Handle(SetStatusTableStatusCommand<long> command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(SetStatusTableStatusCommand<long> command, DbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
 

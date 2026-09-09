@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Globalization;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -34,28 +35,28 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic.CommandHandler
             var commandCache = CreateCommandCache();
             var handler = new SetJobLastKnownEventCommandHandler(commandCache);
 
-            var connection = Substitute.For<IDbConnection>();
-            var transaction = Substitute.For<IDbTransaction>();
-            var dbCommand = Substitute.For<IDbCommand>();
-            var parameters = Substitute.For<IDataParameterCollection>();
+            var connection = Substitute.For<DbConnection>();
+            var transaction = Substitute.For<DbTransaction>();
+            var dbCommand = Substitute.For<DbCommand>();
+            var parameters = Substitute.For<DbParameterCollection>();
             dbCommand.Parameters.Returns(parameters);
             dbCommand.CreateParameter().Returns(
-                _ => Substitute.For<IDbDataParameter>(),
-                _ => Substitute.For<IDbDataParameter>(),
-                _ => Substitute.For<IDbDataParameter>());
+                _ => Substitute.For<DbParameter>(),
+                _ => Substitute.For<DbParameter>(),
+                _ => Substitute.For<DbParameter>());
             connection.CreateCommand().Returns(dbCommand);
 
             var eventTime = new DateTimeOffset(2026, 3, 25, 10, 0, 0, TimeSpan.Zero);
             var scheduledTime = new DateTimeOffset(2026, 3, 25, 9, 0, 0, TimeSpan.Zero);
 
-            var command = new SetJobLastKnownEventCommand<IDbConnection, IDbTransaction>(
+            var command = new SetJobLastKnownEventCommand<DbConnection, DbTransaction>(
                 "TestJob", eventTime, scheduledTime, connection, transaction);
 
             handler.Handle(command);
 
             dbCommand.Received(1).ExecuteNonQuery();
             dbCommand.Received(1).Transaction = transaction;
-            parameters.Received(3).Add(Arg.Any<IDbDataParameter>());
+            parameters.Received(3).Add(Arg.Any<DbParameter>());
         }
 
         [TestMethod]
@@ -64,15 +65,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic.CommandHandler
             var commandCache = CreateCommandCache();
             var handler = new SetJobLastKnownEventCommandHandler(commandCache);
 
-            var connection = Substitute.For<IDbConnection>();
-            var transaction = Substitute.For<IDbTransaction>();
-            var dbCommand = Substitute.For<IDbCommand>();
-            var parameters = Substitute.For<IDataParameterCollection>();
+            var connection = Substitute.For<DbConnection>();
+            var transaction = Substitute.For<DbTransaction>();
+            var dbCommand = Substitute.For<DbCommand>();
+            var parameters = Substitute.For<DbParameterCollection>();
             dbCommand.Parameters.Returns(parameters);
 
-            var param1 = Substitute.For<IDbDataParameter>();
-            var param2 = Substitute.For<IDbDataParameter>();
-            var param3 = Substitute.For<IDbDataParameter>();
+            var param1 = Substitute.For<DbParameter>();
+            var param2 = Substitute.For<DbParameter>();
+            var param3 = Substitute.For<DbParameter>();
             var callCount = 0;
             dbCommand.CreateParameter().Returns(_ =>
             {
@@ -89,7 +90,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic.CommandHandler
             var eventTime = new DateTimeOffset(2026, 3, 25, 10, 0, 0, TimeSpan.Zero);
             var scheduledTime = new DateTimeOffset(2026, 3, 25, 9, 0, 0, TimeSpan.Zero);
 
-            var command = new SetJobLastKnownEventCommand<IDbConnection, IDbTransaction>(
+            var command = new SetJobLastKnownEventCommand<DbConnection, DbTransaction>(
                 "MyJob", eventTime, scheduledTime, connection, transaction);
 
             handler.Handle(command);
@@ -113,15 +114,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic.CommandHandler
             var commandCache = CreateCommandCache();
             var handler = new SetJobLastKnownEventCommandHandler(commandCache);
 
-            var connection = Substitute.For<IDbConnection>();
-            var transaction = Substitute.For<IDbTransaction>();
-            var dbCommand = Substitute.For<IDbCommand>();
-            var parameters = Substitute.For<IDataParameterCollection>();
+            var connection = Substitute.For<DbConnection>();
+            var transaction = Substitute.For<DbTransaction>();
+            var dbCommand = Substitute.For<DbCommand>();
+            var parameters = Substitute.For<DbParameterCollection>();
             dbCommand.Parameters.Returns(parameters);
-            dbCommand.CreateParameter().Returns(_ => Substitute.For<IDbDataParameter>());
+            dbCommand.CreateParameter().Returns(_ => Substitute.For<DbParameter>());
             connection.CreateCommand().Returns(dbCommand);
 
-            var command = new SetJobLastKnownEventCommand<IDbConnection, IDbTransaction>(
+            var command = new SetJobLastKnownEventCommand<DbConnection, DbTransaction>(
                 "TestJob",
                 DateTimeOffset.UtcNow,
                 DateTimeOffset.UtcNow,
@@ -141,15 +142,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic.CommandHandler
             var commandCache = CreateCommandCache();
             var handler = new SetJobLastKnownEventCommandHandler(commandCache);
 
-            var connection = Substitute.For<IDbConnection>();
-            var transaction = Substitute.For<IDbTransaction>();
-            var dbCommand = Substitute.For<IDbCommand>();
-            var parameters = Substitute.For<IDataParameterCollection>();
+            var connection = Substitute.For<DbConnection>();
+            var transaction = Substitute.For<DbTransaction>();
+            var dbCommand = Substitute.For<DbCommand>();
+            var parameters = Substitute.For<DbParameterCollection>();
             dbCommand.Parameters.Returns(parameters);
-            dbCommand.CreateParameter().Returns(_ => Substitute.For<IDbDataParameter>());
+            dbCommand.CreateParameter().Returns(_ => Substitute.For<DbParameter>());
             connection.CreateCommand().Returns(dbCommand);
 
-            var command = new SetJobLastKnownEventCommand<IDbConnection, IDbTransaction>(
+            var command = new SetJobLastKnownEventCommand<DbConnection, DbTransaction>(
                 "TestJob", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow, connection, transaction);
 
             handler.Handle(command);

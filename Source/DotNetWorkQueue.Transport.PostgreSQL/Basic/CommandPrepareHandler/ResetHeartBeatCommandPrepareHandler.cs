@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -48,7 +49,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandPrepareHandler
         /// <param name="command">The command.</param>
         /// <param name="dbCommand">The database command.</param>
         /// <param name="commandType">Type of the command.</param>
-        public void Handle(ResetHeartBeatCommand<long> command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(ResetHeartBeatCommand<long> command, DbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(CommandStringTypes.ResetHeartbeat);
 

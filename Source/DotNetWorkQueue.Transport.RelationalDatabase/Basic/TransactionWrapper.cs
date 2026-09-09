@@ -16,7 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
@@ -28,15 +28,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// Initializes a new instance of the <see cref="TransactionWrapper"/> class.
         /// </summary>
         /// <param name="connection">The connection.</param>
-        public TransactionWrapper(IDbConnection connection)
+        public TransactionWrapper(DbConnection connection)
         {
             Guard.NotNull(connection);
             Connection = connection;
         }
         /// <inheritdoc />
-        public IDbConnection Connection { get; set; }
+        public DbConnection Connection { get; set; }
         /// <inheritdoc />
-        public IDbTransaction BeginTransaction()
+        public DbTransaction BeginTransaction()
         {
             return Connection.BeginTransaction();
         }

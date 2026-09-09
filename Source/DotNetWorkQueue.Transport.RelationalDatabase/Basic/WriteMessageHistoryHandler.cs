@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Configuration;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
@@ -234,7 +235,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             }
         }
 
-        private DateTime? GetStartedUtc(IDbConnection connection, string queueId)
+        private DateTime? GetStartedUtc(DbConnection connection, string queueId)
         {
             using (var command = connection.CreateCommand())
             {
@@ -255,7 +256,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             }
         }
 
-        private static void AddParameter(IDbCommand command, string name, DbType dbType, object value)
+        private static void AddParameter(DbCommand command, string name, DbType dbType, object value)
         {
             var param = command.CreateParameter();
             param.ParameterName = name;

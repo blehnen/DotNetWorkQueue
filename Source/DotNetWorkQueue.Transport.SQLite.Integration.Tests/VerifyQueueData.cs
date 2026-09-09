@@ -5,6 +5,11 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using System;
 using System.Data;
+using System.Data.Common;
+//System.Data.Common gained its own DbDataSource in .NET 7, which collides with this
+//transport's type of the same name. An explicit alias wins over a namespace import, so the
+//bare name below keeps meaning the SQLite one.
+using DbDataSource = DotNetWorkQueue.Transport.SQLite.Basic.DbDataSource;
 using System.Data.SQLite;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -236,7 +241,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
         /// enough to diagnose.
         /// </summary>
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query Ok")]
-        private static void AssertRecordCount(IDbCommand command, string tableName, int expected)
+        private static void AssertRecordCount(DbCommand command, string tableName, int expected)
         {
             command.CommandText = $"select count(*) from {tableName}";
             int records;
@@ -254,7 +259,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
         }
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query Ok")]
-        private static string DumpRows(IDbCommand command, string tableName, int maxRows = 10)
+        private static string DumpRows(DbCommand command, string tableName, int maxRows = 10)
         {
             var output = new StringBuilder();
             command.CommandText = $"select * from {tableName} limit {maxRows}";

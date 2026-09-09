@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 
@@ -34,7 +35,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// <param name="connection">The connection.</param>
         /// <param name="trans">The trans.</param>
         /// <param name="tableName">Name of the table.</param>
-        public GetTableExistsTransactionQuery(IDbConnection connection, IDbTransaction trans, string tableName)
+        public GetTableExistsTransactionQuery(DbConnection connection, DbTransaction trans, string tableName)
         {
             Guard.NotNull(connection);
             Guard.NotNull(trans);
@@ -51,14 +52,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// <value>
         /// The connection.
         /// </value>
-        public IDbConnection Connection { get; }
+        public DbConnection Connection { get; }
         /// <summary>
         /// Gets the trans.
         /// </summary>
         /// <value>
         /// The trans.
         /// </value>
-        public IDbTransaction Trans { get; }
+        public DbTransaction Trans { get; }
         /// <summary>
         /// Gets the name of the table.
         /// </summary>

@@ -1,54 +1,102 @@
+// ---------------------------------------------------------------------
+//This file is part of DotNetWorkQueue
+//Copyright © 2015-2026 Brian Lehnen
+//
+//This library is free software; you can redistribute it and/or
+//modify it under the terms of the GNU Lesser General Public
+//License as published by the Free Software Foundation; either
+//version 2.1 of the License, or (at your option) any later version.
+//
+//This library is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//Lesser General Public License for more details.
+//
+//You should have received a copy of the GNU Lesser General Public
+//License along with this library; if not, write to the Free Software
+//Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+// ---------------------------------------------------------------------
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
+using System.Data.Common;
 using System.Linq;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareHandler
 {
-    internal class DataParameterCollection : IDataParameterCollection
+    /// <summary>
+    /// An in-memory parameter collection for prepare-handler tests.
+    /// </summary>
+    /// <remarks>
+    /// Derives from <see cref="DbParameterCollection"/> rather than implementing
+    /// <c>IDataParameterCollection</c>, because <see cref="DbCommand.Parameters"/> is typed as the
+    /// abstract class. The convenience members below (<c>Any</c>, <c>First</c>) are what the tests
+    /// actually assert against and are kept unchanged.
+    /// </remarks>
+    internal class DataParameterCollection : DbParameterCollection
     {
-        private readonly List<IDbDataParameter> _parameters = new List<IDbDataParameter>();
+        private readonly List<DbParameter> _parameters = new List<DbParameter>();
 
-        public object this[string parameterName]
+        public override int Count => _parameters.Count;
+        public override object SyncRoot => this;
+
+        public bool Any(Func<DbParameter, bool> predicate) => _parameters.Any(predicate);
+
+        public DbParameter First(Func<DbParameter, bool> predicate) => _parameters.First(predicate);
+
+        public DbParameter First() => _parameters.First();
+
+        public override int Add(object value)
         {
-            get => _parameters.FirstOrDefault(p => p.ParameterName == parameterName);
-            set { }
-        }
-
-        public object this[int index]
-        {
-            get => _parameters[index];
-            set => _parameters[index] = (IDbDataParameter)value;
-        }
-
-        public int Count => _parameters.Count;
-        public bool IsFixedSize => false;
-        public bool IsReadOnly => false;
-        public bool IsSynchronized => false;
-        public object SyncRoot => this;
-
-        public int Add(object value)
-        {
-            _parameters.Add((IDbDataParameter)value);
+            _parameters.Add((DbParameter)value);
             return _parameters.Count - 1;
         }
 
-        public bool Any(System.Func<IDbDataParameter, bool> predicate) => _parameters.Any(predicate);
+        public override void AddRange(Array values)
+        {
+            foreach (var value in values)
+                _parameters.Add((DbParameter)value);
+        }
 
-        public IDbDataParameter First(System.Func<IDbDataParameter, bool> predicate) => _parameters.First(predicate);
+        public override void Clear() => _parameters.Clear();
 
-        public IDbDataParameter First() => _parameters.First();
+        public override bool Contains(string value) => _parameters.Any(p => p.ParameterName == value);
 
-        public void Clear() => _parameters.Clear();
-        public bool Contains(string parameterName) => _parameters.Any(p => p.ParameterName == parameterName);
-        public bool Contains(object value) => _parameters.Contains((IDbDataParameter)value);
-        public void CopyTo(System.Array array, int index) { }
-        public IEnumerator GetEnumerator() => _parameters.GetEnumerator();
-        public int IndexOf(string parameterName) => _parameters.FindIndex(p => p.ParameterName == parameterName);
-        public int IndexOf(object value) => _parameters.IndexOf((IDbDataParameter)value);
-        public void Insert(int index, object value) => _parameters.Insert(index, (IDbDataParameter)value);
-        public void Remove(object value) => _parameters.Remove((IDbDataParameter)value);
-        public void RemoveAt(string parameterName) => _parameters.RemoveAll(p => p.ParameterName == parameterName);
-        public void RemoveAt(int index) => _parameters.RemoveAt(index);
+        public override bool Contains(object value) => _parameters.Contains((DbParameter)value);
+
+        public override void CopyTo(Array array, int index) { }
+
+        public override IEnumerator GetEnumerator() => _parameters.GetEnumerator();
+
+        public override int IndexOf(string parameterName) =>
+            _parameters.FindIndex(p => p.ParameterName == parameterName);
+
+        public override int IndexOf(object value) => _parameters.IndexOf((DbParameter)value);
+
+        public override void Insert(int index, object value) =>
+            _parameters.Insert(index, (DbParameter)value);
+
+        public override void Remove(object value) => _parameters.Remove((DbParameter)value);
+
+        public override void RemoveAt(string parameterName) =>
+            _parameters.RemoveAll(p => p.ParameterName == parameterName);
+
+        public override void RemoveAt(int index) => _parameters.RemoveAt(index);
+
+        protected override DbParameter GetParameter(int index) => _parameters[index];
+
+        protected override DbParameter GetParameter(string parameterName) =>
+            _parameters.FirstOrDefault(p => p.ParameterName == parameterName);
+
+        protected override void SetParameter(int index, DbParameter value) => _parameters[index] = value;
+
+        protected override void SetParameter(string parameterName, DbParameter value)
+        {
+            var index = IndexOf(parameterName);
+            if (index >= 0)
+                _parameters[index] = value;
+            else
+                _parameters.Add(value);
+        }
     }
 }

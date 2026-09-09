@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
@@ -43,7 +44,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         }
 
         /// <inheritdoc />
-        public void Handle(GetColumnNamesFromTableQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(GetColumnNamesFromTableQuery query, DbCommand dbCommand, CommandStringTypes commandType)
         {
             //table name needs to be lower case
             _decorated.Handle(new GetColumnNamesFromTableQuery(query.ConnectionString, query.TableName.ToLowerInvariant()), dbCommand,

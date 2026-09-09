@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Reflection;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IoC;
@@ -114,8 +115,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.Register<SqLiteMessageQueueTransportOptions>(LifeStyles.Singleton);
 
             container
-                .Register<IConnectionHeader<IDbConnection, IDbTransaction, IDbCommand>,
-                    ConnectionHeader<IDbConnection, IDbTransaction, IDbCommand>>(LifeStyles.Singleton);
+                .Register<IConnectionHeader<DbConnection, DbTransaction, DbCommand>,
+                    ConnectionHeader<DbConnection, DbTransaction, DbCommand>>(LifeStyles.Singleton);
             container.Register<ISQLiteTransactionWrapper, SqLiteTransactionWrapper>(LifeStyles.Transient);
             //**all
 
@@ -136,19 +137,19 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             //explicit registration of our job exists query
             container
-                .Register<IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>,
+                .Register<IQueryHandler<DoesJobExistQuery<DbConnection, DbTransaction>,
                         QueueStatuses>,
-                    DoesJobExistQueryHandler<IDbConnection, IDbTransaction>>(LifeStyles.Singleton);
+                    DoesJobExistQueryHandler<DbConnection, DbTransaction>>(LifeStyles.Singleton);
 
             //because we have an explicit registration for job exists, we need to explicitly register the prepare statement
             container
-                .Register<IPrepareQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>,
+                .Register<IPrepareQueryHandler<DoesJobExistQuery<DbConnection, DbTransaction>,
                         QueueStatuses>,
-                    DoesJobExistQueryPrepareHandler<IDbConnection, IDbTransaction>>(LifeStyles.Singleton);
+                    DoesJobExistQueryPrepareHandler<DbConnection, DbTransaction>>(LifeStyles.Singleton);
 
             container
                 .Register<ICommandHandler<MoveRecordToErrorQueueCommand<long>>,
-                    MoveRecordToErrorQueueCommandHandler<IDbConnection, IDbTransaction, IDbCommand>>(LifeStyles
+                    MoveRecordToErrorQueueCommandHandler<DbConnection, DbTransaction, DbCommand>>(LifeStyles
                     .Singleton);
 
             //expired messages
@@ -220,7 +221,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 typeof(GetTableExistsDecorator), LifeStyles.Singleton);
 
             container.RegisterDecorator(
-                typeof(IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses>),
+                typeof(IQueryHandler<DoesJobExistQuery<DbConnection, DbTransaction>, QueueStatuses>),
                 typeof(DoesJobExistDecorator), LifeStyles.Singleton);
 
             container.RegisterDecorator(

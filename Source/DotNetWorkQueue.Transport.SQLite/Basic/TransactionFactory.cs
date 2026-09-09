@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Validation;
 
@@ -44,7 +45,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        public ITransactionWrapper Create(IDbConnection connection)
+        public ITransactionWrapper Create(DbConnection connection)
         {
             return _factory.CreateTransaction(connection);
         }

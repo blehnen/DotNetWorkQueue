@@ -20,6 +20,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Text;
 using System.Data.SQLite;
 using DotNetWorkQueue.Configuration;
@@ -34,7 +35,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
     /// <summary>
     /// Dequeues a message.
     /// </summary>
-    internal class ReceiveMessageQueryHandler : IQueryHandler<ReceiveMessageQuery<IDbConnection, IDbTransaction>, IReceivedMessageInternal>
+    internal class ReceiveMessageQueryHandler : IQueryHandler<ReceiveMessageQuery<DbConnection, DbTransaction>, IReceivedMessageInternal>
     {
         private readonly Lazy<SqLiteMessageQueueTransportOptions> _options;
         private readonly ITableNameHelper _tableNameHelper;
@@ -104,7 +105,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        public IReceivedMessageInternal Handle(ReceiveMessageQuery<IDbConnection, IDbTransaction> query)
+        public IReceivedMessageInternal Handle(ReceiveMessageQuery<DbConnection, DbTransaction> query)
         {
             if (!_databaseExists.Exists(_connectionInformation.ConnectionString))
             {

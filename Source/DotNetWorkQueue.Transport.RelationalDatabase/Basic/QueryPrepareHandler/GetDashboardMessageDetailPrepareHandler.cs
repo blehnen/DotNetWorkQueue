@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
@@ -37,7 +38,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
             _dynamicColumns = new Lazy<string>(() => DashboardDynamicColumnHelper.BuildDynamicColumns(optionsFactory.Create()));
         }
 
-        public void Handle(GetDashboardMessageDetailQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(GetDashboardMessageDetailQuery query, DbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = string.Format(_commandCache.GetCommand(commandType), _dynamicColumns.Value);
 

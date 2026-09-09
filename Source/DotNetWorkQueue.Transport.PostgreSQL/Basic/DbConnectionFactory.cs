@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Validation;
 using Npgsql;
@@ -37,7 +38,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             _connectionInformation = connectionInformation;
         }
         /// <inheritdoc />
-        public IDbConnection Create()
+        public DbConnection Create()
         {
             return new NpgsqlConnection(_connectionInformation.ConnectionString);
         }

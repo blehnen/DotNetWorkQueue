@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
@@ -45,7 +46,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
             _configuration = configuration;
         }
         /// <inheritdoc />
-        public void Handle(FindMessagesToResetByHeartBeatQuery<T> query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(FindMessagesToResetByHeartBeatQuery<T> query, DbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText =
                 _commandCache.GetCommand(commandType);

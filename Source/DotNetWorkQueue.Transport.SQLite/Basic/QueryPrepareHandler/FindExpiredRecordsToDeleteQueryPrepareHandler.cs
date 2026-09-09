@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
@@ -53,7 +54,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryPrepareHandler
         /// <param name="query">The query.</param>
         /// <param name="dbCommand">The database command.</param>
         /// <param name="commandType">Type of the command.</param>
-        public void Handle(FindExpiredMessagesToDeleteQuery<long> query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(FindExpiredMessagesToDeleteQuery<long> query, DbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
 

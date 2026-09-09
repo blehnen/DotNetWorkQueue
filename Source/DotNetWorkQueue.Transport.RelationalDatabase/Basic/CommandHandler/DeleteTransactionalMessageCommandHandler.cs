@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
@@ -30,9 +31,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     /// Deletes a transactional message from the queue
     /// </summary>
     public class DeleteTransactionalMessageCommandHandler<TConnection, TTransaction, TCommand> : ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long>
-        where TConnection : IDbConnection
-        where TTransaction : IDbTransaction
-        where TCommand : IDbCommand
+        where TConnection : DbConnection
+        where TTransaction : DbTransaction
+        where TCommand : DbCommand
     {
         private readonly Lazy<ITransportOptions> _options;
         private readonly IConnectionHeader<TConnection, TTransaction, TCommand> _headers;

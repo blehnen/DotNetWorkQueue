@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Data.SQLite;
 using System.IO;
 using System.Threading.Tasks;
@@ -95,7 +96,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         [TestMethod]
         public async Task ACommandFromAnotherProvider_IsRejectedClearly()
         {
-            var command = Substitute.For<IDbCommand>();
+            var command = Substitute.For<DbCommand>();
 
             var ex = await Assert.ThrowsExactlyAsync<ArgumentException>(
                 () => new ReaderAsync().ExecuteNonQueryAsync(command));

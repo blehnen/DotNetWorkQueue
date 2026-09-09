@@ -9,6 +9,8 @@ using DotNetWorkQueue.Transport.SQLite.Basic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
+using System.Data.Common;
+
 namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
 {
     [TestClass]
@@ -26,14 +28,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         {
             var sut = CreateSut(out var deps);
             deps.DoesJobExist
-                .Handle(Arg.Any<DoesJobExistQuery<IDbConnection, IDbTransaction>>())
+                .Handle(Arg.Any<DoesJobExistQuery<DbConnection, DbTransaction>>())
                 .Returns(QueueStatuses.Processed);
 
             var result = sut.DoesJobExistTest("job-name", DateTimeOffset.UtcNow);
 
             Assert.AreEqual(QueueStatuses.Processed, result);
             deps.DoesJobExist.Received(1)
-                .Handle(Arg.Any<DoesJobExistQuery<IDbConnection, IDbTransaction>>());
+                .Handle(Arg.Any<DoesJobExistQuery<DbConnection, DbTransaction>>());
         }
 
         [TestMethod]
@@ -43,9 +45,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             const string jobName = "my-recurring-job";
             var scheduled = new DateTimeOffset(2025, 1, 15, 12, 30, 0, TimeSpan.Zero);
 
-            DoesJobExistQuery<IDbConnection, IDbTransaction> captured = null;
+            DoesJobExistQuery<DbConnection, DbTransaction> captured = null;
             deps.DoesJobExist
-                .Handle(Arg.Do<DoesJobExistQuery<IDbConnection, IDbTransaction>>(q => captured = q))
+                .Handle(Arg.Do<DoesJobExistQuery<DbConnection, DbTransaction>>(q => captured = q))
                 .Returns(QueueStatuses.Waiting);
 
             sut.DoesJobExistTest(jobName, scheduled);
@@ -97,7 +99,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             {
                 Queue = Substitute.For<IProducerMethodQueue>(),
                 DoesJobExist =
-                    Substitute.For<IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses>>(),
+                    Substitute.For<IQueryHandler<DoesJobExistQuery<DbConnection, DbTransaction>, QueueStatuses>>(),
                 RemoveMessage = Substitute.For<IRemoveMessage>(),
                 GetJobId = Substitute.For<IQueryHandler<GetJobIdQuery<long>, long>>(),
                 CreateJobMetaData = new CreateJobMetaData(Substitute.For<IJobSchedulerMetaData>()),
@@ -116,7 +118,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         private sealed class Deps
         {
             public IProducerMethodQueue Queue { get; set; }
-            public IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> DoesJobExist { get; set; }
+            public IQueryHandler<DoesJobExistQuery<DbConnection, DbTransaction>, QueueStatuses> DoesJobExist { get; set; }
             public IRemoveMessage RemoveMessage { get; set; }
             public IQueryHandler<GetJobIdQuery<long>, long> GetJobId { get; set; }
             public CreateJobMetaData CreateJobMetaData { get; set; }
@@ -128,7 +130,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
         {
             public TestableSqliteSendToJobQueue(
                 IProducerMethodQueue queue,
-                IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> doesJobExist,
+                IQueryHandler<DoesJobExistQuery<DbConnection, DbTransaction>, QueueStatuses> doesJobExist,
                 IRemoveMessage removeMessage,
                 IQueryHandler<GetJobIdQuery<long>, long> getJobId,
                 CreateJobMetaData createJobMetaData,

@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command
 {
@@ -32,8 +33,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command
         /// <param name="connection">The connection.</param>
         /// <param name="transaction">The transaction.</param>
         public DeleteMetaDataCommand(long queueId,
-            IDbConnection connection,
-            IDbTransaction transaction)
+            DbConnection connection,
+            DbTransaction transaction)
         {
             QueueId = queueId;
             Transaction = transaction;
@@ -54,7 +55,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command
         /// <value>
         /// The transaction.
         /// </value>
-        public IDbTransaction Transaction { get; }
+        public DbTransaction Transaction { get; }
 
         /// <summary>
         /// Gets the connection.
@@ -62,6 +63,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command
         /// <value>
         /// The connection.
         /// </value>
-        public IDbConnection Connection { get; }
+        public DbConnection Connection { get; }
     }
 }

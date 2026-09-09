@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
@@ -27,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     {
         private readonly IGetFileNameFromConnectionString _getFileNameFromConnection;
         private readonly IDbFactory _dbFactory;
-        private readonly ConcurrentDictionary<string, IDbConnection> _connections;
+        private readonly ConcurrentDictionary<string, DbConnection> _connections;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SqLiteHoldConnection"/> class.
@@ -41,7 +42,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             Guard.NotNull(dbFactory);
             _getFileNameFromConnection = getFileNameFromConnection;
             _dbFactory = dbFactory;
-            _connections = new ConcurrentDictionary<string, IDbConnection>();
+            _connections = new ConcurrentDictionary<string, DbConnection>();
         }
 
         public void AddConnectionIfNeeded(IConnectionInformation connection)

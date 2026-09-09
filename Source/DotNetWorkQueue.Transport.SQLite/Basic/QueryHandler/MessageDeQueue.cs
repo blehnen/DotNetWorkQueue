@@ -24,6 +24,7 @@ using DotNetWorkQueue.Validation;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
@@ -52,7 +53,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         }
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        internal IReceivedMessageInternal HandleMessage(IDbConnection connection, IDbTransaction transaction, IDataReader reader, CommandString commandString)
+        internal IReceivedMessageInternal HandleMessage(DbConnection connection, DbTransaction transaction, IDataReader reader, CommandString commandString)
         {
             if (!reader.Read())
             {
