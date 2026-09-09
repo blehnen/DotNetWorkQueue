@@ -71,7 +71,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// A command for <paramref name="commandText"/>, reusing the statements SQLite compiled for
         /// it on this connection. See <see cref="PooledCommand"/> for why that matters.
         /// </summary>
-        internal DbCommand CreateCommand(string commandText) => (DbCommand)Entry.CreateCommand(commandText);
+        internal DbCommand CreateCommand(string commandText) => Entry.CreateCommand(commandText);
 
         /// <summary>How many distinct commands this connection is holding compiled statements for.</summary>
         internal int CachedCommandCount => Entry.CachedCommandCount;
