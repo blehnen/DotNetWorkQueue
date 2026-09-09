@@ -199,6 +199,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container
                 .Register<ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long>,
                     DeleteTransactionalMessageCommandHandler<SqlConnection, SqlTransaction, SqlCommand>>(LifeStyles.Singleton);
+            container
+                .Register<ICommandHandlerWithOutputAsync<DeleteTransactionalMessageCommand, long>,
+                    DeleteTransactionalMessageCommandHandlerAsync<SqlConnection, SqlTransaction, SqlCommand>>(LifeStyles.Singleton);
 
             container
                 .Register<IPrepareQueryHandler<GetQueueOptionsQuery<SqlServerMessageQueueTransportOptions>,

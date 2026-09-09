@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
@@ -40,6 +41,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         private readonly ICommandHandler<DeleteStatusTableStatusCommand<long>> _deleteStatusCommandHandler;
         private readonly ICommandHandlerWithOutput<DeleteMessageCommand<long>, long> _deleteMessageCommand;
         private readonly ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> _deleteTransactionalMessageCommand;
+        private readonly ICommandHandlerAsync<DeleteStatusTableStatusCommand<long>> _deleteStatusCommandHandlerAsync;
+        private readonly ICommandHandlerWithOutputAsync<DeleteMessageCommand<long>, long> _deleteMessageCommandAsync;
+        private readonly ICommandHandlerWithOutputAsync<DeleteTransactionalMessageCommand, long> _deleteTransactionalMessageCommandAsync;
         private readonly IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> _headers;
         private readonly ILogger _log;
 
@@ -51,12 +55,18 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         /// <param name="deleteMessageCommand">The delete message command.</param>
         /// <param name="headers">The headers.</param>
         /// <param name="deleteTransactionalMessageCommand">The delete transactional message command.</param>
+        /// <param name="deleteStatusCommandHandlerAsync">The delete status command handler, for the asynchronous consumer.</param>
+        /// <param name="deleteMessageCommandAsync">The delete message command, for the asynchronous consumer.</param>
+        /// <param name="deleteTransactionalMessageCommandAsync">The delete transactional message command, for the asynchronous consumer.</param>
         /// <param name="log">The log.</param>
         public RemoveMessage(QueueConsumerConfiguration configuration,
             ICommandHandler<DeleteStatusTableStatusCommand<long>> deleteStatusCommandHandler,
             ICommandHandlerWithOutput<DeleteMessageCommand<long>, long> deleteMessageCommand,
             IConnectionHeader<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand> headers,
             ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long> deleteTransactionalMessageCommand,
+            ICommandHandlerAsync<DeleteStatusTableStatusCommand<long>> deleteStatusCommandHandlerAsync,
+            ICommandHandlerWithOutputAsync<DeleteMessageCommand<long>, long> deleteMessageCommandAsync,
+            ICommandHandlerWithOutputAsync<DeleteTransactionalMessageCommand, long> deleteTransactionalMessageCommandAsync,
             ILogger log)
         {
             Guard.NotNull(configuration);
@@ -64,6 +74,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             Guard.NotNull(deleteMessageCommand);
             Guard.NotNull(headers);
             Guard.NotNull(deleteTransactionalMessageCommand);
+            Guard.NotNull(deleteStatusCommandHandlerAsync);
+            Guard.NotNull(deleteMessageCommandAsync);
+            Guard.NotNull(deleteTransactionalMessageCommandAsync);
             Guard.NotNull(log);
 
             _configuration = configuration;
@@ -71,6 +84,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             _deleteMessageCommand = deleteMessageCommand;
             _headers = headers;
             _deleteTransactionalMessageCommand = deleteTransactionalMessageCommand;
+            _deleteStatusCommandHandlerAsync = deleteStatusCommandHandlerAsync;
+            _deleteMessageCommandAsync = deleteMessageCommandAsync;
+            _deleteTransactionalMessageCommandAsync = deleteTransactionalMessageCommandAsync;
             _log = log;
         }
 
@@ -127,6 +143,74 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 try
                 {
                     _deleteStatusCommandHandler.Handle(new DeleteStatusTableStatusCommand<long>((long)context.MessageId.Id.Value));
+                }
+                catch (Exception e)
+                {
+                    _log.LogWarning(e, "Failed to delete status table record for message {MessageId}; record may be orphaned", context.MessageId.Id.Value);
+                }
+            }
+            return count > 0 ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;
+        }
+
+        /// <inheritdoc />
+        public async Task<RemoveMessageStatus> RemoveAsync(IMessageId id, RemoveMessageReason reason)
+        {
+            if (_configuration.Options().EnableHoldTransactionUntilMessageCommitted && reason == RemoveMessageReason.Complete)
+                throw new DotNetWorkQueueException("Cannot use a transaction without the message context");
+
+            if (id == null || !id.HasValue) return RemoveMessageStatus.NotFound;
+
+            var count = await _deleteMessageCommandAsync
+                .HandleAsync(new DeleteMessageCommand<long>((long)id.Id.Value)).ConfigureAwait(false);
+            return count > 0 ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;
+        }
+
+        /// <inheritdoc />
+        public async Task<RemoveMessageStatus> RemoveAsync(IMessageContext context, RemoveMessageReason reason)
+        {
+            if (!_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
+                return await RemoveAsync(context.MessageId, reason).ConfigureAwait(false);
+
+            var connection = context.Get(_headers.Connection);
+
+            //if transaction held
+            if (connection.Connection == null || connection.Transaction == null)
+            {
+                var counter = await _deleteMessageCommandAsync
+                    .HandleAsync(new DeleteMessageCommand<long>((long)context.MessageId.Id.Value)).ConfigureAwait(false);
+                return counter > 0 ? RemoveMessageStatus.Removed : RemoveMessageStatus.NotFound;
+            }
+
+            //delete the message, and then commit the transaction
+            var count = await _deleteTransactionalMessageCommandAsync
+                .HandleAsync(new DeleteTransactionalMessageCommand((long)context.MessageId.Id.Value, context))
+                .ConfigureAwait(false);
+
+            try
+            {
+                await connection.Transaction.CommitAsync().ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e, "Failed to commit a transaction; this might be due to a DB timeout");
+
+                //don't attempt to use the transaction again at this point.
+                connection.Transaction = null;
+
+                throw;
+            }
+
+            //ensure that transaction won't be used anymore
+            connection.Transaction.Dispose();
+            connection.Transaction = null;
+
+            if (_configuration.Options().EnableStatusTable)
+            {
+                try
+                {
+                    await _deleteStatusCommandHandlerAsync
+                        .HandleAsync(new DeleteStatusTableStatusCommand<long>((long)context.MessageId.Id.Value))
+                        .ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {

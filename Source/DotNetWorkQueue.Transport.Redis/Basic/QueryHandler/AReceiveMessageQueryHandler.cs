@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 {
     /// <summary>
     /// Everything the synchronous and asynchronous receive handlers share, which is all of it except
-    /// the one call that runs the Lua script.
+    /// the call that runs the Lua script and the removal of an expired message.
     /// </summary>
     /// <remarks>
     /// This started as two near-identical classes differing in a single line. That was deliberate -
@@ -41,13 +41,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
     /// existing tests for the synchronous path cover the asynchronous one too.
     ///
     /// The dequeue call keeps its own try/catch in each handler so that a transport failure still
-    /// surfaces as ReceiveMessageException exactly as it did before.
+    /// surfaces as ReceiveMessageException exactly as it did before. The expired-message removal moved
+    /// out to the handlers for the same reason it could not be shared: one blocks and the other awaits.
+    /// It carries the same try/catch there, so a failed removal still surfaces as it did when the
+    /// removal lived here.
     /// </remarks>
     internal abstract class AReceiveMessageQueryHandler
     {
         private readonly ICompositeSerialization _serializer;
         private readonly IReceivedMessageFactory _receivedMessageFactory;
-        private readonly IRemoveMessage _removeMessage;
+        protected readonly IRemoveMessage RemoveMessage;
         private readonly RedisHeaders _redisHeaders;
         /// <summary>The dequeue script, used by the derived handler.</summary>
         protected readonly DequeueLua DequeueLua;
@@ -81,15 +84,21 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 
             _serializer = serializer;
             _receivedMessageFactory = receivedMessageFactory;
-            _removeMessage = removeMessage;
+            RemoveMessage = removeMessage;
             _redisHeaders = redisHeaders;
             DequeueLua = dequeueLua;
             UnixTimeFactory = unixTimeFactory;
             _messageFactory = messageFactory;
         }
 
-        protected RedisMessage BuildMessage(ReceiveMessageQuery query, long unixTimestamp, RedisValue[] result)
+        /// <summary>
+        /// Parses a de-queued message. Sets <paramref name="expired"/> when the message turned out to
+        /// have expired, which the caller must act on by removing it - synchronously or not, which is
+        /// the one thing the two handlers cannot share.
+        /// </summary>
+        protected RedisMessage BuildMessage(ReceiveMessageQuery query, long unixTimestamp, RedisValue[] result, out bool expired)
         {
+            expired = false;
             byte[] message = null;
             byte[] headers = null;
             string messageId;
@@ -124,7 +133,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
                         var allHeaders = _serializer.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headers);
                         correlationId = (RedisQueueCorrelationIdSerialized)allHeaders[_redisHeaders.CorrelationId.Name];
                         query.MessageContext.SetMessageAndHeaders(id, new RedisQueueCorrelationId(correlationId.Id), new ReadOnlyDictionary<string, object>(allHeaders));
-                        _removeMessage.Remove(query.MessageContext, RemoveMessageReason.Expired);
+                        expired = true;
                         return new RedisMessage(messageId, null, true);
                     }
                 }

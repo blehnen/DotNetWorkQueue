@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 
 using System.Diagnostics;
+using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
@@ -79,6 +80,40 @@ namespace DotNetWorkQueue.Trace.Decorator
                 scope?.AddMessageIdTag(context);
                 scope?.SetTag("RemovedBecause", reason.ToString());
                 return _handler.Remove(context, reason);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<RemoveMessageStatus> RemoveAsync(IMessageId id, RemoveMessageReason reason)
+        {
+            var header = _getHeader.GetHeaders(id);
+            if (header != null)
+            {
+                var activityContext = header.Extract(_tracer, _headers);
+                using (var scope = _tracer.StartActivity("Remove", ActivityKind.Internal, parentContext: activityContext))
+                {
+                    scope?.AddMessageIdTag(id);
+                    scope?.SetTag("RemovedBecause", reason.ToString());
+                    return await _handler.RemoveAsync(id, reason).ConfigureAwait(false);
+                }
+            }
+            using (var scope = _tracer.StartActivity("Remove"))
+            {
+                scope?.AddMessageIdTag(id);
+                scope?.SetTag("RemovedBecause", reason.ToString());
+                return await _handler.RemoveAsync(id, reason).ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<RemoveMessageStatus> RemoveAsync(IMessageContext context, RemoveMessageReason reason)
+        {
+            var activityContext = context.Extract(_tracer, _headers);
+            using (var scope = _tracer.StartActivity("Remove", ActivityKind.Internal, parentContext: activityContext))
+            {
+                scope?.AddMessageIdTag(context);
+                scope?.SetTag("RemovedBecause", reason.ToString());
+                return await _handler.RemoveAsync(context, reason).ConfigureAwait(false);
             }
         }
     }

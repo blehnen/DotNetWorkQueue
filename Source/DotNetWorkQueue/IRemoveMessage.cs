@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
+
 namespace DotNetWorkQueue
 {
     /// <summary>
@@ -34,6 +36,22 @@ namespace DotNetWorkQueue
         /// <param name="reason">The reason for removing the message</param>
         /// <returns>Status of the request</returns>
         RemoveMessageStatus Remove(IMessageContext context, RemoveMessageReason reason);
+
+        /// <summary>Removes a specific message from the transport, without blocking a thread</summary>
+        /// <param name="id">The identifier.</param>
+        /// <param name="reason">The reason for removing the message</param>
+        /// <returns>Status of the request</returns>
+        Task<RemoveMessageStatus> RemoveAsync(IMessageId id, RemoveMessageReason reason);
+
+        /// <summary>Removes a specific message from the transport, without blocking a thread</summary>
+        /// <param name="context">The context.</param>
+        /// <param name="reason">The reason for removing the message</param>
+        /// <returns>Status of the request</returns>
+        /// <remarks>
+        /// This is what the asynchronous consumer's commit ultimately calls, so unlike the
+        /// expired-message branch it is on the per-message happy path.
+        /// </remarks>
+        Task<RemoveMessageStatus> RemoveAsync(IMessageContext context, RemoveMessageReason reason);
     }
 
     /// <summary>
