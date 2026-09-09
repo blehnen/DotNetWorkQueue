@@ -32,6 +32,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     {
         private readonly IRedisQueueWorkSubFactory _workSubFactory;
         private readonly IQueryHandler<ReceiveMessageQuery, RedisMessage> _receiveMessage;
+        private readonly IQueryHandlerAsync<ReceiveMessageQuery, RedisMessage> _receiveMessageAsync;
         private readonly ITransportHandleMessage _handleMessage;
         private readonly ICancelWork _cancelWork;
 
@@ -40,19 +41,23 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </summary>
         /// <param name="workSubFactory">The work sub factory.</param>
         /// <param name="receiveMessage">The receive message.</param>
+        /// <param name="receiveMessageAsync">The receive message handler used by the async path.</param>
         /// <param name="handleMessage">The handle message.</param>
         /// <param name="cancelWork">The cancel work.</param>
         public RedisQueueReceiveMessages(IRedisQueueWorkSubFactory workSubFactory,
             IQueryHandler<ReceiveMessageQuery, RedisMessage> receiveMessage,
+            IQueryHandlerAsync<ReceiveMessageQuery, RedisMessage> receiveMessageAsync,
             ITransportHandleMessage handleMessage,
             IQueueCancelWork cancelWork)
         {
             Guard.NotNull(workSubFactory);
             Guard.NotNull(receiveMessage);
+            Guard.NotNull(receiveMessageAsync);
             Guard.NotNull(handleMessage);
             Guard.NotNull(cancelWork);
 
             _receiveMessage = receiveMessage;
+            _receiveMessageAsync = receiveMessageAsync;
             _handleMessage = handleMessage;
             _cancelWork = cancelWork;
             _workSubFactory = workSubFactory;
@@ -120,12 +125,66 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         }
 
         /// <inheritdoc />
-        public ValueTask<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context, CancellationToken cancellation)
+        /// <remarks>
+        /// <paramref name="cancellation"/> is accepted and not passed on, which is deliberate rather
+        /// than an oversight: nothing downstream on this transport takes a token.
+        /// <c>IQueryHandlerAsync.HandleAsync(query)</c> has no token parameter, neither does
+        /// <c>DequeueLua.ExecuteAsync</c>, and SE.Redis's <c>ScriptEvaluateAsync</c> is not given one.
+        /// Widening those signatures to make the plumbing look wired would buy nothing.
+        ///
+        /// Redis cancels the way it already does synchronously, and both mechanisms are kept: the loop
+        /// re-checks <c>AnyCancellationRequested</c> at the top of each iteration and again before the
+        /// second de-queue, and <c>WaitAsync</c> observes the work-sub's own cancellation and returns
+        /// false. The parameter still earns its place - SQL Server and PostgreSQL take real tokens on
+        /// their async ADO calls.
+        /// </remarks>
+        public async ValueTask<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context, CancellationToken cancellation)
         {
-            //TEMPORARY - replaced with a genuinely asynchronous implementation later in this
-            //PR. Deliberately NOT Task.Run: that would move the block to a different pool
-            //thread while looking like a fix.
-            return new ValueTask<IReceivedMessageInternal>(ReceiveMessage(context));
+            //These three are not optional. Without them the method still compiles and still returns
+            //messages, and commit and rollback silently stop working.
+            context.Commit += _cachedCommit ??= ContextOnCommit;
+            context.Rollback += _cachedRollback ??= ContextOnRollback;
+            context.Cleanup += _cachedCleanup ??= Context_Cleanup;
+
+            using (
+                var workSub = _workSubFactory.Create())
+            {
+                while (true)
+                {
+                    if (_cancelWork.AnyCancellationRequested())
+                    {
+                        return null;
+                    }
+
+                    var message = await GetMessageAsync(context).ConfigureAwait(false);
+                    if (message != null && !message.Expired)
+                    {
+                        return message.Message;
+                    }
+
+                    if (_cancelWork.AnyCancellationRequested())
+                    {
+                        return null;
+                    }
+
+                    workSub.Reset();
+                    message = await GetMessageAsync(context).ConfigureAwait(false);
+                    if (message != null && !message.Expired)
+                    {
+                        return message.Message;
+                    }
+                    if (message != null && message.Expired)
+                    {
+                        continue;
+                    }
+                    if (await workSub.WaitAsync().ConfigureAwait(false))
+                    {
+                        continue;
+                    }
+
+                    return null;
+                }
+            }
         }
 
         /// <inheritdoc />
@@ -139,6 +198,22 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private RedisMessage GetMessage(IMessageContext context)
         {
             var message = _receiveMessage.Handle(new ReceiveMessageQuery(context));
+            if (message == null) return null;
+            if (!message.Expired)
+            {
+                context.SetMessageAndHeaders(message.Message.MessageId, message.Message.CorrelationId, message.Message.Headers);
+            }
+            return message;
+        }
+
+        /// <summary>
+        /// Gets the next message from the queue, without blocking a thread across the Lua call.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <returns></returns>
+        private async Task<RedisMessage> GetMessageAsync(IMessageContext context)
+        {
+            var message = await _receiveMessageAsync.HandleAsync(new ReceiveMessageQuery(context)).ConfigureAwait(false);
             if (message == null) return null;
             if (!message.Expired)
             {

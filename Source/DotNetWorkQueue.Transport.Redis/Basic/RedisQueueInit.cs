@@ -175,6 +175,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.Register<DashboardResetAllStaleMessagesLua>(LifeStyles.Singleton);
             container.Register<DashboardUpdateMessageBodyLua>(LifeStyles.Singleton);
 
+            //The async receive handler. IQueryHandler<,> above is picked up by the assembly scan;
+            //IQueryHandlerAsync<,> is not, so this and its decorators are registered by hand.
+            container.Register<IQueryHandlerAsync<ReceiveMessageQuery, RedisMessage>,
+                ReceiveMessageQueryHandlerAsync>(LifeStyles.Singleton);
+
             // Dashboard read handlers
             container.Register<IQueryHandlerAsync<GetDashboardStatusCountsQuery, DashboardStatusCounts>,
                 GetDashboardStatusCountsQueryHandlerAsync>(LifeStyles.Singleton);
@@ -221,9 +226,15 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.RegisterDecorator<IDelayedProcessingAction, DelayedProcessingActionDecorator>(LifeStyles.Singleton);
             container.RegisterDecorator<IQueryHandler<ReceiveMessageQuery, RedisMessage>, ReceiveMessageQueryDecorator>(
                 LifeStyles.Singleton);
+            //The async path needs its own, or an expired message stops being counted the moment the
+            //consumer switches to it - a decorator that exists on only one code path.
+            container.RegisterDecorator<IQueryHandlerAsync<ReceiveMessageQuery, RedisMessage>, Metrics.Decorator.ReceiveMessageQueryAsyncDecorator>(
+                LifeStyles.Singleton);
 
             //logging decorators
             container.RegisterDecorator<IQueryHandler<ReceiveMessageQuery, RedisMessage>, Logging.Decorator.ReceiveMessageQueryDecorator>(
+                LifeStyles.Singleton);
+            container.RegisterDecorator<IQueryHandlerAsync<ReceiveMessageQuery, RedisMessage>, Logging.Decorator.ReceiveMessageQueryAsyncDecorator>(
                 LifeStyles.Singleton);
             container.RegisterDecorator<IDelayedProcessingAction, Logging.Decorator.DelayedProcessingActionDecorator>(LifeStyles.Singleton);
 
