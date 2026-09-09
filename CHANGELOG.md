@@ -1,4 +1,10 @@
-﻿### 0.11.0 — 2026-09-06
+﻿### Unreleased
+- Redis consumers no longer hold a thread through the de-queue. Under thread-pool pressure, where a consumer previously timed out waiting on Redis, it now keeps working (GitHub #256)
+- ⚠️ Custom transports and consumers must add async members: `IReceiveMessages.ReceiveMessageAsync`, `IQueueWait.WaitAsync`, and `IRedisQueueWorkSub.WaitAsync` for Redis. Built-in transports are unaffected (GitHub #256)
+- ⚠️ `IMessageProcessing.Handle()` is now `HandleAsync()` and returns a task. Only affects code implementing that interface directly (GitHub #256)
+- Tracing: the async consumer emits its receive span as `ReceiveMessageAsync` rather than `ReceiveMessage`. Dashboards filtering on the old name will not match it. Metric names are unchanged (GitHub #256)
+
+### 0.11.0 — 2026-09-06
 - SQL Server and PostgreSQL: an ordinary send is one round trip instead of four, on `Send` and `SendAsync`. A SQL Server send allocates 16% less — 29,298 B down to 24,648 B — and the time saved grows with distance to the server (GitHub #231, #232)
 - SQL Server and PostgreSQL: queues using `EnableDelayedProcessing` or `EnableMessageExpiration` no longer pay a per-send penalty, and SQL Server no longer fills its plan cache with one plan per delay value (GitHub #255)
 - SQL Server and PostgreSQL: a routed consumer no longer rebuilds its de-queue statement on every poll — 5,368 B down to 80 B a poll on SQL Server, 2,648 B down to 80 B on PostgreSQL (GitHub #231, #232)

@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Metrics.Decorator
@@ -61,6 +62,17 @@ namespace DotNetWorkQueue.Metrics.Decorator
         public IReceivedMessageInternal ReceiveMessage(IMessageContext context)
         {
             var result = _handler.ReceiveMessage(context);
+            if (result != null)
+            {
+                ProcessResult(result);
+            }
+            return result;
+        }
+
+        /// <inheritdoc />
+        public async ValueTask<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context, CancellationToken cancellation)
+        {
+            var result = await _handler.ReceiveMessageAsync(context, cancellation).ConfigureAwait(false);
             if (result != null)
             {
                 ProcessResult(result);

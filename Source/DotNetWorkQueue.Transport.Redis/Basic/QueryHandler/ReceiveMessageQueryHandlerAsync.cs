@@ -23,13 +23,18 @@ using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using StackExchange.Redis;
 using System;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 {
-    /// <inheritdoc />
-    internal class ReceiveMessageQueryHandler : AReceiveMessageQueryHandler, IQueryHandler<ReceiveMessageQuery, RedisMessage>
+    /// <summary>
+    /// The asynchronous twin of <see cref="ReceiveMessageQueryHandler"/>. Both derive from
+    /// <see cref="AReceiveMessageQueryHandler"/>, so the only difference between them is the call
+    /// that runs the Lua script.
+    /// </summary>
+    internal class ReceiveMessageQueryHandlerAsync : AReceiveMessageQueryHandler, IQueryHandlerAsync<ReceiveMessageQuery, RedisMessage>
     {
-        /// <summary>Initializes a new instance of the <see cref="ReceiveMessageQueryHandler"/> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="ReceiveMessageQueryHandlerAsync"/> class.</summary>
         /// <param name="serializer">The serializer.</param>
         /// <param name="receivedMessageFactory">The received message factory.</param>
         /// <param name="removeMessage">Removes a message from the queue</param>
@@ -37,7 +42,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         /// <param name="dequeueLua">The dequeue.</param>
         /// <param name="unixTimeFactory">The unix time factory.</param>
         /// <param name="messageFactory">The message factory.</param>
-        public ReceiveMessageQueryHandler(
+        public ReceiveMessageQueryHandlerAsync(
             ICompositeSerialization serializer,
             IReceivedMessageFactory receivedMessageFactory,
             IRemoveMessage removeMessage,
@@ -51,14 +56,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         }
 
         /// <inheritdoc />
-        public RedisMessage Handle(ReceiveMessageQuery query)
+        public async Task<RedisMessage> HandleAsync(ReceiveMessageQuery query)
         {
             long unixTimestamp;
             RedisValue[] result;
             try
             {
                 unixTimestamp = UnixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();
-                result = DequeueLua.Execute(unixTimestamp);
+                result = await DequeueLua.ExecuteAsync(unixTimestamp).ConfigureAwait(false);
             }
             catch (Exception error)
             {

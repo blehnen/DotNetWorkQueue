@@ -22,6 +22,7 @@ using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -111,7 +112,15 @@ namespace DotNetWorkQueue.Queue
         /// <summary>
         /// Looks for a new message to process
         /// </summary>
-        public void Handle()
+        public Task HandleAsync()
+        {
+            //Everything below is synchronous, so "ready for the next message" is simply "done". The
+            //async sibling is where the distinction earns its keep.
+            Handle();
+            return Task.CompletedTask;
+        }
+
+        private void Handle()
         {
             try
             {

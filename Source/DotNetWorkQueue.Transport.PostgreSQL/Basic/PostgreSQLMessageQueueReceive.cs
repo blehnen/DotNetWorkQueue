@@ -24,6 +24,8 @@ using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using Npgsql;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 {
@@ -136,6 +138,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 throw new ReceiveMessageException("An error occurred while attempting to read messages from the queue",
                     exception);
             }
+        }
+
+        /// <inheritdoc />
+        public ValueTask<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context, CancellationToken cancellation)
+        {
+            //TEMPORARY - replaced with a genuinely asynchronous implementation later in this
+            //PR. Deliberately NOT Task.Run: that would move the block to a different pool
+            //thread while looking like a fix.
+            return new ValueTask<IReceivedMessageInternal>(ReceiveMessage(context));
         }
 
         /// <inheritdoc />

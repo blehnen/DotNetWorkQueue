@@ -23,6 +23,8 @@ using DotNetWorkQueue.Transport.SQLite.Basic.Message;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
@@ -111,6 +113,18 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 throw new ReceiveMessageException("An error occurred while attempting to read messages from the queue",
                     exception);
             }
+        }
+
+        /// <inheritdoc />
+        public ValueTask<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context, CancellationToken cancellation)
+        {
+            //Correct as written, not unfinished. This is an embedded database with no real
+            //asynchronous I/O - System.Data.SQLite's *Async methods are synchronous work
+            //behind a task - and a de-queue costs about 6 microseconds, so there is nothing
+            //to release the thread for. Deliberately NOT Task.Run, which would only move the
+            //work to another pool thread. The token is ignored for the same reason - the call
+            //returns in microseconds, so there is no wait to cancel.
+            return new ValueTask<IReceivedMessageInternal>(ReceiveMessage(context));
         }
 
         /// <inheritdoc />

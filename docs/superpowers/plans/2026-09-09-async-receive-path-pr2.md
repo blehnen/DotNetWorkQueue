@@ -1,5 +1,12 @@
 # Async receive path — PR 2: `IReceiveMessages`
 
+> ⚠️ **Tasks 2-7 of this plan are superseded.** See
+> `docs/superpowers/specs/2026-09-08-async-receive-path-design-revision-1.md`. Task 2 as written
+> here causes an unbounded de-queue runaway (measured: 15,910,404 concurrent in-flight
+> receives), and the task 4 gate reproduces starvation on the send path, which this work does
+> not touch. Task 1 is done and unaffected.
+
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Give `IReceiveMessages` an async twin, make the async consumer await it instead of blocking a pool thread, and prove the result with the test that currently documents the defect.

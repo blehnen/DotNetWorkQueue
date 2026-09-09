@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Validation;
 using Polly;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Policies.Decorator
 {
@@ -46,6 +48,21 @@ namespace DotNetWorkQueue.Policies.Decorator
                 return pipeline.Execute(_ => _handler.ReceiveMessage(context));
             }
             return _handler.ReceiveMessage(context);
+        }
+
+        /// <inheritdoc />
+        public async ValueTask<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context, CancellationToken cancellation)
+        {
+            if (_policies.Registry.TryGetPipeline(_policies.Definition.ReceiveMessageFromTransportAsync, out var pipeline))
+            {
+                //The token goes to the pipeline as well as to the handler. Without it a retry or
+                //timeout strategy keeps waiting out its delay after the queue has been told to stop,
+                //because the pipeline was given CancellationToken.None and never learns of it.
+                return await pipeline.ExecuteAsync(async token =>
+                    await _handler.ReceiveMessageAsync(context, token).ConfigureAwait(false),
+                    cancellation).ConfigureAwait(false);
+            }
+            return await _handler.ReceiveMessageAsync(context, cancellation).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

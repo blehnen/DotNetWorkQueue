@@ -54,11 +54,19 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             long count = 0;
             foreach (var name in names)
             {
+                //Sum every matching counter, which is what this method has always claimed to do.
+                //It used to stop after the first, which was invisible while exactly one counter ended
+                //in each suffix. The Redis transport now has two ending in ".HandleAsync.Expired" -
+                //one for the synchronous receive handler and one for the asynchronous twin - and only
+                //the path the consumer actually used is non-zero. Taking whichever enumerated first
+                //returned 0 for a run that had expired every message.
+                //
+                //Summing cannot double count: a consumer uses the sync receive path or the async one,
+                //never both, so at most one of the pair is ever incremented.
                 foreach (var metric in data.Counters.Where(
                     c => c.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
                 {
                     count = count + metric.Value;
-                    break;
                 }
             }
             return count;

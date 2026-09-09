@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Queue
@@ -85,6 +86,39 @@ namespace DotNetWorkQueue.Queue
 
             Interlocked.Increment(ref _currentIndex);
         }
+        /// <inheritdoc />
+        public async ValueTask WaitAsync()
+        {
+            var effectiveIndex = Math.Min(Interlocked.Read(ref _currentIndex), _backOffTimes.Length - 1);
+            var timeToWait = _backOffTimes[effectiveIndex];
+            await WaitInternalAsync(timeToWait).ConfigureAwait(false);
+            Interlocked.Increment(ref _currentIndex);
+        }
+
+        /// <summary>
+        /// Waits for the specified amount of time, without holding a thread.
+        /// </summary>
+        /// <param name="timeToWait">The time to wait.</param>
+        private async ValueTask WaitInternalAsync(TimeSpan timeToWait)
+        {
+            if (timeToWait <= TimeSpan.Zero || _tokenWorkerCanceled.StopWorkToken.IsCancellationRequested)
+                return;
+
+            //Swallowed deliberately, and this is the whole reason WaitInternal is not simply awaited
+            //away. WaitHandle.WaitOne returns normally when the token fires; Task.Delay throws. The
+            //caller is a poll that found no message and returns straight after this, so a throw would
+            //land in the outer OperationCanceledException handler and roll back - a rollback of
+            //nothing, plus a spurious rollback notification. Returning normally keeps the two paths
+            //behaviourally identical.
+            try
+            {
+                await Task.Delay(timeToWait, _tokenWorkerCanceled.StopWorkToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
         /// <summary>
         /// Waits for the specified amount of time
         /// </summary>

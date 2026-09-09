@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DotNetWorkQueue
@@ -35,8 +36,23 @@ namespace DotNetWorkQueue
         IReceivedMessageInternal ReceiveMessage(IMessageContext context);
 
         /// <summary>
+        /// Returns a message to process, without blocking a thread while the transport is queried.
+        /// </summary>
+        /// <param name="context">The message context.</param>
+        /// <param name="cancellation">Cancels the receive; the queue is stopping.</param>
+        /// <returns>
+        /// A message to process or null if there are no messages to process
+        /// </returns>
+        ValueTask<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context, CancellationToken cancellation);
+
+        /// <summary>
         /// Gets a value indicating whether calling <see cref="ReceiveMessage"/> is a blocking operation
         /// </summary>
+        /// <remarks>
+        /// <see cref="ReceiveMessageAsync"/> does not block a thread while waiting, but a transport that
+        /// signals for new messages still has no upper bound on how long a receive may take; this flag
+        /// reports that property of the transport and applies to both methods.
+        /// </remarks>
         /// <value>
         ///   <c>true</c> if this instance is blocking operation; otherwise, <c>false</c>.
         /// </value>

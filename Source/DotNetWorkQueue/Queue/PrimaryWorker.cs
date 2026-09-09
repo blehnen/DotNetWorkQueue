@@ -136,7 +136,13 @@ namespace DotNetWorkQueue.Queue
                 {
                     return;
                 }
-                MessageProcessing.Handle();
+                //Wait on the dedicated worker thread this loop already owns
+                //(TaskCreationOptions.LongRunning), so this costs no thread-pool thread - the same
+                //threading profile as the blocking receive it replaces. What it buys is the cap: the
+                //returned task completes when the processor can de-queue again, so exactly one
+                //de-queue per worker is ever in flight. Without this wait, an awaited receive starts
+                //de-queues without bound.
+                MessageProcessing.HandleAsync().GetAwaiter().GetResult();
             }
 
             if (MessageProcessing != null && MessageProcessing.AsyncTaskCount > 0)
