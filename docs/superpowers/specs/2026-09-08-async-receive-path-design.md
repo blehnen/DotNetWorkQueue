@@ -1,6 +1,12 @@
 # Async receive path — design
 
-Issue: #256. Date: 2026-09-08. Status: approved, not started.
+Issue: #256. Date: 2026-09-08. Status: **partly superseded — read the revision first.**
+
+> ⚠️ `2026-09-08-async-receive-path-design-revision-1.md` corrects this document. The
+> threading analysis in *The problem* and *What the issue understated* is wrong: the receive
+> runs on a dedicated `LongRunning` worker thread, not a pool thread (measured, 0/27), so it
+> frees no pool thread. The delivery plan and the task 4 gate changed as a result. The
+> `WaitAsync` contract, invariants, error handling and non-goals below are unaffected.
 
 ## The problem
 
