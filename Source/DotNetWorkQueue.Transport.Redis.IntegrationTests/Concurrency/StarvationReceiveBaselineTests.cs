@@ -65,13 +65,21 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Concurrency
     ///                                   sync receive   async receive
     ///   gate (saturated, cap 6)             478              25
     ///   control (cap 6 alone)                 0          15 / 23 / 25
-    ///   control, cap raised to 64             -               0  (passes)
+    ///   control, cap raised to 64             -            unverified, see below
     /// </code>
     ///
-    /// The 478 -> 25 under saturation is the fix working. The residue is pool capacity, not a
-    /// defect: a cap of six cannot service twenty-five workers, because async continuations
-    /// still need a pool thread even though nothing blocks on one. Raising the cap to
-    /// sixty-four takes the same scenario to zero, which is what proves it.
+    /// The 478 -> 25 under saturation is the fix working, and that pair was measured minutes apart
+    /// under identical conditions, so the direction is sound.
+    ///
+    /// The cap-64 figure is NOT sound and should be re-measured before anyone relies on it. It was
+    /// recorded as "zero symptoms, passes", but the code it ran against built its assertion message
+    /// with First() on a collection the same assertion required to be empty - so the passing path
+    /// should have thrown InvalidOperationException rather than passing. The reported pass and the
+    /// code cannot both be right, so the number is withdrawn rather than defended.
+    ///
+    /// The explanation it was offered as support for - that a cap of six cannot service twenty-five
+    /// workers, because async continuations need a pool thread even though nothing blocks on one -
+    /// remains the most likely reading. It is now an explanation rather than a demonstrated one.
     ///
     /// So both assertions are now calibrated to reproduce the defect rather than to judge the
     /// fix, and a zero-symptom bar is unreachable by construction at cap 6. Deliberately left
@@ -87,6 +95,10 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Concurrency
     /// zero messages "under a healthy pool" that the other test had already taken. Two tests that
     /// both rewrite ThreadPool min/max cannot share a process concurrently.
     /// </summary>
+    //Assertion messages use FirstOrDefault rather than First on purpose. An interpolated message
+    //is evaluated before the assertion is called, so First() on a collection that is empty - which
+    //is exactly the passing case - throws InvalidOperationException instead of letting the test
+    //pass. The failure text reads the same either way.
     [TestClass]
     [DoNotParallelize]
     public class StarvationReceiveBaselineTests
@@ -153,7 +165,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Concurrency
 
             Assert.IsEmpty(outcome.OtherReceiveErrors,
                 $"Control saw receive errors that are not EVAL timeouts, so this run is " +
-                $"inconclusive: {outcome.OtherReceiveErrors.First()}\n{outcome}");
+                $"inconclusive: {outcome.OtherReceiveErrors.FirstOrDefault()}\n{outcome}");
         }
 
         /// <summary>
@@ -192,11 +204,11 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Concurrency
                 $"capped at {WorkerCap}, held by unrelated work, and {WorkerCount} consumer " +
                 $"workers. This is the expected RED until the de-queue awaits " +
                 $"DequeueLua.ExecuteAsync (#256).\n{outcome}\n" +
-                $"First timeout: {outcome.EvalTimeouts.First().Message}");
+                $"First timeout: {outcome.EvalTimeouts.FirstOrDefault()?.Message}");
 
             Assert.IsEmpty(outcome.OtherReceiveErrors,
                 $"Receive errors occurred that are not EVAL timeouts, so this run is inconclusive " +
-                $"rather than a clean reproduction: {outcome.OtherReceiveErrors.First()}\n{outcome}");
+                $"rather than a clean reproduction: {outcome.OtherReceiveErrors.FirstOrDefault()}\n{outcome}");
         }
 
         private sealed class Outcome
