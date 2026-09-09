@@ -68,6 +68,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             container.RegisterDecorator(typeof(ICommandHandler<>),
                 typeof(RetryCommandHandlerDecorator<>), LifeStyles.Singleton);
+            container.RegisterDecorator(typeof(ICommandHandlerAsync<>),
+                typeof(RetryCommandHandlerDecoratorAsync<>), LifeStyles.Singleton);
 
             container.RegisterDecorator(typeof(ICommandHandlerWithOutputAsync<,>),
                 typeof(RetryCommandHandlerOutputDecoratorAsync<,>), LifeStyles.Singleton);
