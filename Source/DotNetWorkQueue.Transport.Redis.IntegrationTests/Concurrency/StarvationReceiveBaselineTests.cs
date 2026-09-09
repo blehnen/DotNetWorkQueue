@@ -58,6 +58,29 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Concurrency
     /// Thread-pool settings are process-global and are ALWAYS restored, max before min — see the
     /// comment at the restore; the order is not cosmetic.
     ///
+    /// MEASURED, and both are still RED after the async receive landed — read this before
+    /// changing either assertion:
+    ///
+    /// <code>
+    ///                                   sync receive   async receive
+    ///   gate (saturated, cap 6)             478              25
+    ///   control (cap 6 alone)                 0          15 / 23 / 25
+    ///   control, cap raised to 64             -               0  (passes)
+    /// </code>
+    ///
+    /// The 478 -> 25 under saturation is the fix working. The residue is pool capacity, not a
+    /// defect: a cap of six cannot service twenty-five workers, because async continuations
+    /// still need a pool thread even though nothing blocks on one. Raising the cap to
+    /// sixty-four takes the same scenario to zero, which is what proves it.
+    ///
+    /// So both assertions are now calibrated to reproduce the defect rather than to judge the
+    /// fix, and a zero-symptom bar is unreachable by construction at cap 6. Deliberately left
+    /// alone rather than retuned: every number above was measured under WSL, which cannot run
+    /// this suite reliably (the same commit fails there and passes on Windows), so any
+    /// threshold set from them would be guesswork. Recalibrate on Windows or a Jenkins agent.
+    /// Until then these behave like their send-side sibling: permanent red diagnostics,
+    /// excluded from CI, kept for the mechanism they document.
+    ///
     /// <c>[DoNotParallelize]</c> is load-bearing, not tidiness. This assembly runs
     /// <c>Parallelize(Workers = 2, Scope = MethodLevel)</c>, and the first run of these two let
     /// the gate's saturation land on the control's warm-up: the control failed having processed

@@ -58,12 +58,19 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Concurrency
     /// Run in isolation via:          --filter "TestCategory=StarvationBaseline"
     /// </summary>
     [TestClass]
+    [DoNotParallelize]
     public class StarvationBaselineTests
     {
         // Cap worker threads to this value. Must be low enough that the concurrent EVALs
         // saturate all available workers, but high enough that the test harness itself
         // can acquire a thread (avoids deadlocking the test runner before Redis is even
         // reached). Tuned at 6: concurrent senders = 50, well above the cap.
+        //DoNotParallelize above is required, not tidiness. SetMinThreads/SetMaxThreads are
+        //process-global, this assembly runs Parallelize(Workers = 2, Scope = MethodLevel), and the
+        //restore only happens in this test's finally - so for however long this runs, every test
+        //running alongside it sees a pool of WorkerCap threads and times out. CI never hits this
+        //because the Jenkinsfile filters the category out, but "Run All" in an IDE does, and so
+        //does running this category deliberately now that it holds more than one test.
         private const int WorkerCap = 6;
 
         // Number of concurrent parallel sender tasks driving sync EVAL calls.
