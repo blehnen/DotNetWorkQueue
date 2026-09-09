@@ -155,6 +155,63 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             Assert.Throws<NotSupportedException>(() => command.Connection = null);
         }
 
+        [TestMethod]
+        public void Connection_CloseIsANoOp_SoThePooledConnectionStaysUsable()
+        {
+            var factory = CreateFactory();
+            using var connection = (PooledConnection)factory.CreateConnection(NewDatabase(), false);
+            connection.Open();
+
+            //Close deliberately does nothing. Closing the inner connection would defeat the pool and
+            //throw away the statements SQLite compiled for its commands, which is the whole point of
+            //this type. Callers that dispose or close should get a connection that still works.
+            connection.Close();
+
+            Assert.AreEqual(ConnectionState.Open, connection.State);
+            using var command = factory.CreateCommand(connection, Count);
+            Assert.AreEqual(0L, (long)command.ExecuteScalar());
+        }
+
+        [TestMethod]
+        public void Connection_OpeningTwiceIsHarmless()
+        {
+            var factory = CreateFactory();
+            using var connection = (PooledConnection)factory.CreateConnection(NewDatabase(), false);
+
+            connection.Open();
+            connection.Open();
+
+            Assert.AreEqual(ConnectionState.Open, connection.State);
+        }
+
+        [TestMethod]
+        public void Connection_ReportsTheStringItWasRentedFor()
+        {
+            var factory = CreateFactory();
+            var connectionString = NewDatabase();
+            using var connection = (PooledConnection)factory.CreateConnection(connectionString, false);
+            connection.Open();
+
+            //Not the string that was passed in: the factory normalises it before renting, so what
+            //comes back describes the same database rather than matching character for character.
+            Assert.IsFalse(string.IsNullOrEmpty(connection.ConnectionString));
+            StringAssert.Contains(connection.ConnectionString, "t.db");
+            Assert.IsNotNull(connection.Database);
+        }
+
+        [TestMethod]
+        public void Connection_ChangeDatabaseReachesTheInnerConnection()
+        {
+            var factory = CreateFactory();
+            using var connection = (PooledConnection)factory.CreateConnection(NewDatabase(), false);
+            connection.Open();
+
+            //System.Data.SQLite does not implement this, so the call is expected to fail rather than
+            //succeed. What is asserted is that it reaches the inner connection rather than being
+            //swallowed - a silent no-op here would hide a caller's mistake.
+            Assert.ThrowsExactly<NotImplementedException>(() => connection.ChangeDatabase("other"));
+        }
+
         private static DbFactory CreateFactory()
         {
             var containerFactory = Substitute.For<IContainerFactory>();
