@@ -151,6 +151,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 .Register<ICommandHandler<MoveRecordToErrorQueueCommand<long>>,
                     MoveRecordToErrorQueueCommandHandler<DbConnection, DbTransaction, DbCommand>>(LifeStyles
                     .Singleton);
+            container
+                .Register<ICommandHandlerAsync<MoveRecordToErrorQueueCommand<long>>,
+                    MoveRecordToErrorQueueCommandHandlerAsync<DbConnection, DbTransaction, DbCommand>>(LifeStyles
+                    .Singleton);
 
             //expired messages
             container

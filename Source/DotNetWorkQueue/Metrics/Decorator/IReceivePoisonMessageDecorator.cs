@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 
 namespace DotNetWorkQueue.Metrics.Decorator
@@ -48,6 +49,13 @@ namespace DotNetWorkQueue.Metrics.Decorator
         public void Handle(IMessageContext context, PoisonMessageException exception)
         {
             _handler.Handle(context, exception);
+            _meterError.Mark();
+        }
+
+        /// <inheritdoc />
+        public async Task HandleAsync(IMessageContext context, PoisonMessageException exception)
+        {
+            await _handler.HandleAsync(context, exception).ConfigureAwait(false);
             _meterError.Mark();
         }
     }

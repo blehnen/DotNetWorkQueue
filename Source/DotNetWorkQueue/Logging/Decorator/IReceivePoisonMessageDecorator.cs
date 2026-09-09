@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
@@ -59,6 +60,22 @@ namespace DotNetWorkQueue.Logging.Decorator
             else
             {
                 _handler.Handle(context, exception);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task HandleAsync(IMessageContext context, PoisonMessageException exception)
+        {
+            if (context.MessageId != null && context.MessageId.HasValue)
+            {
+                var messageId = context.MessageId.Id.Value.ToString();
+                await _handler.HandleAsync(context, exception).ConfigureAwait(false);
+                _log.LogError(exception,
+                    "Message with ID {MessageId} has failed after de-queue, but before finishing loading. This message is considered a poison message, and has been moved to the error queue", messageId);
+            }
+            else
+            {
+                await _handler.HandleAsync(context, exception).ConfigureAwait(false);
             }
         }
     }

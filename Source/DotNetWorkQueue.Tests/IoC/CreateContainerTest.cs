@@ -264,6 +264,11 @@ namespace DotNetWorkQueue.Tests.IoC
             {
 
             }
+
+            public Task HandleAsync(IMessageContext context, PoisonMessageException exception)
+            {
+                return Task.CompletedTask;
+            }
         }
         internal class ReceiveMessagesErrorNoOp : IReceiveMessagesError
         {

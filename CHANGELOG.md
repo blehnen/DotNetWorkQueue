@@ -3,6 +3,9 @@
 - ⚠️ Custom transports and consumers must add async members: `IReceiveMessages.ReceiveMessageAsync`, `IQueueWait.WaitAsync`, and `IRedisQueueWorkSub.WaitAsync` for Redis. Built-in transports are unaffected (GitHub #256)
 - ⚠️ `IMessageProcessing.Handle()` is now `HandleAsync()` and returns a task. Only affects code implementing that interface directly (GitHub #256)
 - Tracing: the async consumer emits its receive span as `ReceiveMessageAsync` rather than `ReceiveMessage`. Dashboards filtering on the old name will not match it. Metric names are unchanged (GitHub #256)
+- The async consumer moves a poison message to the error queue without holding a thread while it waits on the transport (GitHub #284)
+- ⚠️ `IReceivePoisonMessage` gains `HandleAsync`. Only affects code implementing that interface directly (GitHub #284)
+- ⚠️ Custom relational transports: `IDbConnectionFactory`, `ITransactionFactory` and `ITransactionWrapper` now use `System.Data.Common` types (`DbConnection`, `DbTransaction`) rather than the `System.Data` interfaces, which have no async members. Built-in transports are unaffected (GitHub #286)
 
 ### 0.11.0 — 2026-09-06
 - SQL Server and PostgreSQL: an ordinary send is one round trip instead of four, on `Send` and `SendAsync`. A SQL Server send allocates 16% less — 29,298 B down to 24,648 B — and the time saved grows with distance to the server (GitHub #231, #232)

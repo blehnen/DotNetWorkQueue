@@ -19,6 +19,7 @@
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
 using System;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
@@ -52,6 +53,18 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
             _dataStorage.MoveToErrorQueue(exception, (Guid)context.MessageId.Id.Value, context);
             context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);
+        }
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// Correct as written rather than unfinished. The memory transport keeps its messages in
+        /// process, so there is no I/O to release the thread for. Deliberately not Task.Run, which
+        /// would only move the work to another pool thread.
+        /// </remarks>
+        public Task HandleAsync(IMessageContext context, PoisonMessageException exception)
+        {
+            Handle(context, exception);
+            return Task.CompletedTask;
         }
     }
 }

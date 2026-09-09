@@ -21,6 +21,7 @@ using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Messages;
 using OpenTelemetry.Trace;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Trace.Decorator
 {
@@ -72,6 +73,32 @@ namespace DotNetWorkQueue.Trace.Decorator
                     scope?.AddMessageIdTag(context);
                     scope?.AddException(exception);
                     _handler.Handle(context, exception);
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task HandleAsync(IMessageContext context, PoisonMessageException exception)
+        {
+            var header = _getHeader.GetHeaders(context.MessageId);
+            if (header != null)
+            {
+                var activityContext = header.Extract(_tracer, _headers);
+                using (var scope = _tracer.StartActivity("PoisonMessage", ActivityKind.Internal, activityContext))
+                {
+                    scope?.AddMessageIdTag(context);
+                    scope?.AddException(exception);
+                    scope?.SetStatus(ActivityStatusCode.Error);
+                    await _handler.HandleAsync(context, exception).ConfigureAwait(false);
+                }
+            }
+            else
+            {
+                using (var scope = _tracer.StartActivity("PoisonMessage"))
+                {
+                    scope?.AddMessageIdTag(context);
+                    scope?.AddException(exception);
+                    await _handler.HandleAsync(context, exception).ConfigureAwait(false);
                 }
             }
         }

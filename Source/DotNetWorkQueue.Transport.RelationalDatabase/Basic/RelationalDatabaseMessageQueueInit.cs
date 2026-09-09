@@ -440,6 +440,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             container.Register(typeof(ICommandHandler<>), LifeStyles.Singleton,
                 target);
 
+            container.Register(typeof(ICommandHandlerAsync<>), LifeStyles.Singleton,
+                target);
+
             // Go look in all assemblies and register all implementations
             // of IQueryHandler<T> by their closed interface:
             container.Register(typeof(IQueryHandler<,>), LifeStyles.Singleton,

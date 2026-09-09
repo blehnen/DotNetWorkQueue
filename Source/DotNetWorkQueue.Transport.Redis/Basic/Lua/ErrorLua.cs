@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using StackExchange.Redis;
 
+using System.Threading.Tasks;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
 {
     /// <inheritdoc />
@@ -58,6 +60,23 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// <param name="messageId">The message identifier.</param>
         /// <param name="unixTime">current time</param>
         /// <returns></returns>
+        /// <summary>
+        /// Moves a message to the error queue without blocking a thread across the call.
+        /// </summary>
+        /// <remarks>
+        /// A line-for-line twin of <see cref="Execute"/>, differing only in awaiting the script. It
+        /// deliberately omits the <c>Connection.IsDisposed</c> guard that <c>DequeueLua.ExecuteAsync</c>
+        /// opens with, because the synchronous method here does not have one either - matching its own
+        /// twin matters more than matching the other script.
+        /// </remarks>
+        public async Task<int?> ExecuteAsync(string messageId, long unixTime)
+        {
+            var result = await TryExecuteAsync(GetParameters(messageId, unixTime)).ConfigureAwait(false);
+            if (result.IsNull)
+                return null;
+            return (int)result;
+        }
+
         private object GetParameters(string messageId, long unixTime)
         {
             return new
