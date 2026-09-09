@@ -1,7 +1,7 @@
 ﻿### Unreleased
 - Redis consumers no longer hold a thread through the de-queue. Under thread-pool pressure, where a consumer previously timed out waiting on Redis, it now keeps working (GitHub #256)
 - ⚠️ Custom transports and consumers must add async members: `IReceiveMessages.ReceiveMessageAsync`, `IQueueWait.WaitAsync`, and `IRedisQueueWorkSub.WaitAsync` for Redis. Built-in transports are unaffected (GitHub #256)
-- ⚠️ `IMessageProcessing.Handle()` is now `HandleAsync()`, returning a task the worker loop waits on. Only affects code implementing that interface directly (GitHub #256)
+- ⚠️ `IMessageProcessing.Handle()` is now `HandleAsync()` and returns a task. Only affects code implementing that interface directly (GitHub #256)
 - Tracing: the async consumer emits its receive span as `ReceiveMessageAsync` rather than `ReceiveMessage`. Dashboards filtering on the old name will not match it. Metric names are unchanged (GitHub #256)
 
 ### 0.11.0 — 2026-09-06

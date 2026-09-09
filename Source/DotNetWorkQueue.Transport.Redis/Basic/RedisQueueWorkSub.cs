@@ -17,6 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Validation;
@@ -96,7 +98,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// Resets this instance.
         /// </summary>
         /// <inheritdoc />
-        public async ValueTask<bool> WaitAsync()
+        public async ValueTask<bool> WaitAsync(CancellationToken cancellation)
         {
             ThrowIfDisposed();
             Setup();
@@ -107,7 +109,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 //Both checks belong inside the lock. Outside it, a cancel or dispose landing between
                 //the check and the source being created leaves a waiter that nothing will ever
                 //complete.
-                if (IsDisposed || _cancelWork.AnyCancellationRequested())
+                if (IsDisposed || _cancelWork.AnyCancellationRequested() || cancellation.IsCancellationRequested)
                     return false;
 
                 _asyncWait ??= _waitHandle.IsSet ? CreateCompletedWait() : CreateWait();
@@ -120,7 +122,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             //Mirrors what the synchronous Wait does with its linked token: return false rather than
             //throw, so the receive loop can see the cancellation and return null instead of treating
             //it as a failed de-queue.
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(_cancelWork.Tokens.ToArray());
+            //The caller's token is linked in alongside the queue's own, so a caller that wants to
+            //stop waiting can, not just the queue shutting down.
+            var tokens = _cancelWork.Tokens.ToList();
+            if (cancellation.CanBeCanceled) tokens.Add(cancellation);
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(tokens.ToArray());
             await using var registration = cts.Token.Register(CancelAsyncWait).ConfigureAwait(false);
             return await wait.ConfigureAwait(false);
         }
@@ -253,6 +259,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             lock (_asyncSync)
             {
+                //A notification can arrive from the Redis subscriber thread after disposal has begun.
+                //Setting a disposed handle throws on a thread nobody is watching, so check inside the
+                //same lock disposal uses rather than racing it.
+                if (IsDisposed) return;
+
                 _waitHandle.Set();
                 _asyncWait?.TrySetResult(true);
             }

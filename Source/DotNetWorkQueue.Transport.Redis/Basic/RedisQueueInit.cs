@@ -175,8 +175,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.Register<DashboardResetAllStaleMessagesLua>(LifeStyles.Singleton);
             container.Register<DashboardUpdateMessageBodyLua>(LifeStyles.Singleton);
 
-            //The async receive handler. IQueryHandler<,> above is picked up by the assembly scan;
-            //IQueryHandlerAsync<,> is not, so this and its decorators are registered by hand.
+            //The async receive handler and its decorators are registered by hand: the assembly scan
+            //above covers the synchronous query handler interface only, and does not pick up the
+            //asynchronous one.
             container.Register<IQueryHandlerAsync<ReceiveMessageQuery, RedisMessage>,
                 ReceiveMessageQueryHandlerAsync>(LifeStyles.Singleton);
 

@@ -126,17 +126,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
         /// <inheritdoc />
         /// <remarks>
-        /// <paramref name="cancellation"/> is accepted and not passed on, which is deliberate rather
-        /// than an oversight: nothing downstream on this transport takes a token.
-        /// <c>IQueryHandlerAsync.HandleAsync(query)</c> has no token parameter, neither does
-        /// <c>DequeueLua.ExecuteAsync</c>, and SE.Redis's <c>ScriptEvaluateAsync</c> is not given one.
-        /// Widening those signatures to make the plumbing look wired would buy nothing.
+        /// <paramref name="cancellation"/> is honoured everywhere this method can wait: both loop
+        /// checks test it alongside the queue's own tokens, and it is linked into the work-signal wait,
+        /// which is where a de-queue spends its time when the queue is empty.
         ///
-        /// Redis cancels the way it already does synchronously, and both mechanisms are kept: the loop
-        /// re-checks <c>AnyCancellationRequested</c> at the top of each iteration and again before the
-        /// second de-queue, and <c>WaitAsync</c> observes the work-sub's own cancellation and returns
-        /// false. The parameter still earns its place - SQL Server and PostgreSQL take real tokens on
-        /// their async ADO calls.
+        /// What it cannot do is abort a Lua call already on the wire. SE.Redis's
+        /// <c>ScriptEvaluateAsync</c> takes <c>CommandFlags</c>, not a <c>CancellationToken</c>, so
+        /// per-operation cancellation does not exist to be plumbed - a limitation of the client
+        /// library rather than a gap here, and such a call is bounded by <c>syncTimeout</c> anyway.
         /// </remarks>
         public async ValueTask<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context, CancellationToken cancellation)
         {
@@ -151,7 +148,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             {
                 while (true)
                 {
-                    if (_cancelWork.AnyCancellationRequested())
+                    if (_cancelWork.AnyCancellationRequested() || cancellation.IsCancellationRequested)
                     {
                         return null;
                     }
@@ -162,7 +159,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                         return message.Message;
                     }
 
-                    if (_cancelWork.AnyCancellationRequested())
+                    if (_cancelWork.AnyCancellationRequested() || cancellation.IsCancellationRequested)
                     {
                         return null;
                     }
@@ -177,7 +174,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                     {
                         continue;
                     }
-                    if (await workSub.WaitAsync().ConfigureAwait(false))
+                    if (await workSub.WaitAsync(cancellation).ConfigureAwait(false))
                     {
                         continue;
                     }

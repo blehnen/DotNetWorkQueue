@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.Redis
@@ -36,7 +37,8 @@ namespace DotNetWorkQueue.Transport.Redis
         /// Waits until a notification is received, without blocking a thread.
         /// </summary>
         /// <returns><c>true</c> if notified; <c>false</c> if cancelled or disposed.</returns>
-        ValueTask<bool> WaitAsync();
+        /// <param name="cancellation">Stops the wait; linked with the queue's own cancellation.</param>
+        ValueTask<bool> WaitAsync(CancellationToken cancellation);
         /// <summary>
         /// Resets this instance.
         /// </summary>

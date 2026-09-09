@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Concurrency
     ///
     /// The two tests here separate the two ways that can happen, because they are not equivalent:
     ///
-    /// - <see cref="StarvationReceive_CappedPoolAlone_DoesNotStarve_Control"/> caps the pool and
+    /// - <see cref="StarvationReceive_CappedPoolAlone_Diagnostic"/> caps the pool and
     ///   changes nothing else. It PASSES. The send-side baseline reproduces because its senders run
     ///   ON the capped pool; a dedicated-thread caller leaves those threads free for completions.
     /// - <see cref="StarvationReceive_ExternallySaturatedPool_SyncDequeue_FailsWithTimeout"/> holds
@@ -115,9 +115,20 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Concurrency
         private static readonly TimeSpan ObservationWindow = TimeSpan.FromSeconds(45);
 
         /// <summary>
-        /// CONTROL — and it PASSES. Measured 2026-09-08: 60s window, zero receive timeouts.
+        /// The control for the gate below, and it changed meaning when the receive became asynchronous.
         ///
-        /// Capping the pool is not by itself enough to starve the receive. The send-side baseline
+        /// It PASSED before that change: capping the pool alone produced zero receive timeouts, because
+        /// a synchronous receive blocks a dedicated worker thread and leaves the six pool threads free
+        /// to run completions. The send-side baseline reproduces only because its senders run ON the
+        /// capped pool, so the caller occupying a pool thread IS the deadlock.
+        ///
+        /// It is RED now, at 15 to 25 symptoms, and that is expected rather than a regression: async
+        /// continuations need a pool thread even though nothing blocks on one, and six threads cannot
+        /// service twenty-five workers. Raising the cap to sixty-four returns it to zero, which is what
+        /// shows the residue is capacity rather than a defect. The zero assertion is kept deliberately,
+        /// so the number stays visible in the failure text instead of being tuned out of sight.
+        ///
+        /// Historical note on the mechanism, which still holds. The send-side baseline
         /// reproduces because its fifty senders are <c>new Task(...)</c> running ON the capped pool:
         /// six threads block inside <c>ScriptEvaluate</c> and the completion that would release them
         /// needs a seventh. The caller occupying a pool thread IS the deadlock.
@@ -131,16 +142,16 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Concurrency
         [TestMethod]
         [TestCategory("StarvationBaseline")]
         [TestCategory("StarvationReceive")]
-        public void StarvationReceive_CappedPoolAlone_DoesNotStarve_Control()
+        public void StarvationReceive_CappedPoolAlone_Diagnostic()
         {
             var outcome = RunConsumerUnderPressure(saturatePool: false);
 
-            Assert.AreEqual(0, outcome.EvalTimeouts.Count,
+            Assert.IsEmpty(outcome.EvalTimeouts,
                 $"Control went RED: capping the pool alone starved the receive, which contradicts " +
                 $"the reasoning the gate is built on. Something has likely moved the de-queue onto " +
                 $"a pool thread.\n{outcome}");
 
-            Assert.AreEqual(0, outcome.OtherReceiveErrors.Count,
+            Assert.IsEmpty(outcome.OtherReceiveErrors,
                 $"Control saw receive errors that are not EVAL timeouts, so this run is " +
                 $"inconclusive: {outcome.OtherReceiveErrors.First()}\n{outcome}");
         }
@@ -175,7 +186,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Concurrency
                     $"most of it and no conclusion can be drawn. Raise MessageCount.\n{outcome}");
             }
 
-            Assert.AreEqual(0, outcome.EvalTimeouts.Count,
+            Assert.IsEmpty(outcome.EvalTimeouts,
                 $"Receive-side thread-pool starvation reproduced: {outcome.EvalTimeouts.Count} " +
                 $"de-queue timeout(s) out of the synchronous ScriptEvaluate path, with the pool " +
                 $"capped at {WorkerCap}, held by unrelated work, and {WorkerCount} consumer " +
@@ -183,7 +194,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Concurrency
                 $"DequeueLua.ExecuteAsync (#256).\n{outcome}\n" +
                 $"First timeout: {outcome.EvalTimeouts.First().Message}");
 
-            Assert.AreEqual(0, outcome.OtherReceiveErrors.Count,
+            Assert.IsEmpty(outcome.OtherReceiveErrors,
                 $"Receive errors occurred that are not EVAL timeouts, so this run is inconclusive " +
                 $"rather than a clean reproduction: {outcome.OtherReceiveErrors.First()}\n{outcome}");
         }

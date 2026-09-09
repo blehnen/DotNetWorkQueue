@@ -55,8 +55,12 @@ namespace DotNetWorkQueue.Policies.Decorator
         {
             if (_policies.Registry.TryGetPipeline(_policies.Definition.ReceiveMessageFromTransportAsync, out var pipeline))
             {
-                return await pipeline.ExecuteAsync(async _ =>
-                    await _handler.ReceiveMessageAsync(context, cancellation).ConfigureAwait(false)).ConfigureAwait(false);
+                //The token goes to the pipeline as well as to the handler. Without it a retry or
+                //timeout strategy keeps waiting out its delay after the queue has been told to stop,
+                //because the pipeline was given CancellationToken.None and never learns of it.
+                return await pipeline.ExecuteAsync(async token =>
+                    await _handler.ReceiveMessageAsync(context, token).ConfigureAwait(false),
+                    cancellation).ConfigureAwait(false);
             }
             return await _handler.ReceiveMessageAsync(context, cancellation).ConfigureAwait(false);
         }

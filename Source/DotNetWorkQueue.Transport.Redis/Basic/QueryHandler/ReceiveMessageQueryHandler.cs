@@ -21,25 +21,14 @@ using DotNetWorkQueue.Serialization;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
-using DotNetWorkQueue.Validation;
 using StackExchange.Redis;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 {
     /// <inheritdoc />
-    internal class ReceiveMessageQueryHandler : IQueryHandler<ReceiveMessageQuery, RedisMessage>
+    internal class ReceiveMessageQueryHandler : AReceiveMessageQueryHandler, IQueryHandler<ReceiveMessageQuery, RedisMessage>
     {
-        private readonly ICompositeSerialization _serializer;
-        private readonly IReceivedMessageFactory _receivedMessageFactory;
-        private readonly IRemoveMessage _removeMessage;
-        private readonly RedisHeaders _redisHeaders;
-        private readonly DequeueLua _dequeueLua;
-        private readonly IUnixTimeFactory _unixTimeFactory;
-        private readonly IMessageFactory _messageFactory;
-
         /// <summary>Initializes a new instance of the <see cref="ReceiveMessageQueryHandler"/> class.</summary>
         /// <param name="serializer">The serializer.</param>
         /// <param name="receivedMessageFactory">The received message factory.</param>
@@ -56,109 +45,27 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             DequeueLua dequeueLua,
             IUnixTimeFactory unixTimeFactory,
             IMessageFactory messageFactory)
+            : base(serializer, receivedMessageFactory, removeMessage, redisHeaders, dequeueLua,
+                unixTimeFactory, messageFactory)
         {
-            Guard.NotNull(serializer);
-            Guard.NotNull(receivedMessageFactory);
-            Guard.NotNull(removeMessage);
-            Guard.NotNull(redisHeaders);
-            Guard.NotNull(dequeueLua);
-            Guard.NotNull(unixTimeFactory);
-
-            _serializer = serializer;
-            _receivedMessageFactory = receivedMessageFactory;
-            _removeMessage = removeMessage;
-            _redisHeaders = redisHeaders;
-            _dequeueLua = dequeueLua;
-            _unixTimeFactory = unixTimeFactory;
-            _messageFactory = messageFactory;
         }
 
         /// <inheritdoc />
         public RedisMessage Handle(ReceiveMessageQuery query)
         {
-            byte[] message = null;
-            byte[] headers = null;
-            string messageId;
-            var poisonMessage = false;
-            RedisQueueCorrelationIdSerialized correlationId = null;
+            long unixTimestamp;
+            RedisValue[] result;
             try
             {
-                var unixTimestamp = _unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();
-                RedisValue[] result = _dequeueLua.Execute(unixTimestamp);
-
-                if (result == null || result.Length == 1 && !result[0].HasValue || !result[0].HasValue)
-                {
-                    return null;
-                }
-
-                if (!result[1].HasValue)
-                {
-                    //at this point, the record has been de-queued, but it can't be processed.
-                    poisonMessage = true;
-                }
-
-                messageId = result[0];
-                var id = new RedisQueueId(messageId);
-                query.MessageContext.SetMessageAndHeaders(id, null, null);
-                if (!poisonMessage)
-                {
-                    message = result[1];
-                    headers = result[2];
-                    if (result[3].HasValue &&
-                        result[3].TryParse(out long messageExpiration) &&
-                        messageExpiration - unixTimestamp < 0)
-                    {
-                        //message has expired
-                        var allHeaders = _serializer.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headers);
-                        correlationId = (RedisQueueCorrelationIdSerialized)allHeaders[_redisHeaders.CorrelationId.Name];
-                        query.MessageContext.SetMessageAndHeaders(id, new RedisQueueCorrelationId(correlationId.Id), new ReadOnlyDictionary<string, object>(allHeaders));
-                        _removeMessage.Remove(query.MessageContext, RemoveMessageReason.Expired);
-                        return new RedisMessage(messageId, null, true);
-                    }
-                }
+                unixTimestamp = UnixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();
+                result = DequeueLua.Execute(unixTimestamp);
             }
             catch (Exception error)
             {
                 throw new ReceiveMessageException("Failed to dequeue a message", error);
             }
 
-            if (poisonMessage)
-            {
-                //at this point, the record has been de-queued, but it can't be processed.
-                throw new PoisonMessageException(
-                    "An error has occurred trying to re-assemble a message de-queued from Redis; a messageId was returned, but the LUA script returned a null message. The message payload has most likely been lost.", null,
-                    new RedisQueueId(messageId), new RedisQueueCorrelationId(Guid.Empty), null,
-                    null, null);
-            }
-
-            try
-            {
-                var allHeaders = _serializer.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headers);
-                correlationId = (RedisQueueCorrelationIdSerialized)allHeaders[_redisHeaders.CorrelationId.Name];
-                var messageGraph = (MessageInterceptorsGraph)allHeaders[_redisHeaders.Headers.StandardHeaders.MessageInterceptorGraph.Name];
-                var messageData = _serializer.Serializer.BytesToMessage<MessageBody>(message, messageGraph, allHeaders);
-
-                var newMessage = _messageFactory.Create(messageData.Body, allHeaders);
-                query.MessageContext.SetMessageAndHeaders(query.MessageContext.MessageId, new RedisQueueCorrelationId(correlationId.Id), new ReadOnlyDictionary<string, object>(allHeaders));
-
-                return new RedisMessage(
-                        messageId,
-                        _receivedMessageFactory.Create(
-                        newMessage,
-                        new RedisQueueId(messageId),
-                        new RedisQueueCorrelationId(correlationId.Id)), false);
-            }
-            catch (Exception error)
-            {
-                var allHeaders = _serializer.InternalSerializer.ConvertBytesTo<IDictionary<string, object>>(headers);
-
-                //at this point, the record has been de-queued, but it can't be processed.
-                throw new PoisonMessageException(
-                    "An error has occurred trying to re-assemble a message de-queued from redis", error,
-                    new RedisQueueId(messageId), new RedisQueueCorrelationId(correlationId), new ReadOnlyDictionary<string, object>(allHeaders),
-                    message, headers);
-
-            }
+            return BuildMessage(query, unixTimestamp, result);
         }
     }
 }

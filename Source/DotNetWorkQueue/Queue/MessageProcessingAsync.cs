@@ -42,6 +42,8 @@ namespace DotNetWorkQueue.Queue
         private readonly IConsumerQueueErrorNotification _consumerQueueErrorNotification;
         private readonly IConsumerQueueNotification _consumerQueueNotification;
         private readonly ICancelWork _cancelWork;
+        private readonly ATaskScheduler _taskScheduler;
+        private readonly IWorkGroup _workGroup;
 
         /// <summary>
         /// Occurs when message processor is idle
@@ -68,6 +70,8 @@ namespace DotNetWorkQueue.Queue
         /// <param name="consumerQueueErrorNotification">notifications for consumer queue errors</param>
         /// <param name="consumerQueueNotification">notifications for consumer queue messages</param>
         /// <param name="cancelWork">cancellation tokens for the queue; the receive is cancelled on stop</param>
+        /// <param name="taskScheduler">the scheduler whose capacity paces dispatch</param>
+        /// <param name="workGroup">the work group this queue belongs to, if any</param>
         public MessageProcessingAsync(IReceiveMessagesFactory receiveMessages,
             IMessageContextFactory messageContextFactory,
             IQueueWaitFactory queueWaitFactory,
@@ -77,7 +81,9 @@ namespace DotNetWorkQueue.Queue
             IRollbackMessage rollbackMessage,
             IConsumerQueueErrorNotification consumerQueueErrorNotification,
             IConsumerQueueNotification consumerQueueNotification,
-            IQueueCancelWork cancelWork)
+            IQueueCancelWork cancelWork,
+            ATaskScheduler taskScheduler,
+            IWorkGroup workGroup)
         {
             Guard.NotNull(receiveMessages);
             Guard.NotNull(messageContextFactory);
@@ -89,6 +95,7 @@ namespace DotNetWorkQueue.Queue
             Guard.NotNull(consumerQueueErrorNotification);
             Guard.NotNull(consumerQueueNotification);
             Guard.NotNull(cancelWork);
+            Guard.NotNull(taskScheduler);
 
             _receiveMessages = receiveMessages;
             _messageContextFactory = messageContextFactory;
@@ -102,6 +109,8 @@ namespace DotNetWorkQueue.Queue
             _consumerQueueErrorNotification = consumerQueueErrorNotification;
             _consumerQueueNotification = consumerQueueNotification;
             _cancelWork = cancelWork;
+            _taskScheduler = taskScheduler;
+            _workGroup = workGroup;
         }
 
         /// <summary>
@@ -255,6 +264,19 @@ namespace DotNetWorkQueue.Queue
                 NotIdle(this, EventArgs.Empty);
                 _idle = false;
             }
+
+            //Wait for scheduler capacity HERE, by awaiting, rather than letting
+            //SchedulerMessageHandler's finally block for it further down. Before the receive was
+            //awaited that block landed on the worker's own dedicated thread, where blocking is free.
+            //It now lands in a continuation on a THREAD-POOL thread, and blocking one of those is the
+            //exact starvation this work exists to remove. Awaiting first means the block downstream
+            //finds room and returns immediately.
+            //
+            //The result is deliberately not acted on: if this returns false the queue is stopping, and
+            //falling through lets ShouldHandle throw as it always has, so the message is rolled back by
+            //the existing handler rather than silently dropped here.
+            if (_taskScheduler.Started)
+                await _taskScheduler.WaitForFreeThread.WaitAsync(_workGroup).ConfigureAwait(false);
 
             //Invoking this runs synchronously all the way down through ProcessMessageAsync,
             //HandleMessage and the decorators into the user's handler - and, for the scheduler
