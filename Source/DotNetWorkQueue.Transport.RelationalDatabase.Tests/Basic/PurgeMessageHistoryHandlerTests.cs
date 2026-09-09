@@ -63,12 +63,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             return (new PurgeMessageHistoryHandler(factory, tableNameHelper), factory, options);
         }
 
-        private static (IDbConnection connection, IDbCommand command) SetupConnection(IDbConnectionFactory factory)
+        private static (DbConnection connection, DbCommand command) SetupConnection(IDbConnectionFactory factory)
         {
-            var connection = Substitute.For<IDbConnection>();
-            var command = Substitute.For<IDbCommand>();
-            var parameters = Substitute.For<IDataParameterCollection>();
-            var parameter = Substitute.For<IDbDataParameter>();
+            var connection = Substitute.For<DbConnection>();
+            var command = Substitute.For<DbCommand>();
+            var parameters = Substitute.For<DbParameterCollection>();
+            var parameter = Substitute.For<DbParameter>();
             command.CreateParameter().Returns(parameter);
             command.Parameters.Returns(parameters);
             connection.CreateCommand().Returns(command);

@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Data.SQLite;
 using System.Threading;
 
@@ -47,7 +48,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     /// constructed one was, so nothing is shared between threads and no locking is required.
     /// </para>
     /// </remarks>
-    internal sealed class PooledConnection : IDbConnection
+    internal sealed class PooledConnection : DbConnection
     {
         private readonly DbFactory _owner;
         private readonly string _connectionString;
@@ -70,7 +71,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// A command for <paramref name="commandText"/>, reusing the statements SQLite compiled for
         /// it on this connection. See <see cref="PooledCommand"/> for why that matters.
         /// </summary>
-        internal IDbCommand CreateCommand(string commandText) => Entry.CreateCommand(commandText);
+        internal DbCommand CreateCommand(string commandText) => (DbCommand)Entry.CreateCommand(commandText);
 
         /// <summary>How many distinct commands this connection is holding compiled statements for.</summary>
         internal int CachedCommandCount => Entry.CachedCommandCount;
@@ -80,7 +81,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <c>Open()</c> because that is the contract for a freshly created connection, and
         /// calling it on an open <see cref="SQLiteConnection"/> would throw.
         /// </summary>
-        public void Open()
+        public override void Open()
         {
             if (Inner.State != ConnectionState.Open)
                 Inner.Open();
@@ -90,25 +91,27 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// No-op. The connection is returned to the pool on <see cref="Dispose"/>, and closing it
         /// here would discard the reuse this type exists to provide.
         /// </summary>
-        public void Close()
+        public override void Close()
         {
             //deliberately does nothing; see Dispose
         }
 
         /// <inheritdoc />
-        public IDbTransaction BeginTransaction() => Inner.BeginTransaction();
+        /// <remarks>
+        /// DbConnection supplies the parameterless BeginTransaction and CreateCommand, which route
+        /// through these two, so the interface versions are no longer declared here.
+        /// </remarks>
+        protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) =>
+            Inner.BeginTransaction(isolationLevel);
 
         /// <inheritdoc />
-        public IDbTransaction BeginTransaction(IsolationLevel il) => Inner.BeginTransaction(il);
+        protected override DbCommand CreateDbCommand() => Inner.CreateCommand();
 
         /// <inheritdoc />
-        public IDbCommand CreateCommand() => Inner.CreateCommand();
+        public override void ChangeDatabase(string databaseName) => Inner.ChangeDatabase(databaseName);
 
         /// <inheritdoc />
-        public void ChangeDatabase(string databaseName) => Inner.ChangeDatabase(databaseName);
-
-        /// <inheritdoc />
-        public string ConnectionString
+        public override string ConnectionString
         {
             //the string this connection was rented for; the provider may normalise its own copy
             get => _connectionString;
@@ -117,21 +120,33 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         }
 
         /// <inheritdoc />
-        public int ConnectionTimeout => Inner.ConnectionTimeout;
+        public override int ConnectionTimeout => Inner.ConnectionTimeout;
 
         /// <inheritdoc />
-        public string Database => Inner.Database;
+        public override string Database => Inner.Database;
 
         /// <inheritdoc />
-        public ConnectionState State => _entry?.Connection.State ?? ConnectionState.Closed;
+        public override string DataSource => Inner.DataSource;
+
+        /// <inheritdoc />
+        public override string ServerVersion => Inner.ServerVersion;
+
+        /// <inheritdoc />
+        public override ConnectionState State => _entry?.Connection.State ?? ConnectionState.Closed;
 
         /// <summary>
         /// Returns the underlying connection to the pool rather than closing it. A connection that
         /// is no longer open — because the operation failed, or the provider dropped it — is
         /// disposed instead, so a broken connection cannot poison the next caller.
         /// </summary>
-        public void Dispose()
+        protected override void Dispose(bool disposing)
         {
+            if (!disposing)
+            {
+                base.Dispose(false);
+                return;
+            }
+
             if (Interlocked.Increment(ref _disposeCount) != 1)
                 return;
 

@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using DotNetWorkQueue.Serialization;
@@ -29,7 +30,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 {
     internal static class SendMessage
     {
-        internal static IDbCommand CreateMetaDataRecord(TimeSpan? delay, TimeSpan expiration, IDbConnection connection,
+        internal static DbCommand CreateMetaDataRecord(TimeSpan? delay, TimeSpan expiration, DbConnection connection,
             IMessage message, IAdditionalMessageData data, ITableNameHelper tableNameHelper,
             IHeaders headers, SqLiteMessageQueueTransportOptions options, IGetTime getTime, IDbFactory dbFactory)
         {
@@ -44,8 +45,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        internal static IDbCommand GetMainCommand(SendMessageCommand commandSend,
-            IDbConnection connection,
+        internal static DbCommand GetMainCommand(SendMessageCommand commandSend,
+            DbConnection connection,
             IDbCommandStringCache commandCache,
             IHeaders headers,
             ICompositeSerialization serializer,
@@ -111,7 +112,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         }
 
         /// <summary>The parameter values for <see cref="BuildStatusCommandText"/>.</summary>
-        internal static void AddStatusCommandParameters(IDbCommand command,
+        internal static void AddStatusCommandParameters(DbCommand command,
             IAdditionalMessageData data,
             long id,
             SqLiteMessageQueueTransportOptions options,
@@ -183,7 +184,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         }
 
         /// <summary>The parameter values for <see cref="BuildMetaCommandText"/>.</summary>
-        private static void AddMetaCommandParameters(IDbCommand command,
+        private static void AddMetaCommandParameters(DbCommand command,
             IAdditionalMessageData data,
             SqLiteMessageQueueTransportOptions options,
             TimeSpan? delay,
@@ -216,7 +217,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         /// </summary>
         /// <param name="command">The command.</param>
         /// <param name="data">The data.</param>
-        private static void AddUserColumnsParams(IDbCommand command, IAdditionalMessageData data)
+        private static void AddUserColumnsParams(DbCommand command, IAdditionalMessageData data)
         {
             foreach (var metadata in data.AdditionalMetaData)
             {

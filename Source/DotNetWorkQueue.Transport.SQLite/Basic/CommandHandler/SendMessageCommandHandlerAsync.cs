@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
@@ -45,8 +46,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         private readonly TransportConfigurationSend _configurationSend;
         private readonly IGetTime _getTime;
         private readonly IDbFactory _dbFactory;
-        private readonly ICommandHandler<SetJobLastKnownEventCommand<IDbConnection, IDbTransaction>> _sendJobStatus;
-        private readonly IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> _jobExistsHandler;
+        private readonly ICommandHandler<SetJobLastKnownEventCommand<DbConnection, DbTransaction>> _sendJobStatus;
+        private readonly IQueryHandler<DoesJobExistQuery<DbConnection, DbTransaction>, QueueStatuses> _jobExistsHandler;
         private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
         private readonly DatabaseExists _databaseExists;
 
@@ -81,7 +82,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             TransportConfigurationSend configurationSend,
             IGetTimeFactory getTimeFactory,
             IDbFactory dbFactory,
-            ICommandHandler<SetJobLastKnownEventCommand<IDbConnection, IDbTransaction>> sendJobStatus, IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> jobExistsHandler,
+            ICommandHandler<SetJobLastKnownEventCommand<DbConnection, DbTransaction>> sendJobStatus, IQueryHandler<DoesJobExistQuery<DbConnection, DbTransaction>, QueueStatuses> jobExistsHandler,
             IJobSchedulerMetaData jobSchedulerMetaData,
             DatabaseExists databaseExists,
             IReaderAsync readerAsync)
@@ -151,7 +152,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                     eventTime = _jobSchedulerMetaData.GetEventTime(commandSend.MessageData);
                 }
 
-                IDbCommand commandStatus = null;
+                DbCommand commandStatus = null;
                 using (var command = SendMessage.GetMainCommand(commandSend, connection, _commandCache, _headers, _serializer, _dbFactory))
                 {
                     long id;
@@ -169,7 +170,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                             try
                             {
                                 if (string.IsNullOrWhiteSpace(jobName) ||
-                                    _jobExistsHandler.Handle(new DoesJobExistQuery<IDbConnection, IDbTransaction>(jobName, scheduledTime, connection,
+                                    _jobExistsHandler.Handle(new DoesJobExistQuery<DbConnection, DbTransaction>(jobName, scheduledTime, connection,
                                         trans)) ==
                                     QueueStatuses.NotQueued)
                                 {
@@ -203,7 +204,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                                         }
                                         if (!string.IsNullOrWhiteSpace(jobName))
                                         {
-                                            _sendJobStatus.Handle(new SetJobLastKnownEventCommand<IDbConnection, IDbTransaction>(jobName, eventTime,
+                                            _sendJobStatus.Handle(new SetJobLastKnownEventCommand<DbConnection, DbTransaction>(jobName, eventTime,
                                                 scheduledTime, connection, trans));
                                         }
                                         trans.Commit();
@@ -237,7 +238,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         /// <param name="connection">The connection.</param>
         /// <param name="data">The data.</param>
         /// <returns></returns>
-        private IDbCommand CreateStatusRecord(IDbConnection connection, IAdditionalMessageData data)
+        private DbCommand CreateStatusRecord(DbConnection connection, IAdditionalMessageData data)
         {
             var command = _dbFactory.CreateCommand(connection,
                 SendMessage.BuildStatusCommandText(_tableNameHelper, data, _options.Value));

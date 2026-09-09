@@ -16,12 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Data;
+using System.Data.Common;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
     /// <summary>
-    /// Creates a new <see cref="IDbConnection"/>
+    /// Creates a new <see cref="DbConnection"/>
     /// </summary>
     public interface IDbConnectionFactory
     {
@@ -29,6 +29,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// Creates a new connection to the database
         /// </summary>
         /// <returns></returns>
-        IDbConnection Create();
+        DbConnection Create();
     }
 }

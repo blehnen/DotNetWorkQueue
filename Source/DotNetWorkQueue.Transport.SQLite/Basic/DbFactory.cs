@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Data;
+using System.Data.Common;
 using System.Data.SQLite;
 using System.Threading;
 using DotNetWorkQueue.Transport.SQLite;
@@ -71,7 +72,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         }
 
         /// <inheritdoc />
-        public IDbConnection CreateConnection(string connectionString, bool forMemoryHold)
+        public DbConnection CreateConnection(string connectionString, bool forMemoryHold)
         {
             var applied = ConnectionStringPooling.Apply(connectionString, forMemoryHold);
 
@@ -87,13 +88,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         }
 
         /// <inheritdoc />
-        public IDbCommand CreateCommand(IDbConnection connection)
+        public DbCommand CreateCommand(DbConnection connection)
         {
             return connection.CreateCommand();
         }
 
         /// <inheritdoc />
-        public IDbCommand CreateCommand(IDbConnection connection, string commandText)
+        public DbCommand CreateCommand(DbConnection connection, string commandText)
         {
             //A pooled connection keeps the statements SQLite compiled for each of its commands;
             //anything else gets the plain behaviour of the interface default.
@@ -106,7 +107,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         }
 
         /// <inheritdoc />
-        public ISQLiteTransactionWrapper CreateTransaction(IDbConnection connection)
+        public ISQLiteTransactionWrapper CreateTransaction(DbConnection connection)
         {
             var transaction = _container.GetInstance<ISQLiteTransactionWrapper>();
             transaction.Connection = connection;

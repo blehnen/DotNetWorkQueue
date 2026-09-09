@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using Microsoft.Data.SqlClient;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Validation;
@@ -43,7 +44,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// Creates a new connection to the database
         /// </summary>
         /// <returns></returns>
-        public IDbConnection Create()
+        public DbConnection Create()
         {
             return new SqlConnection(_connectionInformation.ConnectionString);
         }

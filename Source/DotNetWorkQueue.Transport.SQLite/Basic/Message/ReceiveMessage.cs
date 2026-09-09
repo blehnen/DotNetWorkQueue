@@ -21,6 +21,7 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using System.Data;
+using System.Data.Common;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
 {
@@ -30,7 +31,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
     internal class ReceiveMessage
     {
         private readonly QueueConsumerConfiguration _configuration;
-        private readonly IQueryHandler<ReceiveMessageQuery<IDbConnection, IDbTransaction>, IReceivedMessageInternal> _receiveMessage;
+        private readonly IQueryHandler<ReceiveMessageQuery<DbConnection, DbTransaction>, IReceivedMessageInternal> _receiveMessage;
         private readonly ICancelWork _cancelToken;
 
         /// <summary>
@@ -40,7 +41,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
         /// <param name="receiveMessage">The receive message.</param>
         /// <param name="cancelToken">The cancel token.</param>
         public ReceiveMessage(QueueConsumerConfiguration configuration,
-            IQueryHandler<ReceiveMessageQuery<IDbConnection, IDbTransaction>, IReceivedMessageInternal> receiveMessage,
+            IQueryHandler<ReceiveMessageQuery<DbConnection, DbTransaction>, IReceivedMessageInternal> receiveMessage,
             IQueueCancelWork cancelToken)
         {
             Guard.NotNull(configuration);
@@ -69,7 +70,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
 
             //ask for the next message
             var receivedTransportMessage =
-                _receiveMessage.Handle(new ReceiveMessageQuery<IDbConnection, IDbTransaction>(null, null, _configuration.Routes, _configuration.GetUserParameters(), _configuration.GetUserClause()));
+                _receiveMessage.Handle(new ReceiveMessageQuery<DbConnection, DbTransaction>(null, null, _configuration.Routes, _configuration.GetUserParameters(), _configuration.GetUserClause()));
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)

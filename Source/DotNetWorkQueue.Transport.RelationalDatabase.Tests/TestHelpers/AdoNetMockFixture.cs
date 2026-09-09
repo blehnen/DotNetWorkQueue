@@ -21,35 +21,37 @@ using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using NSubstitute;
 
+using System.Data.Common;
+
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.TestHelpers
 {
     /// <summary>
     /// Shared ADO.NET mock scaffolding for synchronous handler unit tests.
-    /// Wires up <see cref="IDbConnectionFactory"/>, <see cref="IDbConnection"/>,
-    /// <see cref="IDbCommand"/>, and <see cref="IDataReader"/> substitutes using
-    /// the interface-based <see cref="IDbCommand.ExecuteReader"/> call chain.
+    /// Wires up <see cref="IDbConnectionFactory"/>, <see cref="DbConnection"/>,
+    /// <see cref="DbCommand"/>, and <see cref="IDataReader"/> substitutes using
+    /// the interface-based <see cref="DbCommand.ExecuteReader"/> call chain.
     /// </summary>
     internal sealed class AdoNetMockFixture
     {
         public IDbConnectionFactory ConnectionFactory { get; }
-        public IDbConnection Connection { get; }
-        public IDbCommand Command { get; }
-        public IDataReader Reader { get; }
+        public DbConnection Connection { get; }
+        public DbCommand Command { get; }
+        public DbDataReader Reader { get; }
         public IReadColumn ReadColumn { get; }
         public ITransactionFactory TransactionFactory { get; }
         public ITransactionWrapper TransactionWrapper { get; }
-        public IDbTransaction Transaction { get; }
+        public DbTransaction Transaction { get; }
 
         private AdoNetMockFixture(bool withTransaction)
         {
             ConnectionFactory = Substitute.For<IDbConnectionFactory>();
-            Connection = Substitute.For<IDbConnection>();
-            Command = Substitute.For<IDbCommand>();
-            Reader = Substitute.For<IDataReader>();
+            Connection = Substitute.For<DbConnection>();
+            Command = Substitute.For<DbCommand>();
+            Reader = Substitute.For<DbDataReader>();
             ReadColumn = Substitute.For<IReadColumn>();
             TransactionFactory = Substitute.For<ITransactionFactory>();
             TransactionWrapper = Substitute.For<ITransactionWrapper>();
-            Transaction = Substitute.For<IDbTransaction>();
+            Transaction = Substitute.For<DbTransaction>();
 
             ConnectionFactory.Create().Returns(Connection);
             Connection.CreateCommand().Returns(Command);

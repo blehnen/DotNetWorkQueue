@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
@@ -43,7 +44,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
         }
 
         /// <inheritdoc />
-        public void Handle(DashboardRequeueAllErrorMessagesCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(DashboardRequeueAllErrorMessagesCommand command, DbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = commandType == CommandStringTypes.DashboardRequeueAllErrors
                 ? string.Format(_commandCache.GetCommand(commandType), _dynamicColumns.Value)

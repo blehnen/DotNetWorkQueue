@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
@@ -28,10 +29,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
     /// <summary>
     /// 
     /// </summary>
-    public class DoesJobExistDecorator : IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses>
+    public class DoesJobExistDecorator : IQueryHandler<DoesJobExistQuery<DbConnection, DbTransaction>, QueueStatuses>
     {
         private readonly IConnectionInformation _connectionInformation;
-        private readonly IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> _decorated;
+        private readonly IQueryHandler<DoesJobExistQuery<DbConnection, DbTransaction>, QueueStatuses> _decorated;
         private readonly DatabaseExists _databaseExists;
 
         /// <summary>
@@ -41,7 +42,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         /// <param name="decorated">The decorated.</param>
         /// <param name="databaseExists">The database exists.</param>
         public DoesJobExistDecorator(IConnectionInformation connectionInformation,
-            IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> decorated,
+            IQueryHandler<DoesJobExistQuery<DbConnection, DbTransaction>, QueueStatuses> decorated,
             DatabaseExists databaseExists)
         {
             Guard.NotNull(decorated);
@@ -57,7 +58,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        public QueueStatuses Handle(DoesJobExistQuery<IDbConnection, IDbTransaction> query)
+        public QueueStatuses Handle(DoesJobExistQuery<DbConnection, DbTransaction> query)
         {
             return !_databaseExists.Exists(_connectionInformation.ConnectionString) ? QueueStatuses.NotQueued : _decorated.Handle(query);
         }

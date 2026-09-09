@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
@@ -52,7 +53,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryPrepareHandler
             _getTime = timeFactory.Create();
         }
         /// <inheritdoc />
-        public void Handle(FindErrorMessagesToDeleteQuery<long> query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(FindErrorMessagesToDeleteQuery<long> query, DbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
 

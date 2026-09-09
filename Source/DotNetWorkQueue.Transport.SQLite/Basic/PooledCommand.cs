@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Data.SQLite;
 using System.Threading;
@@ -38,7 +39,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     /// </para>
     /// <para>
     /// Only the compiled statements are worth keeping. Callers build their own parameters through
-    /// <see cref="CreateParameter"/>, so the parameter collection is emptied on release and rebuilt
+    /// <see cref="CreateDbParameter"/>, so the parameter collection is emptied on release and rebuilt
     /// by the next caller; that measured 4,458 ns against 4,230 ns for keeping the parameters too,
     /// which is 99% of the win for none of the disruption to callers.
     /// </para>
@@ -48,7 +49,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     /// unconditionally - which is the normal shape - therefore keep the benefit without changing.
     /// </para>
     /// </remarks>
-    internal sealed class PooledCommand : IDbCommand
+    internal sealed class PooledCommand : DbCommand
     {
         private readonly PooledConnectionEntry _owner;
         private readonly string _commandText;
@@ -80,7 +81,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                             "changing the text would leave it under a key that no longer describes it. The setter " +
                             "reads the field to accept a caller re-assigning the value it already holds - which is " +
                             "the normal shape of the callers - and refuses anything else.")]
-        public string CommandText
+        public override string CommandText
         {
             //the text this command was rented for, which is also how it is filed
             get => _commandText;
@@ -99,21 +100,25 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         }
 
         /// <inheritdoc />
-        public int CommandTimeout
+        public override int CommandTimeout
         {
             get => Inner.CommandTimeout;
             set => Inner.CommandTimeout = value;
         }
 
         /// <inheritdoc />
-        public CommandType CommandType
+        public override CommandType CommandType
         {
             get => Inner.CommandType;
             set => Inner.CommandType = value;
         }
 
         /// <inheritdoc />
-        public IDbConnection Connection
+        /// <remarks>
+        /// DbCommand exposes the public Connection, Transaction and Parameters members and routes them
+        /// through these protected ones, so they are declared here rather than as public properties.
+        /// </remarks>
+        protected override DbConnection DbConnection
         {
             get => Inner.Connection;
             set => throw new NotSupportedException(
@@ -121,56 +126,63 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         }
 
         /// <inheritdoc />
-        public IDataParameterCollection Parameters => Inner.Parameters;
+        protected override DbParameterCollection DbParameterCollection => Inner.Parameters;
 
         /// <inheritdoc />
-        public IDbTransaction Transaction
+        protected override DbTransaction DbTransaction
         {
             get => Inner.Transaction;
             set => Inner.Transaction = (SQLiteTransaction)value;
         }
 
         /// <inheritdoc />
-        public UpdateRowSource UpdatedRowSource
+        public override UpdateRowSource UpdatedRowSource
         {
             get => Inner.UpdatedRowSource;
             set => Inner.UpdatedRowSource = value;
         }
 
         /// <inheritdoc />
-        public void Cancel() => Inner.Cancel();
+        /// <remarks>Required by DbCommand for designer support; nothing here reads it.</remarks>
+        public override bool DesignTimeVisible { get; set; }
 
         /// <inheritdoc />
-        public IDbDataParameter CreateParameter() => Inner.CreateParameter();
+        public override void Cancel() => Inner.Cancel();
 
         /// <inheritdoc />
-        public int ExecuteNonQuery() => Inner.ExecuteNonQuery();
+        protected override DbParameter CreateDbParameter() => Inner.CreateParameter();
 
         /// <inheritdoc />
-        public IDataReader ExecuteReader() => Inner.ExecuteReader();
+        public override int ExecuteNonQuery() => Inner.ExecuteNonQuery();
 
         /// <inheritdoc />
-        public IDataReader ExecuteReader(CommandBehavior behavior) => Inner.ExecuteReader(behavior);
+        /// <remarks>DbCommand supplies the public ExecuteReader overloads, which route through this.</remarks>
+        protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior) =>
+            Inner.ExecuteReader(behavior);
 
         /// <inheritdoc />
-        public object ExecuteScalar() => Inner.ExecuteScalar();
+        public override object ExecuteScalar() => Inner.ExecuteScalar();
 
-        /// <summary>
-        /// No-op. The statements are compiled lazily on execution and kept on the command, which is
-        /// the point of this type.
-        /// </summary>
-        public void Prepare()
+        /// <inheritdoc />
+        public override void Prepare()
         {
             //System.Data.SQLite compiles on execution; Prepare is a no-op there as well
         }
 
-        /// <summary>
-        /// Releases the command back to the connection that owns it, which returns it to the state
-        /// a freshly created one would be in - parameters cleared, transaction detached, settings
-        /// back to their originals - except that its statements are already compiled.
-        /// </summary>
-        public void Dispose()
+        /// <inheritdoc />
+        /// <remarks>
+        /// Returns the command to its pool rather than disposing it - keeping the compiled statements
+        /// is the whole point of this type. The finalizer path does nothing, since the pool holds the
+        /// only reference that matters.
+        /// </remarks>
+        protected override void Dispose(bool disposing)
         {
+            if (!disposing)
+            {
+                base.Dispose(false);
+                return;
+            }
+
             if (Interlocked.Increment(ref _disposeCount) != 1)
                 return;
 

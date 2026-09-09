@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
 
@@ -37,7 +38,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
         }
 
         /// <inheritdoc />
-        public void Handle(GetJobIdQuery<T> query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(GetJobIdQuery<T> query, DbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText = _commandCache.GetCommand(commandType);
             var param = dbCommand.CreateParameter();

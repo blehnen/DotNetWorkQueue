@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using System.Globalization;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
@@ -29,7 +30,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
     /// <summary>
     /// 
     /// </summary>
-    public class SetJobLastKnownEventCommandHandler : ICommandHandler<SetJobLastKnownEventCommand<IDbConnection, IDbTransaction>>
+    public class SetJobLastKnownEventCommandHandler : ICommandHandler<SetJobLastKnownEventCommand<DbConnection, DbTransaction>>
     {
         private readonly IDbCommandStringCache _commandCache;
         /// <summary>
@@ -46,7 +47,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
         /// Handles the specified command.
         /// </summary>
         /// <param name="command">The command.</param>
-        public void Handle(SetJobLastKnownEventCommand<IDbConnection, IDbTransaction> command)
+        public void Handle(SetJobLastKnownEventCommand<DbConnection, DbTransaction> command)
         {
             using (var commandSql = command.Connection.CreateCommand())
             {

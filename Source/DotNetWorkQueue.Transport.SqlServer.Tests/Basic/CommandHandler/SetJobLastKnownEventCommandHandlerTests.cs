@@ -29,6 +29,8 @@ using Microsoft.Data.SqlClient;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
+using System.Data.Common;
+
 namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
 {
     [TestClass]
@@ -102,7 +104,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
 
             handler.Handle(command);
 
-            parameters.Received(3).Add(Arg.Any<IDbDataParameter>());
+            parameters.Received(3).Add(Arg.Any<DbParameter>());
             dbCommand.Received(3).CreateParameter();
         }
 
@@ -111,14 +113,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
         {
             var commandCache = CreateCommandCache();
 
-            var connection = Substitute.For<IDbConnection>();
-            var dbCommand = Substitute.For<IDbCommand>();
-            var parameters = Substitute.For<IDataParameterCollection>();
+            var connection = Substitute.For<DbConnection>();
+            var dbCommand = Substitute.For<DbCommand>();
+            var parameters = Substitute.For<DbParameterCollection>();
             dbCommand.Parameters.Returns(parameters);
 
-            var paramJobName = Substitute.For<IDbDataParameter>();
-            var paramEventTime = Substitute.For<IDbDataParameter>();
-            var paramScheduledTime = Substitute.For<IDbDataParameter>();
+            var paramJobName = Substitute.For<DbParameter>();
+            var paramEventTime = Substitute.For<DbParameter>();
+            var paramScheduledTime = Substitute.For<DbParameter>();
             dbCommand.CreateParameter().Returns(paramJobName, paramEventTime, paramScheduledTime);
 
             connection.CreateCommand().Returns(dbCommand);
@@ -147,16 +149,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic.CommandHandler
             paramScheduledTime.Received(1).Value = scheduledTime;
         }
 
-        private static (IDbConnectionFactory factory, IDbConnection connection, IDbCommand command, IDataParameterCollection parameters) CreateMockedFactory()
+        private static (IDbConnectionFactory factory, DbConnection connection, DbCommand command, DbParameterCollection parameters) CreateMockedFactory()
         {
-            var connection = Substitute.For<IDbConnection>();
-            var dbCommand = Substitute.For<IDbCommand>();
-            var parameters = Substitute.For<IDataParameterCollection>();
+            var connection = Substitute.For<DbConnection>();
+            var dbCommand = Substitute.For<DbCommand>();
+            var parameters = Substitute.For<DbParameterCollection>();
             dbCommand.Parameters.Returns(parameters);
             dbCommand.CreateParameter().Returns(
-                _ => Substitute.For<IDbDataParameter>(),
-                _ => Substitute.For<IDbDataParameter>(),
-                _ => Substitute.For<IDbDataParameter>());
+                _ => Substitute.For<DbParameter>(),
+                _ => Substitute.For<DbParameter>(),
+                _ => Substitute.For<DbParameter>());
             connection.CreateCommand().Returns(dbCommand);
 
             var factory = Substitute.For<IDbConnectionFactory>();

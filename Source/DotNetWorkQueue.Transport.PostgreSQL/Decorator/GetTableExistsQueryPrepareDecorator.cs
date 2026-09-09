@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
@@ -41,7 +42,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Decorator
         }
 
         /// <inheritdoc />
-        public void Handle(GetTableExistsQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(GetTableExistsQuery query, DbCommand dbCommand, CommandStringTypes commandType)
         {
             //table name needs to be lower case
             _decorated.Handle(new GetTableExistsQuery(query.ConnectionString, query.TableName.ToLowerInvariant()), dbCommand, commandType);

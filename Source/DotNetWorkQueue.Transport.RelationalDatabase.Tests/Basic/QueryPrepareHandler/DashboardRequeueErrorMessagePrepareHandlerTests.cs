@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandler;
@@ -63,12 +64,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             return new DashboardRequeueErrorMessagePrepareHandler(new FakeCommandStringCache(), optionsFactory);
         }
 
-        private static IDbCommand CreateDbCommand()
+        private static DbCommand CreateDbCommand()
         {
-            var command = Substitute.For<IDbCommand>();
+            var command = Substitute.For<DbCommand>();
             var parameters = new DataParameterCollection();
             command.Parameters.Returns(parameters);
-            command.CreateParameter().Returns(_ => Substitute.For<IDbDataParameter>());
+            command.CreateParameter().Returns(_ => Substitute.For<DbParameter>());
             return command;
         }
     }

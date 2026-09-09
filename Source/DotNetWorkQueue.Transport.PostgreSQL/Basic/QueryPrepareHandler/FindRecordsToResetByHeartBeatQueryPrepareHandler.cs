@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
@@ -61,7 +62,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler
         /// <param name="query">The query.</param>
         /// <param name="dbCommand">The database command.</param>
         /// <param name="commandType">Type of the command.</param>
-        public void Handle(FindMessagesToResetByHeartBeatQuery<long> query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(FindMessagesToResetByHeartBeatQuery<long> query, DbCommand dbCommand, CommandStringTypes commandType)
         {
             dbCommand.CommandText =
                 _commandCache.GetCommand(commandType);

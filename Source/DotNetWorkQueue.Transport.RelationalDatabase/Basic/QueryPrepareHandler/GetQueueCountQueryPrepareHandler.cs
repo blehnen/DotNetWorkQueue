@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Validation;
 
@@ -42,7 +43,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
             _options = new Lazy<ITransportOptions>(options.Create);
         }
 
-        public void Handle(GetQueueCountQuery query, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(GetQueueCountQuery query, DbCommand dbCommand, CommandStringTypes commandType)
         {
             if (query.Status.HasValue && _options.Value.EnableStatus) //status means nothing if not enabled on the queue
             {

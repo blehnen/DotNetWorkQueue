@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
@@ -33,7 +34,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     /// <seealso cref="DotNetWorkQueue.ASendJobToQueue" />
     public class SqliteSendToJobQueue : ASendJobToQueue
     {
-        private readonly IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> _doesJobExist;
+        private readonly IQueryHandler<DoesJobExistQuery<DbConnection, DbTransaction>, QueueStatuses> _doesJobExist;
         private readonly IRemoveMessage _removeMessage;
         private readonly IQueryHandler<GetJobIdQuery<long>, long> _getJobId;
         private readonly CreateJobMetaData _createJobMetaData;
@@ -45,7 +46,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="getJobId">The get job identifier.</param>
         /// <param name="createJobMetaData">The create job meta data.</param>
         /// <param name="getTimeFactory">The get time factory.</param>
-        public SqliteSendToJobQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> doesJobExist,
+        public SqliteSendToJobQueue(IProducerMethodQueue queue, IQueryHandler<DoesJobExistQuery<DbConnection, DbTransaction>, QueueStatuses> doesJobExist,
             IRemoveMessage removeMessage,
             IQueryHandler<GetJobIdQuery<long>, long> getJobId, CreateJobMetaData createJobMetaData,
             IGetTimeFactory getTimeFactory) : base(queue, getTimeFactory)
@@ -64,7 +65,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <returns></returns>
         protected override QueueStatuses DoesJobExist(string name, DateTimeOffset scheduledTime)
         {
-            return _doesJobExist.Handle(new DoesJobExistQuery<IDbConnection, IDbTransaction>(name, scheduledTime));
+            return _doesJobExist.Handle(new DoesJobExistQuery<DbConnection, DbTransaction>(name, scheduledTime));
         }
 
         /// <summary>

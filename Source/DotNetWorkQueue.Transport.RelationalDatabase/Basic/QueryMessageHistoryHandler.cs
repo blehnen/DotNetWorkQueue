@@ -168,7 +168,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             };
         }
 
-        private static void AddParameter(IDbCommand command, string name, DbType dbType, object value)
+        private static void AddParameter(DbCommand command, string name, DbType dbType, object value)
         {
             var param = command.CreateParameter();
             param.ParameterName = name;

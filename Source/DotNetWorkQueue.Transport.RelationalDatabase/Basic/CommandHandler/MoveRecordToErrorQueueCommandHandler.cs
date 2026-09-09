@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
@@ -30,9 +31,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     /// Moves a record from the meta table to the error table
     /// </summary>
     public class MoveRecordToErrorQueueCommandHandler<TConnection, TTransaction, TCommand> : ICommandHandler<MoveRecordToErrorQueueCommand<long>>
-        where TConnection : class, IDbConnection
-        where TTransaction : class, IDbTransaction
-        where TCommand : class, IDbCommand
+        where TConnection : DbConnection
+        where TTransaction : DbTransaction
+        where TCommand : DbCommand
     {
         private readonly ICommandHandler<DeleteMetaDataCommand> _deleteMetaCommandHandler;
         private readonly ICommandHandler<SetStatusTableStatusTransactionCommand> _setStatusCommandHandler;

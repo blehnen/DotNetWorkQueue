@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests
             Assert.AreEqual(
                 typeof(DbTransaction),
                 prop!.PropertyType,
-                "Transaction property must be typed as System.Data.Common.DbTransaction (NOT System.Data.IDbTransaction).");
+                "Transaction property must be typed as System.Data.Common.DbTransaction (NOT System.Data.DbTransaction).");
         }
 
         [TestMethod]

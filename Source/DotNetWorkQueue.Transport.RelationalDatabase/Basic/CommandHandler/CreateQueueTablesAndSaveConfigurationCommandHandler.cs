@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
@@ -94,7 +95,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         /// <param name="conn">The connection.</param>
         /// <param name="trans">The trans.</param>
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
-        private void SaveConfiguration(IDbConnection conn, IDbTransaction trans)
+        private void SaveConfiguration(DbConnection conn, DbTransaction trans)
         {
             using (var commandSql = conn.CreateCommand())
             {

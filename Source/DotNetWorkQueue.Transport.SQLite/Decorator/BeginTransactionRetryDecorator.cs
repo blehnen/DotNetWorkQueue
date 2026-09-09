@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Validation;
 using Polly;
@@ -47,14 +48,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         }
 
         /// <inheritdoc />
-        public IDbConnection Connection
+        public DbConnection Connection
         {
             get => _decorated.Connection;
             set => _decorated.Connection = value;
         }
 
         /// <inheritdoc />
-        public IDbTransaction BeginTransaction()
+        public DbTransaction BeginTransaction()
         {
             if (_pipeline == null)
             {

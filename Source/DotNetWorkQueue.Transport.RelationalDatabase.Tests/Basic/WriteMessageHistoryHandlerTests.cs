@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -159,20 +160,20 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
         public void RecordComplete_WithoutStartedUtc_PassesDurationZero()
         {
             var (handler, factory, _) = Create(enabled: true);
-            var connection = Substitute.For<IDbConnection>();
+            var connection = Substitute.For<DbConnection>();
 
-            var allParams = new System.Collections.Generic.List<IDbDataParameter>();
+            var allParams = new System.Collections.Generic.List<DbParameter>();
             // Capture the CommandText of every command created during RecordComplete.
             var capturedCommandTexts = new System.Collections.Generic.List<string>();
 
-            IDbCommand MakeTrackingCommand(bool returnsDbNull = false)
+            DbCommand MakeTrackingCommand(bool returnsDbNull = false)
             {
-                var cmd = Substitute.For<IDbCommand>();
-                var paramCollection = Substitute.For<IDataParameterCollection>();
+                var cmd = Substitute.For<DbCommand>();
+                var paramCollection = Substitute.For<DbParameterCollection>();
                 cmd.Parameters.Returns(paramCollection);
                 cmd.CreateParameter().Returns(_ =>
                 {
-                    var p = Substitute.For<IDbDataParameter>();
+                    var p = Substitute.For<DbParameter>();
                     allParams.Add(p);
                     return p;
                 });
@@ -196,7 +197,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             handler.RecordComplete("q1");
 
             // Assert the @DurationMs parameter was set to 0L (StartedUtc was null → duration = 0).
-            IDbDataParameter durationParam = null;
+            DbParameter durationParam = null;
             foreach (var p in allParams)
             {
                 if ((string)p.ParameterName == "@DurationMs")
@@ -229,18 +230,18 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
         public void RecordError_WithoutStartedUtc_PassesDurationZero()
         {
             var (handler, factory, _) = Create(enabled: true);
-            var connection = Substitute.For<IDbConnection>();
+            var connection = Substitute.For<DbConnection>();
 
-            var allParams = new System.Collections.Generic.List<IDbDataParameter>();
+            var allParams = new System.Collections.Generic.List<DbParameter>();
 
-            IDbCommand MakeTrackingCommand(bool returnsDbNull = false)
+            DbCommand MakeTrackingCommand(bool returnsDbNull = false)
             {
-                var cmd = Substitute.For<IDbCommand>();
-                var paramCollection = Substitute.For<IDataParameterCollection>();
+                var cmd = Substitute.For<DbCommand>();
+                var paramCollection = Substitute.For<DbParameterCollection>();
                 cmd.Parameters.Returns(paramCollection);
                 cmd.CreateParameter().Returns(_ =>
                 {
-                    var p = Substitute.For<IDbDataParameter>();
+                    var p = Substitute.For<DbParameter>();
                     allParams.Add(p);
                     return p;
                 });
@@ -261,7 +262,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             handler.RecordError("q1", "some error");
 
             // Find the parameter named @DurationMs
-            IDbDataParameter durationParam = null;
+            DbParameter durationParam = null;
             foreach (var p in allParams)
             {
                 if ((string)p.ParameterName == "@DurationMs")
@@ -288,12 +289,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             return (new WriteMessageHistoryHandler(factory, tableNameHelper, options), factory, options);
         }
 
-        private static (IDbConnection connection, IDbCommand command) SetupConnection(IDbConnectionFactory factory)
+        private static (DbConnection connection, DbCommand command) SetupConnection(IDbConnectionFactory factory)
         {
-            var connection = Substitute.For<IDbConnection>();
-            var command = Substitute.For<IDbCommand>();
-            var parameters = Substitute.For<IDataParameterCollection>();
-            var parameter = Substitute.For<IDbDataParameter>();
+            var connection = Substitute.For<DbConnection>();
+            var command = Substitute.For<DbCommand>();
+            var parameters = Substitute.For<DbParameterCollection>();
+            var parameter = Substitute.For<DbParameter>();
             command.CreateParameter().Returns(parameter);
             command.Parameters.Returns(parameters);
             connection.CreateCommand().Returns(command);

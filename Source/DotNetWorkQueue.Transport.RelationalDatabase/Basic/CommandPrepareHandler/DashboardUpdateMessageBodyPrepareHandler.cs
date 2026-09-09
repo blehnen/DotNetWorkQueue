@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
@@ -38,7 +39,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
         }
 
         /// <inheritdoc />
-        public void Handle(DashboardUpdateMessageBodyCommand command, IDbCommand dbCommand, CommandStringTypes commandType)
+        public void Handle(DashboardUpdateMessageBodyCommand command, DbCommand dbCommand, CommandStringTypes commandType)
         {
             if (!dbCommand.Parameters.Contains("@QueueID"))
             {

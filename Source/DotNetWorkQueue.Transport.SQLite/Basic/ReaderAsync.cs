@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Data.SQLite;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.SQLite;
@@ -30,21 +31,21 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     public class ReaderAsync : IReaderAsync
     {
         /// <inheritdoc />
-        public async Task<int> ExecuteNonQueryAsync(IDbCommand command)
+        public async Task<int> ExecuteNonQueryAsync(DbCommand command)
         {
             var sqlCommand = Provider(command);
             return await sqlCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<object> ExecuteScalarAsync(IDbCommand command)
+        public async Task<object> ExecuteScalarAsync(DbCommand command)
         {
             var sqlCommand = Provider(command);
             return await sqlCommand.ExecuteScalarAsync().ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<IDataReader> ExecuteReaderAsync(IDbCommand command)
+        public async Task<IDataReader> ExecuteReaderAsync(DbCommand command)
         {
             var sqlCommand = Provider(command);
             return await sqlCommand.ExecuteReaderAsync().ConfigureAwait(false);
@@ -56,7 +57,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// reach the concrete command - including through the wrapper a pooled connection returns,
         /// which is not itself a <see cref="SQLiteCommand"/>.
         /// </summary>
-        private static SQLiteCommand Provider(IDbCommand command)
+        private static SQLiteCommand Provider(DbCommand command)
         {
             switch (command)
             {

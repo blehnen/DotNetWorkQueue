@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.SQLite;
 using System.Threading;
 
@@ -71,7 +72,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// A command for <paramref name="commandText"/>, reusing the statements compiled for it on
         /// this connection where that is possible.
         /// </summary>
-        internal IDbCommand CreateCommand(string commandText)
+        internal DbCommand CreateCommand(string commandText)
         {
             if (Volatile.Read(ref _disposeCount) != 0 || string.IsNullOrEmpty(commandText) || _inUse.Contains(commandText))
                 return Uncached(commandText);

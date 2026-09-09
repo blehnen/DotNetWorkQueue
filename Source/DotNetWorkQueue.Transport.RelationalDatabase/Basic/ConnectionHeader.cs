@@ -17,15 +17,16 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
     /// <inheritdoc />
     public class ConnectionHeader<TConnection, TTransaction, TCommand> : IConnectionHeader<TConnection, TTransaction, TCommand>
-        where TConnection : IDbConnection
-        where TTransaction : IDbTransaction
-        where TCommand : IDbCommand
+        where TConnection : DbConnection
+        where TTransaction : DbTransaction
+        where TCommand : DbCommand
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionHeader{TConnection, TTransaction, TCommand}"/> class.

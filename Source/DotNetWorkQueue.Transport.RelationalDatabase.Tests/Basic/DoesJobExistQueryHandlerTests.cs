@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
@@ -17,10 +18,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
         {
             var fixture = CreateFixture();
 
-            var connection = Substitute.For<IDbConnection>();
-            var transaction = Substitute.For<IDbTransaction>();
-            var command = Substitute.For<IDbCommand>();
-            var reader = Substitute.For<IDataReader>();
+            var connection = Substitute.For<DbConnection>();
+            var transaction = Substitute.For<DbTransaction>();
+            var command = Substitute.For<DbCommand>();
+            var reader = Substitute.For<DbDataReader>();
 
             connection.CreateCommand().Returns(command);
             reader.Read().Returns(false);
@@ -29,7 +30,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             // Table does not exist
             fixture.TableExists.Handle(Arg.Any<GetTableExistsQuery>()).Returns(false);
 
-            var query = new DoesJobExistQuery<IDbConnection, IDbTransaction>(
+            var query = new DoesJobExistQuery<DbConnection, DbTransaction>(
                 "testJob", DateTimeOffset.UtcNow, connection, transaction);
 
             var result = fixture.Handler.Handle(query);
@@ -42,10 +43,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
         {
             var fixture = CreateFixture();
 
-            var connection = Substitute.For<IDbConnection>();
-            var transaction = Substitute.For<IDbTransaction>();
-            var command = Substitute.For<IDbCommand>();
-            var reader = Substitute.For<IDataReader>();
+            var connection = Substitute.For<DbConnection>();
+            var transaction = Substitute.For<DbTransaction>();
+            var command = Substitute.For<DbCommand>();
+            var reader = Substitute.For<DbDataReader>();
 
             connection.CreateCommand().Returns(command);
             reader.Read().Returns(true, false);
@@ -53,7 +54,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             fixture.ReadColumn.ReadAsInt32(CommandStringTypes.DoesJobExist, 0, reader)
                 .Returns((int)QueueStatuses.Waiting);
 
-            var query = new DoesJobExistQuery<IDbConnection, IDbTransaction>(
+            var query = new DoesJobExistQuery<DbConnection, DbTransaction>(
                 "testJob", DateTimeOffset.UtcNow, connection, transaction);
 
             var result = fixture.Handler.Handle(query);
@@ -67,16 +68,16 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             var fixture = CreateFixture();
             var scheduledTime = DateTimeOffset.UtcNow;
 
-            var connection = Substitute.For<IDbConnection>();
-            var transaction = Substitute.For<IDbTransaction>();
-            var command = Substitute.For<IDbCommand>();
+            var connection = Substitute.For<DbConnection>();
+            var transaction = Substitute.For<DbTransaction>();
+            var command = Substitute.For<DbCommand>();
 
             // First reader: no rows (status query)
-            var reader1 = Substitute.For<IDataReader>();
+            var reader1 = Substitute.For<DbDataReader>();
             reader1.Read().Returns(false);
 
             // Second reader: has row with matching schedule time
-            var reader2 = Substitute.For<IDataReader>();
+            var reader2 = Substitute.For<DbDataReader>();
             reader2.Read().Returns(true, false);
 
             connection.CreateCommand().Returns(command);
@@ -87,7 +88,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             fixture.ReadColumn.ReadAsDateTimeOffset(CommandStringTypes.GetJobLastScheduleTime, 0, reader2)
                 .Returns(scheduledTime);
 
-            var query = new DoesJobExistQuery<IDbConnection, IDbTransaction>(
+            var query = new DoesJobExistQuery<DbConnection, DbTransaction>(
                 "testJob", scheduledTime, connection, transaction);
 
             var result = fixture.Handler.Handle(query);
@@ -101,16 +102,16 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             var fixture = CreateFixture();
             var scheduledTime = DateTimeOffset.UtcNow;
 
-            var connection = Substitute.For<IDbConnection>();
-            var transaction = Substitute.For<IDbTransaction>();
-            var command = Substitute.For<IDbCommand>();
+            var connection = Substitute.For<DbConnection>();
+            var transaction = Substitute.For<DbTransaction>();
+            var command = Substitute.For<DbCommand>();
 
             // First reader: no rows
-            var reader1 = Substitute.For<IDataReader>();
+            var reader1 = Substitute.For<DbDataReader>();
             reader1.Read().Returns(false);
 
             // Second reader: has row with different schedule time
-            var reader2 = Substitute.For<IDataReader>();
+            var reader2 = Substitute.For<DbDataReader>();
             reader2.Read().Returns(true, false);
 
             connection.CreateCommand().Returns(command);
@@ -120,7 +121,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             fixture.ReadColumn.ReadAsDateTimeOffset(CommandStringTypes.GetJobLastScheduleTime, 0, reader2)
                 .Returns(scheduledTime.AddHours(1));
 
-            var query = new DoesJobExistQuery<IDbConnection, IDbTransaction>(
+            var query = new DoesJobExistQuery<DbConnection, DbTransaction>(
                 "testJob", scheduledTime, connection, transaction);
 
             var result = fixture.Handler.Handle(query);
@@ -133,10 +134,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
         {
             var fixture = CreateFixture();
 
-            var connection = Substitute.For<IDbConnection>();
-            var transaction = Substitute.For<IDbTransaction>();
-            var command = Substitute.For<IDbCommand>();
-            var reader = Substitute.For<IDataReader>();
+            var connection = Substitute.For<DbConnection>();
+            var transaction = Substitute.For<DbTransaction>();
+            var command = Substitute.For<DbCommand>();
+            var reader = Substitute.For<DbDataReader>();
 
             connection.CreateCommand().Returns(command);
             reader.Read().Returns(false);
@@ -145,7 +146,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             // Table does not exist
             fixture.TableExists.Handle(Arg.Any<GetTableExistsQuery>()).Returns(false);
 
-            var query = new DoesJobExistQuery<IDbConnection, IDbTransaction>(
+            var query = new DoesJobExistQuery<DbConnection, DbTransaction>(
                 "testJob", DateTimeOffset.UtcNow, connection, transaction);
 
             var result = fixture.Handler.Handle(query);
@@ -158,16 +159,16 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
         {
             var fixture = CreateFixture();
 
-            var connection = Substitute.For<IDbConnection>();
-            var transaction = Substitute.For<IDbTransaction>();
-            var command = Substitute.For<IDbCommand>();
+            var connection = Substitute.For<DbConnection>();
+            var transaction = Substitute.For<DbTransaction>();
+            var command = Substitute.For<DbCommand>();
 
             // First reader: no rows
-            var reader1 = Substitute.For<IDataReader>();
+            var reader1 = Substitute.For<DbDataReader>();
             reader1.Read().Returns(false);
 
             // Second reader: no rows in job table either
-            var reader2 = Substitute.For<IDataReader>();
+            var reader2 = Substitute.For<DbDataReader>();
             reader2.Read().Returns(false);
 
             connection.CreateCommand().Returns(command);
@@ -175,7 +176,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 
             fixture.TableExists.Handle(Arg.Any<GetTableExistsQuery>()).Returns(true);
 
-            var query = new DoesJobExistQuery<IDbConnection, IDbTransaction>(
+            var query = new DoesJobExistQuery<DbConnection, DbTransaction>(
                 "testJob", DateTimeOffset.UtcNow, connection, transaction);
 
             var result = fixture.Handler.Handle(query);
@@ -188,11 +189,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
         {
             var fixture = CreateFixture();
 
-            var connection = Substitute.For<IDbConnection>();
-            var transaction = Substitute.For<IDbTransaction>();
+            var connection = Substitute.For<DbConnection>();
+            var transaction = Substitute.For<DbTransaction>();
             var transactionWrapper = Substitute.For<ITransactionWrapper>();
-            var command = Substitute.For<IDbCommand>();
-            var reader = Substitute.For<IDataReader>();
+            var command = Substitute.For<DbCommand>();
+            var reader = Substitute.For<DbDataReader>();
 
             fixture.DbConnectionFactory.Create().Returns(connection);
             fixture.TransactionFactory.Create(connection).Returns(transactionWrapper);
@@ -204,7 +205,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             // Table doesn't exist
             fixture.TableExists.Handle(Arg.Any<GetTableExistsQuery>()).Returns(false);
 
-            var query = new DoesJobExistQuery<IDbConnection, IDbTransaction>(
+            var query = new DoesJobExistQuery<DbConnection, DbTransaction>(
                 "testJob", DateTimeOffset.UtcNow);
 
             var result = fixture.Handler.Handle(query);
@@ -219,10 +220,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
         {
             var fixture = CreateFixture();
 
-            var connection = Substitute.For<IDbConnection>();
-            var transaction = Substitute.For<IDbTransaction>();
-            var command = Substitute.For<IDbCommand>();
-            var reader = Substitute.For<IDataReader>();
+            var connection = Substitute.For<DbConnection>();
+            var transaction = Substitute.For<DbTransaction>();
+            var command = Substitute.For<DbCommand>();
+            var reader = Substitute.For<DbDataReader>();
 
             connection.CreateCommand().Returns(command);
             reader.Read().Returns(true, false);
@@ -231,7 +232,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             fixture.ReadColumn.ReadAsInt32(CommandStringTypes.DoesJobExist, 0, reader)
                 .Returns((int)QueueStatuses.Processing);
 
-            var query = new DoesJobExistQuery<IDbConnection, IDbTransaction>(
+            var query = new DoesJobExistQuery<DbConnection, DbTransaction>(
                 "testJob", DateTimeOffset.UtcNow, connection, transaction);
 
             var result = fixture.Handler.Handle(query);
@@ -251,10 +252,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             tableNameHelper.JobTableName.Returns("JobTable");
             var dbConnectionFactory = Substitute.For<IDbConnectionFactory>();
             var transactionFactory = Substitute.For<ITransactionFactory>();
-            var prepareQuery = Substitute.For<IPrepareQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses>>();
+            var prepareQuery = Substitute.For<IPrepareQueryHandler<DoesJobExistQuery<DbConnection, DbTransaction>, QueueStatuses>>();
             var readColumn = Substitute.For<IReadColumn>();
 
-            var handler = new DoesJobExistQueryHandler<IDbConnection, IDbTransaction>(
+            var handler = new DoesJobExistQueryHandler<DbConnection, DbTransaction>(
                 commandCache,
                 connectionInfo,
                 tableExists,
@@ -293,14 +294,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 
         private class TestFixture
         {
-            public DoesJobExistQueryHandler<IDbConnection, IDbTransaction> Handler { get; set; }
+            public DoesJobExistQueryHandler<DbConnection, DbTransaction> Handler { get; set; }
             public CommandStringCache CommandCache { get; set; }
             public IConnectionInformation ConnectionInfo { get; set; }
             public IQueryHandler<GetTableExistsQuery, bool> TableExists { get; set; }
             public ITableNameHelper TableNameHelper { get; set; }
             public IDbConnectionFactory DbConnectionFactory { get; set; }
             public ITransactionFactory TransactionFactory { get; set; }
-            public IPrepareQueryHandler<DoesJobExistQuery<IDbConnection, IDbTransaction>, QueueStatuses> PrepareQuery { get; set; }
+            public IPrepareQueryHandler<DoesJobExistQuery<DbConnection, DbTransaction>, QueueStatuses> PrepareQuery { get; set; }
             public IReadColumn ReadColumn { get; set; }
         }
     }

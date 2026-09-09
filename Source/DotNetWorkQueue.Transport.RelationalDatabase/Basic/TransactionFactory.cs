@@ -16,7 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System.Data;
+using System.Data.Common;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
     public class TransactionFactory : ITransactionFactory
     {
         /// <inheritdoc />
-        public ITransactionWrapper Create(IDbConnection connection)
+        public ITransactionWrapper Create(DbConnection connection)
         {
             return new TransactionWrapper(connection);
         }

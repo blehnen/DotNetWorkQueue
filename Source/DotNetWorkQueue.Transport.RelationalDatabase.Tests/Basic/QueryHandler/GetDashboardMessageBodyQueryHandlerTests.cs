@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.Shared;
@@ -39,15 +40,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
             Assert.IsNull(result);
         }
 
-        private static (IQueryHandler<GetDashboardMessageBodyQuery, DashboardMessageBody> handler, IReadColumn readColumn, IDataReader reader) CreateHandler(bool hasRows)
+        private static (IQueryHandler<GetDashboardMessageBodyQuery, DashboardMessageBody> handler, IReadColumn readColumn, DbDataReader reader) CreateHandler(bool hasRows)
         {
             var factory = Substitute.For<IDbConnectionFactory>();
             var prepareQuery = Substitute.For<IPrepareQueryHandler<GetDashboardMessageBodyQuery, DashboardMessageBody>>();
             var readColumn = Substitute.For<IReadColumn>();
 
-            var connection = Substitute.For<IDbConnection>();
-            var command = Substitute.For<IDbCommand>();
-            var reader = Substitute.For<IDataReader>();
+            var connection = Substitute.For<DbConnection>();
+            var command = Substitute.For<DbCommand>();
+            var reader = Substitute.For<DbDataReader>();
             reader.Read().Returns(hasRows, false);
 
             factory.Create().Returns(connection);

@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.SQLite;
 using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
@@ -36,7 +37,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
 
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification =
             "Query checked")]
-        internal void BuildCommand(IDbCommand selectCommand, CommandString commandString,
+        internal void BuildCommand(DbCommand selectCommand, CommandString commandString,
             SqLiteMessageQueueTransportOptions options, List<string> routes, List<SQLiteParameter> userParameters)
         {
             selectCommand.CommandText = commandString.CommandText;

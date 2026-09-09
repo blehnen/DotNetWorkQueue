@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Data;
+using System.Data.Common;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase
 {
@@ -27,9 +28,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
     /// <typeparam name="TTransaction">The type of the transaction.</typeparam>
     /// <typeparam name="TCommand">The type of the command.</typeparam>
     public interface IConnectionHolderFactory<TConnection, TTransaction, out TCommand>
-        where TConnection : IDbConnection
-        where TTransaction : IDbTransaction
-        where TCommand : IDbCommand
+        where TConnection : DbConnection
+        where TTransaction : DbTransaction
+        where TCommand : DbCommand
     {
         /// <summary>
         /// Creates a new instance of <see cref="IConnectionHolder{TConnection, TTransaction, TCommand}"/>

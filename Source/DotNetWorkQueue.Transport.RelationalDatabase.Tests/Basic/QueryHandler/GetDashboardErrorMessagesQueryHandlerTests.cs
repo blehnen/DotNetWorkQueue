@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler;
@@ -44,15 +45,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
             Assert.IsEmpty(result);
         }
 
-        private static (IQueryHandler<GetDashboardErrorMessagesQuery, IReadOnlyList<DashboardErrorMessage>> handler, IReadColumn readColumn, IDataReader reader) CreateHandler(int rowCount)
+        private static (IQueryHandler<GetDashboardErrorMessagesQuery, IReadOnlyList<DashboardErrorMessage>> handler, IReadColumn readColumn, DbDataReader reader) CreateHandler(int rowCount)
         {
             var factory = Substitute.For<IDbConnectionFactory>();
             var prepareQuery = Substitute.For<IPrepareQueryHandler<GetDashboardErrorMessagesQuery, IReadOnlyList<DashboardErrorMessage>>>();
             var readColumn = Substitute.For<IReadColumn>();
 
-            var connection = Substitute.For<IDbConnection>();
-            var command = Substitute.For<IDbCommand>();
-            var reader = Substitute.For<IDataReader>();
+            var connection = Substitute.For<DbConnection>();
+            var command = Substitute.For<DbCommand>();
+            var reader = Substitute.For<DbDataReader>();
 
             if (rowCount > 0)
                 reader.Read().Returns(true, false);
