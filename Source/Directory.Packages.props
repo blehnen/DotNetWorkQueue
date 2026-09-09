@@ -20,7 +20,7 @@
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
 
     <!-- Build tooling -->
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.300" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.303" />
 
     <!-- Dashboard -->
     <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.9" />
