@@ -107,12 +107,15 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             {
                 //determine how many times this exception has been seen for this message
                 var metadata = _queryGetMetaData.Handle(new GetMetaDataQuery((RedisQueueId)context.MessageId));
-                var retries = metadata.ErrorTracking.GetExceptionCount(exceptionType);
-                if (retries < info.MaxRetries)
+                if (CanCountAttempts(metadata))
                 {
-                    CountAttempt(context, info, metadata, exceptionType, retries);
-                    _saveMetaData.Handle(new SaveMetaDataCommand((RedisQueueId)context.MessageId, metadata));
-                    return ReceiveMessagesErrorResult.Retry;
+                    var retries = metadata.ErrorTracking.GetExceptionCount(exceptionType);
+                    if (retries < info.MaxRetries)
+                    {
+                        CountAttempt(context, info, metadata, exceptionType, retries);
+                        _saveMetaData.Handle(new SaveMetaDataCommand((RedisQueueId)context.MessageId, metadata));
+                        return ReceiveMessagesErrorResult.Retry;
+                    }
                 }
             }
 
@@ -139,14 +142,17 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
                 //determine how many times this exception has been seen for this message
                 var metadata = await _queryGetMetaDataAsync
                     .HandleAsync(new GetMetaDataQuery((RedisQueueId)context.MessageId)).ConfigureAwait(false);
-                var retries = metadata.ErrorTracking.GetExceptionCount(exceptionType);
-                if (retries < info.MaxRetries)
+                if (CanCountAttempts(metadata))
                 {
-                    CountAttempt(context, info, metadata, exceptionType, retries);
-                    await _saveMetaDataAsync
-                        .HandleAsync(new SaveMetaDataCommand((RedisQueueId)context.MessageId, metadata))
-                        .ConfigureAwait(false);
-                    return ReceiveMessagesErrorResult.Retry;
+                    var retries = metadata.ErrorTracking.GetExceptionCount(exceptionType);
+                    if (retries < info.MaxRetries)
+                    {
+                        CountAttempt(context, info, metadata, exceptionType, retries);
+                        await _saveMetaDataAsync
+                            .HandleAsync(new SaveMetaDataCommand((RedisQueueId)context.MessageId, metadata))
+                            .ConfigureAwait(false);
+                        return ReceiveMessagesErrorResult.Retry;
+                    }
                 }
             }
 
@@ -180,6 +186,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private static bool CanRetry(IRetryInformation info, string exceptionType)
         {
             return !string.IsNullOrEmpty(exceptionType) && info.MaxRetries > 0;
+        }
+
+        /// <summary>
+        /// A metadata hash is written when the message is sent and removed with the message, so this is
+        /// only false if the two have already diverged. There is then nothing to count attempts in, so
+        /// the message goes to the error queue rather than the error handler throwing.
+        /// </summary>
+        private static bool CanCountAttempts(RedisMetaData metadata)
+        {
+            return metadata?.ErrorTracking != null;
         }
 
         private void CountAttempt(IMessageContext context, IRetryInformation info, RedisMetaData metadata, string exceptionType, int retries)

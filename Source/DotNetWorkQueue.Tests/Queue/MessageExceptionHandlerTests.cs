@@ -108,6 +108,54 @@ namespace DotNetWorkQueue.Tests.Queue
             notify.Received(1).InvokeMovedToErrorQueue(Arg.Any<ErrorNotification>());
         }
 
+        [TestMethod]
+        public void Message_Handled_Moved_To_Error_Queue_Notification_Keeps_MessageId()
+        {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var error = fixture.Create<IReceiveMessagesError>();
+            var notify = fixture.Create<IConsumerQueueErrorNotification>();
+            var message = fixture.Create<IReceivedMessageInternal>();
+            var context = fixture.Create<IMessageContext>();
+            var messageId = fixture.Create<IMessageId>();
+            context.MessageId.Returns(messageId);
+            var exception = new Exception();
+            //every built-in transport clears the id from the context once the message is in the error
+            //queue, which is why the notification cannot read it back off the context afterwards
+            error.MessageFailedProcessing(message, context, exception).Returns(_ =>
+            {
+                context.MessageId.Returns((IMessageId)null);
+                return ReceiveMessagesErrorResult.Error;
+            });
+            var test = new MessageExceptionHandler(error, Substitute.For<ILogger>(), notify);
+
+            test.Handle(message, context, exception);
+
+            notify.Received(1).InvokeMovedToErrorQueue(Arg.Is<ErrorNotification>(n => n.MessageId == messageId));
+        }
+
+        [TestMethod]
+        public async Task Message_Handled_Async_Moved_To_Error_Queue_Notification_Keeps_MessageId()
+        {
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var error = fixture.Create<IReceiveMessagesError>();
+            var notify = fixture.Create<IConsumerQueueErrorNotification>();
+            var message = fixture.Create<IReceivedMessageInternal>();
+            var context = fixture.Create<IMessageContext>();
+            var messageId = fixture.Create<IMessageId>();
+            context.MessageId.Returns(messageId);
+            var exception = new Exception();
+            error.MessageFailedProcessingAsync(message, context, exception).Returns(_ =>
+            {
+                context.MessageId.Returns((IMessageId)null);
+                return Task.FromResult(ReceiveMessagesErrorResult.Error);
+            });
+            var test = new MessageExceptionHandler(error, Substitute.For<ILogger>(), notify);
+
+            await test.HandleAsync(message, context, exception);
+
+            notify.Received(1).InvokeMovedToErrorQueue(Arg.Is<ErrorNotification>(n => n.MessageId == messageId));
+        }
+
         // ReSharper disable once ClassNeverInstantiated.Local
         private class ReceiveMessagesErrorWillCrash : IReceiveMessagesError
         {

@@ -33,6 +33,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         private const string StatusParameter = "@Status";
         private const string CompletedUtcParameter = "@CompletedUtc";
         private const string PrevStatusParameter = "@PrevStatus";
+        private const string DurationMsParameter = "@DurationMs";
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ITableNameHelper _tableNameHelper;
         private readonly IBaseTransportOptions _options;
@@ -164,7 +165,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     var startTime = await GetStartedUtcAsync(connection, queueId).ConfigureAwait(false);
                     var durationMs = startTime.HasValue ? (long)(now - startTime.Value).TotalMilliseconds : 0L;
 
-                    AddParameter(command, "@DurationMs", DbType.Int64, durationMs);
+                    AddParameter(command, DurationMsParameter, DbType.Int64, durationMs);
                     AddParameter(command, QueueIdParameter, DbType.String, queueId);
 
                     await command.ExecuteNonQueryAsync().ConfigureAwait(false);
@@ -227,7 +228,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     var startTime = GetStartedUtc(connection, queueId);
                     var durationMs = startTime.HasValue ? (long)(now - startTime.Value).TotalMilliseconds : 0L;
 
-                    AddParameter(command, "@DurationMs", DbType.Int64, durationMs);
+                    AddParameter(command, DurationMsParameter, DbType.Int64, durationMs);
                     AddParameter(command, QueueIdParameter, DbType.String, queueId);
 
                     command.ExecuteNonQuery();
@@ -256,7 +257,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 
                     AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Error);
                     AddParameter(command, CompletedUtcParameter, DbType.DateTime, now);
-                    AddParameter(command, "@DurationMs", DbType.Int64, durationMs);
+                    AddParameter(command, DurationMsParameter, DbType.Int64, durationMs);
                     AddParameter(command, "@ExceptionText", DbType.String, (object)exception ?? DBNull.Value);
                     AddParameter(command, QueueIdParameter, DbType.String, queueId);
                     AddParameter(command, "@PrevStatus1", DbType.Int32, (int)MessageHistoryStatus.Processing);
@@ -287,7 +288,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 
                     AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Error);
                     AddParameter(command, CompletedUtcParameter, DbType.DateTime, now);
-                    AddParameter(command, "@DurationMs", DbType.Int64, durationMs);
+                    AddParameter(command, DurationMsParameter, DbType.Int64, durationMs);
                     AddParameter(command, "@ExceptionText", DbType.String, (object)exception ?? DBNull.Value);
                     AddParameter(command, QueueIdParameter, DbType.String, queueId);
                     AddParameter(command, "@PrevStatus1", DbType.Int32, (int)MessageHistoryStatus.Processing);

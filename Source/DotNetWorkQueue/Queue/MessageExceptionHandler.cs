@@ -63,6 +63,10 @@ namespace DotNetWorkQueue.Queue
         /// <exception cref="MessageException">An unhanded exception has occurred while processing a message</exception>
         public void Handle(IReceivedMessageInternal message, IMessageContext context, Exception exception)
         {
+            //captured before delegating: a transport that moves the message to the error queue
+            //clears the id from the context on its way out, and the notification below is the one
+            //place that id is reported to the caller
+            var messageId = context.MessageId;
             ReceiveMessagesErrorResult result;
             try
             {
@@ -74,7 +78,7 @@ namespace DotNetWorkQueue.Queue
                 throw ErrorHandlingFailed(message, errorHandlingError);
             }
 
-            Complete(message, context, exception, result);
+            Complete(message, context, messageId, exception, result);
         }
 
         /// <summary>
@@ -87,6 +91,8 @@ namespace DotNetWorkQueue.Queue
         /// <exception cref="MessageException">An unhanded exception has occurred while processing a message</exception>
         public async Task HandleAsync(IReceivedMessageInternal message, IMessageContext context, Exception exception)
         {
+            //captured before delegating - see Handle
+            var messageId = context.MessageId;
             ReceiveMessagesErrorResult result;
             try
             {
@@ -98,7 +104,7 @@ namespace DotNetWorkQueue.Queue
                 throw ErrorHandlingFailed(message, errorHandlingError);
             }
 
-            Complete(message, context, exception, result);
+            Complete(message, context, messageId, exception, result);
         }
 
         private DotNetWorkQueueException ErrorHandlingFailed(IReceivedMessageInternal message, Exception errorHandlingError)
@@ -109,8 +115,8 @@ namespace DotNetWorkQueue.Queue
                 errorHandlingError);
         }
 
-        private void Complete(IReceivedMessageInternal message, IMessageContext context, Exception exception,
-            ReceiveMessagesErrorResult result)
+        private void Complete(IReceivedMessageInternal message, IMessageContext context, IMessageId messageId,
+            Exception exception, ReceiveMessagesErrorResult result)
         {
             switch (result)
             {
@@ -120,7 +126,7 @@ namespace DotNetWorkQueue.Queue
                     throw new MessageException("An unhanded exception has occurred while processing a message",
                         exception, message.MessageId, message.CorrelationId, message.Headers);
                 case ReceiveMessagesErrorResult.Error: //don't throw exception, as the message has been moved
-                    _consumerQueueErrorNotification.InvokeMovedToErrorQueue(new ErrorNotification(context.MessageId, context.CorrelationId, context.Headers, exception));
+                    _consumerQueueErrorNotification.InvokeMovedToErrorQueue(new ErrorNotification(messageId, context.CorrelationId, context.Headers, exception));
                     break;
             }
         }
