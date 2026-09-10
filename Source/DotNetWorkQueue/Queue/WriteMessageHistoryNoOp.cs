@@ -36,6 +36,9 @@ namespace DotNetWorkQueue.Queue
         public Task RecordProcessingStartAsync(string queueId) => Task.CompletedTask;
 
         /// <inheritdoc />
+        public Task RecordCompleteAsync(string queueId) => Task.CompletedTask;
+
+        /// <inheritdoc />
         public void RecordComplete(string queueId) { }
 
         /// <inheritdoc />

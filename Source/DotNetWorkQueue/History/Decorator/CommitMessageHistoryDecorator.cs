@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.History.Decorator
@@ -47,6 +48,24 @@ namespace DotNetWorkQueue.History.Decorator
                 try
                 {
                     _history.RecordComplete(context.MessageId.Id.Value.ToString());
+                }
+                catch (Exception ex)
+                {
+                    _log.LogWarning(ex, "Failed to record history for commit of message {MessageId}", context.MessageId.Id.Value);
+                }
+            }
+            return result;
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> CommitAsync(IMessageContext context)
+        {
+            var result = await _handler.CommitAsync(context).ConfigureAwait(false);
+            if (result && _options.EnableHistory && _options.HistoryOptions.TrackComplete && context.MessageId != null && context.MessageId.HasValue)
+            {
+                try
+                {
+                    await _history.RecordCompleteAsync(context.MessageId.Id.Value.ToString()).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {

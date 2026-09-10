@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
+
 namespace DotNetWorkQueue.Metrics.Decorator
 {
     internal class CommitMessageDecorator : ICommitMessage
@@ -46,6 +48,17 @@ namespace DotNetWorkQueue.Metrics.Decorator
         public bool Commit(IMessageContext context)
         {
             var result = _handler.Commit(context);
+            if (result)
+            {
+                _commitCounter.Increment();
+            }
+            return result;
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> CommitAsync(IMessageContext context)
+        {
+            var result = await _handler.CommitAsync(context).ConfigureAwait(false);
             if (result)
             {
                 _commitCounter.Increment();

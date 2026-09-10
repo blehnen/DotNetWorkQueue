@@ -16,25 +16,24 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.Threading.Tasks;
 
-namespace DotNetWorkQueue.Transport.Shared
+namespace DotNetWorkQueue
 {
     /// <summary>
-    /// Transport commit message action
+    /// An event handler that can be awaited.
     /// </summary>
-    public interface ITransportCommitMessage
-    {
-        /// <summary>
-        /// Commits the processed message, by deleting the message
-        /// </summary>
-        /// <param name="context">The context.</param>
-        void Commit(IMessageContext context);
-
-        /// <summary>
-        /// Commits the processed message, by deleting the message, without blocking a thread.
-        /// </summary>
-        /// <param name="context">The context.</param>
-        Task CommitAsync(IMessageContext context);
-    }
+    /// <param name="sender">The sender.</param>
+    /// <param name="e">The event data.</param>
+    /// <returns>A task that completes when the handler has finished.</returns>
+    /// <remarks>
+    /// <see cref="EventHandler"/> returns void, so a subscriber doing I/O has to block the thread that
+    /// raised the event. That is what the commit and rollback events did on the asynchronous consumer,
+    /// where the raise happens in a continuation on a thread-pool thread.
+    ///
+    /// Handlers are awaited one after another, in subscription order, which is how the synchronous
+    /// events already behaved - the next handler does not start until the previous one has finished.
+    /// </remarks>
+    public delegate Task AsyncEventHandler(object sender, EventArgs e);
 }

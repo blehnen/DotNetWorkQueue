@@ -175,6 +175,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         //delegate that unsubscribes just as well, since removal compares target and method rather
         //than reference.
         private EventHandler _cachedCommit;
+        private AsyncEventHandler _cachedCommitAsync;
         private EventHandler _cachedRollback;
         private EventHandler _cachedCleanup;
 
@@ -188,6 +189,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         {
             //wire up the context commit/rollback/dispose delegates
             context.Commit += _cachedCommit ??= ContextOnCommit;
+            //Both are subscribed: the synchronous consumer raises Commit, the asynchronous one
+            //raises CommitAsync. A context only ever raises one of them.
+            context.CommitAsync += _cachedCommitAsync ??= ContextOnCommitAsync;
             context.Rollback += _cachedRollback ??= ContextOnRollback;
             context.Cleanup += _cachedCleanup ??= Context_Cleanup;
         }
@@ -221,6 +225,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         private void ContextOnCommit(object sender, EventArgs eventArgs)
         {
             _handleMessage.CommitMessage.Commit((IMessageContext)sender);
+        }
+
+        /// <summary>
+        /// On Commit, awaited
+        /// </summary>
+        private async Task ContextOnCommitAsync(object sender, EventArgs eventArgs)
+        {
+            await _handleMessage.CommitMessage.CommitAsync((IMessageContext)sender).ConfigureAwait(false);
         }
 
         /// <summary>

@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
 using DotNetWorkQueue.Validation;
 namespace DotNetWorkQueue.Transport.Shared.Message
 {
@@ -41,6 +42,19 @@ namespace DotNetWorkQueue.Transport.Shared.Message
         public void Commit(IMessageContext context)
         {
             _removeMessage.Remove(context, RemoveMessageReason.Complete);
+        }
+
+        /// <summary>
+        /// Commits the processed message, by deleting the message, without blocking a thread.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <remarks>
+        /// This is the caller #291 built <see cref="IRemoveMessage.RemoveAsync(IMessageContext, RemoveMessageReason)"/> for: the commit path
+        /// bottoms out in a delete, on every message.
+        /// </remarks>
+        public async Task CommitAsync(IMessageContext context)
+        {
+            await _removeMessage.RemoveAsync(context, RemoveMessageReason.Complete).ConfigureAwait(false);
         }
     }
 }

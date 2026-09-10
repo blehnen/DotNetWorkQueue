@@ -73,6 +73,14 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         }
 
         /// <inheritdoc />
+        /// <remarks>See <see cref="RecordProcessingStartAsync"/>: in process, nothing to release.</remarks>
+        public Task RecordCompleteAsync(string queueId)
+        {
+            RecordComplete(queueId);
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc />
         public void RecordComplete(string queueId)
         {
             if (!_options.EnableHistory) return;
