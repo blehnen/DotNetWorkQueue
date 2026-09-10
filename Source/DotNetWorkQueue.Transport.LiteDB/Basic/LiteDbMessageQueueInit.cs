@@ -179,6 +179,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             container.RegisterDecorator(
                 typeof(ICommandHandler<RollbackMessageCommand<int>>),
                 typeof(RollbackMessageCommandHandlerDecorator), LifeStyles.Singleton);
+            container.RegisterDecorator(
+                typeof(ICommandHandlerAsync<RollbackMessageCommand<int>>),
+                typeof(RollbackMessageCommandHandlerDecoratorAsync), LifeStyles.Singleton);
 
             //trace sending a message so that we can add specific tags
             container.RegisterDecorator(

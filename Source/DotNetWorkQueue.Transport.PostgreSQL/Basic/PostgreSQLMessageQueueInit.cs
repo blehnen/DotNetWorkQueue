@@ -262,6 +262,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.RegisterDecorator(
                 typeof(ICommandHandler<RollbackMessageCommand<long>>),
                 typeof(DotNetWorkQueue.Transport.PostgreSQL.Trace.Decorator.RollbackMessageCommandHandlerDecorator), LifeStyles.Singleton);
+            container.RegisterDecorator(
+                typeof(ICommandHandlerAsync<RollbackMessageCommand<long>>),
+                typeof(DotNetWorkQueue.Transport.PostgreSQL.Trace.Decorator.RollbackMessageCommandHandlerDecoratorAsync), LifeStyles.Singleton);
 
             //trace sending a message so that we can add specific tags
             container.RegisterDecorator(

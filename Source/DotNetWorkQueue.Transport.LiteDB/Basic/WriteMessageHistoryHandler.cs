@@ -87,6 +87,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         }
 
         /// <inheritdoc />
+        /// <remarks>See <see cref="RecordProcessingStartAsync"/>: LiteDB has no async API (#283).</remarks>
+        public async Task RecordRollbackAsync(string queueId)
+        {
+            await Task.Run(() => RecordRollback(queueId)).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public void RecordProcessingStart(string queueId)
         {
             using (var db = _connectionManager.GetDatabase())

@@ -190,7 +190,7 @@ namespace DotNetWorkQueue.Queue
                 }
                 catch (OperationCanceledException ex)
                 {
-                    _rollbackMessage.Rollback(context);
+                    await _rollbackMessage.RollbackAsync(context).ConfigureAwait(false);
                     _consumerQueueNotification.InvokeRollback(new RollBackNotification(context.MessageId, context.CorrelationId, context.Headers, ex));
                 }
                 catch (PoisonMessageException exception)
@@ -207,13 +207,13 @@ namespace DotNetWorkQueue.Queue
                 }
                 catch (MessageException ex)
                 {
-                    _rollbackMessage.Rollback(context);
+                    await _rollbackMessage.RollbackAsync(context).ConfigureAwait(false);
                     _consumerQueueNotification.InvokeRollback(new RollBackNotification(context.MessageId, context.CorrelationId, context.Headers, ex));
                     throw;
                 }
                 catch (Exception ex)
                 {
-                    _rollbackMessage.Rollback(context);
+                    await _rollbackMessage.RollbackAsync(context).ConfigureAwait(false);
                     _consumerQueueNotification.InvokeRollback(new RollBackNotification(context.MessageId, context.CorrelationId, context.Headers, ex));
                     throw;
                 }

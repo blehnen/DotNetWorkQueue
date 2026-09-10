@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
@@ -27,7 +28,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     /// <summary>
     /// Marks a message as no longer being processed; i.e. waiting to be processed.
     /// </summary>
-    internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand<int>>
+    internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand<int>>,
+        ICommandHandlerAsync<RollbackMessageCommand<int>>
     {
         private readonly IGetTimeFactory _getUtcDateQuery;
         private readonly Lazy<LiteDbMessageQueueTransportOptions> _options;
@@ -66,6 +68,18 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// Handles the specified rollback command.
         /// </summary>
         /// <param name="rollBackCommand">The rollBackCommand.</param>
+        /// <inheritdoc />
+        /// <remarks>
+        /// LiteDB has no asynchronous API, so this runs the synchronous member on the thread pool -
+        /// the same hack its other handlers use. It frees the caller's thread; it does not make the
+        /// work asynchronous. Issue #283 tracks replacing it once LiteDB v6 ships real async methods.
+        /// </remarks>
+        public async Task HandleAsync(RollbackMessageCommand<int> rollBackCommand)
+        {
+            await Task.Run(() => Handle(rollBackCommand)).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public void Handle(RollbackMessageCommand<int> rollBackCommand)
         {
             if (!_databaseExists.Exists())

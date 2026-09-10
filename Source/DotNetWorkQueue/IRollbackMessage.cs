@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
+
 namespace DotNetWorkQueue
 {
     /// <summary>
@@ -29,5 +31,16 @@ namespace DotNetWorkQueue
         /// <param name="context"></param>
         /// <returns>true if the message was rolled back</returns>
         bool Rollback(IMessageContext context);
+
+        /// <summary>
+        /// Rolls the message associated to the context back, without blocking a thread.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <returns>true if the message was rolled back</returns>
+        /// <remarks>
+        /// The asynchronous consumer rolls back from its catch paths, which run in a continuation on a
+        /// thread-pool thread.
+        /// </remarks>
+        Task<bool> RollbackAsync(IMessageContext context);
     }
 }

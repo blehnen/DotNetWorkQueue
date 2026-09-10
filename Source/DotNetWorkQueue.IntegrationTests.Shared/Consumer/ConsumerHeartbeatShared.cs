@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Interceptors;
 using DotNetWorkQueue.Logging;
@@ -48,6 +49,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             public bool Rollback(IMessageContext context)
             {
                 return true; //don't really process rollback
+            }
+
+            public Task<bool> RollbackAsync(IMessageContext context)
+            {
+                return Task.FromResult(true); //don't really process rollback
             }
         }
     }

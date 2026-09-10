@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.History.Decorator
@@ -47,6 +48,29 @@ namespace DotNetWorkQueue.History.Decorator
                 try
                 {
                     _history.RecordRollback(context.MessageId.Id.Value.ToString());
+                }
+                catch (Exception ex)
+                {
+                    _log.LogWarning(ex, "Failed to record history for rollback of message {MessageId}", context.MessageId.Id.Value);
+                }
+            }
+            return result;
+        }
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// Mirrors its synchronous twin, including the absence of a <c>result</c> check that the commit
+        /// decorator has - a rollback is recorded whether or not the handler reported success - and the
+        /// absence of a per-event flag, since there is no TrackRollback option to check.
+        /// </remarks>
+        public async Task<bool> RollbackAsync(IMessageContext context)
+        {
+            var result = await _handler.RollbackAsync(context).ConfigureAwait(false);
+            if (_options.EnableHistory && context.MessageId != null && context.MessageId.HasValue)
+            {
+                try
+                {
+                    await _history.RecordRollbackAsync(context.MessageId.Id.Value.ToString()).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {

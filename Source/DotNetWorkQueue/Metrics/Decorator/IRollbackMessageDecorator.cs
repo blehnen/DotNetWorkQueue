@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
+
 namespace DotNetWorkQueue.Metrics.Decorator
 {
     internal class RollbackMessageDecorator : IRollbackMessage
@@ -48,6 +50,17 @@ namespace DotNetWorkQueue.Metrics.Decorator
         public bool Rollback(IMessageContext context)
         {
             var result = _handler.Rollback(context);
+            if (result)
+            {
+                _rollbackCounter.Increment();
+            }
+            return result;
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> RollbackAsync(IMessageContext context)
+        {
+            var result = await _handler.RollbackAsync(context).ConfigureAwait(false);
             if (result)
             {
                 _rollbackCounter.Increment();

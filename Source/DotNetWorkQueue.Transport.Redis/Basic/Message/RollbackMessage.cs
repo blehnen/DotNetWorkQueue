@@ -20,6 +20,7 @@ using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 using System;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Message
 {
@@ -30,18 +31,23 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Message
     {
         private readonly RedisHeaders _headers;
         private readonly ICommandHandler<RollbackMessageCommand<string>> _command;
+        private readonly ICommandHandlerAsync<RollbackMessageCommand<string>> _commandAsync;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RollbackMessage" /> class.
         /// </summary>
         /// <param name="command">The command handler factory.</param>
+        /// <param name="commandAsync">The command, for the asynchronous consumer.</param>
         /// <param name="headers">The headers.</param>
-        public RollbackMessage(ICommandHandler<RollbackMessageCommand<string>> command, RedisHeaders headers)
+        public RollbackMessage(ICommandHandler<RollbackMessageCommand<string>> command,
+            ICommandHandlerAsync<RollbackMessageCommand<string>> commandAsync, RedisHeaders headers)
         {
             Guard.NotNull(command);
+            Guard.NotNull(commandAsync);
             Guard.NotNull(headers);
 
             _command = command;
+            _commandAsync = commandAsync;
             _headers = headers;
         }
 
@@ -55,6 +61,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Message
 
             var increaseDelay = context.Get(_headers.IncreaseQueueDelay).IncreaseDelay;
             _command.Handle(new RollbackMessageCommand<string>(DateTime.MinValue, context.MessageId.Id.Value.ToString(), increaseDelay));
+            context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);  //this message should not have any more actions performed on it
+        }
+
+        /// <inheritdoc />
+        public async Task RollbackAsync(IMessageContext context)
+        {
+            if (context.MessageId == null || !context.MessageId.HasValue) return;
+
+            var increaseDelay = context.Get(_headers.IncreaseQueueDelay).IncreaseDelay;
+            await _commandAsync.HandleAsync(new RollbackMessageCommand<string>(DateTime.MinValue, context.MessageId.Id.Value.ToString(), increaseDelay)).ConfigureAwait(false);
             context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);  //this message should not have any more actions performed on it
         }
     }

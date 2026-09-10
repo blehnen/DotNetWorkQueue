@@ -176,6 +176,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         //than reference.
         private EventHandler _cachedCommit;
         private AsyncEventHandler _cachedCommitAsync;
+        private AsyncEventHandler _cachedRollbackAsync;
         private EventHandler _cachedRollback;
         private EventHandler _cachedCleanup;
 
@@ -193,6 +194,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             //raises CommitAsync. A context only ever raises one of them.
             context.CommitAsync += _cachedCommitAsync ??= ContextOnCommitAsync;
             context.Rollback += _cachedRollback ??= ContextOnRollback;
+            context.RollbackAsync += _cachedRollbackAsync ??= ContextOnRollbackAsync;
             context.Cleanup += _cachedCleanup ??= Context_Cleanup;
         }
 
@@ -236,6 +238,19 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         }
 
         /// <summary>
+        /// On Rollback, awaited
+        /// </summary>
+        /// <remarks>
+        /// One handler serves every subscription site, including the held-transaction branch
+        /// where the synchronous path goes through a separate delegate: RollbackAsync detects a
+        /// held transaction itself and rolls that back instead of the message.
+        /// </remarks>
+        private async Task ContextOnRollbackAsync(object sender, EventArgs eventArgs)
+        {
+            await _handleMessage.RollbackMessage.RollbackAsync((IMessageContext)sender).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Clean up the message context when processing is done
         /// </summary>
         /// <param name="context">The context.</param>
@@ -243,6 +258,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         {
             context.Commit -= _cachedCommit;
             context.CommitAsync -= _cachedCommitAsync;
+            context.RollbackAsync -= _cachedRollbackAsync;
             context.Rollback -= _cachedRollback;
             context.Cleanup -= _cachedCleanup;
         }

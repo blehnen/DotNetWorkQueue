@@ -46,6 +46,9 @@ namespace DotNetWorkQueue.Messages
         /// Will be raised if the message should be rolled back.
         /// </summary>
         public event EventHandler Rollback;
+
+        /// <inheritdoc/>
+        public event AsyncEventHandler RollbackAsync;
         /// <summary>
         /// Will be raised after work is complete
         /// </summary>
@@ -116,6 +119,9 @@ namespace DotNetWorkQueue.Messages
 
         /// <inheritdoc/>
         public Task RaiseCommitAsync() => RaiseAsync(CommitAsync);
+
+        /// <inheritdoc/>
+        public Task RaiseRollbackAsync() => RaiseAsync(RollbackAsync);
 
         /// <inheritdoc/>
         public void RaiseRollback()

@@ -21,6 +21,8 @@ using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Threading.Tasks;
+using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -29,7 +31,8 @@ using DotNetWorkQueue.Transport.Shared.Basic.Command;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 {
-    internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand<long>>
+    internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand<long>>,
+        ICommandHandlerAsync<RollbackMessageCommand<long>>
     {
         private readonly IGetTimeFactory _getUtcDateQuery;
         private readonly Lazy<SqLiteMessageQueueTransportOptions> _options;
@@ -88,57 +91,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                 {
                     using (var command = connection.CreateCommand())
                     {
-                        command.Transaction = trans;
-
-                        var param = command.CreateParameter();
-                        param.ParameterName = "@QueueID";
-                        param.DbType = DbType.Int64;
-                        param.Value = rollBackCommand.QueueId;
-                        command.Parameters.Add(param);
-
-                        if (_options.Value.EnableDelayedProcessing && rollBackCommand.IncreaseQueueDelay.HasValue)
-                        {
-                            if (rollBackCommand.LastHeartBeat.HasValue)
-                            {
-                                command.CommandText = GetRollbackSql(false, true);
-
-                                param = command.CreateParameter();
-                                param.ParameterName = "@HeartBeat";
-                                param.DbType = DbType.DateTime2;
-                                param.Value = rollBackCommand.LastHeartBeat.Value.Ticks;
-                                command.Parameters.Add(param);
-                            }
-                            else
-                            {
-                                command.CommandText = GetRollbackSql(true, false);
-                            }
-
-                            var dtUtcDate = _getUtcDateQuery.Create().GetCurrentUtcDate();
-                            var dtUtcDateIncreased = dtUtcDate.Add(rollBackCommand.IncreaseQueueDelay.Value);
-
-                            param = command.CreateParameter();
-                            param.ParameterName = "@QueueProcessTime";
-                            param.DbType = DbType.DateTime2;
-                            param.Value = dtUtcDateIncreased.Ticks;
-                            command.Parameters.Add(param);
-                        }
-                        else
-                        {
-                            if (rollBackCommand.LastHeartBeat.HasValue)
-                            {
-                                command.CommandText = GetRollbackSql(false, true);
-                                param = command.CreateParameter();
-                                param.ParameterName = "@HeartBeat";
-                                param.DbType = DbType.DateTime2;
-                                param.Value = rollBackCommand.LastHeartBeat.Value.Ticks;
-                                command.Parameters.Add(param);
-                            }
-                            else
-                            {
-                                command.CommandText = GetRollbackSql(false, false);
-                            }
-                        }
-                        if (!string.IsNullOrEmpty(command.CommandText))
+                        if (PrepareRollback(command, trans, rollBackCommand))
                         {
                             command.ExecuteNonQuery();
                         }
@@ -148,27 +101,140 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                     {
                         using (var command = connection.CreateCommand())
                         {
-                            command.Transaction = trans;
-                            var param = command.CreateParameter();
-                            param.ParameterName = "@QueueID";
-                            param.DbType = DbType.Int64;
-                            param.Value = rollBackCommand.QueueId;
-                            command.Parameters.Add(param);
-
-                            param = command.CreateParameter();
-                            param.ParameterName = "@Status";
-                            param.DbType = DbType.Int32;
-                            param.Value = Convert.ToInt16(QueueStatuses.Waiting);
-                            command.Parameters.Add(param);
-
-                            command.CommandText =
-                                _commandCache.GetCommand(CommandStringTypes.UpdateStatusRecord);
+                            PrepareStatus(command, trans, rollBackCommand);
                             command.ExecuteNonQuery();
                         }
                     }
                     trans.Commit();
                 }
             }
+        }
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// System.Data.SQLite does not override the inherited asynchronous members, so this does not
+        /// free a thread the way it does on SQL Server and PostgreSQL. It is written this way so the
+        /// asynchronous rollback path exists uniformly across the transports.
+        /// </remarks>
+        public async Task HandleAsync(RollbackMessageCommand<long> rollBackCommand)
+        {
+            if (!_databaseExists.Exists(_connectionInformation.ConnectionString))
+            {
+                return;
+            }
+
+            SetupSql();
+            using (var connection = _dbFactory.CreateConnection(_connectionInformation.ConnectionString, false))
+            {
+                await connection.OpenAsync().ConfigureAwait(false);
+                using (var trans = await _dbFactory.CreateTransaction(connection).BeginTransactionAsync().ConfigureAwait(false))
+                {
+                    using (var command = connection.CreateCommand())
+                    {
+                        if (PrepareRollback(command, trans, rollBackCommand))
+                        {
+                            await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                        }
+                    }
+
+                    if (_options.Value.EnableStatusTable)
+                    {
+                        using (var command = connection.CreateCommand())
+                        {
+                            PrepareStatus(command, trans, rollBackCommand);
+                            await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                        }
+                    }
+                    await trans.CommitAsync().ConfigureAwait(false);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sets the transaction, parameters and text for the rollback statement.
+        /// </summary>
+        /// <returns>false when there is no statement to run.</returns>
+        /// <remarks>
+        /// Lifted verbatim out of the synchronous member and shared by both, so the choice of
+        /// statement - which depends on the delayed-processing option and whether a heartbeat was
+        /// recorded - cannot drift between them.
+        /// </remarks>
+        private bool PrepareRollback(DbCommand command, DbTransaction trans, RollbackMessageCommand<long> rollBackCommand)
+        {
+                command.Transaction = trans;
+
+                var param = command.CreateParameter();
+                param.ParameterName = "@QueueID";
+                param.DbType = DbType.Int64;
+                param.Value = rollBackCommand.QueueId;
+                command.Parameters.Add(param);
+
+                if (_options.Value.EnableDelayedProcessing && rollBackCommand.IncreaseQueueDelay.HasValue)
+                {
+                    if (rollBackCommand.LastHeartBeat.HasValue)
+                    {
+                        command.CommandText = GetRollbackSql(false, true);
+
+                        param = command.CreateParameter();
+                        param.ParameterName = "@HeartBeat";
+                        param.DbType = DbType.DateTime2;
+                        param.Value = rollBackCommand.LastHeartBeat.Value.Ticks;
+                        command.Parameters.Add(param);
+                    }
+                    else
+                    {
+                        command.CommandText = GetRollbackSql(true, false);
+                    }
+
+                    var dtUtcDate = _getUtcDateQuery.Create().GetCurrentUtcDate();
+                    var dtUtcDateIncreased = dtUtcDate.Add(rollBackCommand.IncreaseQueueDelay.Value);
+
+                    param = command.CreateParameter();
+                    param.ParameterName = "@QueueProcessTime";
+                    param.DbType = DbType.DateTime2;
+                    param.Value = dtUtcDateIncreased.Ticks;
+                    command.Parameters.Add(param);
+                }
+                else
+                {
+                    if (rollBackCommand.LastHeartBeat.HasValue)
+                    {
+                        command.CommandText = GetRollbackSql(false, true);
+                        param = command.CreateParameter();
+                        param.ParameterName = "@HeartBeat";
+                        param.DbType = DbType.DateTime2;
+                        param.Value = rollBackCommand.LastHeartBeat.Value.Ticks;
+                        command.Parameters.Add(param);
+                    }
+                    else
+                    {
+                        command.CommandText = GetRollbackSql(false, false);
+                    }
+                }
+            return !string.IsNullOrEmpty(command.CommandText);
+        }
+
+        /// <summary>
+        /// Sets the transaction, parameters and text for the status-table update.
+        /// </summary>
+        private void PrepareStatus(DbCommand command, DbTransaction trans, RollbackMessageCommand<long> rollBackCommand)
+        {
+                command.Transaction = trans;
+                var param = command.CreateParameter();
+                param.ParameterName = "@QueueID";
+                param.DbType = DbType.Int64;
+                param.Value = rollBackCommand.QueueId;
+                command.Parameters.Add(param);
+
+                param = command.CreateParameter();
+                param.ParameterName = "@Status";
+                param.DbType = DbType.Int32;
+                param.Value = Convert.ToInt16(QueueStatuses.Waiting);
+                command.Parameters.Add(param);
+
+                command.CommandText =
+                    _commandCache.GetCommand(CommandStringTypes.UpdateStatusRecord);
+            command.CommandText = _commandCache.GetCommand(CommandStringTypes.UpdateStatusRecord);
         }
         /// <summary>
         /// Setups the SQL for rollbacks

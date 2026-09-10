@@ -162,6 +162,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         //than reference.
         private EventHandler _cachedCommit;
         private AsyncEventHandler _cachedCommitAsync;
+        private AsyncEventHandler _cachedRollbackAsync;
         private EventHandler _cachedCommitTransaction;
         private EventHandler _cachedRollback;
         private EventHandler _cachedRollbackTransaction;
@@ -185,6 +186,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 //raises CommitAsync. A context only ever raises one of them.
                 context.CommitAsync += _cachedCommitAsync ??= ContextOnCommitAsync;
                 context.Rollback += _cachedRollback ??= ContextOnRollback;
+                context.RollbackAsync += _cachedRollbackAsync ??= ContextOnRollbackAsync;
             }
             else
             {
@@ -195,6 +197,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 //EnableHoldTransactionUntilMessageCommitted on.
                 context.CommitAsync += _cachedCommitAsync ??= ContextOnCommitAsync;
                 context.Rollback += _cachedRollbackTransaction ??= ContextOnRollbackTransaction;
+                context.RollbackAsync += _cachedRollbackAsync ??= ContextOnRollbackAsync;
             }
             context.Cleanup += _cachedCleanup ??= Context_Cleanup;
 
@@ -283,6 +286,19 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
         }
 
         /// <summary>
+        /// On Rollback, awaited
+        /// </summary>
+        /// <remarks>
+        /// One handler serves every subscription site, including the held-transaction branch
+        /// where the synchronous path goes through a separate delegate: RollbackAsync detects a
+        /// held transaction itself and rolls that back instead of the message.
+        /// </remarks>
+        private async Task ContextOnRollbackAsync(object sender, EventArgs eventArgs)
+        {
+            await _handleMessage.RollbackMessage.RollbackAsync((IMessageContext)sender).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Clean up the message context when processing is done
         /// </summary>
         /// <param name="context">The context.</param>
@@ -300,6 +316,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 context.Rollback -= _cachedRollbackTransaction;
             }
             context.CommitAsync -= _cachedCommitAsync;
+            context.RollbackAsync -= _cachedRollbackAsync;
             context.Cleanup -= _cachedCleanup;
             _disposeConnection(connectionHolder);
         }

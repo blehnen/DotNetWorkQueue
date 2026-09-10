@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Logging;
@@ -36,7 +37,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
     {
         private readonly QueueConsumerConfiguration _configuration;
         private readonly ICommandHandler<RollbackMessageCommand<long>> _rollbackCommand;
+        private readonly ICommandHandlerAsync<RollbackMessageCommand<long>> _rollbackCommandAsync;
         private readonly ICommandHandler<SetStatusTableStatusCommand<long>> _setStatusCommandHandler;
+        private readonly ICommandHandlerAsync<SetStatusTableStatusCommand<long>> _setStatusCommandHandlerAsync;
         private readonly IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> _headers;
         private readonly IIncreaseQueueDelay _increaseQueueDelay;
         private readonly ILogger _log;
@@ -46,27 +49,35 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         /// </summary>
         /// <param name="configuration">The configuration.</param>
         /// <param name="rollbackCommand">The rollback command.</param>
+        /// <param name="rollbackCommandAsync">The rollback command, for the asynchronous consumer.</param>
         /// <param name="setStatusCommandHandler">The set status command handler.</param>
+        /// <param name="setStatusCommandHandlerAsync">The set status command handler, for the asynchronous consumer.</param>
         /// <param name="headers">The headers.</param>
         /// <param name="log">The log.</param>
         /// <param name="increaseQueueDelay">The increase queue delay.</param>
         public RollbackMessage(QueueConsumerConfiguration configuration,
             ICommandHandler<RollbackMessageCommand<long>> rollbackCommand,
+            ICommandHandlerAsync<RollbackMessageCommand<long>> rollbackCommandAsync,
             ICommandHandler<SetStatusTableStatusCommand<long>> setStatusCommandHandler,
+            ICommandHandlerAsync<SetStatusTableStatusCommand<long>> setStatusCommandHandlerAsync,
             IConnectionHeader<SqlConnection, SqlTransaction, SqlCommand> headers,
             ILogger log,
             IIncreaseQueueDelay increaseQueueDelay)
         {
             Guard.NotNull(configuration);
             Guard.NotNull(rollbackCommand);
+            Guard.NotNull(rollbackCommandAsync);
             Guard.NotNull(setStatusCommandHandler);
+            Guard.NotNull(setStatusCommandHandlerAsync);
             Guard.NotNull(headers);
             Guard.NotNull(log);
             Guard.NotNull(increaseQueueDelay);
 
             _configuration = configuration;
             _rollbackCommand = rollbackCommand;
+            _rollbackCommandAsync = rollbackCommandAsync;
             _setStatusCommandHandler = setStatusCommandHandler;
+            _setStatusCommandHandlerAsync = setStatusCommandHandlerAsync;
             _headers = headers;
             _increaseQueueDelay = increaseQueueDelay;
             _log = log;
@@ -78,31 +89,75 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
         /// <param name="context">The context.</param>
         public void Rollback(IMessageContext context)
         {
-            var connection = context.Get(_headers.Connection);
-            if (connection?.IsDisposed == false && connection.Connection != null && connection.Transaction != null)
+            if (HeldTransaction(context))
             {
                 RollbackForTransaction(context);
                 return;
             }
 
-            if (context.MessageId == null || !context.MessageId.HasValue) return;
-
-            //there is nothing to rollback unless at least one of these options is enabled
-            if (_configuration.Options().EnableDelayedProcessing ||
-                _configuration.Options().EnableHeartBeat ||
-                _configuration.Options().EnableStatus)
+            if (TryBuildRollback(context, out var command))
             {
-                DateTime? lastHeartBeat = null;
-                if (context.WorkerNotification?.HeartBeat?.Status?.LastHeartBeatTime != null)
-                {
-                    lastHeartBeat = context.WorkerNotification.HeartBeat.Status.LastHeartBeatTime.Value;
-                }
-
-                var increaseDelay = context.Get(_increaseQueueDelay.QueueDelay).IncreaseDelay;
-                _rollbackCommand.Handle(new RollbackMessageCommand<long>(lastHeartBeat,
-                    (long)context.MessageId.Id.Value, increaseDelay));
+                _rollbackCommand.Handle(command);
             }
         }
+
+        /// <inheritdoc />
+        public async Task RollbackAsync(IMessageContext context)
+        {
+            if (HeldTransaction(context))
+            {
+                await RollbackForTransactionAsync(context).ConfigureAwait(false);
+                return;
+            }
+
+            if (TryBuildRollback(context, out var command))
+            {
+                await _rollbackCommandAsync.HandleAsync(command).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// True when the caller is holding a transaction, which is rolled back instead of the message.
+        /// </summary>
+        private bool HeldTransaction(IMessageContext context)
+        {
+            var connection = context.Get(_headers.Connection);
+            return connection?.IsDisposed == false && connection.Connection != null && connection.Transaction != null;
+        }
+
+        /// <summary>
+        /// Decides whether there is anything to roll back, and builds the command if so.
+        /// </summary>
+        /// <remarks>Shared by both members so the condition cannot drift between them.</remarks>
+        private bool TryBuildRollback(IMessageContext context, out RollbackMessageCommand<long> command)
+        {
+            command = null;
+            if (context.MessageId == null || !context.MessageId.HasValue) return false;
+
+            //there is nothing to rollback unless at least one of these options is enabled
+            if (!_configuration.Options().EnableDelayedProcessing &&
+                !_configuration.Options().EnableHeartBeat &&
+                !_configuration.Options().EnableStatus)
+            {
+                return false;
+            }
+
+            DateTime? lastHeartBeat = null;
+            if (context.WorkerNotification?.HeartBeat?.Status?.LastHeartBeatTime != null)
+            {
+                lastHeartBeat = context.WorkerNotification.HeartBeat.Status.LastHeartBeatTime.Value;
+            }
+
+            var increaseDelay = context.Get(_increaseQueueDelay.QueueDelay).IncreaseDelay;
+            command = new RollbackMessageCommand<long>(lastHeartBeat, (long)context.MessageId.Id.Value, increaseDelay);
+            return true;
+        }
+
+        /// <summary>
+        /// True when the status table also has to be reset before the transaction is rolled back.
+        /// </summary>
+        private bool ShouldResetStatus(IMessageContext context) =>
+            _configuration.Options().EnableStatusTable && context.MessageId != null && context.MessageId.HasValue;
 
         /// <summary>
         /// Rollbacks the specified message by rolling back the transaction
@@ -114,8 +169,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             //if transaction open, then just rollback the transaction
             if (connection.Connection == null || connection.Transaction == null) return;
 
-            if (_configuration.Options().EnableStatusTable &&
-                context.MessageId != null && context.MessageId.HasValue)
+            if (ShouldResetStatus(context))
             {
                 _setStatusCommandHandler.Handle(new SetStatusTableStatusCommand<long>((long)context.MessageId.Id.Value,
                     QueueStatuses.Waiting));
@@ -123,6 +177,41 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             try
             {
                 connection.Transaction.Rollback();
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e, "Failed to rollback a transaction; this might be due to a DB timeout");
+
+                //don't attempt to use the transaction again at this point.
+                connection.Transaction = null;
+
+                throw;
+            }
+
+            //ensure that transaction won't be used anymore
+            connection.Transaction.Dispose();
+            connection.Transaction = null;
+        }
+
+        /// <summary>
+        /// Rollbacks the specified message by rolling back the transaction, without blocking a thread.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        private async Task RollbackForTransactionAsync(IMessageContext context)
+        {
+            var connection = context.Get(_headers.Connection);
+            //if transaction open, then just rollback the transaction
+            if (connection.Connection == null || connection.Transaction == null) return;
+
+            if (ShouldResetStatus(context))
+            {
+                await _setStatusCommandHandlerAsync.HandleAsync(
+                    new SetStatusTableStatusCommand<long>((long)context.MessageId.Id.Value,
+                        QueueStatuses.Waiting)).ConfigureAwait(false);
+            }
+            try
+            {
+                await connection.Transaction.RollbackAsync().ConfigureAwait(false);
             }
             catch (Exception e)
             {
