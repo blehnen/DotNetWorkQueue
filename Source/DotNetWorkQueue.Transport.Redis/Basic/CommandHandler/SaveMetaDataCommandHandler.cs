@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
@@ -23,7 +24,8 @@ using DotNetWorkQueue.Validation;
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
     /// <inheritdoc />
-    internal class SaveMetaDataCommandHandler : ICommandHandler<SaveMetaDataCommand>
+    internal class SaveMetaDataCommandHandler : ICommandHandler<SaveMetaDataCommand>,
+        ICommandHandlerAsync<SaveMetaDataCommand>
     {
         private readonly IInternalSerializer _internalSerializer;
         private readonly RedisNames _redisNames;
@@ -54,6 +56,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             var db = _connection.Connection.GetDatabase();
             db.HashSet(_redisNames.MetaData, command.Id.Id.Value.ToString(),
                 _internalSerializer.ConvertToBytes(command.MetaData));
+        }
+
+        /// <inheritdoc />
+        public async Task HandleAsync(SaveMetaDataCommand command)
+        {
+            var db = _connection.Connection.GetDatabase();
+            await db.HashSetAsync(_redisNames.MetaData, command.Id.Id.Value.ToString(),
+                _internalSerializer.ConvertToBytes(command.MetaData)).ConfigureAwait(false);
         }
     }
 }

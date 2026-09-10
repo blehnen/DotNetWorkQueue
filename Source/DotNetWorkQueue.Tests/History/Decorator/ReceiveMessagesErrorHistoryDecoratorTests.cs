@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.History.Decorator;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -105,6 +106,104 @@ namespace DotNetWorkQueue.Tests.History.Decorator
 
             // RecordError must still be called with the ORIGINAL messageId value "42"
             history.Received(1).RecordError("42", Arg.Is<string>(s => s.Contains("test error")));
+        }
+
+        [TestMethod]
+        public async Task MessageFailedProcessingAsync_Calls_Inner_Handler_And_Returns_Result()
+        {
+            var (decorator, inner, _, _, _) = CreateDecorator(enabled: false);
+            var context = CreateContext();
+            var message = Substitute.For<IReceivedMessageInternal>();
+            var exception = new InvalidOperationException("test error");
+            inner.MessageFailedProcessingAsync(message, context, exception).Returns(ReceiveMessagesErrorResult.Error);
+
+            var result = await decorator.MessageFailedProcessingAsync(message, context, exception);
+
+            Assert.AreEqual(ReceiveMessagesErrorResult.Error, result);
+            await inner.Received(1).MessageFailedProcessingAsync(message, context, exception);
+        }
+
+        [TestMethod]
+        public async Task MessageFailedProcessingAsync_When_Enabled_Records_Error()
+        {
+            var (decorator, inner, history, _, _) = CreateDecorator(enabled: true, trackError: true);
+            var context = CreateContext();
+            var message = Substitute.For<IReceivedMessageInternal>();
+            var exception = new InvalidOperationException("test error");
+            inner.MessageFailedProcessingAsync(message, context, exception).Returns(ReceiveMessagesErrorResult.Error);
+
+            await decorator.MessageFailedProcessingAsync(message, context, exception);
+
+            await history.Received(1).RecordErrorAsync(Arg.Any<string>(), Arg.Is<string>(s => s.Contains("test error")));
+            history.DidNotReceive().RecordError(Arg.Any<string>(), Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public async Task MessageFailedProcessingAsync_When_Disabled_Does_Not_Record()
+        {
+            var (decorator, inner, history, _, _) = CreateDecorator(enabled: false);
+            var context = CreateContext();
+            var message = Substitute.For<IReceivedMessageInternal>();
+            var exception = new InvalidOperationException("test error");
+            inner.MessageFailedProcessingAsync(message, context, exception).Returns(ReceiveMessagesErrorResult.Error);
+
+            await decorator.MessageFailedProcessingAsync(message, context, exception);
+
+            await history.DidNotReceive().RecordErrorAsync(Arg.Any<string>(), Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public async Task MessageFailedProcessingAsync_Truncates_Long_Exception_Text()
+        {
+            var (decorator, inner, history, _, _) = CreateDecorator(enabled: true, trackError: true, maxExceptionLength: 50);
+            var context = CreateContext();
+            var message = Substitute.For<IReceivedMessageInternal>();
+            var longMessage = new string('x', 200);
+            var exception = new InvalidOperationException(longMessage);
+            inner.MessageFailedProcessingAsync(message, context, exception).Returns(ReceiveMessagesErrorResult.Error);
+
+            await decorator.MessageFailedProcessingAsync(message, context, exception);
+
+            await history.Received(1).RecordErrorAsync(
+                Arg.Any<string>(),
+                Arg.Is<string>(s => s.Length == 50));
+        }
+
+        [TestMethod]
+        public async Task MessageFailedProcessingAsync_When_History_Throws_Exception_Is_Swallowed()
+        {
+            var (decorator, inner, history, _, _) = CreateDecorator(enabled: true, trackError: true);
+            var context = CreateContext();
+            var message = Substitute.For<IReceivedMessageInternal>();
+            var exception = new InvalidOperationException("test error");
+            inner.MessageFailedProcessingAsync(message, context, exception).Returns(ReceiveMessagesErrorResult.Retry);
+            history.RecordErrorAsync(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(Task.FromException(new InvalidOperationException("history write failed")));
+
+            var result = await decorator.MessageFailedProcessingAsync(message, context, exception);
+
+            Assert.AreEqual(ReceiveMessagesErrorResult.Retry, result);
+        }
+
+        [TestMethod]
+        public async Task MessageFailedProcessingAsync_When_Inner_Handler_Clears_MessageId_Still_Records_Error()
+        {
+            var (decorator, inner, history, _, _) = CreateDecorator(enabled: true, trackError: true);
+            var context = CreateContext();
+            var message = Substitute.For<IReceivedMessageInternal>();
+            var exception = new InvalidOperationException("test error");
+
+            // Simulate inner handler clearing context.MessageId (as ReceiveErrorMessage does via SetMessageAndHeaders(null, ...))
+            inner.MessageFailedProcessingAsync(message, context, exception).Returns(callInfo =>
+            {
+                context.MessageId.Returns((IMessageId)null);
+                return Task.FromResult(ReceiveMessagesErrorResult.Error);
+            });
+
+            await decorator.MessageFailedProcessingAsync(message, context, exception);
+
+            // RecordErrorAsync must still be called with the ORIGINAL messageId value "42"
+            await history.Received(1).RecordErrorAsync("42", Arg.Is<string>(s => s.Contains("test error")));
         }
 
         private static IMessageContext CreateContext()

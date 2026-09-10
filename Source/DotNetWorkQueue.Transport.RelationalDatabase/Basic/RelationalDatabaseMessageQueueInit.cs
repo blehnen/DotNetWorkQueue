@@ -230,6 +230,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 GetErrorRetryCountQueryHandler<TQueueId>>(LifeStyles.Singleton);
 
             container
+                .Register<IQueryHandlerAsync<GetErrorRetryCountQuery<TQueueId>, int>,
+                    GetErrorRetryCountQueryHandler<TQueueId>>(LifeStyles.Singleton);
+
+            container
                 .Register<IPrepareQueryHandler<GetErrorRetryCountQuery<TQueueId>, int>,
                     GetErrorRetryCountQueryPrepareHandler<TQueueId>>(LifeStyles.Singleton);
 
@@ -238,11 +242,19 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     SetErrorCountCommandHandler<TQueueId>>(LifeStyles.Singleton);
 
             container
+                .Register<ICommandHandlerAsync<SetErrorCountCommand<TQueueId>>,
+                    SetErrorCountCommandHandler<TQueueId>>(LifeStyles.Singleton);
+
+            container
                 .Register<IPrepareCommandHandler<SetErrorCountCommand<TQueueId>>,
                     SetErrorCountCommandPrepareHandler<TQueueId>>(LifeStyles.Singleton);
 
             container
                 .Register<IQueryHandler<GetErrorRecordExistsQuery<TQueueId>, bool>,
+                    GetErrorRecordExistsQueryHandler<TQueueId>>(LifeStyles.Singleton);
+
+            container
+                .Register<IQueryHandlerAsync<GetErrorRecordExistsQuery<TQueueId>, bool>,
                     GetErrorRecordExistsQueryHandler<TQueueId>>(LifeStyles.Singleton);
 
             container

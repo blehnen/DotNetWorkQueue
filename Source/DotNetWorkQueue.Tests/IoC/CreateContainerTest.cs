@@ -277,6 +277,12 @@ namespace DotNetWorkQueue.Tests.IoC
             {
                 return ReceiveMessagesErrorResult.NotSpecified;
             }
+
+            public Task<ReceiveMessagesErrorResult> MessageFailedProcessingAsync(IReceivedMessageInternal message, IMessageContext context,
+                Exception exception)
+            {
+                return Task.FromResult(ReceiveMessagesErrorResult.NotSpecified);
+            }
         }
         internal class ClearExpiredMessagesNoOp : IClearExpiredMessages
         {

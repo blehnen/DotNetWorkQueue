@@ -68,6 +68,13 @@ namespace DotNetWorkQueue
         Task RecordRollbackAsync(string queueId);
 
         /// <summary>
+        /// Updates a history record when a message fails, without blocking a thread.
+        /// </summary>
+        /// <param name="queueId">The message's queue ID.</param>
+        /// <param name="exception">The exception text.</param>
+        Task RecordErrorAsync(string queueId, string exception);
+
+        /// <summary>
         /// Updates a history record when a message is committed successfully.
         /// </summary>
         /// <param name="queueId">The message's queue ID.</param>

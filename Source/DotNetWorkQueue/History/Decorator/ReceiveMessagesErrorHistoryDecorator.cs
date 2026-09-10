@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.History.Decorator
@@ -56,6 +57,34 @@ namespace DotNetWorkQueue.History.Decorator
                         exceptionText = exceptionText.Substring(0, _options.HistoryOptions.MaxExceptionLength);
 
                     _history.RecordError(messageIdValue, exceptionText);
+                }
+                catch (Exception ex)
+                {
+                    _log.LogWarning(ex, "Failed to record history for error of message {MessageId}", messageIdValue);
+                }
+            }
+            return result;
+        }
+
+        /// <inheritdoc />
+        public async Task<ReceiveMessagesErrorResult> MessageFailedProcessingAsync(IReceivedMessageInternal message,
+            IMessageContext context, Exception exception)
+        {
+            // Capture messageId before delegation -- inner handler may clear context.MessageId via SetMessageAndHeaders(null, ...)
+            var messageId = context.MessageId;
+            var hasMessageId = messageId != null && messageId.HasValue;
+            var messageIdValue = hasMessageId ? messageId.Id.Value.ToString() : null;
+
+            var result = await _handler.MessageFailedProcessingAsync(message, context, exception).ConfigureAwait(false);
+            if (_options.EnableHistory && _options.HistoryOptions.TrackError && hasMessageId)
+            {
+                try
+                {
+                    var exceptionText = exception?.ToString();
+                    if (exceptionText != null && exceptionText.Length > _options.HistoryOptions.MaxExceptionLength)
+                        exceptionText = exceptionText.Substring(0, _options.HistoryOptions.MaxExceptionLength);
+
+                    await _history.RecordErrorAsync(messageIdValue, exceptionText).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {

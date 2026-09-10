@@ -236,6 +236,38 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         }
 
         /// <inheritdoc />
+        /// <remarks>See <see cref="RecordProcessingStartAsync"/> on what SQLite does and does not gain.</remarks>
+        public async Task RecordErrorAsync(string queueId, string exception)
+        {
+            if (!_options.EnableHistory) return;
+            var now = DateTime.UtcNow;
+            using (var connection = _connectionFactory.Create())
+            {
+                await connection.OpenAsync().ConfigureAwait(false);
+
+                var startTime = await GetStartedUtcAsync(connection, queueId).ConfigureAwait(false);
+                var durationMs = startTime.HasValue ? (long)(now - startTime.Value).TotalMilliseconds : 0L;
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $@"UPDATE {_tableNameHelper.HistoryName}
+                        SET Status = @Status, CompletedUtc = @CompletedUtc, DurationMs = @DurationMs, ExceptionText = @ExceptionText
+                        WHERE QueueID = @QueueID AND (Status = @PrevStatus1 OR Status = @PrevStatus2)";
+
+                    AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Error);
+                    AddParameter(command, CompletedUtcParameter, DbType.DateTime, now);
+                    AddParameter(command, "@DurationMs", DbType.Int64, durationMs);
+                    AddParameter(command, "@ExceptionText", DbType.String, (object)exception ?? DBNull.Value);
+                    AddParameter(command, QueueIdParameter, DbType.String, queueId);
+                    AddParameter(command, "@PrevStatus1", DbType.Int32, (int)MessageHistoryStatus.Processing);
+                    AddParameter(command, "@PrevStatus2", DbType.Int32, (int)MessageHistoryStatus.Enqueued);
+
+                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                }
+            }
+        }
+
+        /// <inheritdoc />
         public void RecordError(string queueId, string exception)
         {
             if (!_options.EnableHistory) return;

@@ -21,6 +21,7 @@ using DotNetWorkQueue.Notifications;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -70,12 +71,47 @@ namespace DotNetWorkQueue.Queue
             }
             catch (Exception errorHandlingError)
             {
-                _log.LogError(errorHandlingError,
-                    "An error has occurred while trying to move message {MessageId} to the error queue", message.MessageId);
-                throw new DotNetWorkQueueException("An error has occurred in the error handling code",
-                    errorHandlingError);
+                throw ErrorHandlingFailed(message, errorHandlingError);
             }
 
+            Complete(message, context, exception, result);
+        }
+
+        /// <summary>
+        /// Handles the specified message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="exception">The exception.</param>
+        /// <exception cref="DotNetWorkQueueException">An error has occurred in the error handling code</exception>
+        /// <exception cref="MessageException">An unhanded exception has occurred while processing a message</exception>
+        public async Task HandleAsync(IReceivedMessageInternal message, IMessageContext context, Exception exception)
+        {
+            ReceiveMessagesErrorResult result;
+            try
+            {
+                result = await _transportErrorHandler.MessageFailedProcessingAsync(message, context,
+                    exception).ConfigureAwait(false);
+            }
+            catch (Exception errorHandlingError)
+            {
+                throw ErrorHandlingFailed(message, errorHandlingError);
+            }
+
+            Complete(message, context, exception, result);
+        }
+
+        private DotNetWorkQueueException ErrorHandlingFailed(IReceivedMessageInternal message, Exception errorHandlingError)
+        {
+            _log.LogError(errorHandlingError,
+                "An error has occurred while trying to move message {MessageId} to the error queue", message.MessageId);
+            return new DotNetWorkQueueException("An error has occurred in the error handling code",
+                errorHandlingError);
+        }
+
+        private void Complete(IReceivedMessageInternal message, IMessageContext context, Exception exception,
+            ReceiveMessagesErrorResult result)
+        {
             switch (result)
             {
                 case ReceiveMessagesErrorResult.Retry:

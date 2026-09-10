@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
@@ -26,7 +27,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     /// <summary>
     /// Returns the current retry count for a message and a specific exception type
     /// </summary>
-    internal class GetErrorRetryCountQueryHandler<T> : IQueryHandler<GetErrorRetryCountQuery<T>, int>
+    internal class GetErrorRetryCountQueryHandler<T> : IQueryHandler<GetErrorRetryCountQuery<T>, int>,
+        IQueryHandlerAsync<GetErrorRetryCountQuery<T>, int>
     {
         private readonly IPrepareQueryHandler<GetErrorRetryCountQuery<T>, int> _prepareQuery;
         private readonly IDbConnectionFactory _connectionFactory;
@@ -62,6 +64,27 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                     using (var reader = command.ExecuteReader())
                     {
                         if (reader.Read())
+                        {
+                            return _readColumn.ReadAsInt32(CommandStringTypes.GetErrorRetryCount, 0, reader);
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+
+        /// <inheritdoc />
+        public async Task<int> HandleAsync(GetErrorRetryCountQuery<T> query)
+        {
+            using (var connection = _connectionFactory.Create())
+            {
+                await connection.OpenAsync().ConfigureAwait(false);
+                using (var command = connection.CreateCommand())
+                {
+                    _prepareQuery.Handle(query, command, CommandStringTypes.GetErrorRetryCount);
+                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                    {
+                        if (await reader.ReadAsync().ConfigureAwait(false))
                         {
                             return _readColumn.ReadAsInt32(CommandStringTypes.GetErrorRetryCount, 0, reader);
                         }

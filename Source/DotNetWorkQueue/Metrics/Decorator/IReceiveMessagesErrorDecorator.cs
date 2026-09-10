@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Metrics.Decorator
 {
@@ -55,6 +56,25 @@ namespace DotNetWorkQueue.Metrics.Decorator
             Exception exception)
         {
             var result = _handler.MessageFailedProcessing(message, context, exception);
+            Mark(result);
+            return result;
+        }
+
+        /// <inheritdoc />
+        public async Task<ReceiveMessagesErrorResult> MessageFailedProcessingAsync(IReceivedMessageInternal message,
+            IMessageContext context, Exception exception)
+        {
+            var result = await _handler.MessageFailedProcessingAsync(message, context, exception).ConfigureAwait(false);
+            Mark(result);
+            return result;
+        }
+
+        /// <summary>
+        /// Marks the meter that matches the outcome.
+        /// </summary>
+        /// <remarks>Shared by both members so the two cannot count differently.</remarks>
+        private void Mark(ReceiveMessagesErrorResult result)
+        {
             switch (result)
             {
                 case ReceiveMessagesErrorResult.Error:
@@ -64,7 +84,6 @@ namespace DotNetWorkQueue.Metrics.Decorator
                     _meterRetry.Mark();
                     break;
             }
-            return result;
         }
     }
 }
