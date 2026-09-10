@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.History.Decorator;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -72,6 +73,51 @@ namespace DotNetWorkQueue.Tests.History.Decorator
                 .Do(_ => throw new InvalidOperationException("history write failed"));
 
             var result = decorator.Commit(context);
+
+            Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+        public async Task CommitAsync_When_Enabled_Records_History_Without_Blocking()
+        {
+            var (decorator, inner, history, _, _) = CreateDecorator(enabled: true, trackComplete: true);
+            var context = CreateContext();
+            inner.CommitAsync(context).Returns(Task.FromResult(true));
+
+            var result = await decorator.CommitAsync(context).ConfigureAwait(false);
+
+            Assert.IsTrue(result);
+            await history.Received(1).RecordCompleteAsync(Arg.Any<string>()).ConfigureAwait(false);
+            //Calling the blocking member here would satisfy every other assertion while holding a
+            //thread-pool thread for the write.
+            history.DidNotReceive().RecordComplete(Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public async Task CommitAsync_When_Inner_Returns_False_Does_Not_Record_History()
+        {
+            var (decorator, inner, history, _, _) = CreateDecorator(enabled: true, trackComplete: true);
+            var context = CreateContext();
+            inner.CommitAsync(context).Returns(Task.FromResult(false));
+
+            var result = await decorator.CommitAsync(context).ConfigureAwait(false);
+
+            Assert.IsFalse(result);
+            await history.DidNotReceive().RecordCompleteAsync(Arg.Any<string>()).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task CommitAsync_When_History_Throws_The_Commit_Still_Succeeds()
+        {
+            var (decorator, inner, history, _, _) = CreateDecorator(enabled: true, trackComplete: true);
+            var context = CreateContext();
+            inner.CommitAsync(context).Returns(Task.FromResult(true));
+            history.RecordCompleteAsync(Arg.Any<string>())
+                .Returns(Task.FromException(new InvalidOperationException("history write failed")));
+
+            //History is bookkeeping. Failing to write it must not turn a committed message into a
+            //failed one, which would roll back work that has already been done.
+            var result = await decorator.CommitAsync(context).ConfigureAwait(false);
 
             Assert.IsTrue(result);
         }
