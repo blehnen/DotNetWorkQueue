@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 
 namespace DotNetWorkQueue
@@ -43,6 +44,16 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <param name="queueId">The message's queue ID.</param>
         void RecordProcessingStart(string queueId);
+
+        /// <summary>
+        /// Updates a history record when a message begins processing, without blocking a thread.
+        /// </summary>
+        /// <param name="queueId">The message's queue ID.</param>
+        /// <remarks>
+        /// The asynchronous consumer records this inline on its receive path, in a continuation on a
+        /// thread-pool thread, so the synchronous member would hold one of those for the write.
+        /// </remarks>
+        Task RecordProcessingStartAsync(string queueId);
 
         /// <summary>
         /// Updates a history record when a message is committed successfully.

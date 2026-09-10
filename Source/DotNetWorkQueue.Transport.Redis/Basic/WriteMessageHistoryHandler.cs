@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using StackExchange.Redis;
 
@@ -72,6 +73,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             var rawStatus = db.HashGet(HistoryHashKey(queueId), FieldStatus);
             if (!rawStatus.HasValue || (int)rawStatus != (int)MessageHistoryStatus.Enqueued) return;
             db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Processing), new HashEntry(FieldStartedUtc, DateTime.UtcNow.Ticks) });
+        }
+
+        /// <inheritdoc />
+        public async Task RecordProcessingStartAsync(string queueId)
+        {
+            if (!_options.EnableHistory) return;
+            var db = GetDb();
+            var rawStatus = await db.HashGetAsync(HistoryHashKey(queueId), FieldStatus).ConfigureAwait(false);
+            if (!rawStatus.HasValue || (int)rawStatus != (int)MessageHistoryStatus.Enqueued) return;
+            await db.HashSetAsync(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Processing), new HashEntry(FieldStartedUtc, DateTime.UtcNow.Ticks) }).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

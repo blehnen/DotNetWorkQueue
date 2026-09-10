@@ -1,22 +1,5 @@
-// ---------------------------------------------------------------------
-//This file is part of DotNetWorkQueue
-//Copyright © 2015-2026 Brian Lehnen
-//
-//This library is free software; you can redistribute it and/or
-//modify it under the terms of the GNU Lesser General Public
-//License as published by the Free Software Foundation; either
-//version 2.1 of the License, or (at your option) any later version.
-//
-//This library is distributed in the hope that it will be useful,
-//but WITHOUT ANY WARRANTY; without even the implied warranty of
-//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//Lesser General Public License for more details.
-//
-//You should have received a copy of the GNU Lesser General Public
-//License along with this library; if not, write to the Free Software
-//Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-// ---------------------------------------------------------------------
 using System;
+using System.Linq;
 using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Messages;
@@ -24,7 +7,20 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
 {
-    public class SimpleHistoryTest
+    /// <summary>
+    /// The asynchronous twin of <see cref="SimpleHistoryTest"/>.
+    ///
+    /// History was only ever exercised through the synchronous consumer, on every transport. The
+    /// asynchronous consumer records the processing-start row from its own receive path, so that write
+    /// reached no test - which is how it stayed synchronous unnoticed until #284.
+    ///
+    /// Reaching Complete is the assertion that proves the start row was written at all: RecordComplete
+    /// only matches a record whose status is already Processing, so a record that never started cannot
+    /// finish. StartedUtc and DurationMs are asserted on top of that because nothing else asserts them
+    /// anywhere, and DurationMs is derived from StartedUtc - it silently becomes zero when the start
+    /// row is missing.
+    /// </summary>
+    public class SimpleHistoryAsyncTest
     {
         public void Run<TTransportInit, TMessage, TTransportCreate>(
             QueueConnection queueConnection,
@@ -50,7 +46,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
                     Assert.IsTrue(result.Success, result.ErrorMessage);
                     scope = oCreation.Scope;
 
-                    // Send and consume in one container
                     var processedCount = 0;
                     using (var queueContainer = new QueueContainer<TTransportInit>(serviceRegister =>
                     {
@@ -68,28 +63,38 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
                         }
 
                         var waitHandle = new ManualResetEventSlim(false);
-                        using (var consumer = queueContainer.CreateConsumer(queueConnection))
-                        {
-                            consumer.Configuration.Worker.WorkerCount = 1;
-                            consumer.Start<TMessage>((message, workerNotification) =>
-                            {
-                                Interlocked.Increment(ref processedCount);
-                                if (processedCount >= messageCount)
-                                    waitHandle.Set();
-                            }, null);
 
-                            waitHandle.Wait(TimeSpan.FromSeconds(30));
+                        //The asynchronous consumer, which is the whole point: it records the
+                        //processing-start row from a continuation rather than from the worker's thread.
+                        using (var schedulerCreator = new SchedulerContainer())
+                        {
+                            using (var taskScheduler = schedulerCreator.CreateTaskScheduler())
+                            {
+                                taskScheduler.Configuration.MaximumThreads = 1;
+                                taskScheduler.Start();
+                                var taskFactory = schedulerCreator.CreateTaskFactory(taskScheduler);
+
+                                using (var consumer =
+                                    queueContainer.CreateConsumerQueueScheduler(queueConnection, taskFactory))
+                                {
+                                    consumer.Start<TMessage>((message, workerNotification) =>
+                                    {
+                                        Interlocked.Increment(ref processedCount);
+                                        if (processedCount >= messageCount)
+                                            waitHandle.Set();
+                                    }, null);
+
+                                    waitHandle.Wait(TimeSpan.FromSeconds(30));
+                                }
+                            }
                         }
                     }
-                    // QueueContainer disposed — all LiteDB/DB connections flushed
 
                     Assert.AreEqual(messageCount, processedCount, "Not all messages were processed");
 
-                    // Dispose creation objects first to release DB connections
                     oCreation?.Dispose();
                     oCreation = null;
 
-                    // Verify history in a FRESH container
                     using (var verifyContainer = new QueueContainer<TTransportInit>(serviceRegister =>
                     {
                         serviceRegister.Register(() => logProvider, LifeStyles.Singleton);
@@ -100,13 +105,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
                         {
                             var historyQuery = adminContainer.GetInstance<IQueryMessageHistory>();
 
-                            var totalCount = historyQuery.GetCount(null);
-                            Assert.IsGreaterThanOrEqualTo(messageCount, totalCount,
-                                $"Expected at least {messageCount} history records, got {totalCount}");
-
                             var completeCount = historyQuery.GetCount(MessageHistoryStatus.Complete);
                             Assert.IsGreaterThanOrEqualTo(messageCount, completeCount,
-                                $"Expected at least {messageCount} completed records, got {completeCount}");
+                                $"Expected at least {messageCount} completed records, got {completeCount}. " +
+                                "Complete is only reachable from Processing, so a shortfall here means the " +
+                                "asynchronous consumer never recorded that processing started.");
 
                             var records = historyQuery.Get(0, 100, null);
                             Assert.IsNotNull(records);
@@ -116,17 +119,15 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
                             {
                                 Assert.IsNotNull(record.QueueId);
                                 Assert.AreEqual(MessageHistoryStatus.Complete, record.Status);
+                                Assert.IsNotNull(record.StartedUtc,
+                                    $"Record {record.QueueId} has no StartedUtc, so the processing-start row " +
+                                    "was never written; DurationMs is meaningless without it.");
+                                Assert.IsNotNull(record.CompletedUtc);
                             }
 
-                            var firstRecord = records[0];
-                            var byId = historyQuery.GetByQueueId(firstRecord.QueueId);
-                            Assert.IsNotNull(byId);
-
-                            var purgeHandler = adminContainer.GetInstance<IPurgeMessageHistory>();
-                            var purged = purgeHandler.Purge(DateTime.UtcNow.AddDays(1));
-                            Assert.AreEqual(totalCount, purged);
-
-                            Assert.AreEqual(0, historyQuery.GetCount(null));
+                            //Derived from StartedUtc, and silently zero when it is missing.
+                            Assert.IsTrue(records.All(r => r.DurationMs.HasValue),
+                                "A completed record carried no DurationMs.");
                         }
                     }
                 }

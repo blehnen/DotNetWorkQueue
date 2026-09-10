@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.LiteDb.Schema;
 
@@ -63,6 +64,19 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                     Headers = _options.HistoryOptions.StoreBody ? headers : null
                 });
             }
+        }
+
+        /// <inheritdoc />
+        /// <inheritdoc />
+        /// <remarks>
+        /// LiteDB has no asynchronous API, so this runs the synchronous member on the thread pool -
+        /// the same hack the send path uses. It keeps the caller's thread free, which is what the
+        /// asynchronous consumer needs; it does not make the work asynchronous. Issue #283 tracks
+        /// replacing this once LiteDB v6 ships real async methods.
+        /// </remarks>
+        public async Task RecordProcessingStartAsync(string queueId)
+        {
+            await Task.Run(() => RecordProcessingStart(queueId)).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
