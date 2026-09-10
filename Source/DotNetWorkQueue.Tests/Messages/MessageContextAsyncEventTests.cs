@@ -22,6 +22,8 @@ namespace DotNetWorkQueue.Tests.Messages
     [TestClass]
     public class MessageContextAsyncEventTests
     {
+        private static readonly string[] SequentialOrder = { "first-start", "first-end", "second-start" };
+
         [TestMethod]
         public async Task RaiseCommitAsync_WithNoSubscribers_DoesNothing()
         {
@@ -72,7 +74,7 @@ namespace DotNetWorkQueue.Tests.Messages
 
             //Not WhenAll: the second handler must not start until the first has finished, because the
             //transports commit against a shared connection and transaction.
-            CollectionAssert.AreEqual(new[] { "first-start", "first-end", "second-start" }, order);
+            CollectionAssert.AreEqual(SequentialOrder, order);
         }
 
         [TestMethod]

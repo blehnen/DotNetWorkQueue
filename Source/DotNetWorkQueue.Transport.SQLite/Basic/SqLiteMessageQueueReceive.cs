@@ -245,6 +245,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         private void ContextCleanup(IMessageContext context)
         {
             context.Commit -= _cachedCommit;
+            context.CommitAsync -= _cachedCommitAsync;
             context.Rollback -= _cachedRollback;
             context.Cleanup -= _cachedCleanup;
         }

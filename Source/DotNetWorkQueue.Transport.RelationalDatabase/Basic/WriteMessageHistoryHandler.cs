@@ -32,6 +32,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         private const string QueueIdParameter = "@QueueID";
         private const string StatusParameter = "@Status";
         private const string CompletedUtcParameter = "@CompletedUtc";
+        private const string PrevStatusParameter = "@PrevStatus";
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ITableNameHelper _tableNameHelper;
         private readonly IBaseTransportOptions _options;
@@ -92,7 +93,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Processing);
                     AddParameter(command, "@StartedUtc", DbType.DateTime, DateTime.UtcNow);
                     AddParameter(command, QueueIdParameter, DbType.String, queueId);
-                    AddParameter(command, "@PrevStatus", DbType.Int32, (int)MessageHistoryStatus.Enqueued);
+                    AddParameter(command, PrevStatusParameter, DbType.Int32, (int)MessageHistoryStatus.Enqueued);
 
                     command.ExecuteNonQuery();
                 }
@@ -122,7 +123,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Processing);
                     AddParameter(command, "@StartedUtc", DbType.DateTime, DateTime.UtcNow);
                     AddParameter(command, QueueIdParameter, DbType.String, queueId);
-                    AddParameter(command, "@PrevStatus", DbType.Int32, (int)MessageHistoryStatus.Enqueued);
+                    AddParameter(command, PrevStatusParameter, DbType.Int32, (int)MessageHistoryStatus.Enqueued);
 
                     await command.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }
@@ -147,7 +148,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Complete);
                     AddParameter(command, CompletedUtcParameter, DbType.DateTime, now);
                     AddParameter(command, QueueIdParameter, DbType.String, queueId);
-                    AddParameter(command, "@PrevStatus", DbType.Int32, (int)MessageHistoryStatus.Processing);
+                    AddParameter(command, PrevStatusParameter, DbType.Int32, (int)MessageHistoryStatus.Processing);
 
                     await command.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }
@@ -188,7 +189,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Complete);
                     AddParameter(command, CompletedUtcParameter, DbType.DateTime, now);
                     AddParameter(command, QueueIdParameter, DbType.String, queueId);
-                    AddParameter(command, "@PrevStatus", DbType.Int32, (int)MessageHistoryStatus.Processing);
+                    AddParameter(command, PrevStatusParameter, DbType.Int32, (int)MessageHistoryStatus.Processing);
 
                     command.ExecuteNonQuery();
                 }

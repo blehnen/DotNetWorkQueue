@@ -141,9 +141,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </remarks>
         public async ValueTask<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context, CancellationToken cancellation)
         {
-            //These three are not optional. Without them the method still compiles and still returns
-            //messages, and commit and rollback silently stop working.
+            //These are not optional. Without them the method still compiles and still returns
+            //messages, and commit and rollback silently stop working. CommitAsync is the one this
+            //path actually needs: the asynchronous consumer raises that event, not Commit.
             context.Commit += _cachedCommit ??= ContextOnCommit;
+            context.CommitAsync += _cachedCommitAsync ??= ContextOnCommitAsync;
             context.Rollback += _cachedRollback ??= ContextOnRollback;
             context.Cleanup += _cachedCleanup ??= Context_Cleanup;
 
@@ -266,6 +268,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private void ContextCleanup(IMessageContext context)
         {
             context.Commit -= _cachedCommit;
+            context.CommitAsync -= _cachedCommitAsync;
             context.Rollback -= _cachedRollback;
             context.Cleanup -= _cachedCleanup;
         }

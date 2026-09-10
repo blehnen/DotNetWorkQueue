@@ -198,6 +198,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             else
             {
                 context.Commit += _cachedCommitTransaction ??= ContextOnCommitTransaction;
+                //The same awaited handler serves both branches: the held-transaction commit delegate
+                //also ends at CommitMessage.Commit, and RemoveAsync handles the held transaction
+                //itself. Missing this is what left the asynchronous consumer unable to commit with
+                //EnableHoldTransactionUntilMessageCommitted on.
+                context.CommitAsync += _cachedCommitAsync ??= ContextOnCommitAsync;
                 context.Rollback += _cachedRollbackTransaction ??= ContextOnRollbackTransaction;
             }
             context.Cleanup += _cachedCleanup ??= Context_Cleanup;
@@ -303,6 +308,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 context.Commit -= _cachedCommitTransaction;
                 context.Rollback -= _cachedRollbackTransaction;
             }
+            context.CommitAsync -= _cachedCommitAsync;
             context.Cleanup -= _cachedCleanup;
             _disposeConnection(connectionHolder);
         }

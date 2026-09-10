@@ -8,7 +8,7 @@
 - Fix: SQL Server and PostgreSQL left a message's error-history rows behind when it was removed with `EnableHoldTransactionUntilMessageCommitted` on (GitHub #284)
 - SQL Server, PostgreSQL and Redis async consumers no longer hold a thread recording that a message started processing, when history tracking is on (GitHub #284)
 - Async consumers no longer hold a thread committing a message. This is the per-message path, so it is the change consumers under thread-pool pressure will notice most (GitHub #284)
-- ⚠️ Custom transports and consumers must add async members: `IReceivePoisonMessage.HandleAsync`, `IRemoveMessage.RemoveAsync`, `IWriteMessageHistory.RecordProcessingStartAsync` and `RecordCompleteAsync`, `ICommitMessage.CommitAsync`, `ITransportCommitMessage.CommitAsync`, and `ITransactionWrapper.BeginTransactionAsync` for relational transports. Built-in transports are unaffected (GitHub #284)
+- ⚠️ Custom transports and consumers must add async members to `IReceivePoisonMessage`, `IRemoveMessage`, `IWriteMessageHistory`, `ICommitMessage`, `ITransportCommitMessage`, and `ITransactionWrapper`. GitHub #284 lists them; built-in transports are unaffected (GitHub #284)
 - ⚠️ `IMessageContext` gains a `CommitAsync` event and `RaiseCommitAsync`. Only affects code implementing that interface directly; the existing `Commit` event is unchanged and still used by the synchronous consumer (GitHub #284)
 - ⚠️ Custom relational transports: `IDbConnectionFactory`, `ITransactionFactory` and `ITransactionWrapper` now use `System.Data.Common` types (`DbConnection`, `DbTransaction`) rather than the `System.Data` interfaces, which have no async members. Built-in transports are unaffected (GitHub #286)
 
