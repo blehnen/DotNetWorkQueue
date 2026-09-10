@@ -100,6 +100,13 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         }
 
         /// <inheritdoc />
+        /// <remarks>
+        /// Genuinely asynchronous on SQL Server and PostgreSQL. not on SQLite:
+        /// System.Data.SQLite does not override the inherited asynchronous members, so the base class
+        /// runs them on the calling thread and this buys that transport nothing. It is written this way
+        /// regardless, because the three share this implementation and a per-provider split here would
+        /// be worse than a member that is merely no faster on one of them.
+        /// </remarks>
         public async Task RecordProcessingStartAsync(string queueId)
         {
             if (!_options.EnableHistory) return;

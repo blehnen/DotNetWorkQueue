@@ -6,7 +6,7 @@
 - Async consumers keep working under thread-pool pressure when a message turns out to be poison; moving it to the error queue used to occupy a pool thread for the whole round trip (GitHub #284)
 - Redis async consumers no longer hold a thread while removing an expired message during a de-queue (GitHub #284)
 - Fix: SQL Server and PostgreSQL left a message's error-history rows behind when it was removed with `EnableHoldTransactionUntilMessageCommitted` on (GitHub #284)
-- Async consumers with history tracking on no longer hold a thread while recording that a message started processing (GitHub #284)
+- SQL Server, PostgreSQL and Redis async consumers no longer hold a thread recording that a message started processing, when history tracking is on (GitHub #284)
 - ⚠️ Custom transports and consumers must add async members: `IReceivePoisonMessage.HandleAsync`, `IRemoveMessage.RemoveAsync`, `IWriteMessageHistory.RecordProcessingStartAsync`, and `ITransactionWrapper.BeginTransactionAsync` for relational transports. Built-in transports are unaffected (GitHub #284)
 - ⚠️ Custom relational transports: `IDbConnectionFactory`, `ITransactionFactory` and `ITransactionWrapper` now use `System.Data.Common` types (`DbConnection`, `DbTransaction`) rather than the `System.Data` interfaces, which have no async members. Built-in transports are unaffected (GitHub #286)
 
