@@ -8,8 +8,10 @@
 - Fix: SQL Server and PostgreSQL left a message's error-history rows behind when it was removed with `EnableHoldTransactionUntilMessageCommitted` on (GitHub #284)
 - SQL Server, PostgreSQL and Redis async consumers no longer hold a thread recording that a message started processing, when history tracking is on (GitHub #284)
 - Async consumers no longer hold a thread committing a message. This is the per-message path, so it is the change consumers under thread-pool pressure will notice most (GitHub #284)
-- ⚠️ Custom transports and consumers must add async members to `IReceivePoisonMessage`, `IRemoveMessage`, `IWriteMessageHistory`, `ICommitMessage`, `ITransportCommitMessage`, and `ITransactionWrapper`. GitHub #284 lists them; built-in transports are unaffected (GitHub #284)
-- ⚠️ `IMessageContext` gains a `CommitAsync` event and `RaiseCommitAsync`. Only affects code implementing that interface directly; the existing `Commit` event is unchanged and still used by the synchronous consumer (GitHub #284)
+- ⚠️ Custom transports and consumers must add async members to the receive, commit, rollback and history interfaces. GitHub #284 lists every member; built-in transports are unaffected (GitHub #284)
+- Async consumers no longer hold a thread rolling a message back after a failure, on any transport (GitHub #284)
+- Fix: Redis never recorded rollback history. The message id was read after the transport had cleared it, so a rolled-back message's retry count and status were left untouched (GitHub #284)
+- ⚠️ `IMessageContext` gains `CommitAsync` and `RollbackAsync` events with `RaiseCommitAsync` and `RaiseRollbackAsync`. Only affects code implementing that interface directly; the existing `Commit` and `Rollback` events are unchanged and still used by the synchronous consumer (GitHub #284)
 - ⚠️ Custom relational transports: `IDbConnectionFactory`, `ITransactionFactory` and `ITransactionWrapper` now use `System.Data.Common` types (`DbConnection`, `DbTransaction`) rather than the `System.Data` interfaces, which have no async members. Built-in transports are unaffected (GitHub #286)
 
 ### 0.11.0 — 2026-09-06

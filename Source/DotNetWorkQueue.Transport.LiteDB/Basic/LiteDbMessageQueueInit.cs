@@ -114,7 +114,6 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             container.Register<MessageDeQueue>(LifeStyles.Singleton);
             container.Register<IReceiveMessages, LiteDbQueueReceiveMessages>(LifeStyles.Transient);
             container.Register<ReceiveMessage>(LifeStyles.Singleton);
-            container.Register<RollbackMessage>(LifeStyles.Singleton);
 
             container.Register<IResetHeartBeat, ResetHeartBeat<int>>(LifeStyles.Singleton);
             container.Register<ISendHeartBeat, SendHeartBeat<int>>(LifeStyles.Singleton);
@@ -179,6 +178,9 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             container.RegisterDecorator(
                 typeof(ICommandHandler<RollbackMessageCommand<int>>),
                 typeof(RollbackMessageCommandHandlerDecorator), LifeStyles.Singleton);
+            container.RegisterDecorator(
+                typeof(ICommandHandlerAsync<RollbackMessageCommand<int>>),
+                typeof(RollbackMessageCommandHandlerDecoratorAsync), LifeStyles.Singleton);
 
             //trace sending a message so that we can add specific tags
             container.RegisterDecorator(

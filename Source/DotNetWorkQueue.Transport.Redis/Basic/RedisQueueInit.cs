@@ -249,6 +249,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.RegisterDecorator(
                 typeof(ICommandHandler<RollbackMessageCommand<string>>),
                 typeof(DotNetWorkQueue.Transport.Redis.Trace.Decorator.RollbackMessageCommandHandlerDecorator), LifeStyles.Singleton);
+            container.RegisterDecorator(
+                typeof(ICommandHandlerAsync<RollbackMessageCommand<string>>),
+                typeof(DotNetWorkQueue.Transport.Redis.Trace.Decorator.RollbackMessageCommandHandlerDecoratorAsync), LifeStyles.Singleton);
 
             //trace sending messages
             container.RegisterDecorator(

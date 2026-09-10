@@ -73,6 +73,12 @@ namespace DotNetWorkQueue
         event EventHandler Rollback;
 
         /// <summary>
+        /// Occurs when the message has been rolled back, and lets the subscriber be awaited.
+        /// </summary>
+        /// <remarks>The asynchronous twin of <see cref="Rollback"/>; see <see cref="CommitAsync"/>.</remarks>
+        event AsyncEventHandler RollbackAsync;
+
+        /// <summary>
         /// Will be raised after work is complete
         /// </summary>
         event EventHandler Cleanup;
@@ -120,6 +126,11 @@ namespace DotNetWorkQueue
         /// Explicitly fires the commit event, awaiting each subscriber in turn.
         /// </summary>
         Task RaiseCommitAsync();
+
+        /// <summary>
+        /// Explicitly fires the rollback event, awaiting each subscriber in turn.
+        /// </summary>
+        Task RaiseRollbackAsync();
 
         /// <summary>
         /// Explicitly fires the rollback event.

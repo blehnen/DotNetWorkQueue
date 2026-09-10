@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
 using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
@@ -49,6 +50,16 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         public int? Execute(string messageId, long unixTime)
         {
             var result = TryExecute(GetParameters(messageId, unixTime));
+            if (result.IsNull)
+                return null;
+            return (int)result;
+        }
+        /// <summary>
+        /// Rolls the message back without blocking a thread across the call.
+        /// </summary>
+        public async Task<int?> ExecuteAsync(string messageId, long unixTime)
+        {
+            var result = await TryExecuteAsync(GetParameters(messageId, unixTime)).ConfigureAwait(false);
             if (result.IsNull)
                 return null;
             return (int)result;

@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
+
 namespace DotNetWorkQueue.Transport.Memory.Basic.Message
 {
     /// <summary>
@@ -30,5 +32,15 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
         public void Rollback(IMessageContext context)
         { //nothing to do
         }
+
+        /// <summary>
+        /// Rollbacks the specified message, without blocking a thread.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <remarks>
+        /// Nothing to do, as with the synchronous member: the memory transport leaves a rolled-back
+        /// message where it is, so there is no work and nothing to release a thread for.
+        /// </remarks>
+        public Task RollbackAsync(IMessageContext context) => Task.CompletedTask;
     }
 }

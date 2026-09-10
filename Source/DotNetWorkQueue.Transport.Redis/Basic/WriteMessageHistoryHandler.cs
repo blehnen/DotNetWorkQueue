@@ -98,6 +98,15 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         }
 
         /// <inheritdoc />
+        public async Task RecordRollbackAsync(string queueId)
+        {
+            if (!_options.EnableHistory) return;
+            var db = GetDb();
+            await db.HashIncrementAsync(HistoryHashKey(queueId), "RetryCount", 1).ConfigureAwait(false);
+            await db.HashSetAsync(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Enqueued), new HashEntry(FieldStartedUtc, 0L), new HashEntry(FieldCompletedUtc, 0L), new HashEntry(FieldDurationMs, 0L) }).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public void RecordComplete(string queueId)
         {
             if (!_options.EnableHistory) return;

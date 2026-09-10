@@ -236,6 +236,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.RegisterDecorator(
                 typeof(ICommandHandler<RollbackMessageCommand<long>>),
                 typeof(DotNetWorkQueue.Transport.SqlServer.Trace.Decorator.RollbackMessageCommandHandlerDecorator), LifeStyles.Singleton);
+            container.RegisterDecorator(
+                typeof(ICommandHandlerAsync<RollbackMessageCommand<long>>),
+                typeof(DotNetWorkQueue.Transport.SqlServer.Trace.Decorator.RollbackMessageCommandHandlerDecoratorAsync), LifeStyles.Singleton);
 
             //trace sending a message so that we can add specific tags
             container.RegisterDecorator(

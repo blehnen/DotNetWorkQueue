@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
+
 namespace DotNetWorkQueue.Transport.Shared
 {
     /// <summary>
@@ -28,5 +30,11 @@ namespace DotNetWorkQueue.Transport.Shared
         /// </summary>
         /// <param name="context">The context.</param>
         void Rollback(IMessageContext context);
+
+        /// <summary>
+        /// Rolls the message back, without blocking a thread.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        Task RollbackAsync(IMessageContext context);
     }
 }

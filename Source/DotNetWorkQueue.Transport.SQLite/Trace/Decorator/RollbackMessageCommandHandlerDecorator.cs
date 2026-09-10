@@ -45,6 +45,20 @@ namespace DotNetWorkQueue.Transport.SQLite.Trace.Decorator
         /// <inheritdoc />
         public void Handle(RollbackMessageCommand<long> command)
         {
+            AddTags(command);
+            _handler.Handle(command);
+        }
+
+        /// <summary>
+        /// Adds the delay and heartbeat tags to the active span, if there is one.
+        /// </summary>
+        /// <remarks>
+        /// Shared with the asynchronous decorator beside it so the span carries the same tags
+        /// either way. The two are separate classes because a decorator must decorate exactly one
+        /// service - one type implementing both produced a cyclic registration.
+        /// </remarks>
+        internal static void AddTags(RollbackMessageCommand<long> command)
+        {
             //lets add a bit more information to the active span if possible
             if (Activity.Current != null)
             {
@@ -56,7 +70,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Trace.Decorator
                     Activity.Current.SetTag("LastHeartBeatValue",
                         command.LastHeartBeat.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
-            _handler.Handle(command);
         }
     }
 }

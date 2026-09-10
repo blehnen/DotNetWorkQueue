@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
 
@@ -47,6 +48,20 @@ namespace DotNetWorkQueue.Logging.Decorator
             try
             {
                 return _handler.Rollback(context);
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e, "An error has occurred while trying to rollback a message");
+                return false;
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> RollbackAsync(IMessageContext context)
+        {
+            try
+            {
+                return await _handler.RollbackAsync(context).ConfigureAwait(false);
             }
             catch (Exception e)
             {

@@ -173,6 +173,28 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         }
 
         /// <inheritdoc />
+        /// <remarks>See <see cref="RecordProcessingStartAsync"/> on what SQLite does and does not gain.</remarks>
+        public async Task RecordRollbackAsync(string queueId)
+        {
+            if (!_options.EnableHistory) return;
+            using (var connection = _connectionFactory.Create())
+            {
+                await connection.OpenAsync().ConfigureAwait(false);
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $@"UPDATE {_tableNameHelper.HistoryName}
+                        SET Status = @Status, RetryCount = RetryCount + 1, StartedUtc = NULL, CompletedUtc = NULL, DurationMs = NULL
+                        WHERE QueueID = @QueueID";
+
+                    AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Enqueued);
+                    AddParameter(command, QueueIdParameter, DbType.String, queueId);
+
+                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                }
+            }
+        }
+
+        /// <inheritdoc />
         public void RecordComplete(string queueId)
         {
             if (!_options.EnableHistory) return;

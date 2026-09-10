@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
@@ -33,6 +34,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
     {
         private readonly QueueConsumerConfiguration _configuration;
         private readonly ICommandHandler<RollbackMessageCommand<long>> _rollbackCommand;
+        private readonly ICommandHandlerAsync<RollbackMessageCommand<long>> _rollbackCommandAsync;
         private readonly IIncreaseQueueDelay _headers;
 
         /// <summary>
@@ -40,17 +42,21 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
         /// </summary>
         /// <param name="configuration">The configuration.</param>
         /// <param name="rollbackCommand">The rollback command.</param>
+        /// <param name="rollbackCommandAsync">The rollback command, for the asynchronous consumer.</param>
         /// <param name="headers">The headers.</param>
         public RollbackMessage(QueueConsumerConfiguration configuration,
             ICommandHandler<RollbackMessageCommand<long>> rollbackCommand,
+            ICommandHandlerAsync<RollbackMessageCommand<long>> rollbackCommandAsync,
             IIncreaseQueueDelay headers)
         {
             Guard.NotNull(configuration);
             Guard.NotNull(rollbackCommand);
+            Guard.NotNull(rollbackCommandAsync);
             Guard.NotNull(headers);
 
             _configuration = configuration;
             _rollbackCommand = rollbackCommand;
+            _rollbackCommandAsync = rollbackCommandAsync;
             _headers = headers;
         }
         /// <summary>
@@ -59,23 +65,51 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Message
         /// <param name="context">The context.</param>
         public void Rollback(IMessageContext context)
         {
-            if (context.MessageId == null || !context.MessageId.HasValue) return;
+            if (TryBuildRollback(context, out var command))
+            {
+                _rollbackCommand.Handle(command);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task RollbackAsync(IMessageContext context)
+        {
+            if (TryBuildRollback(context, out var command))
+            {
+                await _rollbackCommandAsync.HandleAsync(command).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Decides whether there is anything to roll back, and builds the command if so.
+        /// </summary>
+        /// <remarks>
+        /// Shared by both members. There is nothing to roll back unless delayed processing, the
+        /// heartbeat or the status table is enabled, and two copies of that condition would be free
+        /// to drift apart.
+        /// </remarks>
+        private bool TryBuildRollback(IMessageContext context, out RollbackMessageCommand<long> command)
+        {
+            command = null;
+            if (context.MessageId == null || !context.MessageId.HasValue) return false;
 
             //there is nothing to rollback unless at least one of these options is enabled
-            if (_configuration.Options().EnableDelayedProcessing ||
-                _configuration.Options().EnableHeartBeat ||
-                _configuration.Options().EnableStatus)
+            if (!_configuration.Options().EnableDelayedProcessing &&
+                !_configuration.Options().EnableHeartBeat &&
+                !_configuration.Options().EnableStatus)
             {
-                DateTime? lastHeartBeat = null;
-                if (context.WorkerNotification?.HeartBeat?.Status?.LastHeartBeatTime != null)
-                {
-                    lastHeartBeat = context.WorkerNotification.HeartBeat.Status.LastHeartBeatTime.Value;
-                }
-
-                var increaseDelay = context.Get(_headers.QueueDelay).IncreaseDelay;
-                _rollbackCommand.Handle(new RollbackMessageCommand<long>(lastHeartBeat,
-                    (long)context.MessageId.Id.Value, increaseDelay));
+                return false;
             }
+
+            DateTime? lastHeartBeat = null;
+            if (context.WorkerNotification?.HeartBeat?.Status?.LastHeartBeatTime != null)
+            {
+                lastHeartBeat = context.WorkerNotification.HeartBeat.Status.LastHeartBeatTime.Value;
+            }
+
+            var increaseDelay = context.Get(_headers.QueueDelay).IncreaseDelay;
+            command = new RollbackMessageCommand<long>(lastHeartBeat, (long)context.MessageId.Id.Value, increaseDelay);
+            return true;
         }
     }
 }

@@ -39,6 +39,9 @@ namespace DotNetWorkQueue.Queue
         public Task RecordCompleteAsync(string queueId) => Task.CompletedTask;
 
         /// <inheritdoc />
+        public Task RecordRollbackAsync(string queueId) => Task.CompletedTask;
+
+        /// <inheritdoc />
         public void RecordComplete(string queueId) { }
 
         /// <inheritdoc />

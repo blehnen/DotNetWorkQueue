@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
@@ -27,7 +28,8 @@ using DotNetWorkQueue.Validation;
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
     /// <inheritdoc />
-    internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand<string>>
+    internal class RollbackMessageCommandHandler : ICommandHandler<RollbackMessageCommand<string>>,
+        ICommandHandlerAsync<RollbackMessageCommand<string>>
     {
         private readonly RollbackLua _rollbackLua;
         private readonly RollbackDelayLua _rollbackDelayLua;
@@ -62,6 +64,20 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             else
             {
                 _rollbackLua.Execute(command.QueueId);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task HandleAsync(RollbackMessageCommand<string> command)
+        {
+            if (command.IncreaseQueueDelay.HasValue && command.IncreaseQueueDelay.Value != TimeSpan.Zero)
+            {
+                var unixTimestamp = _unixTimeFactory.Create().GetAddDifferenceMilliseconds(command.IncreaseQueueDelay.Value);
+                await _rollbackDelayLua.ExecuteAsync(command.QueueId, unixTimestamp).ConfigureAwait(false);
+            }
+            else
+            {
+                await _rollbackLua.ExecuteAsync(command.QueueId).ConfigureAwait(false);
             }
         }
     }

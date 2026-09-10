@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 
 using System.Diagnostics;
+using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
@@ -53,6 +54,17 @@ namespace DotNetWorkQueue.Trace.Decorator
             {
                 scope?.AddMessageIdTag(context);
                 return _handler.Rollback(context);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> RollbackAsync(IMessageContext context)
+        {
+            var activityContext = context.Extract(_tracer, _headers);
+            using (var scope = _tracer.StartActivity("RollBack", ActivityKind.Internal, activityContext))
+            {
+                scope?.AddMessageIdTag(context);
+                return await _handler.RollbackAsync(context).ConfigureAwait(false);
             }
         }
     }
