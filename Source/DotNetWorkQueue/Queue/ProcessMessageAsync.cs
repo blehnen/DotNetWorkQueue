@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Queue
                 try
                 {
                     await _methodToRun.HandleAsync(transportMessage, context.WorkerNotification).ConfigureAwait(false);
-                    _commitMessage.Commit(context);
+                    await _commitMessage.CommitAsync(context).ConfigureAwait(false);
                     _consumerQueueNotification.InvokeMessageComplete(new MessageCompleteNotification(transportMessage.MessageId, transportMessage.CorrelationId, transportMessage.Headers, transportMessage.Body));
                 }
                 catch (OperationCanceledException)

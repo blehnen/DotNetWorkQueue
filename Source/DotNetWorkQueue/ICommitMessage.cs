@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
+
 namespace DotNetWorkQueue
 {
     /// <summary>
@@ -29,5 +31,16 @@ namespace DotNetWorkQueue
         /// <param name="context"></param>
         /// <returns></returns>
         bool Commit(IMessageContext context);
+
+        /// <summary>
+        /// Commits the message associated to the context, without blocking a thread.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <returns>true if the message was committed</returns>
+        /// <remarks>
+        /// The asynchronous consumer commits from a continuation on a thread-pool thread, and a commit
+        /// is transport I/O on every message - the busiest of the calls #284 tracks.
+        /// </remarks>
+        Task<bool> CommitAsync(IMessageContext context);
     }
 }

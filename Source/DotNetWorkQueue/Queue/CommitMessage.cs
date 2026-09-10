@@ -19,6 +19,7 @@
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Validation;
 using System;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -39,6 +40,23 @@ namespace DotNetWorkQueue.Queue
             try
             {
                 context.RaiseCommit();
+                return true;
+            }
+            catch (Exception commitException)
+            {
+                throw new CommitException(
+                    "An error has occurred committing a processed message",
+                    commitException, context.MessageId, context.CorrelationId, context.Headers);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> CommitAsync(IMessageContext context)
+        {
+            Guard.NotNull(context);
+            try
+            {
+                await context.RaiseCommitAsync().ConfigureAwait(false);
                 return true;
             }
             catch (Exception commitException)

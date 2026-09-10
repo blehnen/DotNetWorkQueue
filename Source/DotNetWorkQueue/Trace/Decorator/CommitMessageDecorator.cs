@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 
 using System.Diagnostics;
+using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 
 namespace DotNetWorkQueue.Trace.Decorator
@@ -51,7 +52,22 @@ namespace DotNetWorkQueue.Trace.Decorator
             var activityContext = context.Extract(_tracer, _headers);
             using (var scope = _tracer.StartActivity("Commit", ActivityKind.Internal, activityContext))
             {
+                //Every sibling decorator tags the span with the message id - rollback, remove and the
+                //poison handler all do. This one did not, so a commit span could not be tied back to
+                //its message.
+                scope?.AddMessageIdTag(context);
                 return _handler.Commit(context);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> CommitAsync(IMessageContext context)
+        {
+            var activityContext = context.Extract(_tracer, _headers);
+            using (var scope = _tracer.StartActivity("Commit", ActivityKind.Internal, activityContext))
+            {
+                scope?.AddMessageIdTag(context);
+                return await _handler.CommitAsync(context).ConfigureAwait(false);
             }
         }
     }

@@ -86,6 +86,18 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         }
 
         /// <inheritdoc />
+        public async Task RecordCompleteAsync(string queueId)
+        {
+            if (!_options.EnableHistory) return;
+            var db = GetDb();
+            var now = DateTime.UtcNow;
+            var rawStarted = await db.HashGetAsync(HistoryHashKey(queueId), FieldStartedUtc).ConfigureAwait(false);
+            var startedTicks = rawStarted.HasValue ? (long)rawStarted : 0L;
+            var durationMs = startedTicks > 0 ? (long)(now - new DateTime(startedTicks, DateTimeKind.Utc)).TotalMilliseconds : 0L;
+            await db.HashSetAsync(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Complete), new HashEntry(FieldCompletedUtc, now.Ticks), new HashEntry(FieldDurationMs, durationMs) }).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public void RecordComplete(string queueId)
         {
             if (!_options.EnableHistory) return;

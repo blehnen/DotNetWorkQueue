@@ -32,6 +32,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         private const string QueueIdParameter = "@QueueID";
         private const string StatusParameter = "@Status";
         private const string CompletedUtcParameter = "@CompletedUtc";
+        private const string PrevStatusParameter = "@PrevStatus";
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ITableNameHelper _tableNameHelper;
         private readonly IBaseTransportOptions _options;
@@ -92,7 +93,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Processing);
                     AddParameter(command, "@StartedUtc", DbType.DateTime, DateTime.UtcNow);
                     AddParameter(command, QueueIdParameter, DbType.String, queueId);
-                    AddParameter(command, "@PrevStatus", DbType.Int32, (int)MessageHistoryStatus.Enqueued);
+                    AddParameter(command, PrevStatusParameter, DbType.Int32, (int)MessageHistoryStatus.Enqueued);
 
                     command.ExecuteNonQuery();
                 }
@@ -122,7 +123,49 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Processing);
                     AddParameter(command, "@StartedUtc", DbType.DateTime, DateTime.UtcNow);
                     AddParameter(command, QueueIdParameter, DbType.String, queueId);
-                    AddParameter(command, "@PrevStatus", DbType.Int32, (int)MessageHistoryStatus.Enqueued);
+                    AddParameter(command, PrevStatusParameter, DbType.Int32, (int)MessageHistoryStatus.Enqueued);
+
+                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        /// <remarks>See <see cref="RecordProcessingStartAsync"/> on what SQLite does and does not gain.</remarks>
+        public async Task RecordCompleteAsync(string queueId)
+        {
+            if (!_options.EnableHistory) return;
+            var now = DateTime.UtcNow;
+            using (var connection = _connectionFactory.Create())
+            {
+                await connection.OpenAsync().ConfigureAwait(false);
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $@"UPDATE {_tableNameHelper.HistoryName}
+                        SET Status = @Status, CompletedUtc = @CompletedUtc
+                        WHERE QueueID = @QueueID AND Status = @PrevStatus";
+
+                    AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Complete);
+                    AddParameter(command, CompletedUtcParameter, DbType.DateTime, now);
+                    AddParameter(command, QueueIdParameter, DbType.String, queueId);
+                    AddParameter(command, PrevStatusParameter, DbType.Int32, (int)MessageHistoryStatus.Processing);
+
+                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                }
+
+                // Update duration separately
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $@"UPDATE {_tableNameHelper.HistoryName}
+                        SET DurationMs = @DurationMs
+                        WHERE QueueID = @QueueID AND CompletedUtc IS NOT NULL AND DurationMs IS NULL";
+
+                    // Read start time to calculate duration
+                    var startTime = await GetStartedUtcAsync(connection, queueId).ConfigureAwait(false);
+                    var durationMs = startTime.HasValue ? (long)(now - startTime.Value).TotalMilliseconds : 0L;
+
+                    AddParameter(command, "@DurationMs", DbType.Int64, durationMs);
+                    AddParameter(command, QueueIdParameter, DbType.String, queueId);
 
                     await command.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }
@@ -146,7 +189,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Complete);
                     AddParameter(command, CompletedUtcParameter, DbType.DateTime, now);
                     AddParameter(command, QueueIdParameter, DbType.String, queueId);
-                    AddParameter(command, "@PrevStatus", DbType.Int32, (int)MessageHistoryStatus.Processing);
+                    AddParameter(command, PrevStatusParameter, DbType.Int32, (int)MessageHistoryStatus.Processing);
 
                     command.ExecuteNonQuery();
                 }
@@ -264,6 +307,35 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     command.ExecuteNonQuery();
                 }
             }
+        }
+
+        private async Task<DateTime?> GetStartedUtcAsync(DbConnection connection, string queueId)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = $"SELECT StartedUtc FROM {_tableNameHelper.HistoryName} WHERE QueueID = @QueueID";
+                AddParameter(command, QueueIdParameter, DbType.String, queueId);
+
+                var result = await command.ExecuteScalarAsync().ConfigureAwait(false);
+                return ReadStartedUtc(result);
+            }
+        }
+
+        /// <summary>
+        /// SQLite stores DateTime as INTEGER (ticks) or TEXT; other transports return DateTime directly.
+        /// Shared so the two readers cannot drift on that.
+        /// </summary>
+        private static DateTime? ReadStartedUtc(object result)
+        {
+            if (result == null || result == DBNull.Value)
+                return null;
+
+            if (result is DateTime dt)
+                return dt;
+            if (result is long ticks && ticks > 0)
+                return new DateTime(ticks, DateTimeKind.Utc);
+
+            return null;
         }
 
         private DateTime? GetStartedUtc(DbConnection connection, string queueId)

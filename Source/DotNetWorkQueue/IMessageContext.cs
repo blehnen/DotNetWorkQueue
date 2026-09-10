@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue
 {
@@ -55,6 +56,16 @@ namespace DotNetWorkQueue
         /// Will be raised when it is time to commit the message.
         /// </summary>
         event EventHandler Commit;
+
+        /// <summary>
+        /// Occurs when the message has been committed, and lets the subscriber be awaited.
+        /// </summary>
+        /// <remarks>
+        /// The asynchronous consumer raises this instead of <see cref="Commit"/>: committing is
+        /// transport I/O, and an <see cref="EventHandler"/> subscriber would have to block the
+        /// continuation that raised it.
+        /// </remarks>
+        event AsyncEventHandler CommitAsync;
 
         /// <summary>
         /// Will be raised if the message should be rolled back.
@@ -104,6 +115,11 @@ namespace DotNetWorkQueue
         /// Explicitly fires the commit event.
         /// </summary>
         void RaiseCommit();
+
+        /// <summary>
+        /// Explicitly fires the commit event, awaiting each subscriber in turn.
+        /// </summary>
+        Task RaiseCommitAsync();
 
         /// <summary>
         /// Explicitly fires the rollback event.

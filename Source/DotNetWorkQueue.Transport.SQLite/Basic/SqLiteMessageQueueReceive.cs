@@ -178,6 +178,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         //delegate that unsubscribes just as well, since removal compares target and method rather
         //than reference.
         private EventHandler _cachedCommit;
+        private AsyncEventHandler _cachedCommitAsync;
         private EventHandler _cachedRollback;
         private EventHandler _cachedCleanup;
 
@@ -191,6 +192,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         {
             //wire up the context commit/rollback/dispose delegates
             context.Commit += _cachedCommit ??= ContextOnCommit;
+            //Both are subscribed: the synchronous consumer raises Commit, the asynchronous one
+            //raises CommitAsync. A context only ever raises one of them.
+            context.CommitAsync += _cachedCommitAsync ??= ContextOnCommitAsync;
             context.Rollback += _cachedRollback ??= ContextOnRollback;
             context.Cleanup += _cachedCleanup ??= Context_Cleanup;
         }
@@ -227,12 +231,21 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         }
 
         /// <summary>
+        /// On Commit, awaited
+        /// </summary>
+        private async Task ContextOnCommitAsync(object sender, EventArgs eventArgs)
+        {
+            await _handleMessage.CommitMessage.CommitAsync((IMessageContext)sender).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Clean up the message context when processing is done
         /// </summary>
         /// <param name="context">The context.</param>
         private void ContextCleanup(IMessageContext context)
         {
             context.Commit -= _cachedCommit;
+            context.CommitAsync -= _cachedCommitAsync;
             context.Rollback -= _cachedRollback;
             context.Cleanup -= _cachedCleanup;
         }

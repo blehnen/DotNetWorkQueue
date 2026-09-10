@@ -20,6 +20,7 @@ using DotNetWorkQueue.Validation;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Messages
 {
@@ -37,6 +38,9 @@ namespace DotNetWorkQueue.Messages
         /// Will be raised when it is time to commit the message.
         /// </summary>
         public event EventHandler Commit;
+
+        /// <inheritdoc/>
+        public event AsyncEventHandler CommitAsync;
 
         /// <summary>
         /// Will be raised if the message should be rolled back.
@@ -111,10 +115,32 @@ namespace DotNetWorkQueue.Messages
         }
 
         /// <inheritdoc/>
+        public Task RaiseCommitAsync() => RaiseAsync(CommitAsync);
+
+        /// <inheritdoc/>
         public void RaiseRollback()
         {
             ThrowIfDisposed();
             Rollback?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Awaits each subscriber in turn, in subscription order.
+        /// </summary>
+        /// <remarks>
+        /// Sequential rather than <see cref="Task.WhenAll(System.Collections.Generic.IEnumerable{Task})"/>:
+        /// the synchronous events already ran their handlers one after another, and the transports
+        /// subscribed to these commit and roll back against a shared connection and transaction, which
+        /// cannot take concurrent work.
+        /// </remarks>
+        private async Task RaiseAsync(AsyncEventHandler handlers)
+        {
+            ThrowIfDisposed();
+            if (handlers == null) return;
+            foreach (var handler in handlers.GetInvocationList())
+            {
+                await ((AsyncEventHandler)handler)(this, EventArgs.Empty).ConfigureAwait(false);
+            }
         }
 
         /// <inheritdoc/>

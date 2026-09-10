@@ -56,6 +56,12 @@ namespace DotNetWorkQueue
         Task RecordProcessingStartAsync(string queueId);
 
         /// <summary>
+        /// Updates a history record when a message completes, without blocking a thread.
+        /// </summary>
+        /// <param name="queueId">The message's queue ID.</param>
+        Task RecordCompleteAsync(string queueId);
+
+        /// <summary>
         /// Updates a history record when a message is committed successfully.
         /// </summary>
         /// <param name="queueId">The message's queue ID.</param>

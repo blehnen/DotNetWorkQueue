@@ -68,6 +68,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         //delegate that unsubscribes just as well, since removal compares target and method rather
         //than reference.
         private EventHandler _cachedCommit;
+        private AsyncEventHandler _cachedCommitAsync;
         private EventHandler _cachedRollback;
         private EventHandler _cachedCleanup;
 
@@ -80,6 +81,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public IReceivedMessageInternal ReceiveMessage(IMessageContext context)
         {
             context.Commit += _cachedCommit ??= ContextOnCommit;
+            //Both are subscribed: the synchronous consumer raises Commit, the asynchronous one
+            //raises CommitAsync. A context only ever raises one of them.
+            context.CommitAsync += _cachedCommitAsync ??= ContextOnCommitAsync;
             context.Rollback += _cachedRollback ??= ContextOnRollback;
             context.Cleanup += _cachedCleanup ??= Context_Cleanup;
 
@@ -137,9 +141,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </remarks>
         public async ValueTask<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context, CancellationToken cancellation)
         {
-            //These three are not optional. Without them the method still compiles and still returns
-            //messages, and commit and rollback silently stop working.
+            //These are not optional. Without them the method still compiles and still returns
+            //messages, and commit and rollback silently stop working. CommitAsync is the one this
+            //path actually needs: the asynchronous consumer raises that event, not Commit.
             context.Commit += _cachedCommit ??= ContextOnCommit;
+            context.CommitAsync += _cachedCommitAsync ??= ContextOnCommitAsync;
             context.Rollback += _cachedRollback ??= ContextOnRollback;
             context.Cleanup += _cachedCleanup ??= Context_Cleanup;
 
@@ -237,6 +243,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             _handleMessage.CommitMessage.Commit((IMessageContext)sender);
         }
+
+        /// <summary>
+        /// On Commit, awaited
+        /// </summary>
+        private async Task ContextOnCommitAsync(object sender, EventArgs eventArgs)
+        {
+            await _handleMessage.CommitMessage.CommitAsync((IMessageContext)sender).ConfigureAwait(false);
+        }
         /// <summary>
         /// Handles the Cleanup event of the context control.
         /// </summary>
@@ -254,6 +268,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private void ContextCleanup(IMessageContext context)
         {
             context.Commit -= _cachedCommit;
+            context.CommitAsync -= _cachedCommitAsync;
             context.Rollback -= _cachedRollback;
             context.Cleanup -= _cachedCleanup;
         }

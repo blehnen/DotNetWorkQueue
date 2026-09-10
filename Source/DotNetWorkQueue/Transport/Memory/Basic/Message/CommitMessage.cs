@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic.Message
@@ -42,6 +43,17 @@ namespace DotNetWorkQueue.Transport.Memory.Basic.Message
         {
             if (context != null)
                 _removeMessage.Remove(context.MessageId, RemoveMessageReason.Complete);
+        }
+
+        /// <summary>
+        /// Commits the processed message, without blocking a thread.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        public async Task CommitAsync(IMessageContext context)
+        {
+            if (context != null)
+                await _removeMessage.RemoveAsync(context.MessageId, RemoveMessageReason.Complete)
+                    .ConfigureAwait(false);
         }
     }
 }

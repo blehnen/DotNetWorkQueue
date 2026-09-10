@@ -170,6 +170,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         //delegate that unsubscribes just as well, since removal compares target and method rather
         //than reference.
         private EventHandler _cachedCommit;
+        private AsyncEventHandler _cachedCommitAsync;
         private EventHandler _cachedCommitTransaction;
         private EventHandler _cachedRollback;
         private EventHandler _cachedRollbackTransaction;
@@ -189,11 +190,19 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             if (!_configuration.Options().EnableHoldTransactionUntilMessageCommitted)
             {
                 context.Commit += _cachedCommit ??= ContextOnCommit;
+                //Both are subscribed: the synchronous consumer raises Commit, the asynchronous one
+                //raises CommitAsync. A context only ever raises one of them.
+                context.CommitAsync += _cachedCommitAsync ??= ContextOnCommitAsync;
                 context.Rollback += _cachedRollback ??= ContextOnRollback;
             }
             else
             {
                 context.Commit += _cachedCommitTransaction ??= ContextOnCommitTransaction;
+                //The same awaited handler serves both branches: the held-transaction commit delegate
+                //also ends at CommitMessage.Commit, and RemoveAsync handles the held transaction
+                //itself. Missing this is what left the asynchronous consumer unable to commit with
+                //EnableHoldTransactionUntilMessageCommitted on.
+                context.CommitAsync += _cachedCommitAsync ??= ContextOnCommitAsync;
                 context.Rollback += _cachedRollbackTransaction ??= ContextOnRollbackTransaction;
             }
             context.Cleanup += _cachedCleanup ??= Context_Cleanup;
@@ -275,6 +284,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         }
 
         /// <summary>
+        /// On Commit, awaited
+        /// </summary>
+        private async Task ContextOnCommitAsync(object sender, EventArgs eventArgs)
+        {
+            await _handleMessage.CommitMessage.CommitAsync((IMessageContext)sender).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Clean up the message context when processing is done
         /// </summary>
         /// <param name="context">The context.</param>
@@ -291,6 +308,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 context.Commit -= _cachedCommitTransaction;
                 context.Rollback -= _cachedRollbackTransaction;
             }
+            context.CommitAsync -= _cachedCommitAsync;
             context.Cleanup -= _cachedCleanup;
             _disposeConnection(connectionHolder);
         }

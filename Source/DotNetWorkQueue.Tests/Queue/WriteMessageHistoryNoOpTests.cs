@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Queue;
@@ -55,6 +56,20 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var test = Create();
             test.RecordExpire("1");
+        }
+
+        [TestMethod]
+        public async Task RecordProcessingStartAsync_DoesNotThrow()
+        {
+            var test = Create();
+            await test.RecordProcessingStartAsync("1").ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task RecordCompleteAsync_DoesNotThrow()
+        {
+            var test = Create();
+            await test.RecordCompleteAsync("1").ConfigureAwait(false);
         }
 
         private IWriteMessageHistory Create()
