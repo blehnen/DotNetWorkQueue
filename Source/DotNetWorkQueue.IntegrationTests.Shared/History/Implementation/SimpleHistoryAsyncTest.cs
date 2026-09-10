@@ -133,8 +133,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
                 }
                 finally
                 {
-                    oCreation?.RemoveQueue();
-                    oCreation?.Dispose();
+                    //The creation object was disposed above, on purpose, to release its connections
+                    //before the verification container reads the history. Nulling it there used to
+                    //mean this block found nothing and the queue was never removed - so a run left
+                    //its queue and history behind, which matters most on the shared instances
+                    //(Redis, SQL Server, PostgreSQL) where nothing else cleans up after it.
+                    oCreation ??= queueCreator.GetQueueCreation<TTransportCreate>(queueConnection);
+                    oCreation.RemoveQueue();
+                    oCreation.Dispose();
                     scope?.Dispose();
                 }
             }
