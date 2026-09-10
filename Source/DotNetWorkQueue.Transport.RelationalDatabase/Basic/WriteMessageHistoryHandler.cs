@@ -19,6 +19,7 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
@@ -94,6 +95,29 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     AddParameter(command, "@PrevStatus", DbType.Int32, (int)MessageHistoryStatus.Enqueued);
 
                     command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task RecordProcessingStartAsync(string queueId)
+        {
+            if (!_options.EnableHistory) return;
+            using (var connection = _connectionFactory.Create())
+            {
+                await connection.OpenAsync().ConfigureAwait(false);
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $@"UPDATE {_tableNameHelper.HistoryName}
+                        SET Status = @Status, StartedUtc = @StartedUtc
+                        WHERE QueueID = @QueueID AND Status = @PrevStatus";
+
+                    AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Processing);
+                    AddParameter(command, "@StartedUtc", DbType.DateTime, DateTime.UtcNow);
+                    AddParameter(command, QueueIdParameter, DbType.String, queueId);
+                    AddParameter(command, "@PrevStatus", DbType.Int32, (int)MessageHistoryStatus.Enqueued);
+
+                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }
             }
         }

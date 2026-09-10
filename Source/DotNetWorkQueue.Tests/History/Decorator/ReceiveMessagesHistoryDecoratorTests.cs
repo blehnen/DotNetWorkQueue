@@ -102,7 +102,10 @@ namespace DotNetWorkQueue.Tests.History.Decorator
 
             await decorator.ReceiveMessageAsync(context, CancellationToken.None);
 
-            history.Received(1).RecordProcessingStart(Arg.Any<string>());
+            await history.Received(1).RecordProcessingStartAsync(Arg.Any<string>()).ConfigureAwait(false);
+            //Calling the blocking member here would satisfy every other assertion in this class while
+            //holding a thread-pool thread for the write - the defect #284 exists to remove.
+            history.DidNotReceive().RecordProcessingStart(Arg.Any<string>());
         }
 
         [TestMethod]
@@ -115,7 +118,7 @@ namespace DotNetWorkQueue.Tests.History.Decorator
 
             await decorator.ReceiveMessageAsync(context, CancellationToken.None);
 
-            history.DidNotReceive().RecordProcessingStart(Arg.Any<string>());
+            await history.DidNotReceive().RecordProcessingStartAsync(Arg.Any<string>()).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -127,7 +130,7 @@ namespace DotNetWorkQueue.Tests.History.Decorator
 
             await decorator.ReceiveMessageAsync(context, CancellationToken.None);
 
-            history.DidNotReceive().RecordProcessingStart(Arg.Any<string>());
+            await history.DidNotReceive().RecordProcessingStartAsync(Arg.Any<string>()).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -137,12 +140,36 @@ namespace DotNetWorkQueue.Tests.History.Decorator
             var context = CreateContext();
             var receivedMessage = Substitute.For<IReceivedMessageInternal>();
             SetupAsyncReceive(inner, context, receivedMessage);
-            history.When(h => h.RecordProcessingStart(Arg.Any<string>()))
-                .Do(_ => throw new InvalidOperationException("history write failed"));
+            history.RecordProcessingStartAsync(Arg.Any<string>())
+                .Returns(Task.FromException(new InvalidOperationException("history write failed")));
 
             var result = await decorator.ReceiveMessageAsync(context, CancellationToken.None);
 
             Assert.AreSame(receivedMessage, result);
+        }
+
+        [TestMethod]
+        public async Task ReceiveMessageAsync_WaitsForTheHistoryWrite()
+        {
+            var (decorator, inner, history, _, _) = CreateDecorator(enabled: true, trackProcessing: true);
+            var context = CreateContext();
+            var receivedMessage = Substitute.For<IReceivedMessageInternal>();
+            SetupAsyncReceive(inner, context, receivedMessage);
+
+            var gate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            history.RecordProcessingStartAsync(Arg.Any<string>()).Returns(gate.Task);
+
+            var receiving = decorator.ReceiveMessageAsync(context, CancellationToken.None).AsTask();
+
+            var completedEarly = await Task.WhenAny(receiving, Task.Delay(TimeSpan.FromMilliseconds(250)))
+                .ConfigureAwait(false) == receiving;
+
+            Assert.IsFalse(completedEarly,
+                "The receive handed the message on before its history row said processing had started. " +
+                "Discarding that task lets the consumer record the start after the work finishes, or not at all.");
+
+            gate.TrySetResult(true);
+            await receiving.ConfigureAwait(false);
         }
 
         [TestMethod]

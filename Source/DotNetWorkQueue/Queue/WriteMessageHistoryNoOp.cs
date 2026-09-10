@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 
+using System.Threading.Tasks;
 namespace DotNetWorkQueue.Queue
 {
     /// <summary>
@@ -30,6 +31,9 @@ namespace DotNetWorkQueue.Queue
 
         /// <inheritdoc />
         public void RecordProcessingStart(string queueId) { }
+
+        /// <inheritdoc />
+        public Task RecordProcessingStartAsync(string queueId) => Task.CompletedTask;
 
         /// <inheritdoc />
         public void RecordComplete(string queueId) { }

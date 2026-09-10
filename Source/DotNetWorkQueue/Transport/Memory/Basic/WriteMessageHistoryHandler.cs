@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
@@ -58,6 +59,17 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         {
             if (!_options.EnableHistory) return;
             if (GetRecords().TryGetValue(queueId, out var r) && r.Status == MessageHistoryStatus.Enqueued) { r.Status = MessageHistoryStatus.Processing; r.StartedUtc = DateTime.UtcNow; }
+        }
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// Correct as written rather than unfinished: the history lives in process, so there is no
+        /// I/O to release the thread for.
+        /// </remarks>
+        public Task RecordProcessingStartAsync(string queueId)
+        {
+            RecordProcessingStart(queueId);
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc />

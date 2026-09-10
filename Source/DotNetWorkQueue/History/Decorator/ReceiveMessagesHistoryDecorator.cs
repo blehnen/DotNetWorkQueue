@@ -66,7 +66,8 @@ namespace DotNetWorkQueue.History.Decorator
             {
                 try
                 {
-                    _history.RecordProcessingStart(context.MessageId.Id.Value.ToString());
+                    await _history.RecordProcessingStartAsync(context.MessageId.Id.Value.ToString())
+                        .ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
