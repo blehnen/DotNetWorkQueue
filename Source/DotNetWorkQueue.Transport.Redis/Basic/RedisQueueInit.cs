@@ -141,6 +141,9 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             container.Register(typeof(ICommandHandlerWithOutput<,>), LifeStyles.Singleton,
                 target);
 
+            container.Register(typeof(ICommandHandlerWithOutputAsync<,>), LifeStyles.Singleton,
+                target);
+
             container.Register(typeof(ICommandHandler<>), LifeStyles.Singleton,
                 target);
 

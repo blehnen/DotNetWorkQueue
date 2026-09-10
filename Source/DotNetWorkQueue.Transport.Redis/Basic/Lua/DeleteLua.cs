@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
 using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
@@ -67,6 +68,18 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         public int? Execute(string messageId)
         {
             var result = TryExecute(GetParameters(messageId));
+            if (!result.IsNull)
+                return (int)result;
+            return null;
+        }
+        /// <summary>
+        /// Deletes the specified message without blocking a thread across the call.
+        /// </summary>
+        /// <param name="messageId">The message identifier.</param>
+        /// <returns></returns>
+        public async Task<int?> ExecuteAsync(string messageId)
+        {
+            var result = await TryExecuteAsync(GetParameters(messageId)).ConfigureAwait(false);
             if (!result.IsNull)
                 return (int)result;
             return null;

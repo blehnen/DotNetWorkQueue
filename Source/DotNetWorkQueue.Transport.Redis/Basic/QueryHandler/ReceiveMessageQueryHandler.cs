@@ -65,7 +65,19 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
                 throw new ReceiveMessageException("Failed to dequeue a message", error);
             }
 
-            return BuildMessage(query, unixTimestamp, result);
+            var message = BuildMessage(query, unixTimestamp, result, out var expired);
+            if (!expired) return message;
+
+            //Kept inside the same exception contract the removal had when it lived in BuildMessage.
+            try
+            {
+                RemoveMessage.Remove(query.MessageContext, RemoveMessageReason.Expired);
+            }
+            catch (Exception error)
+            {
+                throw new ReceiveMessageException("Failed to dequeue a message", error);
+            }
+            return message;
         }
     }
 }

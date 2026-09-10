@@ -70,7 +70,21 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
                 throw new ReceiveMessageException("Failed to dequeue a message", error);
             }
 
-            return BuildMessage(query, unixTimestamp, result);
+            var message = BuildMessage(query, unixTimestamp, result, out var expired);
+            if (!expired) return message;
+
+            //The one thing this cannot share with the synchronous handler: an expired message is
+            //removed here, on the async receive path, so it must not block the continuation.
+            try
+            {
+                await RemoveMessage.RemoveAsync(query.MessageContext, RemoveMessageReason.Expired)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception error)
+            {
+                throw new ReceiveMessageException("Failed to dequeue a message", error);
+            }
+            return message;
         }
     }
 }

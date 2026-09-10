@@ -119,7 +119,7 @@ Projects target net10.0 and net8.0. Legacy conditional compilation symbols (NETF
 
 ## Conventions
 
-- All source files include LGPL-2.1 license headers (see `DotNetWorkQueue.licenseheader`)
+- Library and production source files include LGPL-2.1 license headers (see `DotNetWorkQueue.licenseheader`). Test projects are exempt and mostly do not carry one; #206 scoped its header sweep to production files deliberately. Do not add headers to test files to satisfy this rule, and do not flag their absence
 - Interface prefix: `I` (e.g., `IQueue`); Factory suffix: `Factory`; Config suffix: `Configuration`
 - Abstract base classes use prefix `A` or suffix `Base`
 - Thread-safe disposal via `Interlocked` operations throughout

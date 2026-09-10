@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 
@@ -28,16 +29,21 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
     public class RemoveMessage<T> : IRemoveMessage
     {
         private readonly ICommandHandlerWithOutput<DeleteMessageCommand<T>, long> _deleteMessageCommandHandler;
+        private readonly ICommandHandlerWithOutputAsync<DeleteMessageCommand<T>, long> _deleteMessageCommandHandlerAsync;
 
         #region Constructor
         /// <summary>
         /// Initializes a new instance of the <see cref="ClearExpiredMessages{T}" /> class.
         /// </summary>
         /// <param name="deleteMessageCommandHandler">The delete message command handler.</param>
-        public RemoveMessage(ICommandHandlerWithOutput<DeleteMessageCommand<T>, long> deleteMessageCommandHandler)
+        /// <param name="deleteMessageCommandHandlerAsync">The delete message command handler, for the asynchronous consumer.</param>
+        public RemoveMessage(ICommandHandlerWithOutput<DeleteMessageCommand<T>, long> deleteMessageCommandHandler,
+            ICommandHandlerWithOutputAsync<DeleteMessageCommand<T>, long> deleteMessageCommandHandlerAsync)
         {
             Guard.NotNull(deleteMessageCommandHandler);
+            Guard.NotNull(deleteMessageCommandHandlerAsync);
             _deleteMessageCommandHandler = deleteMessageCommandHandler;
+            _deleteMessageCommandHandlerAsync = deleteMessageCommandHandlerAsync;
         }
         #endregion
 
@@ -58,6 +64,26 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
         public RemoveMessageStatus Remove(IMessageContext context, RemoveMessageReason reason)
         {
             return Remove(context.MessageId, reason);
+        }
+
+        /// <inheritdoc />
+        public async Task<RemoveMessageStatus> RemoveAsync(IMessageId id, RemoveMessageReason reason)
+        {
+            if (id != null && id.HasValue)
+            {
+                var result = await _deleteMessageCommandHandlerAsync
+                    .HandleAsync(new DeleteMessageCommand<T>((T)id.Id.Value)).ConfigureAwait(false);
+                if (result > 0)
+                    return RemoveMessageStatus.Removed;
+            }
+
+            return RemoveMessageStatus.NotFound;
+        }
+
+        /// <inheritdoc />
+        public Task<RemoveMessageStatus> RemoveAsync(IMessageContext context, RemoveMessageReason reason)
+        {
+            return RemoveAsync(context.MessageId, reason);
         }
     }
 }

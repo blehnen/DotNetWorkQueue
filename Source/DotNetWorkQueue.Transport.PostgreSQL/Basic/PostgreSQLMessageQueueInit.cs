@@ -202,6 +202,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container
                 .Register<ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long>,
                     DeleteTransactionalMessageCommandHandler<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>>(LifeStyles.Singleton);
+            container
+                .Register<ICommandHandlerWithOutputAsync<DeleteTransactionalMessageCommand, long>,
+                    DeleteTransactionalMessageCommandHandlerAsync<NpgsqlConnection, NpgsqlTransaction, NpgsqlCommand>>(LifeStyles.Singleton);
 
             container
                 .Register<ICommandHandler<MoveRecordToErrorQueueCommand<long>>,

@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
@@ -51,6 +52,22 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         public RemoveMessageStatus Remove(IMessageContext context, RemoveMessageReason reason)
         {
             return Remove(context.MessageId, reason);
+        }
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// Correct as written rather than unfinished. The memory transport keeps its messages in
+        /// process, so there is no I/O to release the thread for.
+        /// </remarks>
+        public Task<RemoveMessageStatus> RemoveAsync(IMessageId id, RemoveMessageReason reason)
+        {
+            return Task.FromResult(Remove(id, reason));
+        }
+
+        /// <inheritdoc />
+        public Task<RemoveMessageStatus> RemoveAsync(IMessageContext context, RemoveMessageReason reason)
+        {
+            return RemoveAsync(context.MessageId, reason);
         }
     }
 }

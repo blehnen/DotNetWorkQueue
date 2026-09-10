@@ -17,8 +17,8 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
-using System.Data;
 using System.Data.Common;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     /// <summary>
     /// Deletes a transactional message from the queue
     /// </summary>
-    public class DeleteTransactionalMessageCommandHandler<TConnection, TTransaction, TCommand> : ICommandHandlerWithOutput<DeleteTransactionalMessageCommand, long>
+    public class DeleteTransactionalMessageCommandHandlerAsync<TConnection, TTransaction, TCommand> : ICommandHandlerWithOutputAsync<DeleteTransactionalMessageCommand, long>
         where TConnection : DbConnection
         where TTransaction : DbTransaction
         where TCommand : DbCommand
@@ -40,12 +40,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         private readonly IPrepareCommandHandler<DeleteMessageCommand<long>> _prepareCommand;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeleteTransactionalMessageCommandHandler{TConnection, TTransaction, TCommand}"/> class.
+        /// Initializes a new instance of the <see cref="DeleteTransactionalMessageCommandHandlerAsync{TConnection, TTransaction, TCommand}"/> class.
         /// </summary>
         /// <param name="options">The options.</param>
         /// <param name="headers">The headers.</param>
         /// <param name="prepareCommand">The prepare command.</param>
-        public DeleteTransactionalMessageCommandHandler(ITransportOptionsFactory options,
+        public DeleteTransactionalMessageCommandHandlerAsync(ITransportOptionsFactory options,
             IConnectionHeader<TConnection, TTransaction, TCommand> headers,
             IPrepareCommandHandler<DeleteMessageCommand<long>> prepareCommand)
         {
@@ -59,31 +59,31 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         }
 
         /// <inheritdoc />
-        public long Handle(DeleteTransactionalMessageCommand command)
+        public async Task<long> HandleAsync(DeleteTransactionalMessageCommand command)
         {
             var connection = command.MessageContext.Get(_headers.Connection);
             using (var commandSql = connection.CreateCommand())
             {
                 //delete the meta data record
                 _prepareCommand.Handle(new DeleteMessageCommand<long>(command.QueueId), commandSql, CommandStringTypes.DeleteFromMetaData);
-                commandSql.ExecuteNonQuery();
+                await commandSql.ExecuteNonQueryAsync().ConfigureAwait(false);
 
                 //delete the message body
                 _prepareCommand.Handle(new DeleteMessageCommand<long>(command.QueueId), commandSql, CommandStringTypes.DeleteFromQueue);
-                commandSql.ExecuteNonQuery();
+                await commandSql.ExecuteNonQueryAsync().ConfigureAwait(false);
 
                 //delete any error tracking information
                 _prepareCommand.Handle(new DeleteMessageCommand<long>(command.QueueId), commandSql, CommandStringTypes.DeleteFromErrorTracking);
-                commandSql.ExecuteNonQuery();
+                await commandSql.ExecuteNonQueryAsync().ConfigureAwait(false);
 
                 _prepareCommand.Handle(new DeleteMessageCommand<long>(command.QueueId), commandSql, CommandStringTypes.DeleteFromMetaDataErrors);
-                commandSql.ExecuteNonQuery();
+                await commandSql.ExecuteNonQueryAsync().ConfigureAwait(false);
 
                 //delete status record
                 if (!_options.Value.EnableStatusTable) return 1;
 
                 _prepareCommand.Handle(new DeleteMessageCommand<long>(command.QueueId), commandSql, CommandStringTypes.DeleteFromStatus);
-                commandSql.ExecuteNonQuery();
+                await commandSql.ExecuteNonQueryAsync().ConfigureAwait(false);
                 return 1;
             }
         }
