@@ -42,16 +42,24 @@ namespace DotNetWorkQueue.History.Decorator
 
         public bool Rollback(IMessageContext context)
         {
+            //Captured BEFORE delegating: the Redis handler clears the context's message id on its way
+            //out ("this message should not have any more actions performed on it"), so reading it
+            //afterwards found nothing and rollback history was silently never recorded on that
+            //transport.
+            var queueId = context.MessageId != null && context.MessageId.HasValue
+                ? context.MessageId.Id.Value.ToString()
+                : null;
+
             var result = _handler.Rollback(context);
-            if (_options.EnableHistory && context.MessageId != null && context.MessageId.HasValue)
+            if (_options.EnableHistory && queueId != null)
             {
                 try
                 {
-                    _history.RecordRollback(context.MessageId.Id.Value.ToString());
+                    _history.RecordRollback(queueId);
                 }
                 catch (Exception ex)
                 {
-                    _log.LogWarning(ex, "Failed to record history for rollback of message {MessageId}", context.MessageId.Id.Value);
+                    _log.LogWarning(ex, "Failed to record history for rollback of message {MessageId}", queueId);
                 }
             }
             return result;
@@ -65,16 +73,21 @@ namespace DotNetWorkQueue.History.Decorator
         /// </remarks>
         public async Task<bool> RollbackAsync(IMessageContext context)
         {
+            //See the synchronous member: the id has to be read before the handler runs.
+            var queueId = context.MessageId != null && context.MessageId.HasValue
+                ? context.MessageId.Id.Value.ToString()
+                : null;
+
             var result = await _handler.RollbackAsync(context).ConfigureAwait(false);
-            if (_options.EnableHistory && context.MessageId != null && context.MessageId.HasValue)
+            if (_options.EnableHistory && queueId != null)
             {
                 try
                 {
-                    await _history.RecordRollbackAsync(context.MessageId.Id.Value.ToString()).ConfigureAwait(false);
+                    await _history.RecordRollbackAsync(queueId).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
-                    _log.LogWarning(ex, "Failed to record history for rollback of message {MessageId}", context.MessageId.Id.Value);
+                    _log.LogWarning(ex, "Failed to record history for rollback of message {MessageId}", queueId);
                 }
             }
             return result;

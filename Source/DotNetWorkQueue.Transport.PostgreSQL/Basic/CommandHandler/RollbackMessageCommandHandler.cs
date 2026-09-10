@@ -102,7 +102,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             using (var connection = new NpgsqlConnection(_connectionInformation.ConnectionString))
             {
                 await connection.OpenAsync().ConfigureAwait(false);
-                using (var trans = (NpgsqlTransaction)await connection.BeginTransactionAsync().ConfigureAwait(false))
+                using (var trans = await connection.BeginTransactionAsync().ConfigureAwait(false))
                 {
                     using (var command = connection.CreateCommand())
                     {

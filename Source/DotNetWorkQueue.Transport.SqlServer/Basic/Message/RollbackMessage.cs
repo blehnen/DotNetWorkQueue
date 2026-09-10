@@ -224,7 +224,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Message
             }
 
             //ensure that transaction won't be used anymore
-            connection.Transaction.Dispose();
+            await connection.Transaction.DisposeAsync().ConfigureAwait(false);
             connection.Transaction = null;
         }
     }
