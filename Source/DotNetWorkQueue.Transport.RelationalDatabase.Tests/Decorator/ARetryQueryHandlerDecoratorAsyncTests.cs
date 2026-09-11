@@ -1,38 +1,34 @@
-// ---------------------------------------------------------------------
-//This file is part of DotNetWorkQueue
-//Copyright © 2015-2026 Brian Lehnen
-//
-//This library is free software; you can redistribute it and/or
-//modify it under the terms of the GNU Lesser General Public
-//License as published by the Free Software Foundation; either
-//version 2.1 of the License, or (at your option) any later version.
-//
-//This library is distributed in the hope that it will be useful,
-//but WITHOUT ANY WARRANTY; without even the implied warranty of
-//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//Lesser General Public License for more details.
-//
-//You should have received a copy of the GNU Lesser General Public
-//License along with this library; if not, write to the Free Software
-//Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-// ---------------------------------------------------------------------
-using DotNetWorkQueue.Transport.PostgreSQL.Basic;
-using DotNetWorkQueue.Transport.PostgreSQL.Decorator;
 using System.Threading.Tasks;
+using DotNetWorkQueue.Transport.RelationalDatabase.Decorator;
 using DotNetWorkQueue.Transport.Shared;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic;
-using DotNetWorkQueue.Transport.PostgreSQL.Decorator;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Polly;
 using Polly.Registry;
 
-namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Decorator
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Decorator
 {
+    /// <summary>
+    /// The behaviour is tested once here rather than per transport: SQL Server, PostgreSQL and SQLite
+    /// each supply nothing but the pipeline name, and that the decorator resolves at all is covered by
+    /// container verification in their own test projects.
+    /// </summary>
     [TestClass]
-    public class RetryQueryHandlerDecoratorAsyncTests
+    public class ARetryQueryHandlerDecoratorAsyncTests
     {
+        private const string PolicyKey = "TestRetryQueryHandler";
+
         public sealed class FakeQuery : IQuery<string> { }
+
+        private sealed class Decorator : ARetryQueryHandlerDecoratorAsync<FakeQuery, string>
+        {
+            public Decorator(IQueryHandlerAsync<FakeQuery, string> decorated, IPolicies policies)
+                : base(decorated, policies)
+            {
+            }
+
+            protected override string PolicyName => PolicyKey;
+        }
 
         [TestMethod]
         public async Task HandleAsync_WhenRegistryDisposed_FallsThroughToDecorated()
@@ -44,7 +40,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Decorator
             registry.Dispose();
             policies.Registry.Returns(registry);
 
-            var sut = new RetryQueryHandlerDecoratorAsync<FakeQuery, string>(decorated, policies);
+            var sut = new Decorator(decorated, policies);
             var q = new FakeQuery();
 
             var result = await sut.HandleAsync(q);
@@ -60,15 +56,18 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Decorator
             decorated.HandleAsync(Arg.Any<FakeQuery>()).Returns("ok");
             var policies = Substitute.For<IPolicies>();
             var registry = new ResiliencePipelineRegistry<string>();
-            registry.TryAddBuilder(TransportPolicyDefinitions.RetryQueryHandler, (_, _) => { });
+            var built = 0;
+            registry.TryAddBuilder(PolicyKey, (_, _) => built++);
             policies.Registry.Returns(registry);
 
-            var sut = new RetryQueryHandlerDecoratorAsync<FakeQuery, string>(decorated, policies);
+            var sut = new Decorator(decorated, policies);
             var q = new FakeQuery();
 
             var result = await sut.HandleAsync(q);
 
             Assert.AreEqual("ok", result);
+            //the pipeline the subclass named is the one that ran, which is the part each transport relies on
+            Assert.AreEqual(1, built);
             await decorated.Received(1).HandleAsync(q);
             registry.Dispose();
         }
@@ -82,7 +81,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Decorator
             var registry = new ResiliencePipelineRegistry<string>();
             policies.Registry.Returns(registry);
 
-            var sut = new RetryQueryHandlerDecoratorAsync<FakeQuery, string>(decorated, policies);
+            var sut = new Decorator(decorated, policies);
             var q = new FakeQuery();
 
             var result = await sut.HandleAsync(q);

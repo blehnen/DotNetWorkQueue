@@ -16,61 +16,23 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-
-using System;
-using System.Threading.Tasks;
-using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SQLite.Basic;
-using DotNetWorkQueue.Validation;
-using Polly;
+using DotNetWorkQueue.Transport.RelationalDatabase.Decorator;
+using DotNetWorkQueue.Transport.Shared;
 
 namespace DotNetWorkQueue.Transport.SQLite.Decorator
 {
     /// <inheritdoc />
-    /// <remarks>
-    /// The asynchronous counterpart of <see cref="RetryQueryHandlerDecorator{TQuery,TResult}"/>, and it
-    /// shares that decorator's pipeline - a transient read is the same transient read whichever path
-    /// asked for it. Without this, the error path's retry-count read would be the one query on the
-    /// asynchronous consumer with no transient-failure handling, where its synchronous twin has it.
-    /// </remarks>
-    internal class RetryQueryHandlerDecoratorAsync<TQuery, TResult> : IQueryHandlerAsync<TQuery, TResult> where TQuery : IQuery<TResult>
+    internal class RetryQueryHandlerDecoratorAsync<TQuery, TResult> : ARetryQueryHandlerDecoratorAsync<TQuery, TResult>
+        where TQuery : IQuery<TResult>
     {
-        private readonly IQueryHandlerAsync<TQuery, TResult> _decorated;
-        private readonly IPolicies _policies;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RetryQueryHandlerDecoratorAsync{TQuery,TResult}" /> class.
-        /// </summary>
-        /// <param name="decorated">The decorated handler.</param>
-        /// <param name="policies">The policies.</param>
-        public RetryQueryHandlerDecoratorAsync(IQueryHandlerAsync<TQuery, TResult> decorated,
-            IPolicies policies)
+        /// <inheritdoc />
+        public RetryQueryHandlerDecoratorAsync(IQueryHandlerAsync<TQuery, TResult> decorated, IPolicies policies)
+            : base(decorated, policies)
         {
-            Guard.NotNull(decorated);
-            Guard.NotNull(policies);
-
-            _decorated = decorated;
-            _policies = policies;
         }
 
         /// <inheritdoc />
-        public async Task<TResult> HandleAsync(TQuery query)
-        {
-            Guard.NotNull(query);
-            ResiliencePipeline pipeline = null;
-            try
-            {
-                _policies.Registry.TryGetPipeline(TransportPolicyDefinitions.RetryQueryHandler, out pipeline);
-            }
-            catch (ObjectDisposedException)
-            {
-                // Shutdown race: registry disposed before the last handler call.
-                // Fall through to direct handler - same semantics as the "no policy" branch.
-            }
-
-            if (pipeline != null)
-                return await pipeline.ExecuteAsync(async _ => await _decorated.HandleAsync(query).ConfigureAwait(false)).ConfigureAwait(false);
-            return await _decorated.HandleAsync(query).ConfigureAwait(false);
-        }
+        protected override string PolicyName => TransportPolicyDefinitions.RetryQueryHandler;
     }
 }
