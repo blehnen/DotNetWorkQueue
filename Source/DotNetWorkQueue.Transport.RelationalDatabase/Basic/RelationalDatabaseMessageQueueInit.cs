@@ -254,6 +254,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     GetErrorRecordExistsQueryHandler<TQueueId>>(LifeStyles.Singleton);
 
             container
+                .Register<IQueryHandler<GetErrorTrackingUniqueIndexExistsQuery, bool>,
+                    GetErrorTrackingUniqueIndexExistsQueryHandler>(LifeStyles.Singleton);
+
+            container
+                .Register<IPrepareQueryHandler<GetErrorTrackingUniqueIndexExistsQuery, bool>,
+                    GetErrorTrackingUniqueIndexExistsQueryPrepareHandler>(LifeStyles.Singleton);
+
+            container
                 .Register<IQueryHandlerAsync<GetErrorRecordExistsQuery<TQueueId>, bool>,
                     GetErrorRecordExistsQueryHandler<TQueueId>>(LifeStyles.Singleton);
 

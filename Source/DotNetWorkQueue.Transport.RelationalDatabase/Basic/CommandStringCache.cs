@@ -410,7 +410,24 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// <summary>
         /// Dashboard: resets all stale messages in the Status table (only when EnableStatusTable is true)
         /// </summary>
-        DashboardResetAllStaleMessages_StatusTable
+        DashboardResetAllStaleMessages_StatusTable,
+        /// <summary>
+        /// Increments the retry count for a message and exception type, inserting the row if it is not
+        /// there yet - in one statement, so two failures of the same message cannot each insert a row.
+        /// Only used where the unique index backing it exists.
+        /// </summary>
+        /// <remarks>
+        /// Appended rather than slotted next to the other error-count members on purpose: this enum is
+        /// public and its values are implicit, so inserting in the middle renumbers everything after it
+        /// and a caller compiled against the old numbering would ask for the wrong statement.
+        /// </remarks>
+        UpsertErrorCount,
+        /// <summary>
+        /// Whether the error tracking table carries the unique index on (QueueID, ExceptionType).
+        /// Queues created before it existed do not have one, and the library does not upgrade schemas,
+        /// so the error count write falls back to check-then-write when it is absent.
+        /// </summary>
+        GetErrorTrackingUniqueIndexExists,
     }
 
     /// <summary>

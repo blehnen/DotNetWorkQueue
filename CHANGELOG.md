@@ -1,4 +1,5 @@
 ﻿### Unreleased
+- ⚠️ Fix: two failures arriving at once each added an error row, so a message got more retries than configured and could loop instead of reaching the error queue. Re-create an existing SQL Server, PostgreSQL or SQLite queue to pick up the fix (GitHub #299)
 - Redis consumers no longer hold a thread through the de-queue. Under thread-pool pressure, where a consumer previously timed out waiting on Redis, it now keeps working (GitHub #256)
 - ⚠️ Custom transports and consumers must add async members: `IReceiveMessages.ReceiveMessageAsync`, `IQueueWait.WaitAsync`, and `IRedisQueueWorkSub.WaitAsync` for Redis. Built-in transports are unaffected (GitHub #256)
 - ⚠️ `IMessageProcessing.Handle()` is now `HandleAsync()` and returns a task. Only affects code implementing that interface directly (GitHub #256)

@@ -73,6 +73,34 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             CommandCache.Add(CommandStringTypes.InsertErrorCount,
                 $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,1)");
 
+            CommandCache.Add(CommandStringTypes.UpsertErrorCount,
+                $@"insert into {TableNameHelper.ErrorTrackingName} (QueueID, ExceptionType, RetryCount)
+                   values (@QueueID, @ExceptionType, 1)
+                   on conflict (QueueID, ExceptionType)
+                   do update set retrycount = {TableNameHelper.ErrorTrackingName}.retrycount + 1");
+
+            //By shape, not by name. PostgreSQL folds unquoted identifiers to lower case and truncates
+            //them at 63 bytes, so comparing the name the schema asked for against the catalog misses -
+            //silently, and the racy path stays in use. to_regclass resolves the table the way the rest
+            //of the statements here do: the same folding and truncation, and it honours a schema
+            //qualified queue name - a dot is legal in one - rather than assuming public. It answers
+            //null rather than throwing when the table is not there.
+            //A partial index is excluded. It fits the shape below, but the upsert's conflict target
+            //names no predicate, so PostgreSQL would reject the statement rather than infer it.
+            //indnkeyatts, not the length of indkey: indkey also holds INCLUDE columns, which are stored
+            //but carry no uniqueness, so a unique index on QueueID alone that merely includes
+            //ExceptionType would otherwise look like the two-column key being asked about. The key
+            //columns come first in indkey, so with two of them they are indkey[0] and indkey[1].
+            CommandCache.Add(CommandStringTypes.GetErrorTrackingUniqueIndexExists,
+                @"SELECT 1 FROM pg_index ix
+                  WHERE ix.indrelid = to_regclass(@Table)
+                  AND ix.indisunique AND ix.indpred IS NULL
+                  AND ix.indnkeyatts = 2
+                  AND EXISTS (SELECT 1 FROM pg_attribute a
+                              WHERE a.attrelid = ix.indrelid AND a.attnum IN (ix.indkey[0], ix.indkey[1]) AND lower(a.attname) = 'queueid')
+                  AND EXISTS (SELECT 1 FROM pg_attribute a
+                              WHERE a.attrelid = ix.indrelid AND a.attnum IN (ix.indkey[0], ix.indkey[1]) AND lower(a.attname) = 'exceptiontype')");
+
             CommandCache.Add(CommandStringTypes.GetHeartBeatExpiredMessageIds,
                 $"select {TableNameHelper.MetaDataName}.queueid, heartbeat, headers from {TableNameHelper.MetaDataName} inner join {TableNameHelper.QueueName} on {TableNameHelper.QueueName}.queueid = {TableNameHelper.MetaDataName}.queueid where status = @status and heartbeat is not null and heartbeat < @time FOR UPDATE SKIP LOCKED");
 

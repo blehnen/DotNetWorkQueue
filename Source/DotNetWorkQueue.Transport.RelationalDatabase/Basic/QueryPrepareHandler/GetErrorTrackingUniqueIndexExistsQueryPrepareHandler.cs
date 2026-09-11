@@ -1,0 +1,59 @@
+﻿// ---------------------------------------------------------------------
+//This file is part of DotNetWorkQueue
+//Copyright © 2015-2026 Brian Lehnen
+//
+//This library is free software; you can redistribute it and/or
+//modify it under the terms of the GNU Lesser General Public
+//License as published by the Free Software Foundation; either
+//version 2.1 of the License, or (at your option) any later version.
+//
+//This library is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//Lesser General Public License for more details.
+//
+//You should have received a copy of the GNU Lesser General Public
+//License along with this library; if not, write to the Free Software
+//Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+// ---------------------------------------------------------------------
+using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Validation;
+
+using System.Data;
+using System.Data.Common;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
+
+namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
+{
+    /// <inheritdoc />
+    /// <remarks>
+    /// Shared rather than written per transport: the statements differ, but each looks for an index by
+    /// its shape on a named table, so the only parameter is the table.
+    /// </remarks>
+    public class GetErrorTrackingUniqueIndexExistsQueryPrepareHandler : IPrepareQueryHandler<GetErrorTrackingUniqueIndexExistsQuery, bool>
+    {
+        private readonly CommandStringCache _commandCache;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetErrorTrackingUniqueIndexExistsQueryPrepareHandler"/> class.
+        /// </summary>
+        /// <param name="commandCache">The command cache.</param>
+        public GetErrorTrackingUniqueIndexExistsQueryPrepareHandler(CommandStringCache commandCache)
+        {
+            Guard.NotNull(commandCache);
+            _commandCache = commandCache;
+        }
+
+        /// <inheritdoc />
+        public void Handle(GetErrorTrackingUniqueIndexExistsQuery query, DbCommand dbCommand, CommandStringTypes commandType)
+        {
+            dbCommand.CommandText = _commandCache.GetCommand(commandType);
+
+            var table = dbCommand.CreateParameter();
+            table.ParameterName = "@Table";
+            table.DbType = DbType.AnsiString;
+            table.Value = query.TableName;
+            dbCommand.Parameters.Add(table);
+        }
+    }
+}
