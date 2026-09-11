@@ -87,15 +87,19 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             //null rather than throwing when the table is not there.
             //A partial index is excluded. It fits the shape below, but the upsert's conflict target
             //names no predicate, so PostgreSQL would reject the statement rather than infer it.
+            //indnkeyatts, not the length of indkey: indkey also holds INCLUDE columns, which are stored
+            //but carry no uniqueness, so a unique index on QueueID alone that merely includes
+            //ExceptionType would otherwise look like the two-column key being asked about. The key
+            //columns come first in indkey, so with two of them they are indkey[0] and indkey[1].
             CommandCache.Add(CommandStringTypes.GetErrorTrackingUniqueIndexExists,
                 @"SELECT 1 FROM pg_index ix
                   WHERE ix.indrelid = to_regclass(@Table)
                   AND ix.indisunique AND ix.indpred IS NULL
-                  AND array_length(ix.indkey, 1) = 2
+                  AND ix.indnkeyatts = 2
                   AND EXISTS (SELECT 1 FROM pg_attribute a
-                              WHERE a.attrelid = ix.indrelid AND a.attnum = ANY(ix.indkey) AND lower(a.attname) = 'queueid')
+                              WHERE a.attrelid = ix.indrelid AND a.attnum IN (ix.indkey[0], ix.indkey[1]) AND lower(a.attname) = 'queueid')
                   AND EXISTS (SELECT 1 FROM pg_attribute a
-                              WHERE a.attrelid = ix.indrelid AND a.attnum = ANY(ix.indkey) AND lower(a.attname) = 'exceptiontype')");
+                              WHERE a.attrelid = ix.indrelid AND a.attnum IN (ix.indkey[0], ix.indkey[1]) AND lower(a.attname) = 'exceptiontype')");
 
             CommandCache.Add(CommandStringTypes.GetHeartBeatExpiredMessageIds,
                 $"select {TableNameHelper.MetaDataName}.queueid, heartbeat, headers from {TableNameHelper.MetaDataName} inner join {TableNameHelper.QueueName} on {TableNameHelper.QueueName}.queueid = {TableNameHelper.MetaDataName}.queueid where status = @status and heartbeat is not null and heartbeat < @time FOR UPDATE SKIP LOCKED");

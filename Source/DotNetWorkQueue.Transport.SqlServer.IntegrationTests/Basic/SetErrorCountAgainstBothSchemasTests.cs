@@ -156,6 +156,41 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Basic
             }
         }
 
+        [TestMethod]
+        public void DoesNotMistakeAnIncludedColumnForAKeyColumn()
+        {
+            //a unique index on QueueID alone that merely stores ExceptionType alongside it. It has the
+            //two column names and it is unique, but it guarantees one row per message rather than one
+            //per message and exception type - the single statement would break on the second exception
+            var queueName = GenerateQueueName.Create();
+            var connectionString = ConnectionInfo.ConnectionString;
+            var queueConnection = new QueueConnection(queueName, connectionString);
+            var logProvider = LoggerShared.Create(queueName, GetType().Name);
+
+            using (var queueCreator = new QueueCreationContainer<SqlServerMessageQueueInit>(
+                serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
+            {
+                var oCreation = queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection);
+                try
+                {
+                    var result = oCreation.CreateQueue();
+                    Assert.IsTrue(result.Success, result.ErrorMessage);
+
+                    var errorTable = $"{queueName}ErrorTracking";
+                    Execute(connectionString, $"DROP INDEX IX_QueueIDExceptionType ON {errorTable}");
+                    Execute(connectionString, $"CREATE UNIQUE INDEX IX_Included ON {errorTable} (QueueID) INCLUDE (ExceptionType)");
+
+                    Assert.IsFalse(UniqueIndexFound(queueConnection, logProvider, oCreation.Scope, errorTable),
+                        "an included column was counted as part of the unique key");
+                }
+                finally
+                {
+                    oCreation.RemoveQueue();
+                    oCreation.Dispose();
+                }
+            }
+        }
+
         private static bool UniqueIndexFound(QueueConnection queueConnection,
             Microsoft.Extensions.Logging.ILogger logProvider, ICreationScope scope, string errorTable)
         {
