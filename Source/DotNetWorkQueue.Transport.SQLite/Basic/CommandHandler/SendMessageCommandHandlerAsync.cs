@@ -135,7 +135,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
 
             using (var connection = _dbFactory.CreateConnection(_configurationSend.ConnectionInfo.ConnectionString, false))
             {
-                connection.Open();
+                await connection.OpenAsync().ConfigureAwait(false);
 
                 var expiration = TimeSpan.Zero;
                 if (_messageExpirationEnabled.Value)
@@ -165,7 +165,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                             commandStatus = CreateStatusRecord(connection, commandSend.MessageData);
                         }
 
-                        using (var trans = _dbFactory.CreateTransaction(connection).BeginTransaction())
+                        using (var trans = await _dbFactory.CreateTransaction(connection).BeginTransactionAsync().ConfigureAwait(false))
                         {
                             try
                             {
@@ -207,7 +207,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                                             _sendJobStatus.Handle(new SetJobLastKnownEventCommand<DbConnection, DbTransaction>(jobName, eventTime,
                                                 scheduledTime, connection, trans));
                                         }
-                                        trans.Commit();
+                                        await trans.CommitAsync().ConfigureAwait(false);
                                     }
                                     else
                                     {
@@ -223,7 +223,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                             }
                             finally
                             {
-                                commandStatus?.Dispose();
+                                if (commandStatus != null)
+                                    await commandStatus.DisposeAsync().ConfigureAwait(false);
                             }
                         }
                     }

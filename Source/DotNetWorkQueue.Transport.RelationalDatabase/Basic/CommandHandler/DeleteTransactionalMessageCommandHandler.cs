@@ -68,9 +68,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                 _prepareCommand.Handle(new DeleteMessageCommand<long>(command.QueueId), commandSql, CommandStringTypes.DeleteFromMetaData);
                 commandSql.ExecuteNonQuery();
 
-                //delete the message body
+                //The queue row is what says the message was there; the other rows are derived from it
                 _prepareCommand.Handle(new DeleteMessageCommand<long>(command.QueueId), commandSql, CommandStringTypes.DeleteFromQueue);
-                commandSql.ExecuteNonQuery();
+                var removed = commandSql.ExecuteNonQuery();
 
                 //delete any error tracking information
                 _prepareCommand.Handle(new DeleteMessageCommand<long>(command.QueueId), commandSql, CommandStringTypes.DeleteFromErrorTracking);
@@ -80,11 +80,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                 commandSql.ExecuteNonQuery();
 
                 //delete status record
-                if (!_options.Value.EnableStatusTable) return 1;
+                if (!_options.Value.EnableStatusTable) return removed;
 
                 _prepareCommand.Handle(new DeleteMessageCommand<long>(command.QueueId), commandSql, CommandStringTypes.DeleteFromStatus);
                 commandSql.ExecuteNonQuery();
-                return 1;
+                return removed;
             }
         }
     }

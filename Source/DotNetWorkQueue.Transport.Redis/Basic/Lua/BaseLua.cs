@@ -129,7 +129,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 if (e.Message.StartsWith("NOSCRIPT",
                     StringComparison.InvariantCultureIgnoreCase))
                 {
-                    LoadScript();
+                    await LoadScriptAsync().ConfigureAwait(false);
                     if (parameters != null)
                         return await db.ScriptEvaluateAsync(LoadedLuaScript, parameters).ConfigureAwait(false);
                     return await db.ScriptEvaluateAsync(LoadedLuaScript).ConfigureAwait(false);
@@ -143,7 +143,46 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// </summary>
         public void LoadScript()
         {
-            if (Connection.Connection == null) return;
+            var luaScript = PrepareLoad(out var servers);
+            if (luaScript == null) return;
+
+            LoadedLuaScript loadedScript = null;
+            foreach (var server in servers)
+            {
+                loadedScript = luaScript.Load(server);
+            }
+            LoadedLuaScript = loadedScript; //set cached copy to last copy created.
+        }
+
+        /// <summary>
+        /// Loads the script onto every server, without blocking a thread while it happens.
+        /// </summary>
+        /// <remarks>
+        /// The recovery path for NOSCRIPT, which a Redis restart, a failover or a SCRIPT FLUSH can send
+        /// any caller down. Loading is a round trip per endpoint, so doing it synchronously there parked
+        /// a thread-pool thread for the whole sweep - on the asynchronous path, which exists to avoid
+        /// exactly that. The synchronous loader stays for <see cref="TryExecute"/>.
+        /// </remarks>
+        public async Task LoadScriptAsync()
+        {
+            var luaScript = PrepareLoad(out var servers);
+            if (luaScript == null) return;
+
+            LoadedLuaScript loadedScript = null;
+            foreach (var server in servers)
+            {
+                loadedScript = await luaScript.LoadAsync(server).ConfigureAwait(false);
+            }
+            LoadedLuaScript = loadedScript; //set cached copy to last copy created.
+        }
+
+        /// <summary>
+        /// The part both loaders share: the prepared script and the servers to load it onto.
+        /// </summary>
+        private LuaScript PrepareLoad(out IServer[] servers)
+        {
+            servers = null;
+            if (Connection.Connection == null) return null;
 
             Guard.NotNullOrEmpty(Script);
 
@@ -151,12 +190,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             var endpoints = Connection.Connection.GetEndPoints();
             Guard.IsValid(endpoints.Length, i => i > 0,
                 "No endpoints where found; the count was 0");
-            LoadedLuaScript loadedScript = null;
-            foreach (var server in endpoints.Select(endpoint => Connection.Connection.GetServer(endpoint)))
-            {
-                loadedScript = luaScript.Load(server);
-            }
-            LoadedLuaScript = loadedScript; //set cached copy to last copy created.
+            servers = endpoints.Select(endpoint => Connection.Connection.GetServer(endpoint)).ToArray();
+            return luaScript;
         }
     }
 }

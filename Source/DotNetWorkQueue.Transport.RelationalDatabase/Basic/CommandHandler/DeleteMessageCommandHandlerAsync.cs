@@ -74,9 +74,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                         _prepareCommand.Handle(command, commandSql, CommandStringTypes.DeleteFromMetaData);
                         await commandSql.ExecuteNonQueryAsync().ConfigureAwait(false);
 
-                        //delete the message body
+                        //The queue row is what says the message was there: the meta data, status and
+                        //error rows are derived from it. Returning a hardcoded 1 made RemoveMessage
+                        //report Removed for an id that had no row at all - already gone, or never there.
                         _prepareCommand.Handle(command, commandSql, CommandStringTypes.DeleteFromQueue);
-                        await commandSql.ExecuteNonQueryAsync().ConfigureAwait(false);
+                        var removed = await commandSql.ExecuteNonQueryAsync().ConfigureAwait(false);
 
                         //delete any error tracking information
                         _prepareCommand.Handle(command, commandSql, CommandStringTypes.DeleteFromErrorTracking);
@@ -89,13 +91,13 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                         if (!_options.Value.EnableStatusTable)
                         {
                             await trans.CommitAsync().ConfigureAwait(false);
-                            return 1;
+                            return removed;
                         }
 
                         _prepareCommand.Handle(command, commandSql, CommandStringTypes.DeleteFromStatus);
                         await commandSql.ExecuteNonQueryAsync().ConfigureAwait(false);
                         await trans.CommitAsync().ConfigureAwait(false);
-                        return 1;
+                        return removed;
                     }
                 }
             }
