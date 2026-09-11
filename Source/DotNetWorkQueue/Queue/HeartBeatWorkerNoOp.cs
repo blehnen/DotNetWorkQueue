@@ -78,7 +78,8 @@ namespace DotNetWorkQueue.Queue
         /// </summary>
         public ValueTask DisposeAsync()
         {
-            Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
             return default;
         }
 

@@ -74,7 +74,10 @@ namespace DotNetWorkQueue.Trace.Decorator
 
         private static void Tag(Activity scope, IHeartBeatStatus status)
         {
-            if (status.LastHeartBeatTime.HasValue)
+            //a transport returns null when the context has no message id - Redis does, and the
+            //synchronous member dereferenced it just the same before this was shared. Tracing must not
+            //turn that no-op into an exception: the worker would log it and cancel the message's token.
+            if (status != null && status.LastHeartBeatTime.HasValue)
                 scope?.SetTag("HeartBeatValue", status.LastHeartBeatTime.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
     }

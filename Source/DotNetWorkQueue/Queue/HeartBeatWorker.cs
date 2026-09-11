@@ -45,6 +45,11 @@ namespace DotNetWorkQueue.Queue
         //have to wait for an in-flight beat the same way Stop does, without parking the thread that is
         //finishing a message. Deliberately not disposed: nothing here touches AvailableWaitHandle, so
         //there is nothing to release, and disposing it would race a beat that is still on its way out.
+        //Every wait on it passes CancellationToken.None on purpose. The only token in scope is _cancel,
+        //which is what tells user code a beat has failed - waiting on it here would cancel the wait at
+        //precisely the moment a beat is in trouble, and Stop would return while one was still updating.
+        //That is the guarantee IHeartBeatWorker makes, so these waits are deliberately not cancellable,
+        //exactly as the lock they replaced was not.
         private readonly SemaphoreSlim _beatLock = new SemaphoreSlim(1, 1);
 
         private readonly IHeartBeatScheduler _scheduler;
@@ -105,7 +110,7 @@ namespace DotNetWorkQueue.Queue
                 throw new DotNetWorkQueueException("Start must only be called 1 time");
             }
 
-            _beatLock.Wait();
+            _beatLock.Wait(CancellationToken.None);
             try
             {
                 if (!string.IsNullOrWhiteSpace(_checkTime))
@@ -123,7 +128,7 @@ namespace DotNetWorkQueue.Queue
         /// <inheritdoc />
         public void Stop()
         {
-            _beatLock.Wait(); //this will block if we are currently updating the heart beat
+            _beatLock.Wait(CancellationToken.None); //this will block if we are currently updating the heart beat
             try
             {
                 Stopped = true;
@@ -138,7 +143,7 @@ namespace DotNetWorkQueue.Queue
         public async Task StopAsync()
         {
             //same wait as Stop, awaited rather than blocked on
-            await _beatLock.WaitAsync().ConfigureAwait(false);
+            await _beatLock.WaitAsync(CancellationToken.None).ConfigureAwait(false);
             try
             {
                 Stopped = true;
@@ -180,7 +185,7 @@ namespace DotNetWorkQueue.Queue
 
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
-            _beatLock.Wait();
+            _beatLock.Wait(CancellationToken.None);
             try
             {
                 ReleaseSchedule();
@@ -198,7 +203,7 @@ namespace DotNetWorkQueue.Queue
 
             //the same teardown as Dispose, but the wait for an in-flight beat is awaited - this runs on
             //the asynchronous consumer's continuation, once per message
-            await _beatLock.WaitAsync().ConfigureAwait(false);
+            await _beatLock.WaitAsync(CancellationToken.None).ConfigureAwait(false);
             try
             {
                 ReleaseSchedule();
@@ -246,7 +251,16 @@ namespace DotNetWorkQueue.Queue
         /// </remarks>
         private void SendHeartBeatInternal()
         {
-            _ = SendHeartBeatAsync();
+            //SendHeartBeatAsync handles a failing beat itself, but its own failure handling can throw -
+            //a cancellation callback raising from SetCancel, say. Without this the task would fault with
+            //nobody watching, and a heartbeat that silently stops beating is what lets the monitor reset
+            //a message that is still being processed.
+            _ = SendHeartBeatAsync().ContinueWith(
+                t => _logger.LogError(t.Exception,
+                    "An error has occurred while handling a failed heartbeat update"),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted,
+                TaskScheduler.Default);
         }
 
         /// <summary>
@@ -265,7 +279,7 @@ namespace DotNetWorkQueue.Queue
 
             try
             {
-                await _beatLock.WaitAsync().ConfigureAwait(false);
+                await _beatLock.WaitAsync(CancellationToken.None).ConfigureAwait(false);
                 try
                 {
                     if (IsDisposed)
@@ -302,7 +316,7 @@ namespace DotNetWorkQueue.Queue
                 _logger.LogError(error,
                     "An error has occurred while updating the heartbeat field for a record that is being processed");
 
-                await _beatLock.WaitAsync().ConfigureAwait(false);
+                await _beatLock.WaitAsync(CancellationToken.None).ConfigureAwait(false);
                 try
                 {
                     _context.WorkerNotification.HeartBeat.SetError(error);

@@ -150,16 +150,15 @@ namespace DotNetWorkQueue.Tests.Queue
             var sendHeartBeat = Substitute.For<ISendHeartBeat>();
             var context = Substitute.For<IMessageContext>();
             var beatStarted = new ManualResetEventSlim(false);
-            var releaseBeat = new ManualResetEventSlim(false);
-            var beatFinished = 0;
 
-            //a beat that will not finish until this test lets it
+            //An incomplete task, not a blocking callback: NSubstitute runs the callback inside the call
+            //itself, so blocking there would only prove the worker calls SendAsync - not that it awaits
+            //what it gets back, which is the whole guarantee under test.
+            var beatResult = new TaskCompletionSource<IHeartBeatStatus>(TaskCreationOptions.RunContinuationsAsynchronously);
             sendHeartBeat.SendAsync(context).Returns(_ =>
             {
                 beatStarted.Set();
-                releaseBeat.Wait(TimeSpan.FromSeconds(20));
-                Interlocked.Exchange(ref beatFinished, 1);
-                return Task.FromResult(Substitute.For<IHeartBeatStatus>());
+                return beatResult.Task;
             });
 
             //the scheduler is a substitute, so nothing fires the job on its own - capture what the
@@ -173,19 +172,16 @@ namespace DotNetWorkQueue.Tests.Queue
             {
                 test.Start();
                 Assert.IsNotNull(scheduled, "the worker did not schedule a heartbeat");
-                var beat = Task.Run(() => scheduled.Compile()(null, null));
+                _ = Task.Run(() => scheduled.Compile()(null, null));
 
                 Assert.IsTrue(beatStarted.Wait(TimeSpan.FromSeconds(20)), "the heartbeat never started");
 
                 var stop = test.StopAsync();
-                //the beat is still holding the lock, so the stop cannot have completed
+                //the beat is still in flight and holding the lock, so the stop cannot have completed
                 Assert.IsFalse(stop.IsCompleted, "StopAsync returned while a heartbeat was still updating");
 
-                releaseBeat.Set();
+                beatResult.SetResult(Substitute.For<IHeartBeatStatus>());
                 await stop;
-                Assert.AreEqual(1, Interlocked.CompareExchange(ref beatFinished, 0, 0),
-                    "StopAsync returned before the heartbeat finished");
-                await beat;
             }
         }
 
