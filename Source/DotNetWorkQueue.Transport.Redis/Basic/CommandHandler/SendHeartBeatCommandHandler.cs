@@ -58,7 +58,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 
             var db = _connection.Connection.GetDatabase();
             var date = _unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();
-            db.SortedSetAdd(_redisNames.Working, command.QueueId, date, When.Exists);
+            //SortedSetUpdate says whether the member was there to update. SortedSetAdd cannot: with
+            //When.Exists it reports whether a member was *added*, which is never - so the result was
+            //discarded and a message the monitor had already reclaimed still reported a fresh beat.
+            if (!db.SortedSetUpdate(_redisNames.Working, command.QueueId, date, SortedSetWhen.Exists))
+                return 0;
 
             return date;
         }
@@ -71,8 +75,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 
             var db = _connection.Connection.GetDatabase();
             var date = _unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();
-            await db.SortedSetAddAsync(_redisNames.Working, command.QueueId, date, When.Exists)
-                .ConfigureAwait(false);
+            //see Handle: the update has to report whether the message was still in the working set
+            if (!await db.SortedSetUpdateAsync(_redisNames.Working, command.QueueId, date, SortedSetWhen.Exists)
+                    .ConfigureAwait(false))
+                return 0;
 
             return date;
         }

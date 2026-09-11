@@ -64,6 +64,10 @@ namespace DotNetWorkQueue.Queue
         private readonly SemaphoreSlim _beatLock = new SemaphoreSlim(1, 1);
 
         private readonly IHeartBeatScheduler _scheduler;
+        //The transport's clock, not the machine's. The monitor ages the stored heartbeat against this
+        //same source - on Redis it is the Redis server's time - so comparing against _getTime.GetCurrentUtcDate()
+        //here would measure the claim against a different clock than the one that reclaims it.
+        private readonly IGetTime _getTime;
 
         private IScheduledJob _job;
 
@@ -85,14 +89,17 @@ namespace DotNetWorkQueue.Queue
         /// <param name="scheduler">The scheduler.</param>
         /// <param name="log">The log.</param>
         /// <param name="heartBeatNotificationFactory">The heart beat notification factory.</param>
+        /// <param name="getTimeFactory">The time factory; the transport's clock, which is the one the monitor ages against.</param>
         public HeartBeatWorker(IHeartBeatConfiguration configuration,
             IMessageContext context,
             ISendHeartBeat sendHeartBeat,
             IHeartBeatScheduler scheduler,
             ILogger log,
-            IWorkerHeartBeatNotificationFactory heartBeatNotificationFactory)
+            IWorkerHeartBeatNotificationFactory heartBeatNotificationFactory,
+            IGetTimeFactory getTimeFactory)
         {
             Guard.NotNull(configuration);
+            Guard.NotNull(getTimeFactory);
             Guard.NotNull(context);
             Guard.NotNull(sendHeartBeat);
             Guard.NotNull(scheduler);
@@ -104,6 +111,7 @@ namespace DotNetWorkQueue.Queue
             _expiry = configuration.Time;
             _sendHeartbeat = sendHeartBeat;
             _scheduler = scheduler;
+            _getTime = getTimeFactory.Create();
             _logger = log;
 
             _cancel = new CancellationTokenSource();
@@ -128,7 +136,7 @@ namespace DotNetWorkQueue.Queue
                 if (!string.IsNullOrWhiteSpace(_checkTime))
                 {
                     //the claim is fresh as of now; staleness is measured from here until a beat lands
-                    Interlocked.Exchange(ref _lastGoodBeatUtcTicks, DateTime.UtcNow.Ticks);
+                    Interlocked.Exchange(ref _lastGoodBeatUtcTicks, _getTime.GetCurrentUtcDate().Ticks);
                     _job = _scheduler.AddUpdateJob(
                         string.Concat("heartbeat-", _context.MessageId.ToString(), "-", Guid.NewGuid().ToString()), _checkTime, (message, notification) => SendHeartBeatInternal());
                 }
@@ -306,7 +314,12 @@ namespace DotNetWorkQueue.Queue
 
             //Checked on every tick, including the ones where the beat below is skipped - a beat that is
             //still running is exactly when the claim is most likely to be going stale.
-            GuardAgainstAStaleClaim();
+            if (ClaimHasLapsed())
+            {
+                //do not beat: the update would match the row again and renew a claim that has already
+                //been declared lost, putting this worker back to looking alive while it is stopping
+                return;
+            }
 
             if (Running)
             {
@@ -334,10 +347,16 @@ namespace DotNetWorkQueue.Queue
                         return;
 
                     Running = true;
+                    //Freshness is measured from when the update was sent, not from when the reply came
+                    //back. A slow reply would otherwise start a new local window while the record the
+                    //monitor ages was already older than that - this errs on the side of believing the
+                    //claim is staler than it is, which is the safe direction. Local clock only: the
+                    //stored timestamp comes from the transport's clock and is not comparable here.
+                    var sentAt = _getTime.GetCurrentUtcDate();
                     var status = await _sendHeartbeat.SendAsync(_context).ConfigureAwait(false);
                     if (status.LastHeartBeatTime.HasValue)
                     {
-                        Interlocked.Exchange(ref _lastGoodBeatUtcTicks, DateTime.UtcNow.Ticks);
+                        Interlocked.Exchange(ref _lastGoodBeatUtcTicks, sentAt.Ticks);
                         _context.WorkerNotification.HeartBeat.Status = status;
                         if (_logger.IsEnabled(LogLevel.Trace))
                             _logger.LogTrace("Set heartbeat for message {MessageId}", status.MessageId.Id.Value);
@@ -387,21 +406,22 @@ namespace DotNetWorkQueue.Queue
         /// supposed to produce. Cancelling here is the same signal a throwing beat already raised - user
         /// code is asked to stop, and the message is left for whoever holds the claim now.
         /// </remarks>
-        private void GuardAgainstAStaleClaim()
+        private bool ClaimHasLapsed()
         {
             if (_expiry <= TimeSpan.Zero)
-                return; //no expiry configured, so nothing resets the message and the claim cannot lapse
+                return false; //no expiry configured, so nothing resets the message and the claim cannot lapse
 
             var last = new DateTime(Interlocked.Read(ref _lastGoodBeatUtcTicks), DateTimeKind.Utc);
-            var age = DateTime.UtcNow - last;
+            var age = _getTime.GetCurrentUtcDate() - last;
             if (age < _expiry)
-                return;
+                return false;
 
             _logger.LogError(
                 "No heartbeat has been recorded for message {MessageId} in {Age}, which is past the {Expiry} the monitor resets against - the message may already have been given to another worker, so processing is being cancelled",
                 _context.MessageId?.Id?.Value, age, _expiry);
 
             SetCancel();
+            return true;
         }
 
         /// <summary>

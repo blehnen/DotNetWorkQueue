@@ -346,6 +346,14 @@ namespace DotNetWorkQueue.Tests.Queue
             fixture.Inject(sendHeartBeat);
             if (notificationFactory != null)
                 fixture.Inject(notificationFactory);
+
+            //the worker reads the transport's clock, not the machine's - a substitute would hand it
+            //DateTime.MinValue and nothing would ever look stale
+            var getTime = Substitute.For<IGetTime>();
+            getTime.GetCurrentUtcDate().Returns(_ => DateTime.UtcNow);
+            var getTimeFactory = Substitute.For<IGetTimeFactory>();
+            getTimeFactory.Create().Returns(getTime);
+            fixture.Inject(getTimeFactory);
             var threadPoolConfiguration = fixture.Create<IHeartBeatThreadPoolConfiguration>();
             threadPoolConfiguration.ThreadsMax.Returns(1);
             fixture.Inject(threadPoolConfiguration);
