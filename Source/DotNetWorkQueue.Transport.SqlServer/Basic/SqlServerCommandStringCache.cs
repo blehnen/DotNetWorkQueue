@@ -78,14 +78,32 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             CommandCache.Add(CommandStringTypes.InsertErrorCount,
                 $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,1)");
 
+            //One transaction on purpose. Without it each statement commits on its own, the range lock
+            //the update took is released before the insert runs, and two first failures can both find no
+            //row - after which the unique index rejects one of them and that error count is lost.
             CommandCache.Add(CommandStringTypes.UpsertErrorCount,
-                $@"update {TableNameHelper.ErrorTrackingName} with (updlock, holdlock) set retrycount = retrycount + 1
+                $@"set nocount on;
+                   begin transaction;
+                   update {TableNameHelper.ErrorTrackingName} with (updlock, holdlock) set retrycount = retrycount + 1
                    where queueid = @QueueID and ExceptionType = @ExceptionType;
                    if @@rowcount = 0
-                   insert into {TableNameHelper.ErrorTrackingName} (QueueID, ExceptionType, RetryCount) values (@QueueID, @ExceptionType, 1);");
+                   insert into {TableNameHelper.ErrorTrackingName} (QueueID, ExceptionType, RetryCount) values (@QueueID, @ExceptionType, 1);
+                   commit transaction;");
 
+            //By shape, not by name: an index name is not something this can rely on. It is folded,
+            //truncated or suffixed differently by each provider, and a same-named index that happened to
+            //be non-unique would send the atomic statement at a table that cannot support it.
             CommandCache.Add(CommandStringTypes.GetErrorTrackingUniqueIndexExists,
-                "SELECT 1 FROM sys.indexes WHERE name = @Index AND object_id = OBJECT_ID(@Table)");
+                @"SELECT 1 FROM sys.indexes i
+                  WHERE i.object_id = OBJECT_ID(@Table) AND i.is_unique = 1
+                  AND (SELECT COUNT(*) FROM sys.index_columns ic
+                       WHERE ic.object_id = i.object_id AND ic.index_id = i.index_id) = 2
+                  AND EXISTS (SELECT 1 FROM sys.index_columns ic
+                              JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
+                              WHERE ic.object_id = i.object_id AND ic.index_id = i.index_id AND c.name = 'QueueID')
+                  AND EXISTS (SELECT 1 FROM sys.index_columns ic
+                              JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
+                              WHERE ic.object_id = i.object_id AND ic.index_id = i.index_id AND c.name = 'ExceptionType')");
 
             CommandCache.Add(CommandStringTypes.GetHeartBeatExpiredMessageIds,
                 $"select {TableNameHelper.MetaDataName}.queueid, heartbeat, headers from {TableNameHelper.MetaDataName} with (updlock, readpast, rowlock) inner join {TableNameHelper.QueueName} on {TableNameHelper.QueueName}.queueid = {TableNameHelper.MetaDataName}.queueid where status = @status and heartbeat is not null and (DATEDIFF(SECOND, heartbeat, GETUTCDATE()) > @time)");

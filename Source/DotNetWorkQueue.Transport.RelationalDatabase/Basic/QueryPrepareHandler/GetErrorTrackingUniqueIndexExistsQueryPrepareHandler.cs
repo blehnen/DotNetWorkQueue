@@ -27,8 +27,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
 {
     /// <inheritdoc />
     /// <remarks>
-    /// Shared rather than written per transport: the statements differ, but all three take the same two
-    /// parameters, and all three name the index the same way.
+    /// Shared rather than written per transport: the statements differ, but each looks for an index by
+    /// its shape on a named table, so the only parameter is the table.
     /// </remarks>
     public class GetErrorTrackingUniqueIndexExistsQueryPrepareHandler : IPrepareQueryHandler<GetErrorTrackingUniqueIndexExistsQuery, bool>
     {
@@ -54,12 +54,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
             table.DbType = DbType.AnsiString;
             table.Value = query.TableName;
             dbCommand.Parameters.Add(table);
-
-            var index = dbCommand.CreateParameter();
-            index.ParameterName = "@Index";
-            index.DbType = DbType.AnsiString;
-            index.Value = query.IndexName;
-            dbCommand.Parameters.Add(index);
         }
     }
 }

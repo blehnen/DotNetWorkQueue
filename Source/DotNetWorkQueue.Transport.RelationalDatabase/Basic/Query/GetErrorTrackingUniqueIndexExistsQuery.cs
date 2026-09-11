@@ -36,21 +36,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// Initializes a new instance of the <see cref="GetErrorTrackingUniqueIndexExistsQuery"/> class.
         /// </summary>
         /// <param name="tableName">The error tracking table.</param>
-        /// <param name="indexName">The index to look for.</param>
-        public GetErrorTrackingUniqueIndexExistsQuery(string tableName, string indexName)
+        public GetErrorTrackingUniqueIndexExistsQuery(string tableName)
         {
             TableName = tableName;
-            IndexName = indexName;
         }
 
         /// <summary>
         /// The error tracking table.
         /// </summary>
         public string TableName { get; }
-
-        /// <summary>
-        /// The index to look for.
-        /// </summary>
-        public string IndexName { get; }
     }
 }

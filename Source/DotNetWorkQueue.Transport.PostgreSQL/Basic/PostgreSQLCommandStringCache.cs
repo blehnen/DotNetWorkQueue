@@ -79,8 +79,19 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                    on conflict (QueueID, ExceptionType)
                    do update set retrycount = {TableNameHelper.ErrorTrackingName}.retrycount + 1");
 
+            //By shape, not by name. PostgreSQL folds unquoted identifiers to lower case and truncates
+            //them at 63 bytes, so comparing the name the schema asked for against the catalog misses -
+            //silently, and the racy path stays in use. The table name is lowered for the same reason.
             CommandCache.Add(CommandStringTypes.GetErrorTrackingUniqueIndexExists,
-                "SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND tablename = @Table AND indexname = @Index");
+                @"SELECT 1 FROM pg_index ix
+                  JOIN pg_class t ON t.oid = ix.indrelid
+                  JOIN pg_namespace n ON n.oid = t.relnamespace
+                  WHERE n.nspname = 'public' AND t.relname = lower(@Table) AND ix.indisunique
+                  AND array_length(ix.indkey, 1) = 2
+                  AND EXISTS (SELECT 1 FROM pg_attribute a
+                              WHERE a.attrelid = t.oid AND a.attnum = ANY(ix.indkey) AND lower(a.attname) = 'queueid')
+                  AND EXISTS (SELECT 1 FROM pg_attribute a
+                              WHERE a.attrelid = t.oid AND a.attnum = ANY(ix.indkey) AND lower(a.attname) = 'exceptiontype')");
 
             CommandCache.Add(CommandStringTypes.GetHeartBeatExpiredMessageIds,
                 $"select {TableNameHelper.MetaDataName}.queueid, heartbeat, headers from {TableNameHelper.MetaDataName} inner join {TableNameHelper.QueueName} on {TableNameHelper.QueueName}.queueid = {TableNameHelper.MetaDataName}.queueid where status = @status and heartbeat is not null and heartbeat < @time FOR UPDATE SKIP LOCKED");

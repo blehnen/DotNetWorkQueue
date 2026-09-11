@@ -4,10 +4,10 @@ using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using DotNetWorkQueue.Transport.SQLite.Basic;
-using System.Data.SQLite;
+using DotNetWorkQueue.Transport.SqlServer.Basic;
+using Microsoft.Data.SqlClient;
 
-namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
+namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Basic
 {
     /// <summary>
     /// Counting errors against a real database, with and without the unique index.
@@ -28,46 +28,43 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
         [TestMethod]
         public void CountsErrors_OnANewQueueAndOnOneWithoutTheIndex()
         {
-            using (var connectionInfo = new IntegrationConnectionInfo(false))
+            var queueName = GenerateQueueName.Create();
+            var connectionString = ConnectionInfo.ConnectionString;
+            var queueConnection = new QueueConnection(queueName, connectionString);
+            var logProvider = LoggerShared.Create(queueName, GetType().Name);
+
+            using (var queueCreator = new QueueCreationContainer<SqlServerMessageQueueInit>(
+                serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             {
-                var queueName = GenerateQueueName.Create();
-                var connectionString = connectionInfo.ConnectionString;
-                var queueConnection = new QueueConnection(queueName, connectionString);
-                var logProvider = LoggerShared.Create(queueName, GetType().Name);
-
-                using (var queueCreator = new QueueCreationContainer<SqLiteMessageQueueInit>(
-                    serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
+                var oCreation = queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection);
+                try
                 {
-                    var oCreation = queueCreator.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection);
-                    try
-                    {
-                        var result = oCreation.CreateQueue();
-                        Assert.IsTrue(result.Success, result.ErrorMessage);
+                    var result = oCreation.CreateQueue();
+                    Assert.IsTrue(result.Success, result.ErrorMessage);
 
-                        var errorTable = $"{queueName}ErrorTracking";
+                    var errorTable = $"{queueName}ErrorTracking";
 
-                        Assert.IsTrue(UniqueIndexFound(queueConnection, logProvider, oCreation.Scope, errorTable),
-                            "a new queue did not report the unique index, so it would keep using the racy count");
+                    Assert.IsTrue(UniqueIndexFound(queueConnection, logProvider, oCreation.Scope, errorTable),
+                        "a new queue did not report the unique index, so it would keep using the racy count");
 
-                        //the atomic statement, on the schema that supports it
-                        CountTwice(queueConnection, logProvider, oCreation.Scope, 1);
-                        Assert.AreEqual(2, RetryCount(connectionString, errorTable, 1));
+                    //the atomic statement, on the schema that supports it
+                    CountTwice(queueConnection, logProvider, oCreation.Scope, 1);
+                    Assert.AreEqual(2, RetryCount(connectionString, errorTable, 1));
 
-                        //now an older queue: same table, no index
-                        Execute(connectionString, $"DROP INDEX IX_QueueIDExceptionType{errorTable}");
-                        Assert.IsFalse(UniqueIndexFound(queueConnection, logProvider, oCreation.Scope, errorTable),
-                            "the index was still reported after it had been dropped");
+                    //now an older queue: same table, no index
+                    Execute(connectionString, $"DROP INDEX IX_QueueIDExceptionType ON {errorTable}");
+                    Assert.IsFalse(UniqueIndexFound(queueConnection, logProvider, oCreation.Scope, errorTable),
+                        "the index was still reported after it had been dropped");
 
-                        //a different message id, so this counts from zero on the fallback path
-                        CountTwice(queueConnection, logProvider, oCreation.Scope, 2);
-                        Assert.AreEqual(2, RetryCount(connectionString, errorTable, 2),
-                            "the fallback stopped counting errors on a queue without the index");
-                    }
-                    finally
-                    {
-                        oCreation.RemoveQueue();
-                        oCreation.Dispose();
-                    }
+                    //a different message id, so this counts from zero on the fallback path
+                    CountTwice(queueConnection, logProvider, oCreation.Scope, 2);
+                    Assert.AreEqual(2, RetryCount(connectionString, errorTable, 2),
+                        "the fallback stopped counting errors on a queue without the index");
+                }
+                finally
+                {
+                    oCreation.RemoveQueue();
+                    oCreation.Dispose();
                 }
             }
         }
@@ -96,10 +93,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
             }
         }
 
-        private static QueueContainer<SqLiteMessageQueueInit> Container(
+        private static QueueContainer<SqlServerMessageQueueInit> Container(
             Microsoft.Extensions.Logging.ILogger logProvider, ICreationScope scope)
         {
-            return new QueueContainer<SqLiteMessageQueueInit>(serviceRegister =>
+            return new QueueContainer<SqlServerMessageQueueInit>(serviceRegister =>
             {
                 serviceRegister.Register(() => logProvider, LifeStyles.Singleton);
                 serviceRegister.RegisterNonScopedSingleton(scope);
@@ -108,7 +105,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
 
         private static int RetryCount(string connectionString, string errorTable, long queueId)
         {
-            using (var conn = new SQLiteConnection(connectionString))
+            using (var conn = new SqlConnection(connectionString))
             {
                 conn.Open();
                 using (var command = conn.CreateCommand())
@@ -128,7 +125,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
 
         private static void Execute(string connectionString, string sql)
         {
-            using (var conn = new SQLiteConnection(connectionString))
+            using (var conn = new SqlConnection(connectionString))
             {
                 conn.Open();
                 using (var command = conn.CreateCommand())

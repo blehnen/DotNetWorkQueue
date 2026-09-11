@@ -82,8 +82,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                    on conflict (QueueID, ExceptionType)
                    do update set retrycount = retrycount + 1");
 
+            //By shape, not by name - see the other transports; SQLite appends the table name to an
+            //index name of its own accord, which is one more reason not to match on it.
             CommandCache.Add(CommandStringTypes.GetErrorTrackingUniqueIndexExists,
-                "SELECT 1 FROM sqlite_master WHERE type = 'index' AND tbl_name = @Table AND name = @Index");
+                @"SELECT 1 FROM pragma_index_list(@Table) il
+                  WHERE il.""unique"" = 1
+                  AND (SELECT COUNT(*) FROM pragma_index_info(il.name)) = 2
+                  AND EXISTS (SELECT 1 FROM pragma_index_info(il.name) ii WHERE lower(ii.name) = 'queueid')
+                  AND EXISTS (SELECT 1 FROM pragma_index_info(il.name) ii WHERE lower(ii.name) = 'exceptiontype')");
 
             CommandCache.Add(CommandStringTypes.GetHeartBeatExpiredMessageIds,
                 $"select {TableNameHelper.MetaDataName}.queueid, heartbeat, headers from {TableNameHelper.MetaDataName} inner join {TableNameHelper.QueueName} on {TableNameHelper.QueueName}.queueid = {TableNameHelper.MetaDataName}.queueid where status = @Status and heartbeat is not null and heartbeat < @Time");

@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Data.Common;
+using System.Threading;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Shared;
@@ -68,9 +69,26 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             Guard.NotNull(prepareCommand);
 
             _queryHandler = queryHandler;
-            _canUpsert = new Lazy<bool>(() => uniqueIndexQuery.Handle(
-                new GetErrorTrackingUniqueIndexExistsQuery(tableNameHelper.ErrorTrackingName,
-                    $"IX_QueueIDExceptionType{tableNameHelper.ErrorTrackingName}")));
+            //PublicationOnly so a failed look-up is not cached. The default Lazy remembers the
+            //exception for the life of the queue, which would turn one transient database blip during
+            //the first failed message into every later failure throwing, for good. And any failure here
+            //answers "no" rather than propagating: not knowing whether the index is there is a reason to
+            //take the older path, not a reason to stop recording errors. A transport whose command cache
+            //has no entry for the look-up - a custom relational one written before this existed - lands
+            //here too.
+            _canUpsert = new Lazy<bool>(() =>
+                {
+                    try
+                    {
+                        return uniqueIndexQuery.Handle(
+                            new GetErrorTrackingUniqueIndexExistsQuery(tableNameHelper.ErrorTrackingName));
+                    }
+                    catch (Exception)
+                    {
+                        return false;
+                    }
+                },
+                LazyThreadSafetyMode.PublicationOnly);
             _queryHandlerAsync = queryHandlerAsync;
             _dbConnectionFactory = dbConnectionFactory;
             _prepareCommand = prepareCommand;
@@ -79,12 +97,16 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
         public void Handle(SetErrorCountCommand<T> command)
         {
+            //Read before the connection below is opened. The look-up takes a connection of its own, and
+            //asking for it while already holding one means every concurrent first failure holds one
+            //connection and waits for another.
+            var upsert = _canUpsert.Value;
             using (var connection = _dbConnectionFactory.Create())
             {
                 connection.Open();
                 using (var commandSql = connection.CreateCommand())
                 {
-                    if (_canUpsert.Value)
+                    if (upsert)
                     {
                         _prepareCommand.Handle(command, commandSql, CommandStringTypes.UpsertErrorCount);
                         commandSql.ExecuteNonQuery();
@@ -103,12 +125,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
         public async Task HandleAsync(SetErrorCountCommand<T> command)
         {
+            //see Handle: taken before a connection is held
+            var upsert = _canUpsert.Value;
             using (var connection = _dbConnectionFactory.Create())
             {
                 await connection.OpenAsync().ConfigureAwait(false);
                 using (var commandSql = connection.CreateCommand())
                 {
-                    if (_canUpsert.Value)
+                    if (upsert)
                     {
                         _prepareCommand.Handle(command, commandSql, CommandStringTypes.UpsertErrorCount);
                         await commandSql.ExecuteNonQueryAsync().ConfigureAwait(false);

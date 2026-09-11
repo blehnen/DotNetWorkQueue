@@ -297,7 +297,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             //SetErrorCountCommandHandler can insert a second row for the same pair under concurrency,
             //and the retry count then reads low - so a message gets more attempts than configured, and
             //a poison message can loop instead of reaching the error queue.
-            errorTracking.Constraints.Add(new Constraint($"IX_QueueIDExceptionType{_tableNameHelper.ErrorTrackingName}", ConstraintType.Index,
+            //No table name in it: SQL Server scopes index names to the table, and appending the table
+            //pushed the identifier past the 128 character limit for queue names the validator allows
+            errorTracking.Constraints.Add(new Constraint("IX_QueueIDExceptionType", ConstraintType.Index,
                 new List<string> { ColumnQueueId, "ExceptionType" }) { Unique = true });
 
             foreach (var c in errorTracking.Constraints)
