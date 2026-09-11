@@ -125,27 +125,29 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         private void HandleForTransaction(MoveRecordToErrorQueueCommand<long> command)
         {
             var connHolder = command.MessageContext.Get(_headers.Connection);
-            using (var conn = _dbConnectionFactory.Create())
+
+            //The insert runs on the held connection and transaction, not a second one of its own. On its
+            //own connection it committed immediately - so if the delete below or the commit then failed,
+            //the error copy stayed while the source message rolled back into the queue, and the same
+            //message existed in both places. Sharing the transaction gives the move one outcome.
+            using (var commandSql = connHolder.Connection.CreateCommand())
             {
-                conn.Open();
-                using (var commandSql = conn.CreateCommand())
+                commandSql.Transaction = connHolder.Transaction;
+                _prepareCommand.Handle(command, commandSql, CommandStringTypes.MoveToErrorQueue);
+                var iCount = commandSql.ExecuteNonQuery();
+                if (iCount != 1) return;
+
+                //the record is now in the error queue, remove it from the main queue
+                _deleteMetaCommandHandler.Handle(new DeleteMetaDataCommand(command.QueueId, connHolder.Connection, connHolder.Transaction));
+
+                //commit the original transaction
+                connHolder.Transaction.Commit();
+                connHolder.Transaction.Dispose();
+                connHolder.Transaction = null;
+
+                if (_options.Value.EnableStatusTable)
                 {
-                    _prepareCommand.Handle(command, commandSql, CommandStringTypes.MoveToErrorQueue);
-                    var iCount = commandSql.ExecuteNonQuery();
-                    if (iCount != 1) return;
-
-                    //the record is now in the error queue, remove it from the main queue
-                    _deleteMetaCommandHandler.Handle(new DeleteMetaDataCommand(command.QueueId, connHolder.Connection, connHolder.Transaction));
-
-                    //commit the original transaction
-                    connHolder.Transaction.Commit();
-                    connHolder.Transaction.Dispose();
-                    connHolder.Transaction = null;
-
-                    if (_options.Value.EnableStatusTable)
-                    {
-                        _setStatusNoTransactionCommandHandler.Handle(new SetStatusTableStatusCommand<long>(command.QueueId, QueueStatuses.Error));
-                    }
+                    _setStatusNoTransactionCommandHandler.Handle(new SetStatusTableStatusCommand<long>(command.QueueId, QueueStatuses.Error));
                 }
             }
         }
