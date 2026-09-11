@@ -171,8 +171,16 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                 GetErrorRetryCountQueryHandler>(LifeStyles.Singleton);
 
             container
+                .Register<IQueryHandlerAsync<GetErrorRetryCountQuery<int>, int>,
+                    GetErrorRetryCountQueryHandlerAsync>(LifeStyles.Singleton);
+
+            container
                 .Register<ICommandHandler<SetErrorCountCommand<int>>,
                     SetErrorCountCommandHandler>(LifeStyles.Singleton);
+
+            container
+                .Register<ICommandHandlerAsync<SetErrorCountCommand<int>>,
+                    SetErrorCountCommandHandlerAsync>(LifeStyles.Singleton);
 
             //trace fallback command
             container.RegisterDecorator(

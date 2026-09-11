@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue
 {
@@ -33,6 +34,20 @@ namespace DotNetWorkQueue
         /// <param name="exception">The exception.</param>
         /// <returns>Result of error processing</returns>
         ReceiveMessagesErrorResult MessageFailedProcessing(IReceivedMessageInternal message, IMessageContext context, Exception exception);
+
+        /// <summary>
+        /// Invoked when a message has failed to process, without blocking a thread.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="exception">The exception.</param>
+        /// <returns>What was done with the message</returns>
+        /// <remarks>
+        /// Reached from <c>ProcessMessageAsync</c>, which handles a failed message in a continuation on a
+        /// thread-pool thread. Counting the retry and moving the message to the error queue are both
+        /// transport I/O.
+        /// </remarks>
+        Task<ReceiveMessagesErrorResult> MessageFailedProcessingAsync(IReceivedMessageInternal message, IMessageContext context, Exception exception);
     }
 
     /// <summary>

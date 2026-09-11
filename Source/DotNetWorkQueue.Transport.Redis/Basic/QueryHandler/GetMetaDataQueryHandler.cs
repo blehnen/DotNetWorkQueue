@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
@@ -23,7 +24,8 @@ using DotNetWorkQueue.Validation;
 namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 {
     /// <inheritdoc />
-    internal class GetMetaDataQueryHandler : IQueryHandler<GetMetaDataQuery, RedisMetaData>
+    internal class GetMetaDataQueryHandler : IQueryHandler<GetMetaDataQuery, RedisMetaData>,
+        IQueryHandlerAsync<GetMetaDataQuery, RedisMetaData>
     {
         private readonly IRedisConnection _connection;
         private readonly RedisNames _redisNames;
@@ -54,6 +56,20 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         {
             var db = _connection.Connection.GetDatabase();
             var result = (byte[])db.HashGet(_redisNames.MetaData, query.Id.Id.Value.ToString());
+            return Deserialize(result);
+        }
+
+        /// <inheritdoc />
+        public async Task<RedisMetaData> HandleAsync(GetMetaDataQuery query)
+        {
+            var db = _connection.Connection.GetDatabase();
+            var result = (byte[])await db.HashGetAsync(_redisNames.MetaData, query.Id.Id.Value.ToString())
+                .ConfigureAwait(false);
+            return Deserialize(result);
+        }
+
+        private RedisMetaData Deserialize(byte[] result)
+        {
             if (result != null && result.Length > 0)
             {
                 return _internalSerializer.ConvertBytesTo<RedisMetaData>(result);

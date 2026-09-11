@@ -221,6 +221,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             container.RegisterDecorator(typeof(IQueryHandler<,>),
                typeof(RetryQueryHandlerDecorator<,>), LifeStyles.Singleton);
+            container.RegisterDecorator(typeof(IQueryHandlerAsync<,>),
+               typeof(RetryQueryHandlerDecoratorAsync<,>), LifeStyles.Singleton);
 
             //register our decorator that handles table creation errors
             container.RegisterDecorator(

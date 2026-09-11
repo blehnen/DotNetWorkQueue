@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
@@ -27,7 +28,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
     /// <summary>
     /// Determines if an error record for a message already exists with the specific exception type
     /// </summary>
-    internal class GetErrorRecordExistsQueryHandler<T> : IQueryHandler<GetErrorRecordExistsQuery<T>, bool>
+    internal class GetErrorRecordExistsQueryHandler<T> : IQueryHandler<GetErrorRecordExistsQuery<T>, bool>,
+        IQueryHandlerAsync<GetErrorRecordExistsQuery<T>, bool>
     {
         private readonly IPrepareQueryHandler<GetErrorRecordExistsQuery<T>, bool> _prepareQuery;
         private readonly IDbConnectionFactory _connectionFactory;
@@ -44,7 +46,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
             Guard.NotNull(connectionFactory);
 
             _prepareQuery = prepareQuery;
-            _prepareQuery = prepareQuery;
             _connectionFactory = connectionFactory;
         }
         /// <inheritdoc />
@@ -60,6 +61,24 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
                     using (var reader = command.ExecuteReader())
                     {
                         return reader.Read();
+                    }
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query checked")]
+        public async Task<bool> HandleAsync(GetErrorRecordExistsQuery<T> query)
+        {
+            using (var connection = _connectionFactory.Create())
+            {
+                await connection.OpenAsync().ConfigureAwait(false);
+                using (var command = connection.CreateCommand())
+                {
+                    _prepareQuery.Handle(query, command, CommandStringTypes.GetErrorRecordExists);
+                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                    {
+                        return await reader.ReadAsync().ConfigureAwait(false);
                     }
                 }
             }

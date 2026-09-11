@@ -20,23 +20,26 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic
 {
     /// <summary>
     /// Handles receiving a message that has failed to process
     /// </summary>
-    internal class RedisQueueReceiveMessagesError : IReceiveMessagesError
+    internal class RedisQueueReceiveMessagesError : AReceiveErrorMessage
     {
-        private readonly ILogger _log;
-        private readonly QueueConsumerConfiguration _configuration;
         private readonly IQueryHandler<GetMetaDataQuery, RedisMetaData> _queryGetMetaData;
+        private readonly IQueryHandlerAsync<GetMetaDataQuery, RedisMetaData> _queryGetMetaDataAsync;
         private readonly ICommandHandler<SaveMetaDataCommand> _saveMetaData;
+        private readonly ICommandHandlerAsync<SaveMetaDataCommand> _saveMetaDataAsync;
         private readonly ICommandHandler<MoveRecordToErrorQueueCommand<string>> _commandMoveRecord;
+        private readonly ICommandHandlerAsync<MoveRecordToErrorQueueCommand<string>> _commandMoveRecordAsync;
         private readonly RedisHeaders _headers;
 
         #region Constructor
@@ -45,30 +48,39 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// </summary>
         /// <param name="configuration">The configuration.</param>
         /// <param name="queryGetMetaData">The query get meta data.</param>
+        /// <param name="queryGetMetaDataAsync">The query get meta data, asynchronous.</param>
         /// <param name="saveMetaData">The save meta data.</param>
+        /// <param name="saveMetaDataAsync">The save meta data, asynchronous.</param>
         /// <param name="commandMoveRecord">The command move record.</param>
+        /// <param name="commandMoveRecordAsync">The command move record, asynchronous.</param>
         /// <param name="log">The log.</param>
         /// <param name="headers">The headers.</param>
         public RedisQueueReceiveMessagesError(
             QueueConsumerConfiguration configuration,
             IQueryHandler<GetMetaDataQuery, RedisMetaData> queryGetMetaData,
+            IQueryHandlerAsync<GetMetaDataQuery, RedisMetaData> queryGetMetaDataAsync,
             ICommandHandler<SaveMetaDataCommand> saveMetaData,
+            ICommandHandlerAsync<SaveMetaDataCommand> saveMetaDataAsync,
             ICommandHandler<MoveRecordToErrorQueueCommand<string>> commandMoveRecord,
+            ICommandHandlerAsync<MoveRecordToErrorQueueCommand<string>> commandMoveRecordAsync,
             ILogger log,
             RedisHeaders headers)
+            : base(configuration, log)
         {
-            Guard.NotNull(configuration);
             Guard.NotNull(queryGetMetaData);
+            Guard.NotNull(queryGetMetaDataAsync);
             Guard.NotNull(saveMetaData);
+            Guard.NotNull(saveMetaDataAsync);
             Guard.NotNull(commandMoveRecord);
-            Guard.NotNull(log);
+            Guard.NotNull(commandMoveRecordAsync);
             Guard.NotNull(headers);
 
-            _configuration = configuration;
             _queryGetMetaData = queryGetMetaData;
+            _queryGetMetaDataAsync = queryGetMetaDataAsync;
             _saveMetaData = saveMetaData;
+            _saveMetaDataAsync = saveMetaDataAsync;
             _commandMoveRecord = commandMoveRecord;
-            _log = log;
+            _commandMoveRecordAsync = commandMoveRecordAsync;
             _headers = headers;
         }
 
@@ -80,51 +92,89 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="message">The message.</param>
         /// <param name="context">The context.</param>
         /// <param name="exception">The exception.</param>
-        public ReceiveMessagesErrorResult MessageFailedProcessing(IReceivedMessageInternal message, IMessageContext context,
+        public override ReceiveMessagesErrorResult MessageFailedProcessing(IReceivedMessageInternal message, IMessageContext context,
             Exception exception)
         {
             //message failed to process
-            if (context.MessageId == null || !context.MessageId.HasValue) return ReceiveMessagesErrorResult.NoActionPossible;
+            if (!TryGetRetryInformation(context, exception, out var info, out var exceptionType))
+                return ReceiveMessagesErrorResult.NoActionPossible;
 
-            var info =
-                _configuration.TransportConfiguration.RetryDelayBehavior.GetRetryAmount(exception);
-            string exceptionType = null;
-            if (info.ExceptionType != null)
-            {
-                exceptionType = info.ExceptionType.ToString();
-            }
-
-            var bSendErrorQueue = false;
-            if (string.IsNullOrEmpty(exceptionType) || info.MaxRetries <= 0)
-            {
-                bSendErrorQueue = true;
-            }
-            else
+            if (CanRetry(info, exceptionType))
             {
                 //determine how many times this exception has been seen for this message
                 var metadata = _queryGetMetaData.Handle(new GetMetaDataQuery((RedisQueueId)context.MessageId));
-                var retries = metadata.ErrorTracking.GetExceptionCount(exceptionType);
-                if (retries >= info.MaxRetries)
+                if (CanCountAttempts(metadata))
                 {
-                    bSendErrorQueue = true;
-                }
-                else
-                {
-                    context.Set(_headers.IncreaseQueueDelay, new RedisQueueDelay(info.Times[retries]));
-                    metadata.ErrorTracking.IncrementExceptionCount(exceptionType);
-                    _saveMetaData.Handle(new SaveMetaDataCommand((RedisQueueId)context.MessageId, metadata));
+                    var retries = metadata.ErrorTracking.GetExceptionCount(exceptionType);
+                    if (retries < info.MaxRetries)
+                    {
+                        CountAttempt(context, info, metadata, exceptionType, retries);
+                        _saveMetaData.Handle(new SaveMetaDataCommand((RedisQueueId)context.MessageId, metadata));
+                        return ReceiveMessagesErrorResult.Retry;
+                    }
                 }
             }
 
-            if (!bSendErrorQueue) return ReceiveMessagesErrorResult.Retry;
-
             _commandMoveRecord.Handle(
                 new MoveRecordToErrorQueueCommand<string>(exception, context.MessageId.Id.Value.ToString(), context));
-            //we are done doing any processing - remove the messageID to block other actions
-            context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);
-            _log.LogError(exception, "Message with ID {MessageId} has failed and has been moved to the error queue", message.MessageId);
-            return ReceiveMessagesErrorResult.Error;
+            return MovedToErrorQueue(message, context, exception);
         }
+
+        /// <summary>
+        /// Handles a message that has failed processing
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="exception">The exception.</param>
+        public override async Task<ReceiveMessagesErrorResult> MessageFailedProcessingAsync(IReceivedMessageInternal message, IMessageContext context,
+            Exception exception)
+        {
+            //message failed to process
+            if (!TryGetRetryInformation(context, exception, out var info, out var exceptionType))
+                return ReceiveMessagesErrorResult.NoActionPossible;
+
+            if (CanRetry(info, exceptionType))
+            {
+                //determine how many times this exception has been seen for this message
+                var metadata = await _queryGetMetaDataAsync
+                    .HandleAsync(new GetMetaDataQuery((RedisQueueId)context.MessageId)).ConfigureAwait(false);
+                if (CanCountAttempts(metadata))
+                {
+                    var retries = metadata.ErrorTracking.GetExceptionCount(exceptionType);
+                    if (retries < info.MaxRetries)
+                    {
+                        CountAttempt(context, info, metadata, exceptionType, retries);
+                        await _saveMetaDataAsync
+                            .HandleAsync(new SaveMetaDataCommand((RedisQueueId)context.MessageId, metadata))
+                            .ConfigureAwait(false);
+                        return ReceiveMessagesErrorResult.Retry;
+                    }
+                }
+            }
+
+            await _commandMoveRecordAsync.HandleAsync(
+                new MoveRecordToErrorQueueCommand<string>(exception, context.MessageId.Id.Value.ToString(), context))
+                .ConfigureAwait(false);
+            return MovedToErrorQueue(message, context, exception);
+        }
+
+        /// <summary>
+        /// A metadata hash is written when the message is sent and removed with the message, so this is
+        /// only false if the two have already diverged. There is then nothing to count attempts in, so
+        /// the message goes to the error queue rather than the error handler throwing.
+        /// </summary>
+        private static bool CanCountAttempts(RedisMetaData metadata)
+        {
+            return metadata?.ErrorTracking != null;
+        }
+
+        private void CountAttempt(IMessageContext context, IRetryInformation info, RedisMetaData metadata, string exceptionType, int retries)
+        {
+            //note zero based index - use the current count not count +1
+            context.Set(_headers.IncreaseQueueDelay, new RedisQueueDelay(info.Times[retries]));
+            metadata.ErrorTracking.IncrementExceptionCount(exceptionType);
+        }
+
     }
 }
 

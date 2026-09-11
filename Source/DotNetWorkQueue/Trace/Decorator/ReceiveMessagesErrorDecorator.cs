@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 namespace DotNetWorkQueue.Trace.Decorator
 {
@@ -54,6 +55,22 @@ namespace DotNetWorkQueue.Trace.Decorator
                 scope?.AddException(exception);
                 scope?.SetStatus(ActivityStatusCode.Error);
                 var result = _handler.MessageFailedProcessing(message, context, exception);
+                scope?.SetTag("WillRetry", result == ReceiveMessagesErrorResult.Retry);
+                return result;
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<ReceiveMessagesErrorResult> MessageFailedProcessingAsync(IReceivedMessageInternal message,
+            IMessageContext context, Exception exception)
+        {
+            var activityContext = message.Extract(_tracer, _headers);
+            using (var scope = _tracer.StartActivity("Error", ActivityKind.Internal, parentContext: activityContext))
+            {
+                scope?.AddMessageIdTag(message);
+                scope?.AddException(exception);
+                scope?.SetStatus(ActivityStatusCode.Error);
+                var result = await _handler.MessageFailedProcessingAsync(message, context, exception).ConfigureAwait(false);
                 scope?.SetTag("WillRetry", result == ReceiveMessagesErrorResult.Retry);
                 return result;
             }

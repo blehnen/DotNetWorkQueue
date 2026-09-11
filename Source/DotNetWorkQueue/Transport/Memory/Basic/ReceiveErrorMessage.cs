@@ -19,6 +19,7 @@
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
@@ -69,6 +70,17 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);
             _log.LogError(exception, "Message with ID {MessageId} has failed and has been moved to the error queue", message.MessageId);
             return ReceiveMessagesErrorResult.Error;
+        }
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// Correct as written rather than unfinished: the memory transport keeps its messages in
+        /// process, so there is no I/O to release the thread for.
+        /// </remarks>
+        public Task<ReceiveMessagesErrorResult> MessageFailedProcessingAsync(IReceivedMessageInternal message,
+            IMessageContext context, Exception exception)
+        {
+            return Task.FromResult(MessageFailedProcessing(message, context, exception));
         }
         #endregion
     }

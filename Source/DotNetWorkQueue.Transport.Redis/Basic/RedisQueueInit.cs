@@ -186,6 +186,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             //asynchronous one.
             container.Register<IQueryHandlerAsync<ReceiveMessageQuery, RedisMessage>,
                 ReceiveMessageQueryHandlerAsync>(LifeStyles.Singleton);
+            container.Register<IQueryHandlerAsync<GetMetaDataQuery, RedisMetaData>,
+                GetMetaDataQueryHandler>(LifeStyles.Singleton);
 
             // Dashboard read handlers
             container.Register<IQueryHandlerAsync<GetDashboardStatusCountsQuery, DashboardStatusCounts>,
