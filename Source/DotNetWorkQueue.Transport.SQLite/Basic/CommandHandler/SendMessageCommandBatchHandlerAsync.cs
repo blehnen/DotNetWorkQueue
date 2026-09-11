@@ -108,8 +108,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
             var results = new IQueueOutputMessage[messages.Count];
             using (var connection = _dbFactory.CreateConnection(_configurationSend.ConnectionInfo.ConnectionString, false))
             {
-                connection.Open();
-                using (var trans = _dbFactory.CreateTransaction(connection).BeginTransaction())
+                await connection.OpenAsync().ConfigureAwait(false);
+                using (var trans = await _dbFactory.CreateTransaction(connection).BeginTransactionAsync().ConfigureAwait(false))
                 {
                     try
                     {
@@ -119,13 +119,13 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                             globalIndex = await ProcessChunkAsync(connection, trans, chunk, options, results, globalIndex)
                                 .ConfigureAwait(false);
                         }
-                        trans.Commit();
+                        await trans.CommitAsync().ConfigureAwait(false);
                     }
                     catch (Exception error)
                     {
                         try
                         {
-                            trans.Rollback();
+                            await trans.RollbackAsync().ConfigureAwait(false);
                         }
                         catch (Exception)
                         {
