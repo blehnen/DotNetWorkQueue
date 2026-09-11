@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 
+using System.Threading.Tasks;
 using System.Diagnostics;
 using OpenTelemetry.Trace;
 
@@ -53,10 +54,31 @@ namespace DotNetWorkQueue.Trace.Decorator
             {
                 scope?.AddMessageIdTag(context);
                 var status = _handler.Send(context);
-                if (status.LastHeartBeatTime.HasValue)
-                    scope?.SetTag("HeartBeatValue", status.LastHeartBeatTime.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                Tag(scope, status);
                 return status;
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<IHeartBeatStatus> SendAsync(IMessageContext context)
+        {
+            var activityContext = context.Extract(_tracer, _headers);
+            using (var scope = _tracer.StartActivity("SendHeartBeatAsync", ActivityKind.Internal, activityContext))
+            {
+                scope?.AddMessageIdTag(context);
+                var status = await _handler.SendAsync(context).ConfigureAwait(false);
+                Tag(scope, status);
+                return status;
+            }
+        }
+
+        private static void Tag(Activity scope, IHeartBeatStatus status)
+        {
+            //a transport returns null when the context has no message id - Redis does, and the
+            //synchronous member dereferenced it just the same before this was shared. Tracing must not
+            //turn that no-op into an exception: the worker would log it and cancel the message's token.
+            if (status != null && status.LastHeartBeatTime.HasValue)
+                scope?.SetTag("HeartBeatValue", status.LastHeartBeatTime.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
     }
 }

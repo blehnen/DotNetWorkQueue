@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.Memory.Basic
 {
@@ -33,6 +34,17 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <returns></returns>
         /// <exception cref="NotImplementedException">This should never execute, since heartbeat is disabled</exception>
         public IHeartBeatStatus Send(IMessageContext context)
+        {
+            throw new NotImplementedException("This should never execute, since heartbeat is disabled");
+        }
+
+        /// <summary>
+        /// Updates the heart beat for a record.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException">This should never execute, since heartbeat is disabled</exception>
+        public Task<IHeartBeatStatus> SendAsync(IMessageContext context)
         {
             throw new NotImplementedException("This should never execute, since heartbeat is disabled");
         }

@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Queue
 {
@@ -55,12 +56,31 @@ namespace DotNetWorkQueue.Queue
         }
 
         /// <summary>
+        /// Stops this instance, waiting for an in-flight heartbeat without blocking the caller's thread.
+        /// </summary>
+        /// <remarks>Nothing beats, so there is nothing to wait for.</remarks>
+        public Task StopAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public ValueTask DisposeAsync()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+            return default;
         }
 
         /// <summary>

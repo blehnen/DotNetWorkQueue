@@ -22,13 +22,15 @@ using DotNetWorkQueue.Validation;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Data;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
 {
     /// <summary>
     /// Sends a heart beat for a queue record
     /// </summary>
-    internal class SendHeartBeatCommandHandler : ICommandHandlerWithOutput<SendHeartBeatCommand<long>, DateTime?>
+    internal class SendHeartBeatCommandHandler : ICommandHandlerWithOutput<SendHeartBeatCommand<long>, DateTime?>,
+        ICommandHandlerWithOutputAsync<SendHeartBeatCommand<long>, DateTime?>
     {
         private readonly SqlServerCommandStringCache _commandCache;
         private readonly IConnectionInformation _connectionInformation;
@@ -58,11 +60,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                 conn.Open();
                 using (var commandSql = conn.CreateCommand())
                 {
-                    commandSql.CommandText = _commandCache.GetCommand(DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandStringTypes.SendHeartBeat);
-                    commandSql.Parameters.Add("@QueueID", SqlDbType.BigInt);
-                    commandSql.Parameters["@QueueID"].Value = command.QueueId;
-                    commandSql.Parameters.Add("@status", SqlDbType.Int);
-                    commandSql.Parameters["@status"].Value = Convert.ToInt16(QueueStatuses.Processing);
+                    Prepare(commandSql, command);
                     using (var reader = commandSql.ExecuteReader())
                     {
                         if (reader.RecordsAffected != 1) return null; //return null if the record was not updated.
@@ -74,6 +72,44 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
                     return null; //return null if the record was not updated.
                 }
             }
+        }
+
+        /// <summary>
+        /// Handles the specified command.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <returns></returns>
+        public async Task<DateTime?> HandleAsync(SendHeartBeatCommand<long> command)
+        {
+            using (var conn = new SqlConnection(_connectionInformation.ConnectionString))
+            {
+                await conn.OpenAsync().ConfigureAwait(false);
+                using (var commandSql = conn.CreateCommand())
+                {
+                    Prepare(commandSql, command);
+                    using (var reader = await commandSql.ExecuteReaderAsync().ConfigureAwait(false))
+                    {
+                        if (reader.RecordsAffected != 1) return null; //return null if the record was not updated.
+                        if (await reader.ReadAsync().ConfigureAwait(false))
+                        {
+                            return reader.GetDateTime(0);
+                        }
+                    }
+                    return null; //return null if the record was not updated.
+                }
+            }
+        }
+
+        /// <summary>
+        /// The statement and its parameters, which are the same whichever way it is executed.
+        /// </summary>
+        private void Prepare(SqlCommand commandSql, SendHeartBeatCommand<long> command)
+        {
+            commandSql.CommandText = _commandCache.GetCommand(DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandStringTypes.SendHeartBeat);
+            commandSql.Parameters.Add("@QueueID", SqlDbType.BigInt);
+            commandSql.Parameters["@QueueID"].Value = command.QueueId;
+            commandSql.Parameters.Add("@status", SqlDbType.Int);
+            commandSql.Parameters["@status"].Value = Convert.ToInt16(QueueStatuses.Processing);
         }
     }
 }

@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
@@ -29,6 +30,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
     {
         #region Member Level Variables
         private readonly ICommandHandlerWithOutput<SendHeartBeatCommand<T>, DateTime?> _commandHandler;
+        private readonly ICommandHandlerWithOutputAsync<SendHeartBeatCommand<T>, DateTime?> _commandHandlerAsync;
         #endregion
 
         #region Constructor
@@ -36,10 +38,14 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
         /// Initializes a new instance of the <see cref="SendHeartBeat{T}" /> class.
         /// </summary>
         /// <param name="commandHandler">The command handler.</param>
-        public SendHeartBeat(ICommandHandlerWithOutput<SendHeartBeatCommand<T>, DateTime?> commandHandler)
+        /// <param name="commandHandlerAsync">The command handler, asynchronous.</param>
+        public SendHeartBeat(ICommandHandlerWithOutput<SendHeartBeatCommand<T>, DateTime?> commandHandler,
+            ICommandHandlerWithOutputAsync<SendHeartBeatCommand<T>, DateTime?> commandHandlerAsync)
         {
             Guard.NotNull(commandHandler);
+            Guard.NotNull(commandHandlerAsync);
             _commandHandler = commandHandler;
+            _commandHandlerAsync = commandHandlerAsync;
         }
         #endregion
 
@@ -49,6 +55,14 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
         {
             var command = new SendHeartBeatCommand<T>((T)context.MessageId.Id.Value);
             var oDate = _commandHandler.Handle(command);
+            return new HeartBeatStatus(new MessageQueueId<T>(command.QueueId), oDate);
+        }
+
+        /// <inheritdoc />
+        public async Task<IHeartBeatStatus> SendAsync(IMessageContext context)
+        {
+            var command = new SendHeartBeatCommand<T>((T)context.MessageId.Id.Value);
+            var oDate = await _commandHandlerAsync.HandleAsync(command).ConfigureAwait(false);
             return new HeartBeatStatus(new MessageQueueId<T>(command.QueueId), oDate);
         }
         #endregion

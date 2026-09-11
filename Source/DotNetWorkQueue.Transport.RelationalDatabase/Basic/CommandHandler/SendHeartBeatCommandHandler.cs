@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
@@ -27,7 +28,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     /// <summary>
     /// Sends a heart beat for a queue record
     /// </summary>
-    internal class SendHeartBeatCommandHandler : ICommandHandlerWithOutput<SendHeartBeatCommand<long>, DateTime?>
+    internal class SendHeartBeatCommandHandler : ICommandHandlerWithOutput<SendHeartBeatCommand<long>, DateTime?>,
+        ICommandHandlerWithOutputAsync<SendHeartBeatCommand<long>, DateTime?>
     {
         private readonly IPrepareCommandHandlerWithOutput<SendHeartBeatCommand<long>, DateTime> _prepareCommand;
         private readonly IDbConnectionFactory _connectionFactory;
@@ -58,8 +60,22 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                 {
                     var date = _prepareCommand.Handle(command, commandSql, CommandStringTypes.SendHeartBeat);
                     var records = commandSql.ExecuteNonQuery();
-                    if (records != 1) return null;
-                    return date;
+                    return records != 1 ? null : date;
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<DateTime?> HandleAsync(SendHeartBeatCommand<long> command)
+        {
+            using (var conn = _connectionFactory.Create())
+            {
+                await conn.OpenAsync().ConfigureAwait(false);
+                using (var commandSql = conn.CreateCommand())
+                {
+                    var date = _prepareCommand.Handle(command, commandSql, CommandStringTypes.SendHeartBeat);
+                    var records = await commandSql.ExecuteNonQueryAsync().ConfigureAwait(false);
+                    return records != 1 ? null : date;
                 }
             }
         }

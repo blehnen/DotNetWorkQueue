@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
+
 namespace DotNetWorkQueue
 {
     /// <summary>
@@ -28,5 +30,16 @@ namespace DotNetWorkQueue
         /// </summary>
         /// <param name="context">The context.</param>
         IHeartBeatStatus Send(IMessageContext context);
+
+        /// <summary>
+        /// Updates the heart beat for a record, without holding a thread while the transport works.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <remarks>
+        /// A beat is scheduled work rather than part of processing a message, but it runs on a pool
+        /// thread - so a blocking update costs the consumer a thread it could be running messages on,
+        /// which is the whole point of the asynchronous consumer.
+        /// </remarks>
+        Task<IHeartBeatStatus> SendAsync(IMessageContext context);
     }
 }

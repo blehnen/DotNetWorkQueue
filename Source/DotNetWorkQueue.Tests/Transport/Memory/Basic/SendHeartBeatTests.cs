@@ -13,5 +13,13 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
             var send = new SendHeartBeat();
             Assert.ThrowsExactly<NotImplementedException>(() => send.Send(null));
         }
+
+        [TestMethod]
+        public void SendAsync_Test()
+        {
+            //the memory transport has no heartbeat, so reaching either member is a bug in the caller
+            var send = new SendHeartBeat();
+            Assert.ThrowsExactly<NotImplementedException>(() => send.SendAsync(null));
+        }
     }
 }

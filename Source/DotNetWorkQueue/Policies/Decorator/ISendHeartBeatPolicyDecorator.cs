@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
 using Polly;
 
 namespace DotNetWorkQueue.Policies.Decorator
@@ -46,6 +47,19 @@ namespace DotNetWorkQueue.Policies.Decorator
                 return pipeline.Execute(_ => _handler.Send(context));
             }
             return _handler.Send(context);
+        }
+
+        /// <inheritdoc />
+        public async Task<IHeartBeatStatus> SendAsync(IMessageContext context)
+        {
+            //the same pipeline as the synchronous path - a heartbeat that fails transiently is the same
+            //failure whichever member sent it
+            if (_policies.Registry.TryGetPipeline(_policies.Definition.SendHeartBeat, out var pipeline))
+            {
+                return await pipeline.ExecuteAsync(async _ =>
+                    await _handler.SendAsync(context).ConfigureAwait(false)).ConfigureAwait(false);
+            }
+            return await _handler.SendAsync(context).ConfigureAwait(false);
         }
     }
 }

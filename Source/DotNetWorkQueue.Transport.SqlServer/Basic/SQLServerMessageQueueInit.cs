@@ -184,6 +184,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 .Register<ICommandHandlerWithOutput<SendHeartBeatCommand<long>, DateTime?>,
                     SendHeartBeatCommandHandler>(LifeStyles.Singleton);
 
+            //SQL Server's heartbeat statement declares @date itself, where the relational one passes it
+            //as a parameter - so the asynchronous handler has to be pointed at this transport's own
+            //class as explicitly as the synchronous one, or the relational fallback wins and every beat
+            //fails with "the variable name '@date' has already been declared"
+            container
+                .Register<ICommandHandlerWithOutputAsync<SendHeartBeatCommand<long>, DateTime?>,
+                    SendHeartBeatCommandHandler>(LifeStyles.Singleton);
+
             container
                 .Register<ICommandHandler<MoveRecordToErrorQueueCommand<long>>,
                     MoveRecordToErrorQueueCommandHandler<SqlConnection, SqlTransaction, SqlCommand>>(LifeStyles.Singleton);
