@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using AutoFixture;
@@ -89,13 +90,36 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var sendHeartBeat = Substitute.For<ISendHeartBeat>();
             var context = Substitute.For<IMessageContext>();
+            sendHeartBeat.SendAsync(context).Throws(new ArgumentOutOfRangeException());
 
-            sendHeartBeat.Send(context).Throws(new ArgumentOutOfRangeException());
+            //The scheduler is a substitute, so nothing fires the job on its own. Sleeping and hoping -
+            //which this test used to do - exercised none of the failure path; run what the worker
+            //scheduled instead.
+            Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> scheduled = null;
+            var scheduler = Substitute.For<IHeartBeatScheduler>();
+            scheduler.AddUpdateJob(Arg.Any<string>(), Arg.Any<string>(),
+                Arg.Do<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>>(x => scheduled = x));
 
-            using (var test = Create(TimeSpan.FromSeconds(5), "*/2 * * * * *", context, sendHeartBeat))
+            using (var test = Create(TimeSpan.FromSeconds(5), "*/2 * * * * *", context, sendHeartBeat, scheduler))
             {
                 test.Start();
-                Thread.Sleep(7000);
+                Assert.IsNotNull(scheduled, "the worker did not schedule a heartbeat");
+
+                //the worker assigns this in its constructor, so read it back rather than configuring one
+                var notification = context.WorkerNotification.HeartBeat;
+                scheduled.Compile()(null, null);
+
+                //the beat is started and left to run, so wait for the failure to be recorded
+                var deadline = DateTime.UtcNow.AddSeconds(20);
+                while (DateTime.UtcNow < deadline &&
+                       notification.ReceivedCalls().All(c => c.GetMethodInfo().Name != nameof(IWorkerHeartBeatNotification.SetError)))
+                {
+                    Thread.Sleep(50);
+                }
+
+                //a beat that throws has to reach user code: the error is recorded and the token tripped,
+                //which is how a worker learns its message is no longer protected
+                notification.Received(1).SetError(Arg.Any<ArgumentOutOfRangeException>());
             }
         }
 
