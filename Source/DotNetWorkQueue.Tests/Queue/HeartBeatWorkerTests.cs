@@ -309,6 +309,46 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
+        [TestMethod]
+        public void ATickThatReadsTheClaimWhileABeatIsLanding_DoesNotCancel()
+        {
+            //The scheduler starts a tick without waiting for the previous beat, so a beat can have
+            //succeeded at the transport and not yet published its timestamp. A tick reading the claim in
+            //that window sees the old value; cancelling on it would abort a worker whose claim had just
+            //been renewed.
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+            var landed = Substitute.For<IHeartBeatStatus>();
+            landed.LastHeartBeatTime.Returns(DateTime.UtcNow);
+
+            var calls = 0;
+            var inFlight = new TaskCompletionSource<IHeartBeatStatus>(TaskCreationOptions.RunContinuationsAsynchronously);
+            sendHeartBeat.SendAsync(context).Returns(_ =>
+                Interlocked.Increment(ref calls) == 1 ? inFlight.Task : Task.FromResult(landed));
+
+            var (worker, beat, cancelled) = CreateForStaleness(context, sendHeartBeat, TimeSpan.FromMilliseconds(600));
+            using (worker)
+            {
+                worker.Start();
+                Thread.Sleep(400);          //let the claim age, but not past the expiry
+
+                beat()();                   //a beat starts here, so its timestamp will be recent
+                var deadline = DateTime.UtcNow.AddSeconds(10);
+                while (Interlocked.CompareExchange(ref calls, 0, 0) < 1 && DateTime.UtcNow < deadline)
+                    Thread.Sleep(10);
+
+                Thread.Sleep(300);          //now the claim is past the expiry, measured from the last landed beat
+                beat()();                   //this tick sees a lapsed claim while the beat above is still out
+                Thread.Sleep(150);
+
+                inFlight.SetResult(landed); //the beat lands, publishing a timestamp from before it started
+                Thread.Sleep(600);
+
+                Assert.IsFalse(cancelled(),
+                    "a worker was cancelled on a stale reading taken while a heartbeat was landing");
+            }
+        }
+
         private (HeartBeatWorker worker,
             Func<Action> beat,
             Func<bool> cancelled)

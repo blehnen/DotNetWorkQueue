@@ -314,7 +314,7 @@ namespace DotNetWorkQueue.Queue
 
             //Checked on every tick, including the ones where the beat below is skipped - a beat that is
             //still running is exactly when the claim is most likely to be going stale.
-            if (ClaimHasLapsed())
+            if (ClaimHasLapsed() && await ConfirmLapsedAgainstAnyBeatStillRunning().ConfigureAwait(false))
             {
                 //do not beat: the update would match the row again and renew a claim that has already
                 //been declared lost, putting this worker back to looking alive while it is stopping
@@ -416,6 +416,34 @@ namespace DotNetWorkQueue.Queue
             if (age < _expiry)
                 return false;
 
+            return true;
+        }
+
+        /// <summary>
+        /// Confirms a lapse against any beat that is still in flight, and cancels if it is real.
+        /// </summary>
+        /// <remarks>
+        /// A beat can have succeeded at the transport and not yet published its timestamp, because the
+        /// scheduler starts a tick without waiting for the previous beat. Reading the claim's age in that
+        /// window sees the old value and would cancel a worker whose claim had just been renewed - a
+        /// false positive that aborts healthy work. Waiting on the beat lock orders this after any beat
+        /// that is mid-flight, so the second look sees whatever that beat published.
+        /// </remarks>
+        private async Task<bool> ConfirmLapsedAgainstAnyBeatStillRunning()
+        {
+            await _beatLock.WaitAsync(CancellationToken.None).ConfigureAwait(false);
+            try
+            {
+                if (!ClaimHasLapsed())
+                    return false; //a beat landed while we were waiting; the claim is good
+            }
+            finally
+            {
+                _beatLock.Release();
+            }
+
+            var age = _getTime.GetCurrentUtcDate() -
+                      new DateTime(Interlocked.Read(ref _lastGoodBeatUtcTicks), DateTimeKind.Utc);
             _logger.LogError(
                 "No heartbeat has been recorded for message {MessageId} in {Age}, which is past the {Expiry} the monitor resets against - the message may already have been given to another worker, so processing is being cancelled",
                 _context.MessageId?.Id?.Value, age, _expiry);

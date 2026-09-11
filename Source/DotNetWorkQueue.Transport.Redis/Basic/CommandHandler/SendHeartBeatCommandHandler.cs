@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             if (!CanBeat(command))
                 return 0;
 
-            var db = _connection.Connection.GetDatabase();
+            var db = GetDb();
             var date = _unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();
             //SortedSetUpdate says whether the member was there to update. SortedSetAdd cannot: with
             //When.Exists it reports whether a member was *added*, which is never - so the result was
@@ -73,7 +73,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             if (!CanBeat(command))
                 return 0;
 
-            var db = _connection.Connection.GetDatabase();
+            var db = GetDb();
             var date = _unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();
             //see Handle: the update has to report whether the message was still in the working set
             if (!await db.SortedSetUpdateAsync(_redisNames.Working, command.QueueId, date, SortedSetWhen.Exists)
@@ -82,6 +82,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 
             return date;
         }
+
+        /// <summary>
+        /// The database to beat against. Virtual so a test can supply one - <see cref="IRedisConnection"/>
+        /// hands back a concrete multiplexer, which is the same reason WriteMessageHistoryHandler has this.
+        /// </summary>
+        protected virtual IDatabase GetDb() => _connection.Connection.GetDatabase();
 
         /// <summary>
         /// A disposed connection or a message with no id has nothing to beat for.
