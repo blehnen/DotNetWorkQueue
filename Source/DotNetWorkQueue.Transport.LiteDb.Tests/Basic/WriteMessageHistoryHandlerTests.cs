@@ -3,6 +3,7 @@ using System.Linq;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.Schema;
+using System;
 using NSubstitute;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DotNetWorkQueue.Tests.Shared;
@@ -12,6 +13,19 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
     [TestClass]
     public class WriteMessageHistoryHandlerTests
     {
+        //deliberately nowhere near the machine clock, so a timestamp taken from DateTime.UtcNow
+        //instead of the provider cannot coincidentally match
+        private static readonly DateTime ProviderNow = new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Utc);
+
+        /// <summary>A clock the test controls, standing in for the configured time provider.</summary>
+        private static IGetTimeFactory Clock(DateTime now)
+        {
+            var time = Substitute.For<IGetTime>();
+            time.GetCurrentUtcDate().Returns(now);
+            var factory = Substitute.For<IGetTimeFactory>();
+            factory.Create().Returns(time);
+            return factory;
+        }
         private const string QueueName = "testQueue";
 
         private static (WriteMessageHistoryHandler handler, LiteDbConnectionManager connectionManager,
@@ -36,7 +50,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
             options.EnableHistory.Returns(enableHistory);
             options.HistoryOptions.Returns(historyOptions);
 
-            var handler = new WriteMessageHistoryHandler(connectionManager, tableNameHelper, options);
+            var handler = new WriteMessageHistoryHandler(connectionManager, tableNameHelper, options, Clock(ProviderNow));
             return (handler, connectionManager, tableNameHelper);
         }
 
@@ -61,7 +75,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                     Assert.AreEqual("MyType", records[0].MessageType);
                     Assert.AreEqual((int)MessageHistoryStatus.Enqueued, records[0].Status);
                     Assert.AreEqual(0, records[0].RetryCount);
-                    Assert.IsGreaterThan(0, records[0].EnqueuedUtc);
+                    //from the configured provider, not the machine clock
+                    Assert.AreEqual(ProviderNow.Ticks, records[0].EnqueuedUtc);
                 }
             }
         }

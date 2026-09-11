@@ -33,12 +33,20 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
         private readonly IConnectionInformation _connectionInformation;
         private readonly IBaseTransportOptions _options;
+        //Time comes from the configured provider, not the local clock. On SQL Server and PostgreSQL
+        //that is the database server's clock, which is what the rest of the queue's timestamps are on;
+        //history written from an application machine with a drifting clock would otherwise report
+        //durations that disagree with them, or run negative. BaseTime caches an offset, so this costs
+        //no round trip.
+        private readonly IGetTime _getTime;
 
         /// <inheritdoc />
-        public WriteMessageHistoryHandler(IConnectionInformation connectionInformation, IBaseTransportOptions options)
+        public WriteMessageHistoryHandler(IConnectionInformation connectionInformation, IBaseTransportOptions options,
+            IGetTimeFactory getTimeFactory)
         {
             _connectionInformation = connectionInformation;
             _options = options;
+            _getTime = getTimeFactory.Create();
         }
 
         /// <inheritdoc />
@@ -49,7 +57,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             records[queueId] = new MessageHistoryRecord
             {
                 QueueId = queueId, CorrelationId = correlationId, Status = MessageHistoryStatus.Enqueued,
-                EnqueuedUtc = DateTime.UtcNow, RetryCount = 0, Route = route, MessageType = messageType,
+                EnqueuedUtc = _getTime.GetCurrentUtcDate(), RetryCount = 0, Route = route, MessageType = messageType,
                 Body = _options.HistoryOptions.StoreBody ? body : null, Headers = _options.HistoryOptions.StoreBody ? headers : null
             };
         }
@@ -58,7 +66,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         public void RecordProcessingStart(string queueId)
         {
             if (!_options.EnableHistory) return;
-            if (GetRecords().TryGetValue(queueId, out var r) && r.Status == MessageHistoryStatus.Enqueued) { r.Status = MessageHistoryStatus.Processing; r.StartedUtc = DateTime.UtcNow; }
+            if (GetRecords().TryGetValue(queueId, out var r) && r.Status == MessageHistoryStatus.Enqueued) { r.Status = MessageHistoryStatus.Processing; r.StartedUtc = _getTime.GetCurrentUtcDate(); }
         }
 
         /// <inheritdoc />
@@ -102,7 +110,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (!_options.EnableHistory) return;
             if (GetRecords().TryGetValue(queueId, out var r))
             {
-                var now = DateTime.UtcNow;
+                var now = _getTime.GetCurrentUtcDate();
                 r.Status = MessageHistoryStatus.Complete; r.CompletedUtc = now;
                 if (r.StartedUtc.HasValue) r.DurationMs = (long)(now - r.StartedUtc.Value).TotalMilliseconds;
                 else r.DurationMs = 0;
@@ -115,7 +123,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             if (!_options.EnableHistory) return;
             if (GetRecords().TryGetValue(queueId, out var r))
             {
-                var now = DateTime.UtcNow;
+                var now = _getTime.GetCurrentUtcDate();
                 r.Status = MessageHistoryStatus.Error; r.CompletedUtc = now; r.ExceptionText = exception;
                 if (r.StartedUtc.HasValue) r.DurationMs = (long)(now - r.StartedUtc.Value).TotalMilliseconds;
                 else r.DurationMs = 0;
@@ -134,14 +142,14 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         public void RecordDelete(string queueId)
         {
             if (!_options.EnableHistory) return;
-            if (GetRecords().TryGetValue(queueId, out var r)) { r.Status = MessageHistoryStatus.Deleted; r.CompletedUtc = DateTime.UtcNow; }
+            if (GetRecords().TryGetValue(queueId, out var r)) { r.Status = MessageHistoryStatus.Deleted; r.CompletedUtc = _getTime.GetCurrentUtcDate(); }
         }
 
         /// <inheritdoc />
         public void RecordExpire(string queueId)
         {
             if (!_options.EnableHistory) return;
-            if (GetRecords().TryGetValue(queueId, out var r)) { r.Status = MessageHistoryStatus.Expired; r.CompletedUtc = DateTime.UtcNow; }
+            if (GetRecords().TryGetValue(queueId, out var r)) { r.Status = MessageHistoryStatus.Expired; r.CompletedUtc = _getTime.GetCurrentUtcDate(); }
         }
 
         internal static ConcurrentDictionary<string, MessageHistoryRecord> GetRecordsForQueue(string key)

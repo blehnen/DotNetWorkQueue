@@ -33,16 +33,24 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         private readonly IRedisConnection _connection;
         private readonly RedisNames _redisNames;
         private readonly IBaseTransportOptions _options;
+        //Time comes from the configured provider, not the local clock. On SQL Server and PostgreSQL
+        //that is the database server's clock, which is what the rest of the queue's timestamps are on;
+        //history written from an application machine with a drifting clock would otherwise report
+        //durations that disagree with them, or run negative. BaseTime caches an offset, so this costs
+        //no round trip.
+        private readonly IGetTime _getTime;
 
         private string HistoryHashKey(string queueId) => $"{_redisNames.Values}:history:{queueId}";
         private string HistoryIndexKey => $"{_redisNames.Values}:history:index";
 
         /// <inheritdoc />
-        public WriteMessageHistoryHandler(IRedisConnection connection, RedisNames redisNames, IBaseTransportOptions options)
+        public WriteMessageHistoryHandler(IRedisConnection connection, RedisNames redisNames, IBaseTransportOptions options,
+            IGetTimeFactory getTimeFactory)
         {
             _connection = connection;
             _redisNames = redisNames;
             _options = options;
+            _getTime = getTimeFactory.Create();
         }
 
         /// <summary>Returns the Redis database to use. Protected virtual to allow test seam injection.</summary>
@@ -53,7 +61,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             if (!_options.EnableHistory) return;
             var db = GetDb();
-            var now = DateTime.UtcNow;
+            var now = _getTime.GetCurrentUtcDate();
             db.HashSet(HistoryHashKey(queueId), new[]
             {
                 new HashEntry("QueueID", queueId), new HashEntry("CorrelationID", correlationId ?? ""),
@@ -72,7 +80,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             var db = GetDb();
             var rawStatus = db.HashGet(HistoryHashKey(queueId), FieldStatus);
             if (!rawStatus.HasValue || (int)rawStatus != (int)MessageHistoryStatus.Enqueued) return;
-            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Processing), new HashEntry(FieldStartedUtc, DateTime.UtcNow.Ticks) });
+            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Processing), new HashEntry(FieldStartedUtc, _getTime.GetCurrentUtcDate().Ticks) });
         }
 
         /// <inheritdoc />
@@ -82,7 +90,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             var db = GetDb();
             var rawStatus = await db.HashGetAsync(HistoryHashKey(queueId), FieldStatus).ConfigureAwait(false);
             if (!rawStatus.HasValue || (int)rawStatus != (int)MessageHistoryStatus.Enqueued) return;
-            await db.HashSetAsync(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Processing), new HashEntry(FieldStartedUtc, DateTime.UtcNow.Ticks) }).ConfigureAwait(false);
+            await db.HashSetAsync(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Processing), new HashEntry(FieldStartedUtc, _getTime.GetCurrentUtcDate().Ticks) }).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -90,7 +98,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             if (!_options.EnableHistory) return;
             var db = GetDb();
-            var now = DateTime.UtcNow;
+            var now = _getTime.GetCurrentUtcDate();
             var rawStarted = await db.HashGetAsync(HistoryHashKey(queueId), FieldStartedUtc).ConfigureAwait(false);
             var startedTicks = rawStarted.HasValue ? (long)rawStarted : 0L;
             var durationMs = startedTicks > 0 ? (long)(now - new DateTime(startedTicks, DateTimeKind.Utc)).TotalMilliseconds : 0L;
@@ -111,7 +119,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             if (!_options.EnableHistory) return;
             var db = GetDb();
-            var now = DateTime.UtcNow;
+            var now = _getTime.GetCurrentUtcDate();
             var rawStarted = db.HashGet(HistoryHashKey(queueId), FieldStartedUtc);
             var startedTicks = rawStarted.HasValue ? (long)rawStarted : 0L;
             var durationMs = startedTicks > 0 ? (long)(now - new DateTime(startedTicks, DateTimeKind.Utc)).TotalMilliseconds : 0L;
@@ -123,7 +131,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             if (!_options.EnableHistory) return;
             var db = GetDb();
-            var now = DateTime.UtcNow;
+            var now = _getTime.GetCurrentUtcDate();
             var rawStarted = await db.HashGetAsync(HistoryHashKey(queueId), FieldStartedUtc).ConfigureAwait(false);
             var startedTicks = rawStarted.HasValue ? (long)rawStarted : 0L;
             var durationMs = startedTicks > 0 ? (long)(now - new DateTime(startedTicks, DateTimeKind.Utc)).TotalMilliseconds : 0L;
@@ -135,7 +143,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             if (!_options.EnableHistory) return;
             var db = GetDb();
-            var now = DateTime.UtcNow;
+            var now = _getTime.GetCurrentUtcDate();
             var rawStarted = db.HashGet(HistoryHashKey(queueId), FieldStartedUtc);
             var startedTicks = rawStarted.HasValue ? (long)rawStarted : 0L;
             var durationMs = startedTicks > 0 ? (long)(now - new DateTime(startedTicks, DateTimeKind.Utc)).TotalMilliseconds : 0L;
@@ -156,7 +164,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             if (!_options.EnableHistory) return;
             var db = GetDb();
-            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Deleted), new HashEntry(FieldCompletedUtc, DateTime.UtcNow.Ticks) });
+            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Deleted), new HashEntry(FieldCompletedUtc, _getTime.GetCurrentUtcDate().Ticks) });
         }
 
         /// <inheritdoc />
@@ -164,7 +172,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             if (!_options.EnableHistory) return;
             var db = GetDb();
-            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Expired), new HashEntry(FieldCompletedUtc, DateTime.UtcNow.Ticks) });
+            db.HashSet(HistoryHashKey(queueId), new[] { new HashEntry(FieldStatus, (int)MessageHistoryStatus.Expired), new HashEntry(FieldCompletedUtc, _getTime.GetCurrentUtcDate().Ticks) });
         }
     }
 }

@@ -31,17 +31,25 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         private readonly LiteDbConnectionManager _connectionManager;
         private readonly TableNameHelper _tableNameHelper;
         private readonly IBaseTransportOptions _options;
+        //Time comes from the configured provider, not the local clock. On SQL Server and PostgreSQL
+        //that is the database server's clock, which is what the rest of the queue's timestamps are on;
+        //history written from an application machine with a drifting clock would otherwise report
+        //durations that disagree with them, or run negative. BaseTime caches an offset, so this costs
+        //no round trip.
+        private readonly IGetTime _getTime;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WriteMessageHistoryHandler"/> class.
         /// </summary>
         public WriteMessageHistoryHandler(LiteDbConnectionManager connectionManager,
             TableNameHelper tableNameHelper,
-            IBaseTransportOptions options)
+            IBaseTransportOptions options,
+            IGetTimeFactory getTimeFactory)
         {
             _connectionManager = connectionManager;
             _tableNameHelper = tableNameHelper;
             _options = options;
+            _getTime = getTimeFactory.Create();
         }
 
         /// <inheritdoc />
@@ -56,7 +64,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                     QueueId = queueId,
                     CorrelationId = correlationId,
                     Status = (int)MessageHistoryStatus.Enqueued,
-                    EnqueuedUtc = DateTime.UtcNow.Ticks,
+                    EnqueuedUtc = _getTime.GetCurrentUtcDate().Ticks,
                     RetryCount = 0,
                     Route = route,
                     MessageType = messageType,
@@ -110,7 +118,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                 if (record != null)
                 {
                     record.Status = (int)MessageHistoryStatus.Processing;
-                    record.StartedUtc = DateTime.UtcNow.Ticks;
+                    record.StartedUtc = _getTime.GetCurrentUtcDate().Ticks;
                     col.Update(record);
                 }
             }
@@ -120,7 +128,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         public void RecordComplete(string queueId)
         {
             if (!_options.EnableHistory) return;
-            var now = DateTime.UtcNow;
+            var now = _getTime.GetCurrentUtcDate();
             using (var db = _connectionManager.GetDatabase())
             {
                 var col = db.Database.GetCollection<HistoryTable>(_tableNameHelper.HistoryName);
@@ -140,7 +148,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <inheritdoc />
         public void RecordError(string queueId, string exception)
         {
-            var now = DateTime.UtcNow;
+            var now = _getTime.GetCurrentUtcDate();
             using (var db = _connectionManager.GetDatabase())
             {
                 var col = db.Database.GetCollection<HistoryTable>(_tableNameHelper.HistoryName);
@@ -188,7 +196,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                 if (record != null)
                 {
                     record.Status = (int)MessageHistoryStatus.Deleted;
-                    record.CompletedUtc = DateTime.UtcNow.Ticks;
+                    record.CompletedUtc = _getTime.GetCurrentUtcDate().Ticks;
                     col.Update(record);
                 }
             }
@@ -204,7 +212,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
                 if (record != null)
                 {
                     record.Status = (int)MessageHistoryStatus.Expired;
-                    record.CompletedUtc = DateTime.UtcNow.Ticks;
+                    record.CompletedUtc = _getTime.GetCurrentUtcDate().Ticks;
                     col.Update(record);
                 }
             }

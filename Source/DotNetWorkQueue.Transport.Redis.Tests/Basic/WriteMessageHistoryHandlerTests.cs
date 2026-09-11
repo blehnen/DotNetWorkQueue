@@ -1,6 +1,7 @@
 using System;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Redis.Basic;
+using System;
 using NSubstitute;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using StackExchange.Redis;
@@ -10,6 +11,19 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
     [TestClass]
     public class WriteMessageHistoryHandlerTests
     {
+        //deliberately nowhere near the machine clock, so a timestamp taken from DateTime.UtcNow
+        //instead of the provider cannot coincidentally match
+        private static readonly DateTime ProviderNow = new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Utc);
+
+        /// <summary>A clock the test controls, standing in for the configured time provider.</summary>
+        private static IGetTimeFactory Clock(DateTime now)
+        {
+            var time = Substitute.For<IGetTime>();
+            time.GetCurrentUtcDate().Returns(now);
+            var factory = Substitute.For<IGetTimeFactory>();
+            factory.Create().Returns(time);
+            return factory;
+        }
         /// <summary>
         /// Test wrapper that injects an IDatabase directly via the GetDb() seam,
         /// bypassing ConnectionMultiplexer which cannot be proxied by NSubstitute.
@@ -19,7 +33,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             private readonly IDatabase _db;
 
             public TestableWriteMessageHistoryHandler(IRedisConnection connection, RedisNames redisNames, IBaseTransportOptions options, IDatabase db)
-                : base(connection, redisNames, options)
+                : base(connection, redisNames, options, Clock(ProviderNow))
             {
                 _db = db;
             }
@@ -33,7 +47,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
             var options = Substitute.For<IBaseTransportOptions>();
             options.EnableHistory.Returns(false);
-            return new WriteMessageHistoryHandler(connection, redisNames, options);
+            return new WriteMessageHistoryHandler(connection, redisNames, options, Clock(ProviderNow));
         }
 
         // --- Disabled path tests ---
@@ -100,7 +114,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var redisNames = Substitute.For<RedisNames>(connInfo);
             var options = Substitute.For<IBaseTransportOptions>();
             options.EnableHistory.Returns(true);
-            var handler = new WriteMessageHistoryHandler(connection, redisNames, options);
+            var handler = new WriteMessageHistoryHandler(connection, redisNames, options, Clock(ProviderNow));
 
             try { handler.RecordEnqueue("q1", "c1", "route", "type", null, null); } catch (NullReferenceException) { }
             _ = connection.Received(1).Connection;
@@ -114,7 +128,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var redisNames = Substitute.For<RedisNames>(connInfo);
             var options = Substitute.For<IBaseTransportOptions>();
             options.EnableHistory.Returns(true);
-            var handler = new WriteMessageHistoryHandler(connection, redisNames, options);
+            var handler = new WriteMessageHistoryHandler(connection, redisNames, options, Clock(ProviderNow));
 
             try { handler.RecordProcessingStart("q1"); } catch (NullReferenceException) { }
             _ = connection.Received(1).Connection;
@@ -128,7 +142,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var redisNames = Substitute.For<RedisNames>(connInfo);
             var options = Substitute.For<IBaseTransportOptions>();
             options.EnableHistory.Returns(true);
-            var handler = new WriteMessageHistoryHandler(connection, redisNames, options);
+            var handler = new WriteMessageHistoryHandler(connection, redisNames, options, Clock(ProviderNow));
 
             try { handler.RecordComplete("q1"); } catch (NullReferenceException) { }
             _ = connection.Received(1).Connection;
@@ -142,7 +156,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var redisNames = Substitute.For<RedisNames>(connInfo);
             var options = Substitute.For<IBaseTransportOptions>();
             options.EnableHistory.Returns(true);
-            var handler = new WriteMessageHistoryHandler(connection, redisNames, options);
+            var handler = new WriteMessageHistoryHandler(connection, redisNames, options, Clock(ProviderNow));
 
             try { handler.RecordError("q1", "err"); } catch (NullReferenceException) { }
             _ = connection.Received(1).Connection;
@@ -156,7 +170,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var redisNames = Substitute.For<RedisNames>(connInfo);
             var options = Substitute.For<IBaseTransportOptions>();
             options.EnableHistory.Returns(true);
-            var handler = new WriteMessageHistoryHandler(connection, redisNames, options);
+            var handler = new WriteMessageHistoryHandler(connection, redisNames, options, Clock(ProviderNow));
 
             try { handler.RecordRollback("q1"); } catch (NullReferenceException) { }
             _ = connection.Received(1).Connection;
@@ -170,7 +184,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var redisNames = Substitute.For<RedisNames>(connInfo);
             var options = Substitute.For<IBaseTransportOptions>();
             options.EnableHistory.Returns(true);
-            var handler = new WriteMessageHistoryHandler(connection, redisNames, options);
+            var handler = new WriteMessageHistoryHandler(connection, redisNames, options, Clock(ProviderNow));
 
             try { handler.RecordDelete("q1"); } catch (NullReferenceException) { }
             _ = connection.Received(1).Connection;
@@ -184,7 +198,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var redisNames = Substitute.For<RedisNames>(connInfo);
             var options = Substitute.For<IBaseTransportOptions>();
             options.EnableHistory.Returns(true);
-            var handler = new WriteMessageHistoryHandler(connection, redisNames, options);
+            var handler = new WriteMessageHistoryHandler(connection, redisNames, options, Clock(ProviderNow));
 
             try { handler.RecordExpire("q1"); } catch (NullReferenceException) { }
             _ = connection.Received(1).Connection;
@@ -198,7 +212,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var redisNames = Substitute.For<RedisNames>(connInfo);
             var options = Substitute.For<IBaseTransportOptions>();
             options.EnableHistory.Returns(true);
-            var handler = new WriteMessageHistoryHandler(connection, redisNames, options);
+            var handler = new WriteMessageHistoryHandler(connection, redisNames, options, Clock(ProviderNow));
 
             try { handler.RecordEnqueue("q1", null, null, null, null, null); } catch (NullReferenceException) { }
             _ = connection.Received(1).Connection;
@@ -212,7 +226,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var redisNames = Substitute.For<RedisNames>(connInfo);
             var options = Substitute.For<IBaseTransportOptions>();
             options.EnableHistory.Returns(true);
-            var handler = new WriteMessageHistoryHandler(connection, redisNames, options);
+            var handler = new WriteMessageHistoryHandler(connection, redisNames, options, Clock(ProviderNow));
 
             try { handler.RecordError("q1", null); } catch (NullReferenceException) { }
             _ = connection.Received(1).Connection;
@@ -225,7 +239,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             var connInfo = Substitute.For<IConnectionInformation>();
             var redisNames = Substitute.For<RedisNames>(connInfo);
             var options = Substitute.For<IBaseTransportOptions>();
-            var handler = new WriteMessageHistoryHandler(connection, redisNames, options);
+            var handler = new WriteMessageHistoryHandler(connection, redisNames, options, Clock(ProviderNow));
             Assert.IsNotNull(handler);
         }
 
@@ -247,6 +261,21 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic
             options.EnableHistory.Returns(true);
 
             return (new TestableWriteMessageHistoryHandler(connection, redisNames, options, db), db);
+        }
+
+        [TestMethod]
+        public void RecordEnqueue_TakesTheTimestampFromTheConfiguredProvider()
+        {
+            //Redis defaults to the Redis server's clock, which is what the rest of the queue's
+            //timestamps are on; taking this one from the application machine makes history disagree
+            var (handler, db) = CreateEnabledWithDb();
+
+            handler.RecordEnqueue("q1", "c1", "routeA", "MyType", new byte[] { 1 }, new byte[] { 2 });
+
+            db.Received().HashSet(
+                Arg.Any<RedisKey>(),
+                Arg.Is<HashEntry[]>(entries => ContainsEntry(entries, "EnqueuedUtc", ProviderNow.Ticks)),
+                Arg.Any<CommandFlags>());
         }
 
         [TestMethod]

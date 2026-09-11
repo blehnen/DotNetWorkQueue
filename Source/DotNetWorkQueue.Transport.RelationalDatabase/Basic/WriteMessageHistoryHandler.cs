@@ -37,17 +37,25 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ITableNameHelper _tableNameHelper;
         private readonly IBaseTransportOptions _options;
+        //Time comes from the configured provider, not the local clock. On SQL Server and PostgreSQL
+        //that is the database server's clock, which is what the rest of the queue's timestamps are on;
+        //history written from an application machine with a drifting clock would otherwise report
+        //durations that disagree with them, or run negative. BaseTime caches an offset, so this costs
+        //no round trip.
+        private readonly IGetTime _getTime;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WriteMessageHistoryHandler"/> class.
         /// </summary>
         public WriteMessageHistoryHandler(IDbConnectionFactory connectionFactory,
             ITableNameHelper tableNameHelper,
-            IBaseTransportOptions options)
+            IBaseTransportOptions options,
+            IGetTimeFactory getTimeFactory)
         {
             _connectionFactory = connectionFactory;
             _tableNameHelper = tableNameHelper;
             _options = options;
+            _getTime = getTimeFactory.Create();
         }
 
         /// <inheritdoc />
@@ -67,7 +75,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     AddParameter(command, QueueIdParameter, DbType.String, queueId);
                     AddParameter(command, "@CorrelationID", DbType.String, (object)correlationId ?? DBNull.Value);
                     AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Enqueued);
-                    AddParameter(command, "@EnqueuedUtc", DbType.DateTime, DateTime.UtcNow);
+                    AddParameter(command, "@EnqueuedUtc", DbType.DateTime, _getTime.GetCurrentUtcDate());
                     AddParameter(command, "@Route", DbType.String, (object)route ?? DBNull.Value);
                     AddParameter(command, "@MessageType", DbType.String, (object)messageType ?? DBNull.Value);
                     AddParameter(command, "@Body", DbType.Binary, _options.HistoryOptions.StoreBody ? (object)body ?? DBNull.Value : DBNull.Value);
@@ -92,7 +100,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                         WHERE QueueID = @QueueID AND Status = @PrevStatus";
 
                     AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Processing);
-                    AddParameter(command, "@StartedUtc", DbType.DateTime, DateTime.UtcNow);
+                    AddParameter(command, "@StartedUtc", DbType.DateTime, _getTime.GetCurrentUtcDate());
                     AddParameter(command, QueueIdParameter, DbType.String, queueId);
                     AddParameter(command, PrevStatusParameter, DbType.Int32, (int)MessageHistoryStatus.Enqueued);
 
@@ -122,7 +130,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                         WHERE QueueID = @QueueID AND Status = @PrevStatus";
 
                     AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Processing);
-                    AddParameter(command, "@StartedUtc", DbType.DateTime, DateTime.UtcNow);
+                    AddParameter(command, "@StartedUtc", DbType.DateTime, _getTime.GetCurrentUtcDate());
                     AddParameter(command, QueueIdParameter, DbType.String, queueId);
                     AddParameter(command, PrevStatusParameter, DbType.Int32, (int)MessageHistoryStatus.Enqueued);
 
@@ -136,7 +144,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         public async Task RecordCompleteAsync(string queueId)
         {
             if (!_options.EnableHistory) return;
-            var now = DateTime.UtcNow;
+            var now = _getTime.GetCurrentUtcDate();
             using (var connection = _connectionFactory.Create())
             {
                 await connection.OpenAsync().ConfigureAwait(false);
@@ -199,7 +207,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         public void RecordComplete(string queueId)
         {
             if (!_options.EnableHistory) return;
-            var now = DateTime.UtcNow;
+            var now = _getTime.GetCurrentUtcDate();
             using (var connection = _connectionFactory.Create())
             {
                 connection.Open();
@@ -263,7 +271,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         public async Task RecordErrorAsync(string queueId, string exception)
         {
             if (!_options.EnableHistory) return;
-            var now = DateTime.UtcNow;
+            var now = _getTime.GetCurrentUtcDate();
             using (var connection = _connectionFactory.Create())
             {
                 await connection.OpenAsync().ConfigureAwait(false);
@@ -282,7 +290,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         public void RecordError(string queueId, string exception)
         {
             if (!_options.EnableHistory) return;
-            var now = DateTime.UtcNow;
+            var now = _getTime.GetCurrentUtcDate();
             using (var connection = _connectionFactory.Create())
             {
                 connection.Open();
@@ -332,7 +340,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                         WHERE QueueID = @QueueID";
 
                     AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Deleted);
-                    AddParameter(command, CompletedUtcParameter, DbType.DateTime, DateTime.UtcNow);
+                    AddParameter(command, CompletedUtcParameter, DbType.DateTime, _getTime.GetCurrentUtcDate());
                     AddParameter(command, QueueIdParameter, DbType.String, queueId);
 
                     command.ExecuteNonQuery();
@@ -354,7 +362,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                         WHERE QueueID = @QueueID";
 
                     AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Expired);
-                    AddParameter(command, CompletedUtcParameter, DbType.DateTime, DateTime.UtcNow);
+                    AddParameter(command, CompletedUtcParameter, DbType.DateTime, _getTime.GetCurrentUtcDate());
                     AddParameter(command, QueueIdParameter, DbType.String, queueId);
 
                     command.ExecuteNonQuery();
