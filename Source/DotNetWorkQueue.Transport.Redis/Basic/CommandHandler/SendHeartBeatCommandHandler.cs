@@ -56,9 +56,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             if (!CanBeat(command))
                 return 0;
 
-            var db = _connection.Connection.GetDatabase();
+            var db = GetDb();
             var date = _unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();
-            db.SortedSetAdd(_redisNames.Working, command.QueueId, date, When.Exists);
+            //SortedSetUpdate says whether the member was there to update. SortedSetAdd cannot: with
+            //When.Exists it reports whether a member was *added*, which is never - so the result was
+            //discarded and a message the monitor had already reclaimed still reported a fresh beat.
+            if (!db.SortedSetUpdate(_redisNames.Working, command.QueueId, date, SortedSetWhen.Exists))
+                return 0;
 
             return date;
         }
@@ -69,13 +73,21 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             if (!CanBeat(command))
                 return 0;
 
-            var db = _connection.Connection.GetDatabase();
+            var db = GetDb();
             var date = _unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();
-            await db.SortedSetAddAsync(_redisNames.Working, command.QueueId, date, When.Exists)
-                .ConfigureAwait(false);
+            //see Handle: the update has to report whether the message was still in the working set
+            if (!await db.SortedSetUpdateAsync(_redisNames.Working, command.QueueId, date, SortedSetWhen.Exists)
+                    .ConfigureAwait(false))
+                return 0;
 
             return date;
         }
+
+        /// <summary>
+        /// The database to beat against. Virtual so a test can supply one - <see cref="IRedisConnection"/>
+        /// hands back a concrete multiplexer, which is the same reason WriteMessageHistoryHandler has this.
+        /// </summary>
+        protected virtual IDatabase GetDb() => _connection.Connection.GetDatabase();
 
         /// <summary>
         /// A disposed connection or a message with no id has nothing to beat for.

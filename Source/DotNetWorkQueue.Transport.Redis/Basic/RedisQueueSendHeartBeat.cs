@@ -79,6 +79,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
         private IHeartBeatStatus Status(IMessageContext context, long unixTime)
         {
+            //zero means the message was no longer in the working set, so nothing was renewed - report it
+            //as no heartbeat rather than as one dated at the epoch
+            if (unixTime <= 0)
+                return new HeartBeatStatus(context.MessageId, null);
+
             return new HeartBeatStatus(context.MessageId, _unixTimeFactory.Create().DateTimeFromUnixTimestampMilliseconds(unixTime)); //UTC
         }
     }

@@ -31,6 +31,7 @@ namespace DotNetWorkQueue.Factory
         private readonly IHeartBeatScheduler _scheduler;
         private readonly ILogger _log;
         private readonly IWorkerHeartBeatNotificationFactory _heartBeatNotificationFactory;
+        private readonly IGetTimeFactory _getTimeFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HeartBeatWorkerFactory" /> class.
@@ -40,12 +41,15 @@ namespace DotNetWorkQueue.Factory
         /// <param name="scheduler">The scheduler.</param>
         /// <param name="logFactory">The log factory.</param>
         /// <param name="heartBeatNotificationFactory">The heart beat notification factory.</param>
+        /// <param name="getTimeFactory">The time factory; the transport's clock.</param>
         public HeartBeatWorkerFactory(IHeartBeatConfiguration configuration,
             ISendHeartBeat sendHeartBeat,
             IHeartBeatScheduler scheduler,
             ILogger logFactory,
-            IWorkerHeartBeatNotificationFactory heartBeatNotificationFactory)
+            IWorkerHeartBeatNotificationFactory heartBeatNotificationFactory,
+            IGetTimeFactory getTimeFactory)
         {
+            Guard.NotNull(getTimeFactory);
             Guard.NotNull(configuration);
             Guard.NotNull(sendHeartBeat);
             Guard.NotNull(scheduler);
@@ -57,6 +61,7 @@ namespace DotNetWorkQueue.Factory
             _scheduler = scheduler;
             _log = logFactory;
             _heartBeatNotificationFactory = heartBeatNotificationFactory;
+            _getTimeFactory = getTimeFactory;
         }
 
         /// <inheritdoc />
@@ -66,7 +71,7 @@ namespace DotNetWorkQueue.Factory
             if (_configuration.Enabled)
             {
                 hb = new HeartBeatWorker(_configuration, context, _sendHeartBeat, _scheduler, _log,
-                    _heartBeatNotificationFactory);
+                    _heartBeatNotificationFactory, _getTimeFactory);
             }
             else
             {
