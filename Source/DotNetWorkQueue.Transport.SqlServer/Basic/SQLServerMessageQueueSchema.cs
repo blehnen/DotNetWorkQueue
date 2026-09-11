@@ -293,6 +293,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             errorTracking.PrimaryKey.Unique = true;
 
             errorTracking.Constraints.Add(new Constraint("IX_QueueID", ConstraintType.Index, ColumnQueueId));
+            //One error row per message per exception type. Without this, the check-then-write in
+            //SetErrorCountCommandHandler can insert a second row for the same pair under concurrency,
+            //and the retry count then reads low - so a message gets more attempts than configured, and
+            //a poison message can loop instead of reaching the error queue.
+            errorTracking.Constraints.Add(new Constraint($"IX_QueueIDExceptionType{_tableNameHelper.ErrorTrackingName}", ConstraintType.Index,
+                new List<string> { ColumnQueueId, "ExceptionType" }) { Unique = true });
 
             foreach (var c in errorTracking.Constraints)
             {

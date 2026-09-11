@@ -176,6 +176,18 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// </summary>
         UpdateErrorCount,
         /// <summary>
+        /// Increments the retry count for a message and exception type, inserting the row if it is not
+        /// there yet - in one statement, so two failures of the same message cannot each insert a row.
+        /// Only used where the unique index backing it exists; see GetErrorTrackingUniqueIndexExists.
+        /// </summary>
+        UpsertErrorCount,
+        /// <summary>
+        /// Whether the unique index on (QueueID, ExceptionType) is present on the error tracking table.
+        /// Queues created before that index existed do not have it, and the library does not upgrade
+        /// schemas, so the error count write falls back to check-then-write when it is absent.
+        /// </summary>
+        GetErrorTrackingUniqueIndexExists,
+        /// <summary>
         /// insert error count
         /// </summary>
         InsertErrorCount,

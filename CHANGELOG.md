@@ -1,4 +1,6 @@
 ﻿### Unreleased
+- Fix: counting how many times a message has failed is now one statement on SQL Server, PostgreSQL and SQLite. Two failures arriving together could each add a row, and the retry count then read low - so a message got more attempts than configured, and a poison message could loop instead of reaching the error queue (GitHub #299)
+- New queues get a unique index on the error tracking table. Existing queues keep working unchanged: the queue is asked once whether the index is there and falls back to the previous behaviour when it is not. Re-create a queue to get the guarantee (GitHub #299)
 - Redis consumers no longer hold a thread through the de-queue. Under thread-pool pressure, where a consumer previously timed out waiting on Redis, it now keeps working (GitHub #256)
 - ⚠️ Custom transports and consumers must add async members: `IReceiveMessages.ReceiveMessageAsync`, `IQueueWait.WaitAsync`, and `IRedisQueueWorkSub.WaitAsync` for Redis. Built-in transports are unaffected (GitHub #256)
 - ⚠️ `IMessageProcessing.Handle()` is now `HandleAsync()` and returns a task. Only affects code implementing that interface directly (GitHub #256)

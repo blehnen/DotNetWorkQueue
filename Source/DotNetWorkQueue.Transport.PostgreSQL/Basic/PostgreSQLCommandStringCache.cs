@@ -73,6 +73,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             CommandCache.Add(CommandStringTypes.InsertErrorCount,
                 $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,1)");
 
+            CommandCache.Add(CommandStringTypes.UpsertErrorCount,
+                $@"insert into {TableNameHelper.ErrorTrackingName} (QueueID, ExceptionType, RetryCount)
+                   values (@QueueID, @ExceptionType, 1)
+                   on conflict (QueueID, ExceptionType)
+                   do update set retrycount = {TableNameHelper.ErrorTrackingName}.retrycount + 1");
+
+            CommandCache.Add(CommandStringTypes.GetErrorTrackingUniqueIndexExists,
+                "SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND tablename = @Table AND indexname = @Index");
+
             CommandCache.Add(CommandStringTypes.GetHeartBeatExpiredMessageIds,
                 $"select {TableNameHelper.MetaDataName}.queueid, heartbeat, headers from {TableNameHelper.MetaDataName} inner join {TableNameHelper.QueueName} on {TableNameHelper.QueueName}.queueid = {TableNameHelper.MetaDataName}.queueid where status = @status and heartbeat is not null and heartbeat < @time FOR UPDATE SKIP LOCKED");
 

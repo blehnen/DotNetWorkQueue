@@ -78,6 +78,15 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             CommandCache.Add(CommandStringTypes.InsertErrorCount,
                 $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,1)");
 
+            CommandCache.Add(CommandStringTypes.UpsertErrorCount,
+                $@"update {TableNameHelper.ErrorTrackingName} with (updlock, holdlock) set retrycount = retrycount + 1
+                   where queueid = @QueueID and ExceptionType = @ExceptionType;
+                   if @@rowcount = 0
+                   insert into {TableNameHelper.ErrorTrackingName} (QueueID, ExceptionType, RetryCount) values (@QueueID, @ExceptionType, 1);");
+
+            CommandCache.Add(CommandStringTypes.GetErrorTrackingUniqueIndexExists,
+                "SELECT 1 FROM sys.indexes WHERE name = @Index AND object_id = OBJECT_ID(@Table)");
+
             CommandCache.Add(CommandStringTypes.GetHeartBeatExpiredMessageIds,
                 $"select {TableNameHelper.MetaDataName}.queueid, heartbeat, headers from {TableNameHelper.MetaDataName} with (updlock, readpast, rowlock) inner join {TableNameHelper.QueueName} on {TableNameHelper.QueueName}.queueid = {TableNameHelper.MetaDataName}.queueid where status = @status and heartbeat is not null and (DATEDIFF(SECOND, heartbeat, GETUTCDATE()) > @time)");
 

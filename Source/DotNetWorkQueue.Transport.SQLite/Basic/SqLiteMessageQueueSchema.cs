@@ -277,6 +277,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             errorTracking.Columns.Add(new Column("RetryCount", ColumnTypes.Integer, false, null));
 
             errorTracking.Constraints.Add(new Constraint("IX_QueueID", ConstraintType.Index, ColumnQueueId));
+            //One error row per message per exception type. Without this, the check-then-write in
+            //SetErrorCountCommandHandler can insert a second row for the same pair under concurrency,
+            //and the retry count then reads low - so a message gets more attempts than configured, and
+            //a poison message can loop instead of reaching the error queue.
+            //SQLite's script writer appends the table name to an index name, so this is passed plain and
+            //ends up as IX_QueueIDExceptionType<table> - the same name the other transports build
+            //explicitly, which is what lets the check for it be shared
+            errorTracking.Constraints.Add(new Constraint("IX_QueueIDExceptionType", ConstraintType.Index,
+                new List<string> { ColumnQueueId, "ExceptionType" }) { Unique = true });
 
             foreach (var c in errorTracking.Constraints)
             {
