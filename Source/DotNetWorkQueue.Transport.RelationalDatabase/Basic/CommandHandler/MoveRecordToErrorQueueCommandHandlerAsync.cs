@@ -125,27 +125,28 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         private async Task HandleForTransactionAsync(MoveRecordToErrorQueueCommand<long> command)
         {
             var connHolder = command.MessageContext.Get(_headers.Connection);
-            using (var conn = _dbConnectionFactory.Create())
+
+            //see the synchronous handler: the insert shares the held transaction so the move has one
+            //outcome, rather than committing the error copy on a connection of its own and leaving it
+            //behind when the source delete or commit fails
+            using (var commandSql = connHolder.Connection.CreateCommand())
             {
-                await conn.OpenAsync().ConfigureAwait(false);
-                using (var commandSql = conn.CreateCommand())
+                commandSql.Transaction = connHolder.Transaction;
+                _prepareCommand.Handle(command, commandSql, CommandStringTypes.MoveToErrorQueue);
+                var iCount = await commandSql.ExecuteNonQueryAsync().ConfigureAwait(false);
+                if (iCount != 1) return;
+
+                //the record is now in the error queue, remove it from the main queue
+                await _deleteMetaCommandHandler.HandleAsync(new DeleteMetaDataCommand(command.QueueId, connHolder.Connection, connHolder.Transaction)).ConfigureAwait(false);
+
+                //commit the original transaction
+                await connHolder.Transaction.CommitAsync().ConfigureAwait(false);
+                connHolder.Transaction.Dispose();
+                connHolder.Transaction = null;
+
+                if (_options.Value.EnableStatusTable)
                 {
-                    _prepareCommand.Handle(command, commandSql, CommandStringTypes.MoveToErrorQueue);
-                    var iCount = await commandSql.ExecuteNonQueryAsync().ConfigureAwait(false);
-                    if (iCount != 1) return;
-
-                    //the record is now in the error queue, remove it from the main queue
-                    await _deleteMetaCommandHandler.HandleAsync(new DeleteMetaDataCommand(command.QueueId, connHolder.Connection, connHolder.Transaction)).ConfigureAwait(false);
-
-                    //commit the original transaction
-                    await connHolder.Transaction.CommitAsync().ConfigureAwait(false);
-                    connHolder.Transaction.Dispose();
-                    connHolder.Transaction = null;
-
-                    if (_options.Value.EnableStatusTable)
-                    {
-                        await _setStatusNoTransactionCommandHandler.HandleAsync(new SetStatusTableStatusCommand<long>(command.QueueId, QueueStatuses.Error)).ConfigureAwait(false);
-                    }
+                    await _setStatusNoTransactionCommandHandler.HandleAsync(new SetStatusTableStatusCommand<long>(command.QueueId, QueueStatuses.Error)).ConfigureAwait(false);
                 }
             }
         }

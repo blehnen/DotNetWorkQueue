@@ -61,8 +61,19 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                 }
                 sb.AppendLine($"from {tableNameHelper.QueueName} qm");
             }
+            else if (options.EnableHoldTransactionUntilMessageCommitted)
+            {
+                //A no-op update, purely to take the row lock - the same claim SQL Server makes here.
+                //Deleting instead would remove the row inside the held transaction, and moving a failed
+                //message to the error queue copies from that row: the copy would find nothing and the
+                //message would never reach the error queue. The commit path deletes the row for real.
+                sb.AppendLine($"update {tableNameHelper.MetaDataName} q");
+                sb.AppendLine("set QueueID = q.QueueID");
+                sb.AppendLine($"from {tableNameHelper.QueueName} qm");
+            }
             else
             {
+                //no status column and no held transaction, so the de-queue is the consumption
                 sb.AppendLine($"delete from {tableNameHelper.MetaDataName} q ");
                 sb.AppendLine($"using {tableNameHelper.QueueName} qm ");
             }
