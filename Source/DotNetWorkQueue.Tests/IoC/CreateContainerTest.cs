@@ -298,6 +298,11 @@ namespace DotNetWorkQueue.Tests.IoC
             {
                 return null;
             }
+
+            public Task<IHeartBeatStatus> SendAsync(IMessageContext context)
+            {
+                return Task.FromResult<IHeartBeatStatus>(null);
+            }
         }
         internal class GetFirstMessageDeliveryTimeNoOp : IGetFirstMessageDeliveryTime
         {

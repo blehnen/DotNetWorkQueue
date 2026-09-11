@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
@@ -40,7 +41,11 @@ namespace DotNetWorkQueue.Queue
         private int _disposeCount;
         private bool _stopped;
         private int _started;
-        private readonly object _runningLocker = new object();
+        //Guards the beat itself. A SemaphoreSlim rather than a lock because StopAsync and DisposeAsync
+        //have to wait for an in-flight beat the same way Stop does, without parking the thread that is
+        //finishing a message. Deliberately not disposed: nothing here touches AvailableWaitHandle, so
+        //there is nothing to release, and disposing it would race a beat that is still on its way out.
+        private readonly SemaphoreSlim _beatLock = new SemaphoreSlim(1, 1);
 
         private readonly IHeartBeatScheduler _scheduler;
 
@@ -100,7 +105,8 @@ namespace DotNetWorkQueue.Queue
                 throw new DotNetWorkQueueException("Start must only be called 1 time");
             }
 
-            lock (_runningLocker)
+            _beatLock.Wait();
+            try
             {
                 if (!string.IsNullOrWhiteSpace(_checkTime))
                 {
@@ -108,14 +114,38 @@ namespace DotNetWorkQueue.Queue
                         string.Concat("heartbeat-", _context.MessageId.ToString(), "-", Guid.NewGuid().ToString()), _checkTime, (message, notification) => SendHeartBeatInternal());
                 }
             }
+            finally
+            {
+                _beatLock.Release();
+            }
         }
 
         /// <inheritdoc />
         public void Stop()
         {
-            lock (_runningLocker) //this will block if we are currently updating the heart beat
+            _beatLock.Wait(); //this will block if we are currently updating the heart beat
+            try
             {
                 Stopped = true;
+            }
+            finally
+            {
+                _beatLock.Release();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task StopAsync()
+        {
+            //same wait as Stop, awaited rather than blocked on
+            await _beatLock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                Stopped = true;
+            }
+            finally
+            {
+                _beatLock.Release();
             }
         }
 
@@ -150,24 +180,56 @@ namespace DotNetWorkQueue.Queue
 
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
-            lock (_runningLocker)
+            _beatLock.Wait();
+            try
             {
-                Stopped = true;
-                _job?.StopSchedule();
-                if (_job != null)
+                ReleaseSchedule();
+            }
+            finally
+            {
+                _beatLock.Release();
+            }
+        }
+
+        /// <inheritdoc />
+        public async ValueTask DisposeAsync()
+        {
+            if (Interlocked.Increment(ref _disposeCount) != 1) return;
+
+            //the same teardown as Dispose, but the wait for an in-flight beat is awaited - this runs on
+            //the asynchronous consumer's continuation, once per message
+            await _beatLock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                ReleaseSchedule();
+            }
+            finally
+            {
+                _beatLock.Release();
+            }
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Takes the job off the schedule and drops the cancel token. The caller holds the beat lock.
+        /// </summary>
+        private void ReleaseSchedule()
+        {
+            Stopped = true;
+            _job?.StopSchedule();
+            if (_job != null)
+            {
+                var removed = _scheduler?.RemoveJob(_job.Name);
+                if (removed.HasValue && !removed.Value)
                 {
-                    var removed = _scheduler?.RemoveJob(_job.Name);
-                    if (removed.HasValue && !removed.Value)
-                    {
-                        _logger.LogWarning("Failed to remove job {JobName} from the heartbeat scheduler", _job.Name);
-                    }
+                    _logger.LogWarning("Failed to remove job {JobName} from the heartbeat scheduler", _job.Name);
                 }
-                lock (_cancelLocker)
-                {
-                    if (_cancel == null) return;
-                    _cancel.Dispose();
-                    _cancel = null;
-                }
+            }
+            lock (_cancelLocker)
+            {
+                if (_cancel == null) return;
+                _cancel.Dispose();
+                _cancel = null;
             }
         }
         #endregion
@@ -175,7 +237,22 @@ namespace DotNetWorkQueue.Queue
         /// <summary>
         /// Sends the heart beat.
         /// </summary>
+        /// <remarks>
+        /// The scheduler calls this on one of its own threads, and it hands that thread straight back:
+        /// the beat continues on its own once the transport call yields. Nothing is lost by not waiting
+        /// here - <see cref="StopAsync"/> and <see cref="DisposeAsync"/> wait on the beat lock, which is
+        /// what actually bounds a beat's lifetime, and <see cref="SendHeartBeatAsync"/> handles its own
+        /// failures, so the task it returns has nothing left to observe.
+        /// </remarks>
         private void SendHeartBeatInternal()
+        {
+            _ = SendHeartBeatAsync();
+        }
+
+        /// <summary>
+        /// Sends the heart beat.
+        /// </summary>
+        private async Task SendHeartBeatAsync()
         {
             if (IsDisposed)
                 return;
@@ -188,7 +265,8 @@ namespace DotNetWorkQueue.Queue
 
             try
             {
-                lock (_runningLocker)
+                await _beatLock.WaitAsync().ConfigureAwait(false);
+                try
                 {
                     if (IsDisposed)
                         return;
@@ -200,7 +278,7 @@ namespace DotNetWorkQueue.Queue
                         return;
 
                     Running = true;
-                    var status = _sendHeartbeat.Send(_context);
+                    var status = await _sendHeartbeat.SendAsync(_context).ConfigureAwait(false);
                     if (status.LastHeartBeatTime.HasValue)
                     {
                         _context.WorkerNotification.HeartBeat.Status = status;
@@ -214,15 +292,24 @@ namespace DotNetWorkQueue.Queue
                                 "Failed to set heartbeat for message ID {MessageId}; since no exception was generated, this probably means that the record no longer exists", status.MessageId.Id.Value);
                     }
                 }
+                finally
+                {
+                    _beatLock.Release();
+                }
             }
             catch (Exception error)
             {
                 _logger.LogError(error,
                     "An error has occurred while updating the heartbeat field for a record that is being processed");
 
-                lock (_runningLocker)
+                await _beatLock.WaitAsync().ConfigureAwait(false);
+                try
                 {
                     _context.WorkerNotification.HeartBeat.SetError(error);
+                }
+                finally
+                {
+                    _beatLock.Release();
                 }
 
                 SetCancel();

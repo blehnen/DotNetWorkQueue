@@ -13,6 +13,8 @@
 - Async consumers no longer hold a thread when a message fails and is retried or moved to the error queue (GitHub #284)
 - Fix: the moved-to-error-queue notification carried a null `MessageId`, because the id was read back off the context after the transport had cleared it. Subscribers now get the failed message's id (GitHub #284)
 - Fix: SQL Server, PostgreSQL and SQLite now apply the transient-failure retry policy to async queries. Async consumers were not retrying reads that a sync consumer would have (GitHub #284)
+- Async consumers no longer hold a thread finishing a message while a heartbeat is mid-update, and the heartbeat itself no longer occupies a thread-pool thread for its round trip. This was the last synchronous call on the async receive path (GitHub #284)
+- ⚠️ `ISendHeartBeat` gains `SendAsync`, and `IHeartBeatWorker` gains `StopAsync` and `IAsyncDisposable`. Only affects code implementing those interfaces directly; built-in transports are unaffected (GitHub #284)
 - Fix: Redis never recorded rollback history. The message id was read after the transport had cleared it, so a rolled-back message's retry count and status were left untouched (GitHub #284)
 - ⚠️ `IMessageContext` gains `CommitAsync` and `RollbackAsync` events with `RaiseCommitAsync` and `RaiseRollbackAsync`. Only affects code implementing that interface directly; the existing `Commit` and `Rollback` events are unchanged and still used by the synchronous consumer (GitHub #284)
 - ⚠️ Custom relational transports: `IDbConnectionFactory`, `ITransactionFactory` and `ITransactionWrapper` now use `System.Data.Common` types (`DbConnection`, `DbTransaction`) rather than the `System.Data` interfaces, which have no async members. Built-in transports are unaffected (GitHub #286)

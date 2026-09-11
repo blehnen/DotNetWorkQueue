@@ -70,7 +70,9 @@ namespace DotNetWorkQueue.Queue
         /// <returns></returns>
         public async Task HandleAsync(IMessageContext context, IReceivedMessageInternal transportMessage)
         {
-            using (var heartBeat = _heartBeatWorkerFactory.Create(context))
+            //await using, and StopAsync below: finishing a message must not park this thread on a
+            //heartbeat that happens to be mid-flight
+            await using (var heartBeat = _heartBeatWorkerFactory.Create(context))
             {
                 try
                 {
@@ -80,12 +82,12 @@ namespace DotNetWorkQueue.Queue
                 }
                 catch (OperationCanceledException)
                 {
-                    heartBeat.Stop();
+                    await heartBeat.StopAsync().ConfigureAwait(false);
                     throw;
                 }
                 catch (Exception exception)
                 {
-                    heartBeat.Stop();
+                    await heartBeat.StopAsync().ConfigureAwait(false);
                     await _messageExceptionHandler.HandleAsync(transportMessage, context, exception.InnerException ?? exception).ConfigureAwait(false);
                 }
             }

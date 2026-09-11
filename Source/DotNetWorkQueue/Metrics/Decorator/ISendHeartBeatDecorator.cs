@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
+
 namespace DotNetWorkQueue.Metrics.Decorator
 {
     internal class SendHeartBeatDecorator : ISendHeartBeat
@@ -48,6 +50,15 @@ namespace DotNetWorkQueue.Metrics.Decorator
             using (_timer.NewContext())
             {
                 return _handler.Send(context);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<IHeartBeatStatus> SendAsync(IMessageContext context)
+        {
+            using (_timer.NewContext())
+            {
+                return await _handler.SendAsync(context).ConfigureAwait(false);
             }
         }
     }

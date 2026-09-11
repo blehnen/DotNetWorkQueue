@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Threading.Tasks;
 
 namespace DotNetWorkQueue
 {
@@ -25,7 +26,7 @@ namespace DotNetWorkQueue
     /// 1. Being processed
     /// 2. Has been read from the queue, but is now in the in memory queue and waiting to start processing (async consumer only)
     /// </summary>
-    public interface IHeartBeatWorker : IDisposable, IIsDisposed
+    public interface IHeartBeatWorker : IDisposable, IAsyncDisposable, IIsDisposed
     {
         /// <summary>
         /// Starts this instance.
@@ -39,5 +40,16 @@ namespace DotNetWorkQueue
         /// Implementations MUST ensure that stop blocks and does not return if the heartbeat is in the middle of updating.
         /// </remarks>
         void Stop();
+
+        /// <summary>
+        /// Stops this instance, waiting for an in-flight heartbeat without blocking the caller's thread.
+        /// </summary>
+        /// <remarks>
+        /// Same guarantee as <see cref="Stop"/> - it does not return while a heartbeat is updating - but
+        /// the wait is awaited rather than blocked on. The asynchronous consumer calls this, and disposes
+        /// through <see cref="System.IAsyncDisposable"/>, so that finishing a message never parks a thread
+        /// on a heartbeat that happens to be mid-flight.
+        /// </remarks>
+        Task StopAsync();
     }
 }

@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
@@ -25,7 +26,8 @@ using StackExchange.Redis;
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
     /// <inheritdoc />
-    internal class SendHeartBeatCommandHandler : ICommandHandlerWithOutput<SendHeartBeatCommand<string>, long>
+    internal class SendHeartBeatCommandHandler : ICommandHandlerWithOutput<SendHeartBeatCommand<string>, long>,
+        ICommandHandlerWithOutputAsync<SendHeartBeatCommand<string>, long>
     {
         private readonly IUnixTimeFactory _unixTimeFactory;
         private readonly IRedisConnection _connection;
@@ -51,10 +53,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         /// <inheritdoc />
         public long Handle(SendHeartBeatCommand<string> command)
         {
-            if (_connection.IsDisposed)
-                return 0;
-
-            if (string.IsNullOrWhiteSpace(command.QueueId))
+            if (!CanBeat(command))
                 return 0;
 
             var db = _connection.Connection.GetDatabase();
@@ -62,6 +61,28 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             db.SortedSetAdd(_redisNames.Working, command.QueueId, date, When.Exists);
 
             return date;
+        }
+
+        /// <inheritdoc />
+        public async Task<long> HandleAsync(SendHeartBeatCommand<string> command)
+        {
+            if (!CanBeat(command))
+                return 0;
+
+            var db = _connection.Connection.GetDatabase();
+            var date = _unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();
+            await db.SortedSetAddAsync(_redisNames.Working, command.QueueId, date, When.Exists)
+                .ConfigureAwait(false);
+
+            return date;
+        }
+
+        /// <summary>
+        /// A disposed connection or a message with no id has nothing to beat for.
+        /// </summary>
+        private bool CanBeat(SendHeartBeatCommand<string> command)
+        {
+            return !_connection.IsDisposed && !string.IsNullOrWhiteSpace(command.QueueId);
         }
     }
 }

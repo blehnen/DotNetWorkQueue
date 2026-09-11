@@ -1,10 +1,13 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
+using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Queue;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -114,6 +117,78 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
+        [TestMethod]
+        public async Task Call_StopAsync_Multiple_Times_Ok()
+        {
+            using (var test = Create())
+            {
+                await test.StopAsync();
+                await test.StopAsync();
+            }
+        }
+
+        [TestMethod]
+        public async Task DisposeAsync_Sets_IsDisposed()
+        {
+            var test = Create();
+            await test.DisposeAsync();
+            Assert.IsTrue(test.IsDisposed);
+        }
+
+        [TestMethod]
+        public async Task DisposeAsync_Multiple_Times_Ok()
+        {
+            var test = Create();
+            await test.DisposeAsync();
+            await test.DisposeAsync();
+            Assert.IsTrue(test.IsDisposed);
+        }
+
+        [TestMethod]
+        public async Task StopAsync_Waits_For_An_InFlight_Beat()
+        {
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+            var context = Substitute.For<IMessageContext>();
+            var beatStarted = new ManualResetEventSlim(false);
+            var releaseBeat = new ManualResetEventSlim(false);
+            var beatFinished = 0;
+
+            //a beat that will not finish until this test lets it
+            sendHeartBeat.SendAsync(context).Returns(_ =>
+            {
+                beatStarted.Set();
+                releaseBeat.Wait(TimeSpan.FromSeconds(20));
+                Interlocked.Exchange(ref beatFinished, 1);
+                return Task.FromResult(Substitute.For<IHeartBeatStatus>());
+            });
+
+            //the scheduler is a substitute, so nothing fires the job on its own - capture what the
+            //worker scheduled and run it directly
+            Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> scheduled = null;
+            var scheduler = Substitute.For<IHeartBeatScheduler>();
+            scheduler.AddUpdateJob(Arg.Any<string>(), Arg.Any<string>(),
+                Arg.Do<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>>(x => scheduled = x));
+
+            using (var test = Create(TimeSpan.FromSeconds(5), "*/1 * * * * *", context, sendHeartBeat, scheduler))
+            {
+                test.Start();
+                Assert.IsNotNull(scheduled, "the worker did not schedule a heartbeat");
+                var beat = Task.Run(() => scheduled.Compile()(null, null));
+
+                Assert.IsTrue(beatStarted.Wait(TimeSpan.FromSeconds(20)), "the heartbeat never started");
+
+                var stop = test.StopAsync();
+                //the beat is still holding the lock, so the stop cannot have completed
+                Assert.IsFalse(stop.IsCompleted, "StopAsync returned while a heartbeat was still updating");
+
+                releaseBeat.Set();
+                await stop;
+                Assert.AreEqual(1, Interlocked.CompareExchange(ref beatFinished, 0, 0),
+                    "StopAsync returned before the heartbeat finished");
+                await beat;
+            }
+        }
+
         private HeartBeatWorker Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -121,7 +196,8 @@ namespace DotNetWorkQueue.Tests.Queue
         }
 
 
-        private HeartBeatWorker Create(TimeSpan checkSpan, string updateTime, IMessageContext context, ISendHeartBeat sendHeartBeat)
+        private HeartBeatWorker Create(TimeSpan checkSpan, string updateTime, IMessageContext context, ISendHeartBeat sendHeartBeat,
+            IHeartBeatScheduler scheduler = null)
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             fixture.Inject(context);
@@ -133,7 +209,7 @@ namespace DotNetWorkQueue.Tests.Queue
             configuration.Time = checkSpan;
             configuration.UpdateTime = updateTime;
             fixture.Inject(configuration);
-            var threadpool = fixture.Create<IHeartBeatScheduler>();
+            var threadpool = scheduler ?? fixture.Create<IHeartBeatScheduler>();
             fixture.Inject(threadpool);
             return fixture.Create<HeartBeatWorker>();
         }
