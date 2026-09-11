@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
@@ -91,6 +92,33 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.CommandHandle
             h.IndexQuery.Received(1).Handle(Arg.Any<GetErrorTrackingUniqueIndexExistsQuery>());
         }
 
+        [TestMethod]
+        public void TheSchemaLookUpFailing_StillRecordsTheError()
+        {
+            //the look-up needs the database too; failing to answer is not a reason to stop counting
+            var h = new Harness(indexAnswer: () => throw new TimeoutException());
+
+            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42));
+
+            h.PrepareCommand.Received(1).Handle(Arg.Any<SetErrorCountCommand<long>>(), Arg.Any<System.Data.Common.DbCommand>(),
+                CommandStringTypes.InsertErrorCount);
+        }
+
+        [TestMethod]
+        public void TheSchemaLookUpFailing_IsAskedAgainOnTheNextFailure()
+        {
+            //one blip must not pin the queue to the racy path for the rest of its life
+            var attempts = 0;
+            var h = new Harness(indexAnswer: () => attempts++ == 0 ? throw new TimeoutException() : true);
+
+            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42));
+            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42));
+
+            Assert.AreEqual(2, attempts, "the look-up was not attempted again after it failed");
+            h.PrepareCommand.Received(1).Handle(Arg.Any<SetErrorCountCommand<long>>(), Arg.Any<System.Data.Common.DbCommand>(),
+                CommandStringTypes.UpsertErrorCount);
+        }
+
         private sealed class Harness
         {
             public SetErrorCountCommandHandler<long> Handler { get; }
@@ -98,15 +126,16 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.CommandHandle
             public IQueryHandler<GetErrorRecordExistsQuery<long>, bool> ExistsQuery { get; }
             public IQueryHandler<GetErrorTrackingUniqueIndexExistsQuery, bool> IndexQuery { get; }
 
-            public Harness(bool indexExists, bool recordExists = false)
+            public Harness(bool indexExists = false, bool recordExists = false, Func<bool> indexAnswer = null)
             {
                 var fixture = AdoNetMockFixture.Create();
 
                 ExistsQuery = Substitute.For<IQueryHandler<GetErrorRecordExistsQuery<long>, bool>>();
                 ExistsQuery.Handle(Arg.Any<GetErrorRecordExistsQuery<long>>()).Returns(recordExists);
 
+                indexAnswer ??= () => indexExists;
                 IndexQuery = Substitute.For<IQueryHandler<GetErrorTrackingUniqueIndexExistsQuery, bool>>();
-                IndexQuery.Handle(Arg.Any<GetErrorTrackingUniqueIndexExistsQuery>()).Returns(indexExists);
+                IndexQuery.Handle(Arg.Any<GetErrorTrackingUniqueIndexExistsQuery>()).Returns(_ => indexAnswer());
 
                 PrepareCommand = Substitute.For<IPrepareCommandHandler<SetErrorCountCommand<long>>>();
 

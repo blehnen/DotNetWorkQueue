@@ -69,25 +69,16 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             Guard.NotNull(prepareCommand);
 
             _queryHandler = queryHandler;
-            //PublicationOnly so a failed look-up is not cached. The default Lazy remembers the
-            //exception for the life of the queue, which would turn one transient database blip during
-            //the first failed message into every later failure throwing, for good. And any failure here
-            //answers "no" rather than propagating: not knowing whether the index is there is a reason to
-            //take the older path, not a reason to stop recording errors. A transport whose command cache
-            //has no entry for the look-up - a custom relational one written before this existed - lands
-            //here too.
-            _canUpsert = new Lazy<bool>(() =>
-                {
-                    try
-                    {
-                        return uniqueIndexQuery.Handle(
-                            new GetErrorTrackingUniqueIndexExistsQuery(tableNameHelper.ErrorTrackingName));
-                    }
-                    catch (Exception)
-                    {
-                        return false;
-                    }
-                },
+            //PublicationOnly, and the look-up is allowed to throw. Under that mode an exception is not
+            //remembered, so the next failed message asks again; the default Lazy would remember it for
+            //the life of the queue. The exception is caught at each use instead, which is the difference
+            //between "the database could not answer just now" and "this queue has no index" - answering
+            //no here would pin the queue to the older, racy path for good over one transient blip. A
+            //transport whose command cache has no entry for the look-up - a custom relational one
+            //written before this existed - throws every time and simply keeps the older path.
+            _canUpsert = new Lazy<bool>(
+                () => uniqueIndexQuery.Handle(
+                    new GetErrorTrackingUniqueIndexExistsQuery(tableNameHelper.ErrorTrackingName)),
                 LazyThreadSafetyMode.PublicationOnly);
             _queryHandlerAsync = queryHandlerAsync;
             _dbConnectionFactory = dbConnectionFactory;
@@ -100,7 +91,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             //Read before the connection below is opened. The look-up takes a connection of its own, and
             //asking for it while already holding one means every concurrent first failure holds one
             //connection and waits for another.
-            var upsert = _canUpsert.Value;
+            var upsert = CanUpsert();
             using (var connection = _dbConnectionFactory.Create())
             {
                 connection.Open();
@@ -126,7 +117,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         public async Task HandleAsync(SetErrorCountCommand<T> command)
         {
             //see Handle: taken before a connection is held
-            var upsert = _canUpsert.Value;
+            var upsert = CanUpsert();
             using (var connection = _dbConnectionFactory.Create())
             {
                 await connection.OpenAsync().ConfigureAwait(false);
@@ -145,6 +136,27 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
                     Prepare(command, commandSql, exists);
                     await commandSql.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Whether the error tracking table carries the unique index that the single-statement path
+        /// needs, as far as this call can tell.
+        /// </summary>
+        /// <remarks>
+        /// A look-up that fails answers no for this call only - see the constructor. Recording the
+        /// failure is what matters; taking the older path to do it costs correctness under concurrency,
+        /// and not recording it at all costs more.
+        /// </remarks>
+        private bool CanUpsert()
+        {
+            try
+            {
+                return _canUpsert.Value;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 

@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
@@ -65,6 +68,90 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Basic
                 {
                     oCreation.RemoveQueue();
                     oCreation.Dispose();
+                }
+            }
+        }
+
+        [TestMethod]
+        public void CountsConcurrentFirstFailures_AsOneRow()
+        {
+            //the race the unique index and the single statement exist for: several workers failing the
+            //same message at the same moment, none of which has an error row to update yet.
+            //Thirty-two rather than a handful because SQLite serialises writers - at eight the older
+            //path came through unscathed there, and a test that cannot fail against the behaviour it
+            //replaces is not saying anything
+            const int failures = 32;
+            var queueName = GenerateQueueName.Create();
+            var connectionString = ConnectionInfo.ConnectionString;
+            var queueConnection = new QueueConnection(queueName, connectionString);
+            var logProvider = LoggerShared.Create(queueName, GetType().Name);
+
+            using (var queueCreator = new QueueCreationContainer<SqlServerMessageQueueInit>(
+                serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
+            {
+                var oCreation = queueCreator.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection);
+                try
+                {
+                    var result = oCreation.CreateQueue();
+                    Assert.IsTrue(result.Success, result.ErrorMessage);
+
+                    var errorTable = $"{queueName}ErrorTracking";
+                    Assert.IsTrue(UniqueIndexFound(queueConnection, logProvider, oCreation.Scope, errorTable),
+                        "a new queue did not report the unique index, so this would not be testing the atomic path");
+
+                    CountConcurrently(queueConnection, logProvider, oCreation.Scope, 1, failures);
+
+                    Assert.AreEqual(1, RowCount(connectionString, errorTable, 1),
+                        "concurrent first failures wrote more than one row for the same message and exception type");
+                    Assert.AreEqual(failures, RetryCount(connectionString, errorTable, 1),
+                        "a concurrent failure was not counted");
+                }
+                finally
+                {
+                    oCreation.RemoveQueue();
+                    oCreation.Dispose();
+                }
+            }
+        }
+
+        private static void CountConcurrently(QueueConnection queueConnection,
+            Microsoft.Extensions.Logging.ILogger logProvider, ICreationScope scope, long queueId, int failures)
+        {
+            using (var container = Container(logProvider, scope))
+            using (var admin = container.CreateAdminContainer(queueConnection))
+            {
+                var handler = admin.GetInstance<ICommandHandler<SetErrorCountCommand<long>>>();
+                //resolved once and started together - the point is that they overlap
+                using (var start = new ManualResetEventSlim(false))
+                {
+                    var running = new Task[failures];
+                    for (var i = 0; i < failures; i++)
+                    {
+                        running[i] = Task.Factory.StartNew(() =>
+                        {
+                            start.Wait();
+                            handler.Handle(new SetErrorCountCommand<long>("System.Exception", queueId));
+                        }, TaskCreationOptions.LongRunning);
+                    }
+                    start.Set();
+                    Task.WaitAll(running);
+                }
+            }
+        }
+
+        private static int RowCount(string connectionString, string errorTable, long queueId)
+        {
+            using (var conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                using (var command = conn.CreateCommand())
+                {
+                    command.CommandText = $"SELECT COUNT(*) FROM {errorTable} WHERE QueueID = @id";
+                    var parameter = command.CreateParameter();
+                    parameter.ParameterName = "@id";
+                    parameter.Value = queueId;
+                    command.Parameters.Add(parameter);
+                    return Convert.ToInt32(command.ExecuteScalar());
                 }
             }
         }

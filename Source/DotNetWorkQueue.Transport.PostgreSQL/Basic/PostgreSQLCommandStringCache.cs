@@ -81,17 +81,21 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             //By shape, not by name. PostgreSQL folds unquoted identifiers to lower case and truncates
             //them at 63 bytes, so comparing the name the schema asked for against the catalog misses -
-            //silently, and the racy path stays in use. The table name is lowered for the same reason.
+            //silently, and the racy path stays in use. to_regclass resolves the table the way the rest
+            //of the statements here do: the same folding and truncation, and it honours a schema
+            //qualified queue name - a dot is legal in one - rather than assuming public. It answers
+            //null rather than throwing when the table is not there.
+            //A partial index is excluded. It fits the shape below, but the upsert's conflict target
+            //names no predicate, so PostgreSQL would reject the statement rather than infer it.
             CommandCache.Add(CommandStringTypes.GetErrorTrackingUniqueIndexExists,
                 @"SELECT 1 FROM pg_index ix
-                  JOIN pg_class t ON t.oid = ix.indrelid
-                  JOIN pg_namespace n ON n.oid = t.relnamespace
-                  WHERE n.nspname = 'public' AND t.relname = lower(@Table) AND ix.indisunique
+                  WHERE ix.indrelid = to_regclass(@Table)
+                  AND ix.indisunique AND ix.indpred IS NULL
                   AND array_length(ix.indkey, 1) = 2
                   AND EXISTS (SELECT 1 FROM pg_attribute a
-                              WHERE a.attrelid = t.oid AND a.attnum = ANY(ix.indkey) AND lower(a.attname) = 'queueid')
+                              WHERE a.attrelid = ix.indrelid AND a.attnum = ANY(ix.indkey) AND lower(a.attname) = 'queueid')
                   AND EXISTS (SELECT 1 FROM pg_attribute a
-                              WHERE a.attrelid = t.oid AND a.attnum = ANY(ix.indkey) AND lower(a.attname) = 'exceptiontype')");
+                              WHERE a.attrelid = ix.indrelid AND a.attnum = ANY(ix.indkey) AND lower(a.attname) = 'exceptiontype')");
 
             CommandCache.Add(CommandStringTypes.GetHeartBeatExpiredMessageIds,
                 $"select {TableNameHelper.MetaDataName}.queueid, heartbeat, headers from {TableNameHelper.MetaDataName} inner join {TableNameHelper.QueueName} on {TableNameHelper.QueueName}.queueid = {TableNameHelper.MetaDataName}.queueid where status = @status and heartbeat is not null and heartbeat < @time FOR UPDATE SKIP LOCKED");

@@ -92,10 +92,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             //By shape, not by name: an index name is not something this can rely on. It is folded,
             //truncated or suffixed differently by each provider, and a same-named index that happened to
-            //be non-unique would send the atomic statement at a table that cannot support it.
+            //be non-unique would send the atomic statement at a table that cannot support it. A filtered
+            //index is excluded for the same reason - it fits the shape but guarantees nothing about the
+            //rows outside its filter, which is the guarantee being asked about.
             CommandCache.Add(CommandStringTypes.GetErrorTrackingUniqueIndexExists,
                 @"SELECT 1 FROM sys.indexes i
-                  WHERE i.object_id = OBJECT_ID(@Table) AND i.is_unique = 1
+                  WHERE i.object_id = OBJECT_ID(@Table) AND i.is_unique = 1 AND i.has_filter = 0
                   AND (SELECT COUNT(*) FROM sys.index_columns ic
                        WHERE ic.object_id = i.object_id AND ic.index_id = i.index_id) = 2
                   AND EXISTS (SELECT 1 FROM sys.index_columns ic

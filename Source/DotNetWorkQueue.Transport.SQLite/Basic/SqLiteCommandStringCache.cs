@@ -83,10 +83,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                    do update set retrycount = retrycount + 1");
 
             //By shape, not by name - see the other transports; SQLite appends the table name to an
-            //index name of its own accord, which is one more reason not to match on it.
+            //index name of its own accord, which is one more reason not to match on it. A partial index
+            //is excluded: it fits the shape, but the upsert's conflict target names no predicate, so
+            //SQLite would reject the statement rather than infer it.
             CommandCache.Add(CommandStringTypes.GetErrorTrackingUniqueIndexExists,
                 @"SELECT 1 FROM pragma_index_list(@Table) il
-                  WHERE il.""unique"" = 1
+                  WHERE il.""unique"" = 1 AND il.""partial"" = 0
                   AND (SELECT COUNT(*) FROM pragma_index_info(il.name)) = 2
                   AND EXISTS (SELECT 1 FROM pragma_index_info(il.name) ii WHERE lower(ii.name) = 'queueid')
                   AND EXISTS (SELECT 1 FROM pragma_index_info(il.name) ii WHERE lower(ii.name) = 'exceptiontype')");
