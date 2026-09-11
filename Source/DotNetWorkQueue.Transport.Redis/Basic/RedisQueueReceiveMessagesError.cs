@@ -20,6 +20,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
 using DotNetWorkQueue.Transport.Redis.Basic.Query;
 using DotNetWorkQueue.Transport.Shared;
+using DotNetWorkQueue.Transport.Shared.Basic;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
@@ -31,10 +32,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
     /// <summary>
     /// Handles receiving a message that has failed to process
     /// </summary>
-    internal class RedisQueueReceiveMessagesError : IReceiveMessagesError
+    internal class RedisQueueReceiveMessagesError : AReceiveErrorMessage
     {
-        private readonly ILogger _log;
-        private readonly QueueConsumerConfiguration _configuration;
         private readonly IQueryHandler<GetMetaDataQuery, RedisMetaData> _queryGetMetaData;
         private readonly IQueryHandlerAsync<GetMetaDataQuery, RedisMetaData> _queryGetMetaDataAsync;
         private readonly ICommandHandler<SaveMetaDataCommand> _saveMetaData;
@@ -66,25 +65,22 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             ICommandHandlerAsync<MoveRecordToErrorQueueCommand<string>> commandMoveRecordAsync,
             ILogger log,
             RedisHeaders headers)
+            : base(configuration, log)
         {
-            Guard.NotNull(configuration);
             Guard.NotNull(queryGetMetaData);
             Guard.NotNull(queryGetMetaDataAsync);
             Guard.NotNull(saveMetaData);
             Guard.NotNull(saveMetaDataAsync);
             Guard.NotNull(commandMoveRecord);
             Guard.NotNull(commandMoveRecordAsync);
-            Guard.NotNull(log);
             Guard.NotNull(headers);
 
-            _configuration = configuration;
             _queryGetMetaData = queryGetMetaData;
             _queryGetMetaDataAsync = queryGetMetaDataAsync;
             _saveMetaData = saveMetaData;
             _saveMetaDataAsync = saveMetaDataAsync;
             _commandMoveRecord = commandMoveRecord;
             _commandMoveRecordAsync = commandMoveRecordAsync;
-            _log = log;
             _headers = headers;
         }
 
@@ -96,7 +92,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="message">The message.</param>
         /// <param name="context">The context.</param>
         /// <param name="exception">The exception.</param>
-        public ReceiveMessagesErrorResult MessageFailedProcessing(IReceivedMessageInternal message, IMessageContext context,
+        public override ReceiveMessagesErrorResult MessageFailedProcessing(IReceivedMessageInternal message, IMessageContext context,
             Exception exception)
         {
             //message failed to process
@@ -130,7 +126,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <param name="message">The message.</param>
         /// <param name="context">The context.</param>
         /// <param name="exception">The exception.</param>
-        public async Task<ReceiveMessagesErrorResult> MessageFailedProcessingAsync(IReceivedMessageInternal message, IMessageContext context,
+        public override async Task<ReceiveMessagesErrorResult> MessageFailedProcessingAsync(IReceivedMessageInternal message, IMessageContext context,
             Exception exception)
         {
             //message failed to process
@@ -163,32 +159,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         }
 
         /// <summary>
-        /// Returns false when the message has no id, which is the only case in which nothing can be done.
-        /// </summary>
-        private bool TryGetRetryInformation(IMessageContext context, Exception exception, out IRetryInformation info, out string exceptionType)
-        {
-            info = null;
-            exceptionType = null;
-            if (context.MessageId == null || !context.MessageId.HasValue) return false;
-
-            info = _configuration.TransportConfiguration.RetryDelayBehavior.GetRetryAmount(exception);
-            if (info.ExceptionType != null)
-            {
-                exceptionType = info.ExceptionType.ToString();
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// An exception with no configured retry behaviour goes straight to the error queue; there is
-        /// no point in counting attempts for it.
-        /// </summary>
-        private static bool CanRetry(IRetryInformation info, string exceptionType)
-        {
-            return !string.IsNullOrEmpty(exceptionType) && info.MaxRetries > 0;
-        }
-
-        /// <summary>
         /// A metadata hash is written when the message is sent and removed with the message, so this is
         /// only false if the two have already diverged. There is then nothing to count attempts in, so
         /// the message goes to the error queue rather than the error handler throwing.
@@ -205,13 +175,6 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             metadata.ErrorTracking.IncrementExceptionCount(exceptionType);
         }
 
-        private ReceiveMessagesErrorResult MovedToErrorQueue(IReceivedMessageInternal message, IMessageContext context, Exception exception)
-        {
-            //we are done doing any processing - remove the messageID to block other actions
-            context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);
-            _log.LogError(exception, "Message with ID {MessageId} has failed and has been moved to the error queue", message.MessageId);
-            return ReceiveMessagesErrorResult.Error;
-        }
     }
 }
 

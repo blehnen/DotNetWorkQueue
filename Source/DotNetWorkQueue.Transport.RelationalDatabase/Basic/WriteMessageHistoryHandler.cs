@@ -236,6 +236,28 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             }
         }
 
+        /// <summary>
+        /// The error update itself, which is the same statement whichever path runs it - only opening the
+        /// connection and executing differ.
+        /// </summary>
+        private DbCommand PrepareErrorUpdate(DbConnection connection, string queueId, string exception,
+            DateTime now, long durationMs)
+        {
+            var command = connection.CreateCommand();
+            command.CommandText = $@"UPDATE {_tableNameHelper.HistoryName}
+                        SET Status = @Status, CompletedUtc = @CompletedUtc, DurationMs = @DurationMs, ExceptionText = @ExceptionText
+                        WHERE QueueID = @QueueID AND (Status = @PrevStatus1 OR Status = @PrevStatus2)";
+
+            AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Error);
+            AddParameter(command, CompletedUtcParameter, DbType.DateTime, now);
+            AddParameter(command, DurationMsParameter, DbType.Int64, durationMs);
+            AddParameter(command, "@ExceptionText", DbType.String, (object)exception ?? DBNull.Value);
+            AddParameter(command, QueueIdParameter, DbType.String, queueId);
+            AddParameter(command, "@PrevStatus1", DbType.Int32, (int)MessageHistoryStatus.Processing);
+            AddParameter(command, "@PrevStatus2", DbType.Int32, (int)MessageHistoryStatus.Enqueued);
+            return command;
+        }
+
         /// <inheritdoc />
         /// <remarks>See <see cref="RecordProcessingStartAsync"/> on what SQLite does and does not gain.</remarks>
         public async Task RecordErrorAsync(string queueId, string exception)
@@ -249,20 +271,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 var startTime = await GetStartedUtcAsync(connection, queueId).ConfigureAwait(false);
                 var durationMs = startTime.HasValue ? (long)(now - startTime.Value).TotalMilliseconds : 0L;
 
-                using (var command = connection.CreateCommand())
+                using (var command = PrepareErrorUpdate(connection, queueId, exception, now, durationMs))
                 {
-                    command.CommandText = $@"UPDATE {_tableNameHelper.HistoryName}
-                        SET Status = @Status, CompletedUtc = @CompletedUtc, DurationMs = @DurationMs, ExceptionText = @ExceptionText
-                        WHERE QueueID = @QueueID AND (Status = @PrevStatus1 OR Status = @PrevStatus2)";
-
-                    AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Error);
-                    AddParameter(command, CompletedUtcParameter, DbType.DateTime, now);
-                    AddParameter(command, DurationMsParameter, DbType.Int64, durationMs);
-                    AddParameter(command, "@ExceptionText", DbType.String, (object)exception ?? DBNull.Value);
-                    AddParameter(command, QueueIdParameter, DbType.String, queueId);
-                    AddParameter(command, "@PrevStatus1", DbType.Int32, (int)MessageHistoryStatus.Processing);
-                    AddParameter(command, "@PrevStatus2", DbType.Int32, (int)MessageHistoryStatus.Enqueued);
-
                     await command.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }
             }
@@ -280,20 +290,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 var startTime = GetStartedUtc(connection, queueId);
                 var durationMs = startTime.HasValue ? (long)(now - startTime.Value).TotalMilliseconds : 0L;
 
-                using (var command = connection.CreateCommand())
+                using (var command = PrepareErrorUpdate(connection, queueId, exception, now, durationMs))
                 {
-                    command.CommandText = $@"UPDATE {_tableNameHelper.HistoryName}
-                        SET Status = @Status, CompletedUtc = @CompletedUtc, DurationMs = @DurationMs, ExceptionText = @ExceptionText
-                        WHERE QueueID = @QueueID AND (Status = @PrevStatus1 OR Status = @PrevStatus2)";
-
-                    AddParameter(command, StatusParameter, DbType.Int32, (int)MessageHistoryStatus.Error);
-                    AddParameter(command, CompletedUtcParameter, DbType.DateTime, now);
-                    AddParameter(command, DurationMsParameter, DbType.Int64, durationMs);
-                    AddParameter(command, "@ExceptionText", DbType.String, (object)exception ?? DBNull.Value);
-                    AddParameter(command, QueueIdParameter, DbType.String, queueId);
-                    AddParameter(command, "@PrevStatus1", DbType.Int32, (int)MessageHistoryStatus.Processing);
-                    AddParameter(command, "@PrevStatus2", DbType.Int32, (int)MessageHistoryStatus.Enqueued);
-
                     command.ExecuteNonQuery();
                 }
             }

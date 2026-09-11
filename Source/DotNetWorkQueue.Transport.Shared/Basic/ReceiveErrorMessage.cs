@@ -28,11 +28,9 @@ using QueueDelay = DotNetWorkQueue.Queue.QueueDelay;
 namespace DotNetWorkQueue.Transport.Shared.Basic
 {
     /// <inheritdoc />
-    public class ReceiveErrorMessage<T> : IReceiveMessagesError
+    public class ReceiveErrorMessage<T> : AReceiveErrorMessage
     {
         #region Member Level Variables
-        private readonly ILogger _log;
-        private readonly QueueConsumerConfiguration _configuration;
         private readonly IQueryHandler<GetErrorRetryCountQuery<T>, int> _queryErrorRetryCount;
         private readonly IQueryHandlerAsync<GetErrorRetryCountQuery<T>, int> _queryErrorRetryCountAsync;
         private readonly ICommandHandler<SetErrorCountCommand<T>> _commandSetErrorCount;
@@ -65,31 +63,28 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
             ICommandHandlerAsync<MoveRecordToErrorQueueCommand<T>> commandMoveRecordAsync,
             ILogger log,
             IIncreaseQueueDelay headers)
+            : base(configuration, log)
         {
-            Guard.NotNull(configuration);
             Guard.NotNull(queryErrorRetryCount);
             Guard.NotNull(queryErrorRetryCountAsync);
             Guard.NotNull(commandSetErrorCount);
             Guard.NotNull(commandSetErrorCountAsync);
             Guard.NotNull(commandMoveRecord);
             Guard.NotNull(commandMoveRecordAsync);
-            Guard.NotNull(log);
 
-            _configuration = configuration;
             _queryErrorRetryCount = queryErrorRetryCount;
             _queryErrorRetryCountAsync = queryErrorRetryCountAsync;
             _commandSetErrorCount = commandSetErrorCount;
             _commandSetErrorCountAsync = commandSetErrorCountAsync;
             _commandMoveRecord = commandMoveRecord;
             _commandMoveRecordAsync = commandMoveRecordAsync;
-            _log = log;
             _headers = headers;
         }
         #endregion
 
         #region IReceiveMessagesError
         /// <inheritdoc />
-        public ReceiveMessagesErrorResult MessageFailedProcessing(IReceivedMessageInternal message, IMessageContext context, Exception exception)
+        public override ReceiveMessagesErrorResult MessageFailedProcessing(IReceivedMessageInternal message, IMessageContext context, Exception exception)
         {
             //message failed to process
             if (!TryGetRetryInformation(context, exception, out var info, out var exceptionType))
@@ -115,7 +110,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
         }
 
         /// <inheritdoc />
-        public async Task<ReceiveMessagesErrorResult> MessageFailedProcessingAsync(IReceivedMessageInternal message, IMessageContext context, Exception exception)
+        public override async Task<ReceiveMessagesErrorResult> MessageFailedProcessingAsync(IReceivedMessageInternal message, IMessageContext context, Exception exception)
         {
             //message failed to process
             if (!TryGetRetryInformation(context, exception, out var info, out var exceptionType))
@@ -142,32 +137,6 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
         #endregion
 
         #region Shared by both paths
-        /// <summary>
-        /// Returns false when the message has no id, which is the only case in which nothing can be done.
-        /// </summary>
-        private bool TryGetRetryInformation(IMessageContext context, Exception exception, out IRetryInformation info, out string exceptionType)
-        {
-            info = null;
-            exceptionType = null;
-            if (context.MessageId == null || !context.MessageId.HasValue) return false;
-
-            info = _configuration.TransportConfiguration.RetryDelayBehavior.GetRetryAmount(exception);
-            if (info.ExceptionType != null)
-            {
-                exceptionType = info.ExceptionType.ToString();
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// An exception with no configured retry behaviour goes straight to the error queue; there is
-        /// no point in counting attempts for it.
-        /// </summary>
-        private static bool CanRetry(IRetryInformation info, string exceptionType)
-        {
-            return !string.IsNullOrEmpty(exceptionType) && info.MaxRetries > 0;
-        }
-
         private void DelayNextAttempt(IMessageContext context, IRetryInformation info, int retries)
         {
             //note zero based index - use the current count not count +1
@@ -177,14 +146,6 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
         private static T MessageId(IMessageContext context)
         {
             return (T)context.MessageId.Id.Value;
-        }
-
-        private ReceiveMessagesErrorResult MovedToErrorQueue(IReceivedMessageInternal message, IMessageContext context, Exception exception)
-        {
-            //we are done doing any processing - remove the messageID to block other actions
-            context.SetMessageAndHeaders(null, context.CorrelationId, context.Headers);
-            _log.LogError(exception, "Message with ID {MessageId} has failed and has been moved to the error queue", message.MessageId);
-            return ReceiveMessagesErrorResult.Error;
         }
         #endregion
     }
