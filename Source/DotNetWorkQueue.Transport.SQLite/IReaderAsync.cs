@@ -23,8 +23,25 @@ using System.Threading.Tasks;
 namespace DotNetWorkQueue.Transport.SQLite
 {
     /// <summary>
-    /// A async <see cref="IDbCommand"/> wrapper that allows async usage
+    /// Executes a <see cref="DbCommand"/> through the provider's async members, so the shared async
+    /// handler path has something to await on SQLite.
     /// </summary>
+    /// <remarks>
+    /// <para>Awaiting these does not yield. SQLite has no asynchronous I/O, so
+    /// <c>System.Data.SQLite</c> overrides none of <c>OpenAsync</c>, <c>ExecuteNonQueryAsync</c>,
+    /// <c>ExecuteReaderAsync</c> or <c>ReadAsync</c>; the base-class implementations run the
+    /// synchronous work on the calling thread and hand back a completed task. Every await on the
+    /// SQLite async path therefore completes synchronously.</para>
+    /// <para>Treat this as permanent rather than as a gap waiting to be filled: the SQLite project
+    /// does not intend to add asynchronous I/O to the engine, and offers write-ahead logging as the
+    /// answer to the concurrency problem async would have solved. This transport enables WAL by
+    /// default; see <c>SQLiteMessageQueueTransportOptions.EnableWalMode</c>.</para>
+    /// <para>Changing providers does not lift this either. <c>Microsoft.Data.Sqlite</c> overrides only
+    /// <c>ExecuteReaderAsync</c> and <c>ExecuteDbDataReaderAsync</c>, and documents that those also
+    /// execute synchronously: the limitation belongs to SQLite itself, not to the driver. Wrapping
+    /// the calls in <c>Task.Run</c> would move a microsecond-scale local file read onto a pool
+    /// thread, which costs more than it saves. GitHub issue #298.</para>
+    /// </remarks>
     public interface IReaderAsync
     {
         /// <summary>
