@@ -47,5 +47,22 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.History
                     Helpers.GenerateData, Helpers.Verify);
             }
         }
+
+        [TestMethod]
+        public void HistoryTimestampComesFromTheConfiguredTimeProvider()
+        {
+            using (var connectionInfo = new IntegrationConnectionInfo(false))
+            {
+                var queueName = GenerateQueueName.Create();
+                var test = new HistoryTimeProviderTest();
+                test.Run<SqLiteMessageQueueInit, SqLiteMessageQueueCreation>(
+                    new QueueConnection(queueName, connectionInfo.ConnectionString),
+                    x =>
+                    {
+                        Helpers.SetOptions(x, true, false, false, false, false, false, false);
+                        x.Options.EnableHistory = true;
+                    });
+            }
+        }
     }
 }

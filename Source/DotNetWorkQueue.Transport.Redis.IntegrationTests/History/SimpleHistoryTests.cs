@@ -40,5 +40,18 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.History
                 x => { x.Options.EnableHistory = true; },
                 Helpers.GenerateData, Helpers.Verify);
         }
+
+        [TestMethod]
+        public void HistoryTimestampComesFromTheConfiguredTimeProvider()
+        {
+            var queueName = GenerateQueueName.Create();
+            var test = new HistoryTimeProviderTest();
+            test.Run<RedisQueueInit, RedisQueueCreation>(
+                new QueueConnection(queueName, ConnectionInfo.ConnectionString),
+                x =>
+                {
+                    x.Options.EnableHistory = true;
+                });
+        }
     }
 }

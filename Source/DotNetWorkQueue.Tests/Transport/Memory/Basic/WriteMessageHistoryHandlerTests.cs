@@ -10,6 +10,19 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
     [TestClass]
     public class WriteMessageHistoryHandlerTests
     {
+        //deliberately nowhere near the machine clock, so a timestamp taken from DateTime.UtcNow
+        //instead of the provider cannot coincidentally match
+        private static readonly DateTime ProviderNow = new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Utc);
+
+        /// <summary>A clock the test controls, standing in for the configured time provider.</summary>
+        private static IGetTimeFactory Clock(DateTime now)
+        {
+            var time = Substitute.For<IGetTime>();
+            time.GetCurrentUtcDate().Returns(now);
+            var factory = Substitute.For<IGetTimeFactory>();
+            factory.Create().Returns(time);
+            return factory;
+        }
         [TestMethod]
         public void Create_Default()
         {
@@ -44,7 +57,8 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
             Assert.AreEqual("route", record.Route);
             Assert.AreEqual("MyType", record.MessageType);
             Assert.AreEqual(0, record.RetryCount);
-            Assert.IsLessThanOrEqualTo(DateTime.UtcNow, record.EnqueuedUtc);
+            //from the configured provider, not the machine clock
+            Assert.AreEqual(ProviderNow, record.EnqueuedUtc);
         }
 
         [TestMethod]
@@ -427,7 +441,7 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
             var options = Substitute.For<IBaseTransportOptions>();
             options.EnableHistory.Returns(false);
 
-            return new WriteMessageHistoryHandler(connectionInfo, options);
+            return new WriteMessageHistoryHandler(connectionInfo, options, Clock(ProviderNow));
         }
 
         private static (WriteMessageHistoryHandler handler, string key) CreateHandlerWithKey(
@@ -448,7 +462,7 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
             options.EnableHistory.Returns(enableHistory);
             options.HistoryOptions.Returns(historyOptions);
 
-            var handler = new WriteMessageHistoryHandler(connectionInfo, options);
+            var handler = new WriteMessageHistoryHandler(connectionInfo, options, Clock(ProviderNow));
             var key = $"{queueName}|{connectionString}";
             return (handler, key);
         }

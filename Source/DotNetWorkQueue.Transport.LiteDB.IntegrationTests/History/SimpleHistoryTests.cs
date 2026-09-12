@@ -44,5 +44,21 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.History
                     Helpers.GenerateData, Helpers.Verify);
             }
         }
+
+        [TestMethod]
+        public void HistoryTimestampComesFromTheConfiguredTimeProvider()
+        {
+            using (var connectionInfo = new IntegrationConnectionInfo(IntegrationConnectionInfo.ConnectionTypes.Direct))
+            {
+                var queueName = GenerateQueueName.Create();
+                var test = new HistoryTimeProviderTest();
+                test.Run<LiteDbMessageQueueInit, LiteDbMessageQueueCreation>(
+                    new QueueConnection(queueName, connectionInfo.ConnectionString),
+                    x =>
+                    {
+                        x.Options.EnableHistory = true;
+                    });
+            }
+        }
     }
 }

@@ -10,6 +10,19 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
     [TestClass]
     public class WriteMessageHistoryHandlerTests
     {
+        //deliberately nowhere near the machine clock, so a timestamp taken from DateTime.UtcNow
+        //instead of the provider cannot coincidentally match
+        private static readonly DateTime ProviderNow = new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Utc);
+
+        /// <summary>A clock the test controls, standing in for the configured time provider.</summary>
+        private static IGetTimeFactory Clock(DateTime now)
+        {
+            var time = Substitute.For<IGetTime>();
+            time.GetCurrentUtcDate().Returns(now);
+            var factory = Substitute.For<IGetTimeFactory>();
+            factory.Create().Returns(time);
+            return factory;
+        }
         [TestMethod]
         public void RecordEnqueue_When_Disabled_Does_Not_Open_Connection()
         {
@@ -275,6 +288,41 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             Assert.AreEqual(0L, durationParam.Value);
         }
 
+        [TestMethod]
+        public void RecordEnqueue_TakesTheTimestampFromTheConfiguredProvider()
+        {
+            //on SQL Server and PostgreSQL the provider is the database server's clock, which is what the
+            //rest of the queue's timestamps are on. Taking this one from the application machine instead
+            //makes history disagree with the data beside it, and durations can come out negative
+            var (handler, factory, _) = Create(enabled: true);
+            var parameters = new System.Collections.Generic.List<DbParameter>();
+            var connection = Substitute.For<DbConnection>();
+            var command = Substitute.For<DbCommand>();
+            command.Parameters.Returns(Substitute.For<DbParameterCollection>());
+            command.CreateParameter().Returns(_ =>
+            {
+                var parameter = Substitute.For<DbParameter>();
+                parameters.Add(parameter);
+                return parameter;
+            });
+            connection.CreateCommand().Returns(command);
+            factory.Create().Returns(connection);
+
+            handler.RecordEnqueue("q1", "c1", "route1", "MyType", new byte[] { 1 }, new byte[] { 2 });
+
+            DbParameter enqueued = null;
+            foreach (var parameter in parameters)
+            {
+                if ((string)parameter.ParameterName == "@EnqueuedUtc")
+                {
+                    enqueued = parameter;
+                    break;
+                }
+            }
+            Assert.IsNotNull(enqueued, "Expected an @EnqueuedUtc parameter to have been created");
+            Assert.AreEqual(ProviderNow, enqueued.Value);
+        }
+
         private static (WriteMessageHistoryHandler handler, IDbConnectionFactory factory, IBaseTransportOptions options)
             Create(bool enabled = false)
         {
@@ -286,7 +334,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
             var options = Substitute.For<IBaseTransportOptions>();
             options.EnableHistory.Returns(enabled);
             options.HistoryOptions.Returns(historyOptions);
-            return (new WriteMessageHistoryHandler(factory, tableNameHelper, options), factory, options);
+            return (new WriteMessageHistoryHandler(factory, tableNameHelper, options, Clock(ProviderNow)), factory, options);
         }
 
         private static (DbConnection connection, DbCommand command) SetupConnection(IDbConnectionFactory factory)
