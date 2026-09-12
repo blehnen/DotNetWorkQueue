@@ -63,6 +63,21 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             _serializer = serializer;
         }
 
+        /// <summary>
+        /// Serialises table creation across the process.
+        /// </summary>
+        /// <remarks>
+        /// LiteDB resolves <c>EnsureIndex(x =&gt; x.Member)</c> through <see cref="LiteDB.BsonMapper"/>'s
+        /// global instance, and mapping a type for the first time is not thread safe: another thread can
+        /// see an entity mapper whose member list is not yet populated and report a member that plainly
+        /// exists as missing. Two queues being created at once is enough - it was seen on CI, where the
+        /// integration tests create queues on four workers, and reproduces on demand with sixty-four
+        /// threads. Creating a queue is a rare, one-off operation, so serialising it costs nothing.
+        /// Pre-building the mappers instead was measured and is not sufficient.
+        /// See GitHub #318.
+        /// </remarks>
+        private static readonly object SchemaCreation = new object();
+
         /// <inheritdoc />
         public QueueCreationResult Handle(CreateQueueTablesAndSaveConfigurationCommand<ITable> command)
         {
@@ -72,10 +87,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                 db.Database.Pragma("UTC_DATE", true);
 
 
-                //create all tables
-                foreach (var table in command.Tables)
+                //create all tables - see SchemaCreation for why this is serialised
+                lock (SchemaCreation)
                 {
-                    table.Create(_connectionInformation, _options.Value, _tableNameHelper);
+                    foreach (var table in command.Tables)
+                    {
+                        table.Create(_connectionInformation, _options.Value, _tableNameHelper);
+                    }
                 }
 
                 //save configuration
