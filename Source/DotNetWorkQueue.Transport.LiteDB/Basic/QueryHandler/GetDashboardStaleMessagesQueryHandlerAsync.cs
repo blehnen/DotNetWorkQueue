@@ -30,21 +30,24 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
     {
         private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
+        //Staleness is measured against heartbeats the transport wrote, so the cut-off has to come from the clock that wrote them rather than this machine's.
+        private readonly IGetTime _getTime;
 
-        public GetDashboardStaleMessagesQueryHandlerAsync(
-            LiteDbConnectionManager connectionInformation,
-            TableNameHelper tableNameHelper)
+        public GetDashboardStaleMessagesQueryHandlerAsync(            LiteDbConnectionManager connectionInformation,
+            TableNameHelper tableNameHelper,
+            IGetTimeFactory getTimeFactory)
         {
             Guard.NotNull(connectionInformation);
             Guard.NotNull(tableNameHelper);
 
             _connectionInformation = connectionInformation;
             _tableNameHelper = tableNameHelper;
+            _getTime = getTimeFactory.Create();
         }
 
         public Task<IReadOnlyList<DashboardMessage>> HandleAsync(GetDashboardStaleMessagesQuery query)
         {
-            var cutoff = DateTime.UtcNow.AddSeconds(-query.ThresholdSeconds);
+            var cutoff = _getTime.GetCurrentUtcDate().AddSeconds(-query.ThresholdSeconds);
 
             using (var db = _connectionInformation.GetDatabase())
             {

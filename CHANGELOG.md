@@ -1,4 +1,6 @@
 ﻿### Unreleased
+- Fix: the dashboard's stale-message threshold, the history retention cut-off and LiteDB's send, receive and heartbeat timestamps come from the queue's configured time provider rather than the machine clock, so each is compared against data written on the same clock (GitHub #304)
+- ⚠️ Monitors, `DataStorage` and LiteDB's command and query handlers take an `IGetTimeFactory`. Only affects code that constructs or subclasses these directly (GitHub #304)
 - Fix: message history timestamps come from the queue's configured time provider rather than the machine clock. On SQL Server and PostgreSQL that is the database server's clock, so history agrees with the rest of the queue's timestamps and durations cannot read negative (GitHub #304)
 - ⚠️ `WriteMessageHistoryHandler` constructors take an `IGetTimeFactory` on every transport. Only affects code that constructs or subclasses these directly; queues built through the container are unaffected (GitHub #304)
 - ⚠️ Fix: two failures arriving at once each added an error row, so a message got more retries than configured and could loop instead of reaching the error queue. Re-create an existing SQL Server, PostgreSQL or SQLite queue to pick up the fix (GitHub #299)

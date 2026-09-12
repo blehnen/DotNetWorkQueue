@@ -148,8 +148,17 @@ namespace DotNetWorkQueue.Tests.Queue
 
     internal class BaseMonitorTest : BaseMonitor
     {
+        private static IGetTimeFactory FixedClock()
+        {
+            var time = Substitute.For<IGetTime>();
+            time.GetCurrentUtcDate().Returns(new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Utc));
+            var factory = Substitute.For<IGetTimeFactory>();
+            factory.Create().Returns(time);
+            return factory;
+        }
+
         public BaseMonitorTest(Func<CancellationToken, long> monitorAction, IMonitorTimespan monitorTimeSpan, ILogger log)
-            : base(monitorAction, monitorTimeSpan, log)
+            : base(monitorAction, monitorTimeSpan, log, FixedClock())
         {
 
         }

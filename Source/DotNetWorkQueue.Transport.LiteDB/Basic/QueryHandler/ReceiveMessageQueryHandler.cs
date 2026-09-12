@@ -38,6 +38,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         private readonly LiteDbConnectionManager _connectionInformation;
         private readonly DatabaseExists _databaseExists;
         private readonly MessageDeQueue _messageDeQueue;
+        //LiteDB is embedded, so the configured provider is normally the local clock anyway - but
+        //these values are stored and compared against each other, so they take whichever clock
+        //the queue was told to use rather than going around it
+        private readonly IGetTime _getTime;
 
         /// <summary>
         /// Where the next poll resumes its search. Only ever read or written inside
@@ -53,12 +57,15 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="databaseExists">The database exists.</param>
         /// <param name="messageDeQueue">The message de queue.</param>
+        /// <param name="getTimeFactory">The time provider the queue is configured with.</param>
         public ReceiveMessageQueryHandler(ILiteDbMessageQueueTransportOptionsFactory optionsFactory,
             TableNameHelper tableNameHelper,
             LiteDbConnectionManager connectionInformation,
             DatabaseExists databaseExists,
-            MessageDeQueue messageDeQueue)
+            MessageDeQueue messageDeQueue,
+            IGetTimeFactory getTimeFactory)
         {
+            _getTime = getTimeFactory.Create();
             Guard.NotNull(optionsFactory);
             Guard.NotNull(tableNameHelper);
             Guard.NotNull(databaseExists);
@@ -134,7 +141,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         private Schema.MetaDataTable FindNextEligible(ReceiveMessageQuery query,
             ILiteCollection<Schema.MetaDataTable> col)
         {
-            var nowUtc = DateTime.UtcNow;
+            var nowUtc = _getTime.GetCurrentUtcDate();
             var routes = _options.Value.EnableRoute && query.Routes != null && query.Routes.Count > 0
                 ? query.Routes
                 : null;
@@ -228,7 +235,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
             var record = FindNextEligible(query, col);
             if (record != null)
             {
-                record.HeartBeat = DateTime.UtcNow;
+                record.HeartBeat = _getTime.GetCurrentUtcDate();
                 record.Status = QueueStatuses.Processing;
 
                 col.Update(record);

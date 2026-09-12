@@ -47,6 +47,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         private readonly IQueryHandler<DoesJobExistQuery, QueueStatuses> _jobExistsHandler;
         private readonly IJobSchedulerMetaData _jobSchedulerMetaData;
         private readonly DatabaseExists _databaseExists;
+        //LiteDB is embedded, so the configured provider is normally the local clock anyway - but
+        //these values are stored and compared against each other, so they take whichever clock
+        //the queue was told to use rather than going around it
+        private readonly IGetTime _getTime;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SendMessageCommandHandlerAsync"/> class.
@@ -60,6 +64,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <param name="jobExistsHandler">The job exists handler.</param>
         /// <param name="jobSchedulerMetaData">The job scheduler meta data.</param>
         /// <param name="databaseExists">The database exists.</param>
+        /// <param name="getTimeFactory">The time provider the queue is configured with.</param>
         public SendMessageCommandHandlerAsync(
             LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper,
@@ -68,8 +73,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             IHeaders headers,
             ICommandHandler<SetJobLastKnownEventCommand> sendJobStatus, IQueryHandler<DoesJobExistQuery, QueueStatuses> jobExistsHandler,
             IJobSchedulerMetaData jobSchedulerMetaData,
-            DatabaseExists databaseExists)
+            DatabaseExists databaseExists,
+            IGetTimeFactory getTimeFactory)
         {
+            _getTime = getTimeFactory.Create();
             Guard.NotNull(connectionInformation);
             Guard.NotNull(tableNameHelper);
             Guard.NotNull(serializer);
@@ -163,7 +170,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                                 {
                                     QueueId = id,
                                     CorrelationId = (Guid)commandSend.MessageData.CorrelationId.Id.Value,
-                                    QueuedDateTime = DateTime.UtcNow
+                                    QueuedDateTime = _getTime.GetCurrentUtcDate()
                                 };
 
                                 if (!string.IsNullOrWhiteSpace(jobName))
@@ -175,12 +182,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                                     var delay = commandSend.MessageData.GetDelay();
                                     if (delay.HasValue)
                                     {
-                                        metaData.QueueProcessTime = DateTime.UtcNow.Add(delay.Value);
+                                        metaData.QueueProcessTime = _getTime.GetCurrentUtcDate().Add(delay.Value);
                                     }
                                 }
 
                                 if (_options.Value.EnableMessageExpiration && expiration.HasValue)
-                                    metaData.ExpirationTime = DateTime.UtcNow.Add(expiration.Value);
+                                    metaData.ExpirationTime = _getTime.GetCurrentUtcDate().Add(expiration.Value);
 
                                 if (_options.Value.EnableStatus)
                                     metaData.Status = QueueStatuses.Waiting;

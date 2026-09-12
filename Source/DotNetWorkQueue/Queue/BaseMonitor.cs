@@ -41,6 +41,9 @@ namespace DotNetWorkQueue.Queue
         private volatile bool _stopping;
         private readonly object _runningLock = new object();
         private readonly ILogger _log;
+        //LastRunUtc is shown on the dashboard beside timestamps the transport wrote, so it comes from
+        //the same clock rather than from whichever machine happens to run the monitor
+        private readonly IGetTime _getTime;
         private readonly object _cancelSync = new object();
         private readonly ManualResetEventSlim _monitorCompleted = new ManualResetEventSlim(true);
         private int _disposeCount;
@@ -51,18 +54,22 @@ namespace DotNetWorkQueue.Queue
         /// <param name="monitorAction">The monitor action.</param>
         /// <param name="monitorTimeSpan">The monitor time span.</param>
         /// <param name="log">The log.</param>
+        /// <param name="getTimeFactory">The time provider the queue is configured with.</param>
         protected BaseMonitor(Func<CancellationToken, long> monitorAction,
             IMonitorTimespan monitorTimeSpan,
-            ILogger log)
+            ILogger log,
+            IGetTimeFactory getTimeFactory)
         {
             Guard.NotNull(monitorAction);
             Guard.NotNull(monitorTimeSpan);
             Guard.NotNull(log);
+            Guard.NotNull(getTimeFactory);
 
             _monitorAction = monitorAction;
             _monitorActionIds = null;
             _monitorTimeSpan = monitorTimeSpan;
             _log = log;
+            _getTime = getTimeFactory.Create();
         }
 
         /// <summary>
@@ -71,18 +78,22 @@ namespace DotNetWorkQueue.Queue
         /// <param name="monitorAction">The monitor action.</param>
         /// <param name="monitorTimeSpan">The monitor time span.</param>
         /// <param name="log">The log.</param>
+        /// <param name="getTimeFactory">The time provider the queue is configured with.</param>
         protected BaseMonitor(IMonitorTimespan monitorTimeSpan,
             Func<CancellationToken, List<ResetHeartBeatOutput>> monitorAction,
-            ILogger log)
+            ILogger log,
+            IGetTimeFactory getTimeFactory)
         {
             Guard.NotNull(monitorAction);
             Guard.NotNull(monitorTimeSpan);
             Guard.NotNull(log);
+            Guard.NotNull(getTimeFactory);
 
             _monitorActionIds = monitorAction;
             _monitorAction = null;
             _monitorTimeSpan = monitorTimeSpan;
             _log = log;
+            _getTime = getTimeFactory.Create();
         }
         /// <inheritdoc />
         public DateTime? LastRunUtc { get; private set; }
@@ -139,7 +150,7 @@ namespace DotNetWorkQueue.Queue
             finally
             {
                 CancelTokenDestroy();
-                LastRunUtc = DateTime.UtcNow;
+                LastRunUtc = _getTime.GetCurrentUtcDate();
                 try
                 {
                     Running = false;
