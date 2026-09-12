@@ -1,4 +1,5 @@
 ﻿### Unreleased
+- ⚠️ SQLite job databases are created in WAL journal mode, as queues already were. A job producer that reaches a database before anything else converts it on start, leaving `-wal` and `-shm` files beside it (GitHub #325)
 - Fix: message history timestamps read back as the UTC values they were written as on PostgreSQL and SQLite. They were shifted by the machine's UTC offset, so `EnqueuedUtc` held local time and purging by date removed the wrong window (GitHub #311)
 - ⚠️ PostgreSQL stores history and metadata timestamps as `timestamptz` rather than `timestamp`. Existing queues keep their columns and their stored values untouched; re-create a queue to pick up the fix (GitHub #311)
 - ⚠️ History timestamps come back with `DateTimeKind.Utc` on the relational transports, where they were `Unspecified`. Code that corrected them with `ToUniversalTime()` must stop doing so (GitHub #311)
