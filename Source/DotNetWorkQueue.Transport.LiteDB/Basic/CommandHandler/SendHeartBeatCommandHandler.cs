@@ -32,13 +32,20 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
     {
         private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
+        //LiteDB is embedded, so the configured provider is normally the local clock anyway - but
+        //these values are stored and compared against each other, so they take whichever clock
+        //the queue was told to use rather than going around it
+        private readonly IGetTime _getTime;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SendHeartBeatCommandHandler" /> class.
         /// </summary>
         public SendHeartBeatCommandHandler(LiteDbConnectionManager connectionInformation,
-            TableNameHelper tableNameHelper)
+            TableNameHelper tableNameHelper,
+            IGetTimeFactory getTimeFactory)
         {
+            Guard.NotNull(getTimeFactory);
+            _getTime = getTimeFactory.Create();
             Guard.NotNull(connectionInformation);
             Guard.NotNull(tableNameHelper);
 
@@ -65,7 +72,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                     if (results.Count == 1)
                     {
                         var record = results[0];
-                        date = DateTime.UtcNow;
+                        date = _getTime.GetCurrentUtcDate();
                         record.HeartBeat = date;
                         col.Update(record);
                     }

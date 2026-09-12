@@ -30,12 +30,17 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
     {
         private readonly CommandStringCache _commandCache;
         private readonly Lazy<string> _dynamicColumns;
+        //Staleness is measured against heartbeats the transport wrote, so the cut-off has to come from the clock that wrote them rather than this machine's.
+        private readonly IGetTime _getTime;
 
-        public GetDashboardStaleMessagesPrepareHandler(CommandStringCache commandCache, ITransportOptionsFactory optionsFactory)
+        public GetDashboardStaleMessagesPrepareHandler(CommandStringCache commandCache, ITransportOptionsFactory optionsFactory,
+            IGetTimeFactory getTimeFactory)
         {
             Guard.NotNull(commandCache);
             Guard.NotNull(optionsFactory);
             _commandCache = commandCache;
+            Guard.NotNull(getTimeFactory);
+            _getTime = getTimeFactory.Create();
             _dynamicColumns = new Lazy<string>(() => DashboardDynamicColumnHelper.BuildDynamicColumns(optionsFactory.Create()));
         }
 
@@ -52,7 +57,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
             var thresholdTicks = dbCommand.CreateParameter();
             thresholdTicks.ParameterName = "@ThresholdTicks";
             thresholdTicks.DbType = DbType.Int64;
-            thresholdTicks.Value = DateTime.UtcNow.AddSeconds(-query.ThresholdSeconds).Ticks;
+            thresholdTicks.Value = _getTime.GetCurrentUtcDate().AddSeconds(-query.ThresholdSeconds).Ticks;
             dbCommand.Parameters.Add(thresholdTicks);
 
             var offset = dbCommand.CreateParameter();

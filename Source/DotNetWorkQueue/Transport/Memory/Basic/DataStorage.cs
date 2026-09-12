@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Validation;
 using DotNetWorkQueue.Exceptions;
 using Microsoft.Extensions.Caching.Memory;
 using System;
@@ -64,6 +65,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         private readonly IReceivedMessageFactory _receivedMessageFactory;
         private readonly IMessageFactory _messageFactory;
         private readonly IQueueCancelWork _cancelToken;
+        //stored on the message and compared against later, so it takes the configured clock
+        private readonly IGetTime _getTime;
 
         private int _completeBackValue = 0;
         private int _clearedBackValue = 0;
@@ -83,13 +86,17 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <param name="receivedMessageFactory">The received message factory.</param>
         /// <param name="messageFactory">The message factory.</param>
         /// <param name="cancelToken">cancel token for stopping</param>
+        /// <param name="getTimeFactory">The time provider the queue is configured with.</param>
         public DataStorage(
             IJobSchedulerMetaData jobSchedulerMetaData,
             IConnectionInformation connectionInformation,
             IReceivedMessageFactory receivedMessageFactory,
             IMessageFactory messageFactory,
-            IQueueCancelWork cancelToken)
+            IQueueCancelWork cancelToken,
+            IGetTimeFactory getTimeFactory)
         {
+            Guard.NotNull(getTimeFactory);
+            _getTime = getTimeFactory.Create();
             _jobSchedulerMetaData = jobSchedulerMetaData;
             _connectionInformation = connectionInformation;
             _receivedMessageFactory = receivedMessageFactory;
@@ -156,7 +163,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                         CorrelationId = (Guid)inputData.CorrelationId.Id.Value,
                         Headers = message.Headers,
                         Id = Guid.NewGuid(),
-                        QueuedDateTime = DateTime.UtcNow,
+                        QueuedDateTime = _getTime.GetCurrentUtcDate(),
                         JobEventTime = eventTime,
                         JobName = jobName,
                         JobScheduledTime = scheduledTime

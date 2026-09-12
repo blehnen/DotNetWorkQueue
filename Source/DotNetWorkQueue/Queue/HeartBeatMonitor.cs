@@ -36,7 +36,9 @@ namespace DotNetWorkQueue.Queue
         /// <param name="configuration">The configuration.</param>
         /// <param name="resetHeartBeat">The reset heart beat module.</param>
         /// <param name="log">The log.</param>
-        public HeartBeatMonitor(IHeartBeatConfiguration configuration, IResetHeartBeat resetHeartBeat, ILogger log) : base(configuration, Guard.NotNull(resetHeartBeat).Reset, log)
+        /// <param name="getTimeFactory">The time provider the queue is configured with.</param>
+        public HeartBeatMonitor(IHeartBeatConfiguration configuration, IResetHeartBeat resetHeartBeat, ILogger log,
+            IGetTimeFactory getTimeFactory) : base(configuration, Guard.NotNull(resetHeartBeat).Reset, log, getTimeFactory)
         {
 
         }

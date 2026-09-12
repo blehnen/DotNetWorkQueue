@@ -74,6 +74,9 @@ namespace DotNetWorkQueue.Tests.Transport.Memory
             test.Dispose();
         }
 
+        /// <summary>A date far from any machine clock, so a timestamp from the wrong source cannot match.</summary>
+        private static readonly DateTime ProviderNow = new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Utc);
+
         private static DataStorage Create(IMessageFactory messageFactory)
         {
             var jobSchedulerMetaData = Substitute.For<IJobSchedulerMetaData>();
@@ -83,9 +86,14 @@ namespace DotNetWorkQueue.Tests.Transport.Memory
             var connection = new DotNetWorkQueue.Transport.Memory.ConnectionInformation(
                 new QueueConnection("dataStorageTests" + Guid.NewGuid().ToString("N"), "memory"));
 
+            var time = Substitute.For<IGetTime>();
+            time.GetCurrentUtcDate().Returns(ProviderNow);
+            var timeFactory = Substitute.For<IGetTimeFactory>();
+            timeFactory.Create().Returns(time);
+
             return new DataStorage(jobSchedulerMetaData, connection,
                 Substitute.For<IReceivedMessageFactory>(), messageFactory,
-                Substitute.For<IQueueCancelWork>());
+                Substitute.For<IQueueCancelWork>(), timeFactory);
         }
 
         private static IMessageFactory MessageFactory()

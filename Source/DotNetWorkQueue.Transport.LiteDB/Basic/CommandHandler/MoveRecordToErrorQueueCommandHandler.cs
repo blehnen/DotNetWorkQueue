@@ -33,6 +33,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
         private readonly Lazy<LiteDbMessageQueueTransportOptions> _options;
+        //LiteDB is embedded, so the configured provider is normally the local clock anyway - but
+        //these values are stored and compared against each other, so they take whichever clock
+        //the queue was told to use rather than going around it
+        private readonly IGetTime _getTime;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MoveRecordToErrorQueueCommandHandler"/> class.
@@ -40,11 +44,15 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <param name="optionsFactory">The options factory.</param>
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
+        /// <param name="getTimeFactory">The time provider the queue is configured with.</param>
         public MoveRecordToErrorQueueCommandHandler(
             ILiteDbMessageQueueTransportOptionsFactory optionsFactory,
             LiteDbConnectionManager connectionInformation,
-            TableNameHelper tableNameHelper)
+            TableNameHelper tableNameHelper,
+            IGetTimeFactory getTimeFactory)
         {
+            Guard.NotNull(getTimeFactory);
+            _getTime = getTimeFactory.Create();
             Guard.NotNull(connectionInformation);
             Guard.NotNull(tableNameHelper);
             Guard.NotNull(optionsFactory);
@@ -73,7 +81,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                         //move record to error table
                         var errorRecord = new MetaDataErrorsTable()
                         {
-                            LastExceptionDate = DateTime.UtcNow,
+                            LastExceptionDate = _getTime.GetCurrentUtcDate(),
                             LastException = command.Exception.ToString(),
                             QueueId = results[0].QueueId,
                             Status = QueueStatuses.Error,

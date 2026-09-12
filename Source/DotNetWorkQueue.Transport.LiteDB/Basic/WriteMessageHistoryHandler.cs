@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using DotNetWorkQueue.Validation;
 using System;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
@@ -50,6 +51,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             _connectionManager = connectionManager;
             _tableNameHelper = tableNameHelper;
             _options = options;
+            Guard.NotNull(getTimeFactory);
             _getTime = getTimeFactory.Create();
         }
 

@@ -31,11 +31,13 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         private readonly IRedisConnection _connection;
         private readonly RedisNames _redisNames;
         private readonly IInternalSerializer _internalSerializer;
+        //Staleness is measured against heartbeats the transport wrote, so the cut-off has to come from the clock that wrote them rather than this machine's.
+        private readonly IGetTime _getTime;
 
-        public GetDashboardStaleMessagesQueryHandlerAsync(
-            IRedisConnection connection,
+        public GetDashboardStaleMessagesQueryHandlerAsync(            IRedisConnection connection,
             RedisNames redisNames,
-            IInternalSerializer internalSerializer)
+            IInternalSerializer internalSerializer,
+            IGetTimeFactory getTimeFactory)
         {
             Guard.NotNull(connection);
             Guard.NotNull(redisNames);
@@ -44,12 +46,15 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             _connection = connection;
             _redisNames = redisNames;
             _internalSerializer = internalSerializer;
+            Guard.NotNull(getTimeFactory);
+            _getTime = getTimeFactory.Create();
         }
 
         public Task<IReadOnlyList<DashboardMessage>> HandleAsync(GetDashboardStaleMessagesQuery query)
         {
             var db = _connection.Connection.GetDatabase();
-            var cutoffMs = DateTimeOffset.UtcNow.AddSeconds(-query.ThresholdSeconds).ToUnixTimeMilliseconds();
+            var cutoffMs = new DateTimeOffset(_getTime.GetCurrentUtcDate())
+                .AddSeconds(-query.ThresholdSeconds).ToUnixTimeMilliseconds();
 
             // Get stale message IDs (in Working sorted set with score < cutoff)
             var staleIds = db.SortedSetRangeByScore(_redisNames.Working, 0, cutoffMs,

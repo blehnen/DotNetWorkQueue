@@ -27,13 +27,22 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.QueryHandler
     [TestClass]
     public class GetDashboardStaleMessagesQueryHandlerAsyncTests
     {
+        private static IGetTimeFactory FixedClock()
+        {
+            var time = Substitute.For<IGetTime>();
+            time.GetCurrentUtcDate().Returns(new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Utc));
+            var factory = Substitute.For<IGetTimeFactory>();
+            factory.Create().Returns(time);
+            return factory;
+        }
+
         [TestMethod]
         public void Create_Default()
         {
             var connection = Substitute.For<IRedisConnection>();
             var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
             var serializer = Substitute.For<IInternalSerializer>();
-            Assert.IsNotNull(new GetDashboardStaleMessagesQueryHandlerAsync(connection, redisNames, serializer));
+            Assert.IsNotNull(new GetDashboardStaleMessagesQueryHandlerAsync(connection, redisNames, serializer, FixedClock()));
         }
 
         [TestMethod]
@@ -42,7 +51,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.QueryHandler
             var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
             var serializer = Substitute.For<IInternalSerializer>();
             Assert.ThrowsExactly<ArgumentNullException>(
-                () => new GetDashboardStaleMessagesQueryHandlerAsync(null, redisNames, serializer));
+                () => new GetDashboardStaleMessagesQueryHandlerAsync(null, redisNames, serializer, FixedClock()));
         }
 
         [TestMethod]
@@ -51,7 +60,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.QueryHandler
             var connection = Substitute.For<IRedisConnection>();
             var serializer = Substitute.For<IInternalSerializer>();
             Assert.ThrowsExactly<ArgumentNullException>(
-                () => new GetDashboardStaleMessagesQueryHandlerAsync(connection, null, serializer));
+                () => new GetDashboardStaleMessagesQueryHandlerAsync(connection, null, serializer, FixedClock()));
         }
 
         [TestMethod]
@@ -60,7 +69,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.QueryHandler
             var connection = Substitute.For<IRedisConnection>();
             var redisNames = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
             Assert.ThrowsExactly<ArgumentNullException>(
-                () => new GetDashboardStaleMessagesQueryHandlerAsync(connection, redisNames, null));
+                () => new GetDashboardStaleMessagesQueryHandlerAsync(connection, redisNames, null, FixedClock()));
         }
     }
 }

@@ -27,12 +27,21 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.QueryHandler
     [TestClass]
     public class GetDashboardStaleMessagesQueryHandlerAsyncTests
     {
+        private static IGetTimeFactory FixedClock()
+        {
+            var time = Substitute.For<IGetTime>();
+            time.GetCurrentUtcDate().Returns(new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Utc));
+            var factory = Substitute.For<IGetTimeFactory>();
+            factory.Create().Returns(time);
+            return factory;
+        }
+
         [TestMethod]
         public void Create_Default()
         {
             var connectionManager = CreateConnectionManager();
             var tableNameHelper = CreateTableNameHelper();
-            Assert.IsNotNull(new GetDashboardStaleMessagesQueryHandlerAsync(connectionManager, tableNameHelper));
+            Assert.IsNotNull(new GetDashboardStaleMessagesQueryHandlerAsync(connectionManager, tableNameHelper, FixedClock()));
         }
 
         [TestMethod]
@@ -40,7 +49,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.QueryHandler
         {
             var tableNameHelper = CreateTableNameHelper();
             Assert.ThrowsExactly<ArgumentNullException>(
-                () => new GetDashboardStaleMessagesQueryHandlerAsync(null, tableNameHelper));
+                () => new GetDashboardStaleMessagesQueryHandlerAsync(null, tableNameHelper, FixedClock()));
         }
 
         [TestMethod]
@@ -48,7 +57,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.QueryHandler
         {
             var connectionManager = CreateConnectionManager();
             Assert.ThrowsExactly<ArgumentNullException>(
-                () => new GetDashboardStaleMessagesQueryHandlerAsync(connectionManager, null));
+                () => new GetDashboardStaleMessagesQueryHandlerAsync(connectionManager, null, FixedClock()));
         }
 
         private static LiteDbConnectionManager CreateConnectionManager()

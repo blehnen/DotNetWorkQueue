@@ -15,6 +15,9 @@ namespace DotNetWorkQueue.Tests.Queue
     [TestClass]
     public class BaseMonitorTests
     {
+        /// <summary>A date nowhere near the machine clock, so a value from the wrong source cannot match.</summary>
+        internal static readonly DateTime FixedNow = new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Utc);
+
         [TestMethod]
         public void IsDisposed_False_By_Default()
         {
@@ -52,6 +55,22 @@ namespace DotNetWorkQueue.Tests.Queue
                 Thread.Sleep(3000);
             }
             Assert.ContainsSingle(action.ReceivedCalls());
+        }
+
+        [TestMethod]
+        public void LastRunUtc_ComesFromTheConfiguredTimeProvider()
+        {
+            //shown on the dashboard beside timestamps the transport wrote, so it is on the same clock
+            var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+            var action = Substitute.For<Func<CancellationToken, long>>();
+            var monitor = Substitute.For<IMonitorTimespan>();
+            monitor.MonitorTime.Returns(TimeSpan.FromHours(1));
+            using (var test = CreateMonitor(action, monitor, fixture.Create<ILogger>()))
+            {
+                test.Start();
+                Thread.Sleep(3000);
+                Assert.AreEqual(FixedNow, test.LastRunUtc);
+            }
         }
 
         [TestMethod]
@@ -148,8 +167,17 @@ namespace DotNetWorkQueue.Tests.Queue
 
     internal class BaseMonitorTest : BaseMonitor
     {
+        private static IGetTimeFactory FixedClock()
+        {
+            var time = Substitute.For<IGetTime>();
+            time.GetCurrentUtcDate().Returns(BaseMonitorTests.FixedNow);
+            var factory = Substitute.For<IGetTimeFactory>();
+            factory.Create().Returns(time);
+            return factory;
+        }
+
         public BaseMonitorTest(Func<CancellationToken, long> monitorAction, IMonitorTimespan monitorTimeSpan, ILogger log)
-            : base(monitorAction, monitorTimeSpan, log)
+            : base(monitorAction, monitorTimeSpan, log, FixedClock())
         {
 
         }

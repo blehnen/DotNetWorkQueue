@@ -32,19 +32,22 @@ namespace DotNetWorkQueue.Queue
     {
         /// <inheritdoc />
         public ClearHistoryMonitor(IBaseTransportOptions options,
-            IPurgeMessageHistory purgeHistory, ILogger log)
-            : base(CreatePurgeAction(options, Guard.NotNull(purgeHistory)),
-                  new MonitorTimespanWrapper(options.HistoryOptions?.MonitorTime ?? TimeSpan.FromDays(1)), log)
+            IPurgeMessageHistory purgeHistory, ILogger log, IGetTimeFactory getTimeFactory)
+            : base(CreatePurgeAction(options, Guard.NotNull(purgeHistory), Guard.NotNull(getTimeFactory)),
+                  new MonitorTimespanWrapper(options.HistoryOptions?.MonitorTime ?? TimeSpan.FromDays(1)), log, getTimeFactory)
         {
         }
 
         private static Func<CancellationToken, long> CreatePurgeAction(
-            IBaseTransportOptions options, IPurgeMessageHistory purgeHistory)
+            IBaseTransportOptions options, IPurgeMessageHistory purgeHistory, IGetTimeFactory getTimeFactory)
         {
+            var getTime = getTimeFactory.Create();
             return token =>
             {
                 var retentionDays = options.HistoryOptions?.RetentionDays ?? 30;
-                var cutoff = DateTime.UtcNow.AddDays(-retentionDays);
+                //the cut-off is compared against timestamps the transport wrote, so it has to be on
+                //the same clock - otherwise the retention window is off by the difference between them
+                var cutoff = getTime.GetCurrentUtcDate().AddDays(-retentionDays);
                 return purgeHistory.Purge(cutoff);
             };
         }

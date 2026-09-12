@@ -34,6 +34,10 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         private readonly LiteDbConnectionManager _connectionInformation;
         private readonly TableNameHelper _tableNameHelper;
         private readonly IMessageErrorConfiguration _configuration;
+        //LiteDB is embedded, so the configured provider is normally the local clock anyway - but
+        //these values are stored and compared against each other, so they take whichever clock
+        //the queue was told to use rather than going around it
+        private readonly IGetTime _getTime;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FindErrorRecordsToDeleteQueryHandler"/> class.
@@ -41,10 +45,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// <param name="connectionInformation">The connection information.</param>
         /// <param name="tableNameHelper">The table name helper.</param>
         /// <param name="configuration">The configuration.</param>
+        /// <param name="getTimeFactory">The time provider the queue is configured with.</param>
         public FindErrorRecordsToDeleteQueryHandler(LiteDbConnectionManager connectionInformation,
             TableNameHelper tableNameHelper,
-            IMessageErrorConfiguration configuration)
+            IMessageErrorConfiguration configuration,
+            IGetTimeFactory getTimeFactory)
         {
+            Guard.NotNull(getTimeFactory);
+            _getTime = getTimeFactory.Create();
             Guard.NotNull(connectionInformation);
             Guard.NotNull(tableNameHelper);
             Guard.NotNull(configuration);
@@ -73,7 +81,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
 
                 var col = db.Database.GetCollection<Schema.MetaDataErrorsTable>(_tableNameHelper.MetaDataErrorsName);
 
-                var date = DateTime.UtcNow.Subtract(_configuration.MessageAge);
+                var date = _getTime.GetCurrentUtcDate().Subtract(_configuration.MessageAge);
                 var results = col.Query()
                     .Where(x => x.LastExceptionDate < date)
                     .ToList();

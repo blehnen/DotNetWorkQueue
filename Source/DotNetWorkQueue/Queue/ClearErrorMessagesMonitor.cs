@@ -38,9 +38,10 @@ namespace DotNetWorkQueue.Queue
         /// <param name="configuration">The configuration.</param>
         /// <param name="clearErrorMessages">The clear messages implementation.</param>
         /// <param name="log">The log.</param>
+        /// <param name="getTimeFactory">The time provider the queue is configured with.</param>
         public ClearErrorMessagesMonitor(IMessageErrorConfiguration configuration,
-            IClearErrorMessages clearErrorMessages, ILogger log)
-            : base(Guard.NotNull(clearErrorMessages).ClearMessages, configuration, log)
+            IClearErrorMessages clearErrorMessages, ILogger log, IGetTimeFactory getTimeFactory)
+            : base(Guard.NotNull(clearErrorMessages).ClearMessages, configuration, log, getTimeFactory)
         {
 
         }

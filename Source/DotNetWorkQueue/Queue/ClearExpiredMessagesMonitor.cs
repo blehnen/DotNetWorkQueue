@@ -36,9 +36,10 @@ namespace DotNetWorkQueue.Queue
         /// <param name="configuration">The configuration.</param>
         /// <param name="clearExpiredMessages">The clear expired messages implementation.</param>
         /// <param name="log">The log.</param>
+        /// <param name="getTimeFactory">The time provider the queue is configured with.</param>
         public ClearExpiredMessagesMonitor(IMessageExpirationConfiguration configuration,
-            IClearExpiredMessages clearExpiredMessages, ILogger log)
-            : base(Guard.NotNull(clearExpiredMessages).ClearMessages, configuration, log)
+            IClearExpiredMessages clearExpiredMessages, ILogger log, IGetTimeFactory getTimeFactory)
+            : base(Guard.NotNull(clearExpiredMessages).ClearMessages, configuration, log, getTimeFactory)
         {
 
         }
