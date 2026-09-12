@@ -126,7 +126,32 @@ namespace DotNetWorkQueue.Tests.Queue
             slot.Dispose();
         }
 
+        [TestMethod]
+        public async Task ASlotThatTookLongerThanTheInterval_IsReported()
+        {
+            //the condition that used to be invisible: under the old scheduler a beat that could not get
+            //a thread simply sat in a queue and nothing said so
+            var logger = Substitute.For<ILogger>();
+            logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
+            using (var gate = Create(threadsMax: 1, workerCount: 1,
+                       updateTime: TimeSpan.FromMilliseconds(10), logger: logger))
+            {
+                var held = await gate.EnterAsync(TimeSpan.FromSeconds(30), CancellationToken.None);
+
+                var queued = gate.EnterAsync(TimeSpan.FromSeconds(30), CancellationToken.None);
+                await Task.Delay(120);          //longer than the 10ms interval
+                held.Dispose();
+                (await queued).Dispose();
+
+                logger.ReceivedWithAnyArgs().Log(LogLevel.Warning, default, default(object), null, default!);
+            }
+        }
+
         private static HeartBeatGate Create(int threadsMax, int workerCount)
+            => Create(threadsMax, workerCount, TimeSpan.FromMinutes(5), Substitute.For<ILogger>());
+
+        private static HeartBeatGate Create(int threadsMax, int workerCount, TimeSpan updateTime, ILogger logger)
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
 
@@ -136,14 +161,14 @@ namespace DotNetWorkQueue.Tests.Queue
 
             var heartBeat = Substitute.For<IHeartBeatConfiguration>();
             heartBeat.ThreadPoolConfiguration.Returns(threadPool);
-            heartBeat.UpdateTime.Returns(TimeSpan.FromMinutes(5));
+            heartBeat.UpdateTime.Returns(updateTime);
             fixture.Inject(heartBeat);
 
             var worker = Substitute.For<IWorkerConfiguration>();
             worker.WorkerCount.Returns(workerCount);
             fixture.Inject(worker);
 
-            return new HeartBeatGate(fixture.Create<QueueConsumerConfiguration>(), Substitute.For<ILogger>());
+            return new HeartBeatGate(fixture.Create<QueueConsumerConfiguration>(), logger);
         }
     }
 }

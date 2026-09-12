@@ -10,6 +10,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Queue;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
@@ -428,6 +429,51 @@ namespace DotNetWorkQueue.Tests.Queue
             await sendHeartBeat.DidNotReceiveWithAnyArgs().SendAsync(null);
         }
 
+        [TestMethod]
+        public async Task ABeatAfterStop_DoesNotReachTheTransport()
+        {
+            //a stopped worker has given up its claim; beating would renew it and put the worker back to
+            //looking alive while it is shutting down
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+
+            using (var test = Create(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5), context, sendHeartBeat))
+            {
+                test.Start();
+                await test.StopAsync();
+
+                await test.BeatOnceAsync();
+
+                await sendHeartBeat.DidNotReceiveWithAnyArgs().SendAsync(null);
+            }
+        }
+
+        [TestMethod]
+        public async Task ASecondBeatWhileOneIsRunning_IsSkipped()
+        {
+            //the loop cannot produce this - it does not ask for the next tick until the beat returns -
+            //but the guard is what keeps a direct caller from overlapping two updates on one message
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+            var beatStarted = new ManualResetEventSlim(false);
+            var release = new TaskCompletionSource<IHeartBeatStatus>(TaskCreationOptions.RunContinuationsAsynchronously);
+            sendHeartBeat.SendAsync(context).Returns(_ => { beatStarted.Set(); return release.Task; });
+
+            using (var test = Create(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5), context, sendHeartBeat))
+            {
+                test.Start();
+                var first = test.BeatOnceAsync();
+                Assert.IsTrue(beatStarted.Wait(TimeSpan.FromSeconds(20)), "the first heartbeat never started");
+
+                await test.BeatOnceAsync();
+
+                await sendHeartBeat.Received(1).SendAsync(context);
+
+                release.SetResult(Substitute.For<IHeartBeatStatus>());
+                await first;
+            }
+        }
+
         private HeartBeatWorker Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -441,6 +487,13 @@ namespace DotNetWorkQueue.Tests.Queue
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             fixture.Inject(context);
             fixture.Inject(sendHeartBeat);
+
+            //a logger that reports every level as enabled. Without this the trace and debug branches
+            //never run, and one of them reads status.MessageId.Id.Value - the kind of line that throws
+            //only once it is actually reached
+            var logger = Substitute.For<ILogger>();
+            logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+            fixture.Inject(logger);
             if (notificationFactory != null)
                 fixture.Inject(notificationFactory);
 
