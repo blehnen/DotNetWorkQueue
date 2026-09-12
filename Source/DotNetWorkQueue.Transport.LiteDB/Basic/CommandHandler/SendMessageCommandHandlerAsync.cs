@@ -76,6 +76,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
             DatabaseExists databaseExists,
             IGetTimeFactory getTimeFactory)
         {
+            Guard.NotNull(getTimeFactory);
             _getTime = getTimeFactory.Create();
             Guard.NotNull(connectionInformation);
             Guard.NotNull(tableNameHelper);

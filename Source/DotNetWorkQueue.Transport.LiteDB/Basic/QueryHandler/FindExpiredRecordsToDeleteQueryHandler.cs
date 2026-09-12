@@ -48,6 +48,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
             TableNameHelper tableNameHelper,
             IGetTimeFactory getTimeFactory)
         {
+            Guard.NotNull(getTimeFactory);
             _getTime = getTimeFactory.Create();
             Guard.NotNull(connectionInformation);
             Guard.NotNull(tableNameHelper);
@@ -74,8 +75,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
 
                 var col = db.Database.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
 
+                //read once, outside the expression - the sibling handlers do the same. LiteDB does
+                //translate the call in place, but one reading for the whole sweep is what is meant
+                var now = _getTime.GetCurrentUtcDate();
+
                 var results = col.Query()
-                    .Where(x => x.ExpirationTime < _getTime.GetCurrentUtcDate())
+                    .Where(x => x.ExpirationTime < now)
                     .ToList();
 
                 var data = new List<int>(results.Count);

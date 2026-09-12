@@ -42,6 +42,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
 
             _connectionInformation = connectionInformation;
             _tableNameHelper = tableNameHelper;
+            Guard.NotNull(getTimeFactory);
             _getTime = getTimeFactory.Create();
         }
 

@@ -55,6 +55,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
             ICompositeSerialization serialization,
             IGetTimeFactory getTimeFactory)
         {
+            Guard.NotNull(getTimeFactory);
             _getTime = getTimeFactory.Create();
             Guard.NotNull(connectionInformation);
             Guard.NotNull(tableNameHelper);

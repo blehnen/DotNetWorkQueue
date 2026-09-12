@@ -39,6 +39,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryPrepareHandler
             Guard.NotNull(commandCache);
             Guard.NotNull(optionsFactory);
             _commandCache = commandCache;
+            Guard.NotNull(getTimeFactory);
             _getTime = getTimeFactory.Create();
             _dynamicColumns = new Lazy<string>(() => DashboardDynamicColumnHelper.BuildDynamicColumns(optionsFactory.Create()));
         }

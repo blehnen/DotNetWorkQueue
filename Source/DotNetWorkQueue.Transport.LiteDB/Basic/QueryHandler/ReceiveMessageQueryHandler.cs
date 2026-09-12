@@ -65,6 +65,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
             MessageDeQueue messageDeQueue,
             IGetTimeFactory getTimeFactory)
         {
+            Guard.NotNull(getTimeFactory);
             _getTime = getTimeFactory.Create();
             Guard.NotNull(optionsFactory);
             Guard.NotNull(tableNameHelper);

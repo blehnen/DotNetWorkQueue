@@ -46,6 +46,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             _connection = connection;
             _redisNames = redisNames;
             _internalSerializer = internalSerializer;
+            Guard.NotNull(getTimeFactory);
             _getTime = getTimeFactory.Create();
         }
 
