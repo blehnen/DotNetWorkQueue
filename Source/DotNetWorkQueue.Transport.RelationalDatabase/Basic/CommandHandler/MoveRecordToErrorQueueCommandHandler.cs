@@ -30,6 +30,21 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
     /// <summary>
     /// Moves a record from the meta table to the error table
     /// </summary>
+    /// <remarks>
+    /// <para>A retry of this handler cannot succeed while the caller holds the transaction
+    /// (<c>EnableHoldTransactionUntilMessageCommitted</c>). PostgreSQL aborts a transaction as soon
+    /// as a statement in it fails, so every later statement returns <c>25P02</c>,
+    /// <c>in_failed_sql_transaction</c>; the work has to be redone on a new transaction, which only
+    /// the caller can open.</para>
+    /// <para>It is left wrapped in the retry decorator on purpose. The cost is bounded to a single
+    /// attempt: <c>25P02</c> is not one of the retryable states, and the pipeline's predicate runs
+    /// after every attempt, so the second failure propagates instead of backing off again. One
+    /// wasted retry of about half a second, on a path that is already failing, does not justify
+    /// teaching the decorator which commands run inside someone else's transaction. See GitHub
+    /// issue #309 for the measurement and the options that were weighed.</para>
+    /// <para>Any new handler that runs inside the caller's transaction inherits this, and nothing
+    /// will report it.</para>
+    /// </remarks>
     public class MoveRecordToErrorQueueCommandHandler<TConnection, TTransaction, TCommand> : ICommandHandler<MoveRecordToErrorQueueCommand<long>>
         where TConnection : DbConnection
         where TTransaction : DbTransaction
