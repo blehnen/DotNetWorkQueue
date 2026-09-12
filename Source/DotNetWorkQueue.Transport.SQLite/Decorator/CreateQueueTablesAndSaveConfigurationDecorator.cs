@@ -66,26 +66,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
             {
                 var result = _decorated.Handle(command);
 
-                // Enable WAL mode for file-based databases when configured
                 if (result.Status == QueueCreationStatus.Success)
                 {
-                    var transportOptions = _options.Create();
-                    if (transportOptions.EnableWalMode)
-                    {
-                        var fileName = _getFileNameFromConnection.GetFileName(_connectionInformation.ConnectionString);
-                        if (!fileName.IsInMemory)
-                        {
-                            using (var connection = new SQLiteConnection(_connectionInformation.ConnectionString))
-                            {
-                                connection.Open();
-                                using (var cmd = connection.CreateCommand())
-                                {
-                                    cmd.CommandText = "PRAGMA journal_mode=WAL;";
-                                    cmd.ExecuteNonQuery();
-                                }
-                            }
-                        }
-                    }
+                    WalJournalMode.Apply(_connectionInformation, _getFileNameFromConnection, _options);
                 }
 
                 return result;

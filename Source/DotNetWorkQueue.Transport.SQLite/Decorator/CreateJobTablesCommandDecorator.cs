@@ -34,6 +34,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         private readonly ICommandHandlerWithOutput<CreateJobTablesCommand<ITable>, QueueCreationResult> _decorated;
         private readonly IGetFileNameFromConnectionString _getFileNameFromConnection;
         private readonly DatabaseExists _databaseExists;
+        private readonly ISqLiteMessageQueueTransportOptionsFactory _options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateJobTablesCommandDecorator" /> class.
@@ -42,20 +43,24 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         /// <param name="decorated">The decorated.</param>
         /// <param name="getFileNameFromConnection">The get file name from connection.</param>
         /// <param name="databaseExists">The database exists.</param>
+        /// <param name="options">The options.</param>
         public CreateJobTablesCommandDecorator(IConnectionInformation connectionInformation,
             ICommandHandlerWithOutput<CreateJobTablesCommand<ITable>, QueueCreationResult> decorated,
             IGetFileNameFromConnectionString getFileNameFromConnection,
-            DatabaseExists databaseExists)
+            DatabaseExists databaseExists,
+            ISqLiteMessageQueueTransportOptionsFactory options)
         {
             Guard.NotNull(connectionInformation);
             Guard.NotNull(decorated);
             Guard.NotNull(getFileNameFromConnection);
             Guard.NotNull(databaseExists);
+            Guard.NotNull(options);
 
             _connectionInformation = connectionInformation;
             _decorated = decorated;
             _getFileNameFromConnection = getFileNameFromConnection;
             _databaseExists = databaseExists;
+            _options = options;
         }
         public QueueCreationResult Handle(CreateJobTablesCommand<ITable> command)
         {
@@ -66,7 +71,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
             }
             try
             {
-                return _decorated.Handle(command);
+                var result = _decorated.Handle(command);
+
+                //a job producer can reach a database before anything else does, so this is the only
+                //chance to set the journal mode on it
+                if (result.Status == QueueCreationStatus.Success)
+                {
+                    WalJournalMode.Apply(_connectionInformation, _getFileNameFromConnection, _options);
+                }
+
+                return result;
             }
             //if the queue already exists, return that status; otherwise, bubble the error
             catch (SQLiteException error)
