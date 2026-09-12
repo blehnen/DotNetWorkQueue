@@ -45,6 +45,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
             _consumer.Configuration.Worker.SingleWorkerWhenNoWorkFound = true;
             _consumer.Configuration.HeartBeat.Time = TimeSpan.FromSeconds(heartBeatSeconds);
             _consumer.Configuration.HeartBeat.MonitorTime = TimeSpan.FromSeconds(heartBeatSeconds / 2);
+            //shortening the claim means shortening the beat with it - the transport default is two
+            //minutes, which against a five minute claim leaves no room for a late beat
+            _consumer.Configuration.HeartBeat.UpdateTime = TimeSpan.FromSeconds(heartBeatSeconds / 4.0);
 
             var signal = _blockSignal;
             _consumer.Start<FakeMessage>((message, notifications) =>
@@ -91,12 +94,16 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
             _consumer.Configuration.Worker.WorkerCount = workerCount;
             _consumer.Configuration.Worker.SingleWorkerWhenNoWorkFound = true;
             // HeartBeat is written at dequeue time (ReceiveMessage sets HeartBeat = NOW in ticks).
-            // By NOT setting UpdateTime, the HeartBeatWorker never schedules updates,
-            // so HeartBeat stays at its dequeue-time value and becomes stale within seconds.
-            // Keep Time large (300s) so the consumer's heartbeat monitor doesn't reset
-            // the message back to Waiting before the Dashboard stale query can detect it.
-            _consumer.Configuration.HeartBeat.Time = TimeSpan.FromSeconds(300);
-            _consumer.Configuration.HeartBeat.MonitorTime = TimeSpan.FromSeconds(150);
+            // Nothing here must refresh it: the dashboard's stale query decides what counts as stale
+            // from its own thresholdSeconds, so the stored value simply has to stay where the dequeue
+            // left it. The interval is therefore twenty minutes - far longer than any of these tests -
+            // rather than the transport default of two, which would beat during a slow run and make
+            // the message look healthy again. Time is an hour so the consumer's own monitor does not
+            // reset the message back to Waiting first, and so the interval can be that long: the
+            // consumer requires Time to be at least three times UpdateTime.
+            _consumer.Configuration.HeartBeat.Time = TimeSpan.FromHours(1);
+            _consumer.Configuration.HeartBeat.MonitorTime = TimeSpan.FromMinutes(30);
+            _consumer.Configuration.HeartBeat.UpdateTime = TimeSpan.FromMinutes(20);
 
             var signal = _blockSignal;
             _consumer.Start<FakeMessage>((message, notifications) =>

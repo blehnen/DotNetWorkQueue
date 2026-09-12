@@ -10,6 +10,7 @@ using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Messages;
 using DotNetWorkQueue.Queue;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
@@ -22,6 +23,8 @@ namespace DotNetWorkQueue.Tests.Queue
     [TestClass]
     public class HeartBeatWorkerTests
     {
+        private static readonly TimeSpan DrainWindow = TimeSpan.FromMilliseconds(500);
+
         [TestMethod]
         public void IsDisposed_False_By_Default()
         {
@@ -92,22 +95,15 @@ namespace DotNetWorkQueue.Tests.Queue
             var context = Substitute.For<IMessageContext>();
             sendHeartBeat.SendAsync(context).Throws(new ArgumentOutOfRangeException());
 
-            //The scheduler is a substitute, so nothing fires the job on its own. Sleeping and hoping -
-            //which this test used to do - exercised none of the failure path; run what the worker
-            //scheduled instead.
-            Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> scheduled = null;
-            var scheduler = Substitute.For<IHeartBeatScheduler>();
-            scheduler.AddUpdateJob(Arg.Any<string>(), Arg.Any<string>(),
-                Arg.Do<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>>(x => scheduled = x));
-
-            using (var test = Create(TimeSpan.FromSeconds(5), "*/2 * * * * *", context, sendHeartBeat, scheduler))
+            //The interval is long enough that the timer will not fire during the test; the beat is
+            //driven directly so the failure path is exercised rather than slept through.
+            using (var test = Create(TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(5), context, sendHeartBeat))
             {
                 test.Start();
-                Assert.IsNotNull(scheduled, "the worker did not schedule a heartbeat");
 
                 //the worker assigns this in its constructor, so read it back rather than configuring one
                 var notification = context.WorkerNotification.HeartBeat;
-                scheduled.Compile()(null, null);
+                _ = test.BeatOnceAsync();
 
                 //the beat is started and left to run, so wait for the failure to be recorded
                 var deadline = DateTime.UtcNow.AddSeconds(20);
@@ -134,7 +130,7 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             var sendHeartBeat = Substitute.For<ISendHeartBeat>();
             var context = Substitute.For<IMessageContext>();
-            using (var test = Create(TimeSpan.FromSeconds(seconds), "*/2 * * * * *", context, sendHeartBeat))
+            using (var test = Create(TimeSpan.FromSeconds(seconds), TimeSpan.FromSeconds(2), context, sendHeartBeat))
             {
                 test.Start();
                 Thread.Sleep(1100);
@@ -185,18 +181,10 @@ namespace DotNetWorkQueue.Tests.Queue
                 return beatResult.Task;
             });
 
-            //the scheduler is a substitute, so nothing fires the job on its own - capture what the
-            //worker scheduled and run it directly
-            Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> scheduled = null;
-            var scheduler = Substitute.For<IHeartBeatScheduler>();
-            scheduler.AddUpdateJob(Arg.Any<string>(), Arg.Any<string>(),
-                Arg.Do<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>>(x => scheduled = x));
-
-            using (var test = Create(TimeSpan.FromSeconds(5), "*/1 * * * * *", context, sendHeartBeat, scheduler))
+            using (var test = Create(TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(5), context, sendHeartBeat))
             {
                 test.Start();
-                Assert.IsNotNull(scheduled, "the worker did not schedule a heartbeat");
-                _ = Task.Run(() => scheduled.Compile()(null, null));
+                _ = Task.Run(() => test.BeatOnceAsync());
 
                 Assert.IsTrue(beatStarted.Wait(TimeSpan.FromSeconds(20)), "the heartbeat never started");
 
@@ -269,43 +257,52 @@ namespace DotNetWorkQueue.Tests.Queue
         }
 
         [TestMethod]
-        public void ATickThatArrivesDuringABeat_IsTakenWhenThatBeatFinishes()
+        public async Task ABeatThatOverrunsTheInterval_DoesNotForfeitTheSchedule()
         {
-            //A tick that lands while a beat is still running used to be dropped, and the next chance was
-            //a whole schedule away. With a 3 second schedule against a 10 second expiry that is a third
-            //of the window per lost tick, which is how a claim lapses under a worker that is alive.
+            //The guarantee #302's catch-up flag used to provide: an overrunning beat must not cost the
+            //schedule. Losing slots against a short expiry is how a live worker's claim lapses.
+            //What this covers is the resumption - a loop that gave up after the slow beat fails the last
+            //assertion. The no-overlap assertion below is held by BeatOnceAsync's own Running guard
+            //rather than by the loop, so it is an invariant check, not a test of the timer.
             var context = Substitute.For<IMessageContext>();
             var sendHeartBeat = Substitute.For<ISendHeartBeat>();
-            var landed = Substitute.For<IHeartBeatStatus>();
-            landed.LastHeartBeatTime.Returns(DateTime.UtcNow);
 
             var calls = 0;
-            var inFlight = new TaskCompletionSource<IHeartBeatStatus>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var firstBeat = new ManualResetEventSlim(false);
+            var releaseFirst = new TaskCompletionSource<IHeartBeatStatus>(TaskCreationOptions.RunContinuationsAsynchronously);
             sendHeartBeat.SendAsync(context).Returns(_ =>
-                Interlocked.Increment(ref calls) == 1 ? inFlight.Task : Task.FromResult(landed));
-
-            var (worker, beat, _) = CreateForStaleness(context, sendHeartBeat, TimeSpan.FromSeconds(30));
-            using (worker)
             {
-                worker.Start();
+                //the first beat blocks for far longer than the interval; the rest return at once
+                if (Interlocked.Increment(ref calls) == 1)
+                {
+                    firstBeat.Set();
+                    return releaseFirst.Task;
+                }
+                var status = Substitute.For<IHeartBeatStatus>();
+                status.LastHeartBeatTime.Returns(DateTime.UtcNow);
+                return Task.FromResult(status);
+            });
 
-                beat()();  //starts a beat that will not come back yet
-                var deadline = DateTime.UtcNow.AddSeconds(10);
-                while (Interlocked.CompareExchange(ref calls, 0, 0) < 1 && DateTime.UtcNow < deadline)
-                    Thread.Sleep(10);
-                Assert.AreEqual(1, Interlocked.CompareExchange(ref calls, 0, 0), "the first beat never started");
+            using (var test = Create(TimeSpan.FromMinutes(5), TimeSpan.FromMilliseconds(50), context, sendHeartBeat))
+            {
+                test.Start();
+                Assert.IsTrue(firstBeat.Wait(TimeSpan.FromSeconds(20)), "the first heartbeat never started");
 
-                beat()();  //this tick finds the first beat still running
+                //several intervals pass while the first beat is stuck
+                await Task.Delay(TimeSpan.FromMilliseconds(500));
+                Assert.AreEqual(1, Interlocked.CompareExchange(ref calls, 0, 0),
+                    "a second beat reached the transport while the first was still running");
 
-                inFlight.SetResult(landed);
+                releaseFirst.SetResult(Substitute.For<IHeartBeatStatus>());
 
-                //the skipped tick has to turn into a beat now, not at the next schedule
-                deadline = DateTime.UtcNow.AddSeconds(10);
+                //the schedule survived the overrun: beating resumes once the slow beat returns
+                var deadline = DateTime.UtcNow.AddSeconds(20);
                 while (Interlocked.CompareExchange(ref calls, 0, 0) < 2 && DateTime.UtcNow < deadline)
-                    Thread.Sleep(10);
-
+                {
+                    await Task.Delay(25);
+                }
                 Assert.IsGreaterThanOrEqualTo(2, Interlocked.CompareExchange(ref calls, 0, 0),
-                    "the tick that arrived during a beat was dropped instead of being taken afterwards");
+                    "beating did not resume after a beat that ran longer than the interval");
             }
         }
 
@@ -354,36 +351,149 @@ namespace DotNetWorkQueue.Tests.Queue
             Func<bool> cancelled)
             CreateForStaleness(IMessageContext context, ISendHeartBeat sendHeartBeat, TimeSpan expiry)
         {
-            Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> scheduled = null;
-            var scheduler = Substitute.For<IHeartBeatScheduler>();
-            scheduler.AddUpdateJob(Arg.Any<string>(), Arg.Any<string>(),
-                Arg.Do<Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>>>(x => scheduled = x));
-
             //the token the worker hands to user code is the one it trips, so capture it on its way through
             var token = CancellationToken.None;
             var factory = Substitute.For<IWorkerHeartBeatNotificationFactory>();
             factory.Create(Arg.Do<CancellationToken>(t => token = t))
                 .Returns(Substitute.For<IWorkerHeartBeatNotification>());
 
-            var worker = Create(expiry, "*/1 * * * * *", context, sendHeartBeat, scheduler, factory);
-            //read through closures: the job is only scheduled once Start runs, and the token only exists
-            //once the worker has built it
-            return (worker, () => () => scheduled.Compile()(null, null), () => token.IsCancellationRequested);
+            var worker = Create(expiry, TimeSpan.FromMinutes(5), context, sendHeartBeat, factory);
+            //read through a closure: the token only exists once the worker has built it
+            return (worker, () => () => { _ = worker.BeatOnceAsync(); }, () => token.IsCancellationRequested);
+        }
+
+        [TestMethod]
+        public async Task ABeatThatNeverReturns_DoesNotBlockTeardownForever()
+        {
+            //a transport call that hangs holds the beat lock; disposal must give up on it rather than
+            //keeping the message from ever completing
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+            var beatStarted = new ManualResetEventSlim(false);
+            var never = new TaskCompletionSource<IHeartBeatStatus>(TaskCreationOptions.RunContinuationsAsynchronously);
+            sendHeartBeat.SendAsync(context).Returns(_ => { beatStarted.Set(); return never.Task; });
+
+            var test = Create(TimeSpan.FromMinutes(5), TimeSpan.FromMilliseconds(50), context, sendHeartBeat,
+                drainTimeout: DrainWindow);
+            test.Start();
+            Assert.IsTrue(beatStarted.Wait(TimeSpan.FromSeconds(20)), "the heartbeat never started");
+
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            await test.DisposeAsync();
+            timer.Stop();
+
+            //under twice the window: the loop wait and the lock wait share one deadline, so a stalled
+            //beat costs one drain window rather than one for each
+            Assert.IsLessThan(DrainWindow * 1.8, timer.Elapsed,
+                "teardown spent more than one drain window on a heartbeat that was never coming back");
+            never.SetResult(Substitute.For<IHeartBeatStatus>());
+        }
+
+        [TestMethod]
+        public void ABeatThatNeverReturns_DoesNotBlockSynchronousTeardownForever()
+        {
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+            var beatStarted = new ManualResetEventSlim(false);
+            var never = new TaskCompletionSource<IHeartBeatStatus>(TaskCreationOptions.RunContinuationsAsynchronously);
+            sendHeartBeat.SendAsync(context).Returns(_ => { beatStarted.Set(); return never.Task; });
+
+            var test = Create(TimeSpan.FromMinutes(5), TimeSpan.FromMilliseconds(50), context, sendHeartBeat,
+                drainTimeout: DrainWindow);
+            test.Start();
+            Assert.IsTrue(beatStarted.Wait(TimeSpan.FromSeconds(20)), "the heartbeat never started");
+
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            test.Dispose();
+            timer.Stop();
+
+            //under twice the window: the loop wait and the lock wait share one deadline, so a stalled
+            //beat costs one drain window rather than one for each
+            Assert.IsLessThan(DrainWindow * 1.8, timer.Elapsed,
+                "teardown spent more than one drain window on a heartbeat that was never coming back");
+            never.SetResult(Substitute.For<IHeartBeatStatus>());
+        }
+
+        [TestMethod]
+        public async Task StartingAndStoppingWithoutABeat_TearsDownCleanly()
+        {
+            //the interval never elapses, so the loop is parked on the timer the whole time
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+
+            var test = Create(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5), context, sendHeartBeat);
+            test.Start();
+            await test.StopAsync();
+            await test.DisposeAsync();
+
+            await sendHeartBeat.DidNotReceiveWithAnyArgs().SendAsync(null);
+        }
+
+        [TestMethod]
+        public async Task ABeatAfterStop_DoesNotReachTheTransport()
+        {
+            //a stopped worker has given up its claim; beating would renew it and put the worker back to
+            //looking alive while it is shutting down
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+
+            using (var test = Create(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5), context, sendHeartBeat))
+            {
+                test.Start();
+                await test.StopAsync();
+
+                await test.BeatOnceAsync();
+
+                await sendHeartBeat.DidNotReceiveWithAnyArgs().SendAsync(null);
+            }
+        }
+
+        [TestMethod]
+        public async Task ASecondBeatWhileOneIsRunning_IsSkipped()
+        {
+            //the loop cannot produce this - it does not ask for the next tick until the beat returns -
+            //but the guard is what keeps a direct caller from overlapping two updates on one message
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+            var beatStarted = new ManualResetEventSlim(false);
+            var release = new TaskCompletionSource<IHeartBeatStatus>(TaskCreationOptions.RunContinuationsAsynchronously);
+            sendHeartBeat.SendAsync(context).Returns(_ => { beatStarted.Set(); return release.Task; });
+
+            using (var test = Create(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5), context, sendHeartBeat))
+            {
+                test.Start();
+                var first = test.BeatOnceAsync();
+                Assert.IsTrue(beatStarted.Wait(TimeSpan.FromSeconds(20)), "the first heartbeat never started");
+
+                await test.BeatOnceAsync();
+
+                await sendHeartBeat.Received(1).SendAsync(context);
+
+                release.SetResult(Substitute.For<IHeartBeatStatus>());
+                await first;
+            }
         }
 
         private HeartBeatWorker Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            return Create(TimeSpan.Zero, "*/59 * * * * *", fixture.Create<IMessageContext>(), fixture.Create<ISendHeartBeat>());
+            return Create(TimeSpan.Zero, TimeSpan.FromSeconds(59), fixture.Create<IMessageContext>(), fixture.Create<ISendHeartBeat>());
         }
 
 
-        private HeartBeatWorker Create(TimeSpan checkSpan, string updateTime, IMessageContext context, ISendHeartBeat sendHeartBeat,
-            IHeartBeatScheduler scheduler = null, IWorkerHeartBeatNotificationFactory notificationFactory = null)
+        private HeartBeatWorker Create(TimeSpan checkSpan, TimeSpan updateTime, IMessageContext context, ISendHeartBeat sendHeartBeat,
+            IWorkerHeartBeatNotificationFactory notificationFactory = null, TimeSpan drainTimeout = default)
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             fixture.Inject(context);
             fixture.Inject(sendHeartBeat);
+
+            //a logger that reports every level as enabled. Without this the trace and debug branches
+            //never run, and one of them reads status.MessageId.Id.Value - the kind of line that throws
+            //only once it is actually reached
+            var logger = Substitute.For<ILogger>();
+            logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+            fixture.Inject(logger);
             if (notificationFactory != null)
                 fixture.Inject(notificationFactory);
 
@@ -396,14 +506,24 @@ namespace DotNetWorkQueue.Tests.Queue
             fixture.Inject(getTimeFactory);
             var threadPoolConfiguration = fixture.Create<IHeartBeatThreadPoolConfiguration>();
             threadPoolConfiguration.ThreadsMax.Returns(1);
+            threadPoolConfiguration.WaitForThreadPoolToFinish
+                .Returns(drainTimeout == default ? TimeSpan.FromSeconds(5) : drainTimeout);
             fixture.Inject(threadPoolConfiguration);
             IHeartBeatConfiguration configuration = fixture.Create<HeartBeatConfiguration>();
             configuration.Time = checkSpan;
             configuration.UpdateTime = updateTime;
             fixture.Inject(configuration);
-            var threadpool = scheduler ?? fixture.Create<IHeartBeatScheduler>();
-            fixture.Inject(threadpool);
+            //a gate that hands out a slot straight away; the bound itself has its own tests
+            var gate = Substitute.For<IHeartBeatGate>();
+            gate.EnterAsync(Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>())
+                .Returns(_ => Task.FromResult<IDisposable>(new NoOpSlot()));
+            fixture.Inject(gate);
             return fixture.Create<HeartBeatWorker>();
+        }
+
+        private sealed class NoOpSlot : IDisposable
+        {
+            public void Dispose() { }
         }
     }
 }

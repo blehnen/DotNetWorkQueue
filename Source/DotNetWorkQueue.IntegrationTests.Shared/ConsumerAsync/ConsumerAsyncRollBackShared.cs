@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             int messageCount,
             TimeSpan heartBeatTime,
             TimeSpan heartBeatMonitorTime,
-            string updateTime,
+            TimeSpan updateTime,
             string route, bool enableChaos, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {

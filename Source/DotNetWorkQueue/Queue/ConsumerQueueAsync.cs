@@ -116,6 +116,8 @@ namespace DotNetWorkQueue.Queue
                 throw new DotNetWorkQueueException("Start must only be called 1 time");
             }
 
+            ConsumerQueueConfigurationGuard.GuardHeartBeatSchedule(_configuration.HeartBeat);
+
             Started = true;
 
             ShouldWork = true;

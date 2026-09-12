@@ -15,7 +15,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             long messageCount,
             TimeSpan heartBeatTime,
             TimeSpan heartBeatMonitorTime,
-            string updateTime,
+            TimeSpan updateTime,
             bool enableChaos, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {

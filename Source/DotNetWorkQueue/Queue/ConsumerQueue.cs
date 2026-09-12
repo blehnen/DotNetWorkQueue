@@ -111,6 +111,9 @@ namespace DotNetWorkQueue.Queue
             }
 
             Guard.NotNull(workerAction);
+            //before Started is set: a configuration this rejects can be corrected and Start called
+            //again, which the one-start check would otherwise refuse
+            ConsumerQueueConfigurationGuard.GuardHeartBeatSchedule(_configuration.HeartBeat);
             Started = true;
 
             _registerMessages.Register(workerAction);

@@ -26,7 +26,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Route
            TimeSpan heartBeatTime,
            TimeSpan heartBeatMonitorTime,
            ICreationScope scope,
-           string updateTime, bool enableChaos)
+           TimeSpan updateTime, bool enableChaos)
            where TTransportInit : ITransportInit, new()
            where TMessage : class
         {

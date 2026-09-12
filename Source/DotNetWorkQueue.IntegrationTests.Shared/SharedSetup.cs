@@ -120,7 +120,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
         }
 
         public static void SetupDefaultConsumerQueue(QueueConsumerConfiguration configuration, int workerCount,
-            TimeSpan heartbeatTime, TimeSpan heartbeatMonitorTime, string updateTime, string route)
+            TimeSpan heartbeatTime, TimeSpan heartbeatMonitorTime, TimeSpan updateTime, string route)
         {
             configuration.HeartBeat.Time = heartbeatTime;
             configuration.HeartBeat.MonitorTime = heartbeatMonitorTime;

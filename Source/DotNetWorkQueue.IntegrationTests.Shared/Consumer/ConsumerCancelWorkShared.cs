@@ -24,7 +24,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             ILogger logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, Action<IContainer> badQueueAdditions,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route, bool enableChaos, ICreationScope scope)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, TimeSpan updateTime, string route, bool enableChaos, ICreationScope scope)
         {
             _queueConnection = queueConnection;
             _workerCount = workerCount;
@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             ILogger logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, IDisposable queueBad,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route, bool enableChaos, ICreationScope scope)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, TimeSpan updateTime, string route, bool enableChaos, ICreationScope scope)
         {
 
             using (var trace = SharedSetup.CreateTrace("consumer-cancel"))
@@ -106,7 +106,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             }
         }
 
-        private IConsumerQueue CreateConsumerInternalThread(string updateTime, string route)
+        private IConsumerQueue CreateConsumerInternalThread(TimeSpan updateTime, string route)
         {
             _badQueueContainer = SharedSetup.CreateCreator<TTransportInit>(_badQueueAdditions);
 

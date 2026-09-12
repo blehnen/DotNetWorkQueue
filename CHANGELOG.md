@@ -1,4 +1,9 @@
 ﻿### Unreleased
+- Fix: a heartbeat no longer misses its interval under load, so a message still being processed is not reset and handed to a second worker (GitHub #303)
+- ⚠️ `HeartBeat.UpdateTime` is a `TimeSpan` rather than a cron string — `"*/10 * * * * *"` becomes `TimeSpan.FromSeconds(10)` (GitHub #303)
+- ⚠️ A consumer refuses to start when `HeartBeat.Time` is less than three times `HeartBeat.UpdateTime`, since one late beat would then cost the message its claim. The error names both values and how to fix them (GitHub #303)
+- ⚠️ `HeartBeat.ThreadPoolConfiguration.ThreadsMax` caps concurrent heartbeat updates rather than threads, and allows one per worker when left unset (GitHub #303)
+- ⚠️ `IHeartBeatScheduler` is removed; heartbeats no longer run through the job scheduler (GitHub #303)
 - Fix: the dashboard's stale-message threshold, the history retention cut-off and LiteDB's send, receive and heartbeat timestamps come from the queue's configured time provider rather than the machine clock, so each is compared against data written on the same clock (GitHub #304)
 - ⚠️ Monitors, `DataStorage` and LiteDB's command and query handlers take an `IGetTimeFactory`. Only affects code that constructs or subclasses these directly (GitHub #304)
 - Fix: message history timestamps come from the queue's configured time provider rather than the machine clock. On SQL Server and PostgreSQL that is the database server's clock, so history agrees with the rest of the queue's timestamps and durations cannot read negative (GitHub #304)

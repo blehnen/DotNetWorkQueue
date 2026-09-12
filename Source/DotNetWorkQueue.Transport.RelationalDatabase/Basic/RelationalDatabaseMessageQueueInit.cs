@@ -150,8 +150,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             if (!heartBeatConfiguration.Enabled) return;
             heartBeatConfiguration.Time = TimeSpan.FromSeconds(600);
             heartBeatConfiguration.MonitorTime = TimeSpan.FromMinutes(3);
-            heartBeatConfiguration.UpdateTime = "*/2 * * * *";
-            heartBeatConfiguration.ThreadPoolConfiguration.ThreadsMax = 1;
+            heartBeatConfiguration.UpdateTime = TimeSpan.FromMinutes(2);
             heartBeatConfiguration.ThreadPoolConfiguration.WaitForThreadPoolToFinish = TimeSpan.FromSeconds(5);
         }
 

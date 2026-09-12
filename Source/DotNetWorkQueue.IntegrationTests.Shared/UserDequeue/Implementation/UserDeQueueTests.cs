@@ -46,7 +46,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.UserDequeue.Implementation
                     test.RunTest<TTransportInit, FakeMessageA>(queueConnection,
                         true, messageCount, logProvider, generateData, verify, false,
                         GenerateUserData(valueCount), runtime, timeOut, readerCount, TimeSpan.FromSeconds(30),
-                        TimeSpan.FromSeconds(35), oCreation.Scope, "*/10 * * * * *", enableChaos, setQueueOptions);
+                        TimeSpan.FromSeconds(35), oCreation.Scope, TimeSpan.FromSeconds(10), enableChaos, setQueueOptions);
 
                     verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, 0, false, false);
 

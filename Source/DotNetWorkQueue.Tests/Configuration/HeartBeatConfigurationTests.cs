@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Tests.Configuration
         public void SetAndGet_HeartBeatUpdateTime()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var value = fixture.Create<string>();
+            var value = fixture.Create<TimeSpan>();
             var configuration = GetConfiguration();
             configuration.UpdateTime = value;
 
@@ -98,7 +98,7 @@ namespace DotNetWorkQueue.Tests.Configuration
         public void Set_HeartBeatUpdateTime_WhenReadOnly_Fails()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            var value = fixture.Create<string>();
+            var value = fixture.Create<TimeSpan>();
             var configuration = GetConfiguration();
             configuration.SetReadOnly();
 

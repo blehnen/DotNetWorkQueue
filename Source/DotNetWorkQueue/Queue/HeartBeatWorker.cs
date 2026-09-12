@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Queue
         #region Member level Variables
 
         private readonly ILogger _logger;
-        private readonly string _checkTime;
+        private readonly TimeSpan _interval;
         //The window the monitor resets against. A message whose stored heartbeat is older than this is
         //treated as abandoned and handed to another worker, so it is also the deadline this worker has
         //to keep meeting to keep its claim.
@@ -40,10 +40,6 @@ namespace DotNetWorkQueue.Queue
         //Ticks of the last beat that actually landed. Long, not DateTime, so it can be read and written
         //without the beat lock - the staleness check runs on ticks where the beat itself is skipped.
         private long _lastGoodBeatUtcTicks;
-        //Set when a scheduled tick arrives while a beat is already running. That slot would otherwise be
-        //forfeited until the next tick, and with a 3 second schedule against a 10 second expiry there
-        //are only about three slots in the window - losing them is how a live worker's claim lapses.
-        private int _missedTick;
         private readonly ISendHeartBeat _sendHeartbeat;
         private readonly IMessageContext _context;
         private CancellationTokenSource _cancel;
@@ -63,13 +59,22 @@ namespace DotNetWorkQueue.Queue
         //exactly as the lock they replaced was not.
         private readonly SemaphoreSlim _beatLock = new SemaphoreSlim(1, 1);
 
-        private readonly IHeartBeatScheduler _scheduler;
+        //One timer per worker, in place of a cron job on a shared scheduler. PeriodicTimer is the
+        //point of this change: when a tick is missed because the previous beat ran long, the next
+        //WaitForNextTickAsync returns straight away rather than waiting for the following boundary. It
+        //fires late; it does not skip. Losing whole slots is what cost a worker its claim.
+        private PeriodicTimer _timer;
+        private Task _loop;
+        private readonly CancellationTokenSource _loopCancel = new CancellationTokenSource();
+        //Bounds beats in flight across the consumer. A beat waits for a slot; it is never dropped.
+        private readonly IHeartBeatGate _gate;
+        //How long teardown waits for a beat that is already on its way out.
+        private readonly TimeSpan _drainTimeout;
         //The transport's clock, not the machine's. The monitor ages the stored heartbeat against this
         //same source - on Redis it is the Redis server's time - so comparing against _getTime.GetCurrentUtcDate()
         //here would measure the claim against a different clock than the one that reclaims it.
         private readonly IGetTime _getTime;
 
-        private IScheduledJob _job;
 
         private readonly object _runningLock = new object();
         private readonly object _stoppedLock = new object();
@@ -86,14 +91,14 @@ namespace DotNetWorkQueue.Queue
         /// <param name="configuration">The configuration.</param>
         /// <param name="context">The context.</param>
         /// <param name="sendHeartBeat">The send heart beat.</param>
-        /// <param name="scheduler">The scheduler.</param>
+        /// <param name="gate">Bounds how many beats the consumer has in flight at once.</param>
         /// <param name="log">The log.</param>
         /// <param name="heartBeatNotificationFactory">The heart beat notification factory.</param>
         /// <param name="getTimeFactory">The time factory; the transport's clock, which is the one the monitor ages against.</param>
         public HeartBeatWorker(IHeartBeatConfiguration configuration,
             IMessageContext context,
             ISendHeartBeat sendHeartBeat,
-            IHeartBeatScheduler scheduler,
+            IHeartBeatGate gate,
             ILogger log,
             IWorkerHeartBeatNotificationFactory heartBeatNotificationFactory,
             IGetTimeFactory getTimeFactory)
@@ -102,15 +107,16 @@ namespace DotNetWorkQueue.Queue
             Guard.NotNull(getTimeFactory);
             Guard.NotNull(context);
             Guard.NotNull(sendHeartBeat);
-            Guard.NotNull(scheduler);
+            Guard.NotNull(gate);
             Guard.NotNull(log);
             Guard.NotNull(heartBeatNotificationFactory);
 
             _context = context;
-            _checkTime = configuration.UpdateTime;
+            _interval = configuration.UpdateTime;
             _expiry = configuration.Time;
+            _drainTimeout = configuration.ThreadPoolConfiguration.WaitForThreadPoolToFinish;
             _sendHeartbeat = sendHeartBeat;
-            _scheduler = scheduler;
+            _gate = gate;
             _getTime = getTimeFactory.Create();
             _logger = log;
 
@@ -133,12 +139,12 @@ namespace DotNetWorkQueue.Queue
             _beatLock.Wait(CancellationToken.None);
             try
             {
-                if (!string.IsNullOrWhiteSpace(_checkTime))
+                if (_interval > TimeSpan.Zero)
                 {
                     //the claim is fresh as of now; staleness is measured from here until a beat lands
                     Interlocked.Exchange(ref _lastGoodBeatUtcTicks, _getTime.GetCurrentUtcDate().Ticks);
-                    _job = _scheduler.AddUpdateJob(
-                        string.Concat("heartbeat-", _context.MessageId.ToString(), "-", Guid.NewGuid().ToString()), _checkTime, (message, notification) => SendHeartBeatInternal());
+                    _timer = new PeriodicTimer(_interval);
+                    _loop = Task.Run(RunLoopAsync, CancellationToken.None);
                 }
             }
             finally
@@ -207,14 +213,24 @@ namespace DotNetWorkQueue.Queue
 
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
-            _beatLock.Wait(CancellationToken.None);
+            //One deadline for the whole teardown. Both waits can block on the same stalled beat, so
+            //giving each its own window would let disposal take twice what was configured.
+            var deadline = System.Diagnostics.Stopwatch.StartNew();
+
+            //outside the beat lock on purpose: the loop takes that same lock, so waiting for it while
+            //holding it would deadlock
+            StopLoop(deadline);
+
+            var taken = _beatLock.Wait(Remaining(deadline), CancellationToken.None);
             try
             {
-                ReleaseSchedule();
+                if (!taken)
+                    _logger.LogWarning("A heartbeat was still updating after {Timeout}; tearing down anyway", DrainWindow());
+                ReleaseCancel();
             }
             finally
             {
-                _beatLock.Release();
+                if (taken) _beatLock.Release();
             }
         }
 
@@ -223,35 +239,102 @@ namespace DotNetWorkQueue.Queue
         {
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
+            //see Dispose: one deadline across both waits
+            var deadline = System.Diagnostics.Stopwatch.StartNew();
+
+            await StopLoopAsync(deadline).ConfigureAwait(false);
+
             //the same teardown as Dispose, but the wait for an in-flight beat is awaited - this runs on
-            //the asynchronous consumer's continuation, once per message
-            await _beatLock.WaitAsync(CancellationToken.None).ConfigureAwait(false);
+            //the asynchronous consumer's continuation, once per message.
+            var taken = await _beatLock.WaitAsync(Remaining(deadline), CancellationToken.None).ConfigureAwait(false);
             try
             {
-                ReleaseSchedule();
+                if (!taken)
+                    _logger.LogWarning("A heartbeat was still updating after {Timeout}; tearing down anyway", DrainWindow());
+                ReleaseCancel();
             }
             finally
             {
-                _beatLock.Release();
+                if (taken) _beatLock.Release();
             }
             GC.SuppressFinalize(this);
         }
 
         /// <summary>
-        /// Takes the job off the schedule and drops the cancel token. The caller holds the beat lock.
+        /// Stops the timer and waits for a beat that is already running, bounded by
+        /// <see cref="IHeartBeatThreadPoolConfiguration.WaitForThreadPoolToFinish"/>.
         /// </summary>
-        private void ReleaseSchedule()
+        /// <remarks>Must not be called while holding the beat lock - the loop takes it.</remarks>
+        private void StopLoop(System.Diagnostics.Stopwatch deadline)
+        {
+            var loop = SignalLoopToStop();
+            if (loop == null) return;
+            try
+            {
+                //a beat that has not come back inside the drain window is abandoned rather than holding
+                //up the consumer's shutdown; the transport call will finish or fault on its own
+                if (!loop.Wait(Remaining(deadline), CancellationToken.None))
+                    _logger.LogWarning("A heartbeat was still running after {Timeout}; it was not waited for", DrainWindow());
+            }
+            catch (AggregateException error)
+            {
+                _logger.LogError(error, "The heartbeat loop faulted while shutting down");
+            }
+        }
+
+        /// <summary>Awaited form of <see cref="StopLoop"/>.</summary>
+        private async Task StopLoopAsync(System.Diagnostics.Stopwatch deadline)
+        {
+            var loop = SignalLoopToStop();
+            if (loop == null) return;
+            try
+            {
+                var finished = await Task.WhenAny(loop, Task.Delay(Remaining(deadline), CancellationToken.None)).ConfigureAwait(false);
+                if (!ReferenceEquals(finished, loop))
+                    _logger.LogWarning("A heartbeat was still running after {Timeout}; it was not waited for", DrainWindow());
+                else
+                    await loop.ConfigureAwait(false);
+            }
+            catch (Exception error)
+            {
+                _logger.LogError(error, "The heartbeat loop faulted while shutting down");
+            }
+        }
+
+        private TimeSpan DrainWindow() =>
+            _drainTimeout > TimeSpan.Zero ? _drainTimeout : TimeSpan.FromSeconds(5);
+
+        /// <summary>What is left of the drain window, never negative.</summary>
+        private TimeSpan Remaining(System.Diagnostics.Stopwatch deadline)
+        {
+            var left = DrainWindow() - deadline.Elapsed;
+            return left > TimeSpan.Zero ? left : TimeSpan.Zero;
+        }
+
+        private Task SignalLoopToStop()
         {
             Stopped = true;
-            _job?.StopSchedule();
-            if (_job != null)
+            try
             {
-                var removed = _scheduler?.RemoveJob(_job.Name);
-                if (removed.HasValue && !removed.Value)
-                {
-                    _logger.LogWarning("Failed to remove job {JobName} from the heartbeat scheduler", _job.Name);
-                }
+                _loopCancel.Cancel();
             }
+            catch (ObjectDisposedException)
+            {
+                //already torn down
+            }
+            _timer?.Dispose();
+            return _loop;
+        }
+
+        /// <summary>
+        /// Drops the cancel token. The caller holds the beat lock.
+        /// </summary>
+        private void ReleaseCancel()
+        {
+            Stopped = true;
+            //disposed here rather than in SignalLoopToStop: the loop is awaiting on this token, and
+            //disposing it while that wait is unwinding races the cancellation
+            _loopCancel.Dispose();
             lock (_cancelLocker)
             {
                 if (_cancel == null) return;
@@ -262,49 +345,55 @@ namespace DotNetWorkQueue.Queue
         #endregion
 
         /// <summary>
-        /// Sends the heart beat.
+        /// Beats on the interval until the worker is stopped or disposed.
         /// </summary>
         /// <remarks>
-        /// The scheduler calls this on one of its own threads, and it hands that thread straight back:
-        /// the beat continues on its own once the transport call yields. Nothing is lost by not waiting
-        /// here - <see cref="StopAsync"/> and <see cref="DisposeAsync"/> wait on the beat lock, which is
-        /// what actually bounds a beat's lifetime, and <see cref="SendHeartBeatAsync"/> handles its own
-        /// failures, so the task it returns has nothing left to observe.
+        /// Serial by construction: the next tick is not awaited until the current beat has returned, so
+        /// two beats for one message cannot overlap. A beat that runs longer than the interval delays
+        /// the following one rather than forfeiting its slot.
         /// </remarks>
-        private void SendHeartBeatInternal()
+        private async Task RunLoopAsync()
         {
-            //SendHeartBeatAsync handles a failing beat itself, but its own failure handling can throw -
-            //a cancellation callback raising from SetCancel, say. Without this the task would fault with
-            //nobody watching, and a heartbeat that silently stops beating is what lets the monitor reset
-            //a message that is still being processed.
-            _ = SendHeartBeatAsync().ContinueWith(
-                t => _logger.LogError(t.Exception,
-                    "An error has occurred while handling a failed heartbeat update"),
-                CancellationToken.None,
-                TaskContinuationOptions.OnlyOnFaulted,
-                TaskScheduler.Default);
-        }
-
-        /// <summary>
-        /// Sends the heart beat.
-        /// </summary>
-        private async Task SendHeartBeatAsync()
-        {
-            await BeatOnceAsync().ConfigureAwait(false);
-
-            //Take the slot that was lost while the beat above was running, rather than waiting for the
-            //next tick. Bounded to one catch-up: the flag is cleared as it is read, and only a tick
-            //arriving during a beat can set it again.
-            if (Interlocked.Exchange(ref _missedTick, 0) == 1 && !IsDisposed && !Stopped)
+            try
             {
-                await BeatOnceAsync().ConfigureAwait(false);
+                while (await _timer.WaitForNextTickAsync(_loopCancel.Token).ConfigureAwait(false))
+                {
+                    if (IsDisposed || Stopped)
+                        return;
+
+                    //bounded by the interval: a beat held back until the claim has lapsed would make
+                    //this worker cancel itself over a queue the gate created
+                    using (await _gate.EnterAsync(_interval, _loopCancel.Token).ConfigureAwait(false))
+                    {
+                        await BeatOnceAsync().ConfigureAwait(false);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                //teardown
+            }
+            catch (ObjectDisposedException)
+            {
+                //the timer or the gate went away under us during teardown
+            }
+            catch (Exception error)
+            {
+                //BeatOnceAsync handles a failing beat itself, so reaching here means its own failure
+                //handling threw. Letting the loop die silently is what lets the monitor reset a message
+                //that is still being processed, so it is logged rather than swallowed.
+                _logger.LogError(error, "The heartbeat loop has stopped unexpectedly");
             }
         }
 
         /// <summary>
         /// One attempt at updating the heart beat.
         /// </summary>
-        private async Task BeatOnceAsync()
+        /// <remarks>
+        /// Internal so tests can drive a beat without waiting on the timer. The loop is the only
+        /// production caller.
+        /// </remarks>
+        internal async Task BeatOnceAsync()
         {
             if (IsDisposed)
                 return;
@@ -323,9 +412,8 @@ namespace DotNetWorkQueue.Queue
 
             if (Running)
             {
-                //the previous beat has not come back yet; remember the slot so it is taken as soon as
-                //that beat finishes instead of being given up
-                Interlocked.Exchange(ref _missedTick, 1);
+                //The loop cannot reach here - it does not ask for the next tick until this beat has
+                //returned. It remains as a guard for anything that drives a beat directly.
                 _logger.LogWarning(
                     "Skipped a heartbeat for message {MessageId}: the previous update has not completed",
                     _context.MessageId?.Id?.Value);
