@@ -139,7 +139,13 @@ namespace DotNetWorkQueue.Tests.Queue
             {
                 var held = await gate.EnterAsync(TimeSpan.FromSeconds(30), CancellationToken.None);
 
+                //every acquisition is measured, including that one - a pause taking it over the 10ms
+                //interval would log a warning that has nothing to do with what this test is about
+                logger.ClearReceivedCalls();
+
                 var queued = gate.EnterAsync(TimeSpan.FromSeconds(30), CancellationToken.None);
+                Assert.IsFalse(queued.IsCompleted, "the second beat should be waiting for the only slot");
+
                 await Task.Delay(120);          //longer than the 10ms interval
                 held.Dispose();
                 (await queued).Dispose();
