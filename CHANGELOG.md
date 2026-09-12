@@ -1,4 +1,8 @@
 ﻿### Unreleased
+- Fix: message history timestamps read back as the UTC values they were written as on PostgreSQL and SQLite. They were shifted by the machine's UTC offset, so `EnqueuedUtc` held local time and purging by date removed the wrong window (GitHub #311)
+- ⚠️ PostgreSQL stores history and metadata timestamps as `timestamptz` rather than `timestamp`. Existing queues keep their columns and their stored values untouched; re-create a queue to pick up the fix (GitHub #311)
+- ⚠️ History timestamps come back with `DateTimeKind.Utc` on the relational transports, where they were `Unspecified`. Code that corrected them with `ToUniversalTime()` must stop doing so (GitHub #311)
+- ⚠️ SQLite connections are opened with `DateTimeKind=Utc` unless the connection string already sets it. Existing data is unaffected — it was already stored as UTC and only the read was converting (GitHub #311)
 - Fix: a heartbeat no longer misses its interval under load, so a message still being processed is not reset and handed to a second worker (GitHub #303)
 - ⚠️ `HeartBeat.UpdateTime` is a `TimeSpan` rather than a cron string — `"*/10 * * * * *"` becomes `TimeSpan.FromSeconds(10)` (GitHub #303)
 - ⚠️ A consumer refuses to start when `HeartBeat.Time` is less than three times `HeartBeat.UpdateTime`, since one late beat would then cost the message its claim. The error names both values and how to fix them (GitHub #303)

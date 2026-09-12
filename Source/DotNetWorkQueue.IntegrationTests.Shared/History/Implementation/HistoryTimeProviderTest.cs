@@ -70,14 +70,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
                         var records = admin.GetInstance<IQueryMessageHistory>().Get(0, 10, null);
                         Assert.IsGreaterThanOrEqualTo(1, records.Count, "the history record was not written");
 
-                        //what is being asked is where the timestamp came from, so the comparison is
-                        //against the clock rather than against the machine's. It is deliberately not an
-                        //exact match: PostgreSQL and SQLite return the value shifted by the machine's
-                        //UTC offset, which is GitHub #311 and not this test's subject. A day of slack
-                        //covers any offset while leaving twenty-five years between the two candidates.
-                        var drift = (records[0].EnqueuedUtc - FixedUtc).Duration();
-                        Assert.IsLessThanOrEqualTo(TimeSpan.FromDays(1), drift,
-                            $"expected a timestamp from the configured provider (near {FixedUtc:u}), got {records[0].EnqueuedUtc:u}");
+                        //Exact, including the Kind. This was a day of slack until GitHub #311, because
+                        //PostgreSQL and SQLite returned the value shifted by the machine's UTC offset -
+                        //so a run on a machine that is not on UTC is what catches a regression here.
+                        Assert.AreEqual(FixedUtc, records[0].EnqueuedUtc,
+                            $"expected the timestamp the provider gave ({FixedUtc:O}), got {records[0].EnqueuedUtc:O}");
+                        Assert.AreEqual(DateTimeKind.Utc, records[0].EnqueuedUtc.Kind,
+                            "a timestamp on a column named EnqueuedUtc came back without a UTC kind");
                     }
                 }
                 finally
