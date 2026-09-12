@@ -22,6 +22,8 @@ namespace DotNetWorkQueue.Tests.Queue
     [TestClass]
     public class HeartBeatWorkerTests
     {
+        private static readonly TimeSpan DrainWindow = TimeSpan.FromMilliseconds(500);
+
         [TestMethod]
         public void IsDisposed_False_By_Default()
         {
@@ -371,7 +373,7 @@ namespace DotNetWorkQueue.Tests.Queue
             sendHeartBeat.SendAsync(context).Returns(_ => { beatStarted.Set(); return never.Task; });
 
             var test = Create(TimeSpan.FromMinutes(5), TimeSpan.FromMilliseconds(50), context, sendHeartBeat,
-                drainTimeout: TimeSpan.FromMilliseconds(250));
+                drainTimeout: DrainWindow);
             test.Start();
             Assert.IsTrue(beatStarted.Wait(TimeSpan.FromSeconds(20)), "the heartbeat never started");
 
@@ -379,8 +381,10 @@ namespace DotNetWorkQueue.Tests.Queue
             await test.DisposeAsync();
             timer.Stop();
 
-            Assert.IsLessThan(TimeSpan.FromSeconds(15), timer.Elapsed,
-                "disposal waited on a heartbeat that was never coming back");
+            //under twice the window: the loop wait and the lock wait share one deadline, so a stalled
+            //beat costs one drain window rather than one for each
+            Assert.IsLessThan(DrainWindow * 1.8, timer.Elapsed,
+                "teardown spent more than one drain window on a heartbeat that was never coming back");
             never.SetResult(Substitute.For<IHeartBeatStatus>());
         }
 
@@ -394,7 +398,7 @@ namespace DotNetWorkQueue.Tests.Queue
             sendHeartBeat.SendAsync(context).Returns(_ => { beatStarted.Set(); return never.Task; });
 
             var test = Create(TimeSpan.FromMinutes(5), TimeSpan.FromMilliseconds(50), context, sendHeartBeat,
-                drainTimeout: TimeSpan.FromMilliseconds(250));
+                drainTimeout: DrainWindow);
             test.Start();
             Assert.IsTrue(beatStarted.Wait(TimeSpan.FromSeconds(20)), "the heartbeat never started");
 
@@ -402,8 +406,10 @@ namespace DotNetWorkQueue.Tests.Queue
             test.Dispose();
             timer.Stop();
 
-            Assert.IsLessThan(TimeSpan.FromSeconds(15), timer.Elapsed,
-                "disposal waited on a heartbeat that was never coming back");
+            //under twice the window: the loop wait and the lock wait share one deadline, so a stalled
+            //beat costs one drain window rather than one for each
+            Assert.IsLessThan(DrainWindow * 1.8, timer.Elapsed,
+                "teardown spent more than one drain window on a heartbeat that was never coming back");
             never.SetResult(Substitute.For<IHeartBeatStatus>());
         }
 

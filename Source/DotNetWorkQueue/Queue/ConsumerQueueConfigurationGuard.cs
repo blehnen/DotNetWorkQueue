@@ -52,10 +52,10 @@ namespace DotNetWorkQueue.Queue
             //PeriodicTimer's range. Without this the consumer starts and the first message throws while
             //its heartbeat worker is being built, which is a much worse place to find out.
             if (heartBeat.UpdateTime < TimeSpan.FromMilliseconds(1) ||
-                heartBeat.UpdateTime.TotalMilliseconds > int.MaxValue)
+                heartBeat.UpdateTime.TotalMilliseconds >= uint.MaxValue)
                 throw new DotNetWorkQueueException(
-                    $"HeartBeat.UpdateTime ({heartBeat.UpdateTime}) must be between one millisecond and " +
-                    $"{TimeSpan.FromMilliseconds(int.MaxValue)}.");
+                    $"HeartBeat.UpdateTime ({heartBeat.UpdateTime}) must be at least one millisecond and " +
+                    $"less than {TimeSpan.FromMilliseconds(uint.MaxValue)}.");
 
             const int minimumAttempts = 3;
             var attempts = (int)(heartBeat.Time.Ticks / heartBeat.UpdateTime.Ticks);

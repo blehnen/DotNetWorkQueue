@@ -213,13 +213,15 @@ namespace DotNetWorkQueue.Queue
 
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
+            //One deadline for the whole teardown. Both waits can block on the same stalled beat, so
+            //giving each its own window would let disposal take twice what was configured.
+            var deadline = System.Diagnostics.Stopwatch.StartNew();
+
             //outside the beat lock on purpose: the loop takes that same lock, so waiting for it while
             //holding it would deadlock
-            StopLoop();
+            StopLoop(deadline);
 
-            //bounded for the same reason the loop wait is: a transport call that never returns holds
-            //this lock, and an unbounded wait here would block the message from completing at all
-            var taken = _beatLock.Wait(DrainWindow(), CancellationToken.None);
+            var taken = _beatLock.Wait(Remaining(deadline), CancellationToken.None);
             try
             {
                 if (!taken)
@@ -237,11 +239,14 @@ namespace DotNetWorkQueue.Queue
         {
             if (Interlocked.Increment(ref _disposeCount) != 1) return;
 
-            await StopLoopAsync().ConfigureAwait(false);
+            //see Dispose: one deadline across both waits
+            var deadline = System.Diagnostics.Stopwatch.StartNew();
+
+            await StopLoopAsync(deadline).ConfigureAwait(false);
 
             //the same teardown as Dispose, but the wait for an in-flight beat is awaited - this runs on
-            //the asynchronous consumer's continuation, once per message. Bounded for the same reason.
-            var taken = await _beatLock.WaitAsync(DrainWindow(), CancellationToken.None).ConfigureAwait(false);
+            //the asynchronous consumer's continuation, once per message.
+            var taken = await _beatLock.WaitAsync(Remaining(deadline), CancellationToken.None).ConfigureAwait(false);
             try
             {
                 if (!taken)
@@ -260,7 +265,7 @@ namespace DotNetWorkQueue.Queue
         /// <see cref="IHeartBeatThreadPoolConfiguration.WaitForThreadPoolToFinish"/>.
         /// </summary>
         /// <remarks>Must not be called while holding the beat lock - the loop takes it.</remarks>
-        private void StopLoop()
+        private void StopLoop(System.Diagnostics.Stopwatch deadline)
         {
             var loop = SignalLoopToStop();
             if (loop == null) return;
@@ -268,7 +273,7 @@ namespace DotNetWorkQueue.Queue
             {
                 //a beat that has not come back inside the drain window is abandoned rather than holding
                 //up the consumer's shutdown; the transport call will finish or fault on its own
-                if (!loop.Wait(DrainWindow(), CancellationToken.None))
+                if (!loop.Wait(Remaining(deadline), CancellationToken.None))
                     _logger.LogWarning("A heartbeat was still running after {Timeout}; it was not waited for", DrainWindow());
             }
             catch (AggregateException error)
@@ -278,13 +283,13 @@ namespace DotNetWorkQueue.Queue
         }
 
         /// <summary>Awaited form of <see cref="StopLoop"/>.</summary>
-        private async Task StopLoopAsync()
+        private async Task StopLoopAsync(System.Diagnostics.Stopwatch deadline)
         {
             var loop = SignalLoopToStop();
             if (loop == null) return;
             try
             {
-                var finished = await Task.WhenAny(loop, Task.Delay(DrainWindow(), CancellationToken.None)).ConfigureAwait(false);
+                var finished = await Task.WhenAny(loop, Task.Delay(Remaining(deadline), CancellationToken.None)).ConfigureAwait(false);
                 if (!ReferenceEquals(finished, loop))
                     _logger.LogWarning("A heartbeat was still running after {Timeout}; it was not waited for", DrainWindow());
                 else
@@ -298,6 +303,13 @@ namespace DotNetWorkQueue.Queue
 
         private TimeSpan DrainWindow() =>
             _drainTimeout > TimeSpan.Zero ? _drainTimeout : TimeSpan.FromSeconds(5);
+
+        /// <summary>What is left of the drain window, never negative.</summary>
+        private TimeSpan Remaining(System.Diagnostics.Stopwatch deadline)
+        {
+            var left = DrainWindow() - deadline.Elapsed;
+            return left > TimeSpan.Zero ? left : TimeSpan.Zero;
+        }
 
         private Task SignalLoopToStop()
         {
