@@ -3,7 +3,6 @@ using System.Text;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.Memory.Basic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using NSubstitute;
 
 namespace DotNetWorkQueue.Tests.Transport.Memory.Basic

@@ -42,5 +42,21 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.History
                     Helpers.GenerateData, Helpers.Verify);
             }
         }
+
+        [TestMethod]
+        public void HistoryTimestampComesFromTheConfiguredTimeProvider()
+        {
+            using (var connectionInfo = new IntegrationConnectionInfo())
+            {
+                var queueName = GenerateQueueName.Create();
+                var test = new HistoryTimeProviderTest();
+                test.Run<MemoryMessageQueueInit, MessageQueueCreation>(
+                    new QueueConnection(queueName, connectionInfo.ConnectionString),
+                    x =>
+                    {
+                        x.Options.EnableHistory = true;
+                    });
+            }
+        }
     }
 }

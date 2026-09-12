@@ -3,7 +3,6 @@ using System.Data;
 using System.Data.Common;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using NSubstitute;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic

@@ -3,7 +3,6 @@ using System.Linq;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Transport.LiteDb.Basic;
 using DotNetWorkQueue.Transport.LiteDb.Schema;
-using System;
 using NSubstitute;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DotNetWorkQueue.Tests.Shared;

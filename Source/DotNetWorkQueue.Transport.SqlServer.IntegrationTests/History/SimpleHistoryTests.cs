@@ -45,5 +45,19 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.History
                 },
                 Helpers.GenerateData, Helpers.Verify);
         }
+
+        [TestMethod]
+        public void HistoryTimestampComesFromTheConfiguredTimeProvider()
+        {
+            var queueName = GenerateQueueName.Create();
+            var test = new HistoryTimeProviderTest();
+            test.Run<SqlServerMessageQueueInit, SqlServerMessageQueueCreation>(
+                new QueueConnection(queueName, ConnectionInfo.ConnectionString),
+                x =>
+                {
+                    Helpers.SetOptions(x, true, false, false, false, false, false, true, false);
+                    x.Options.EnableHistory = true;
+                });
+        }
     }
 }

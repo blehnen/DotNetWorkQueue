@@ -33,11 +33,12 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
 
         private readonly IConnectionInformation _connectionInformation;
         private readonly IBaseTransportOptions _options;
-        //Time comes from the configured provider, not the local clock. On SQL Server and PostgreSQL
-        //that is the database server's clock, which is what the rest of the queue's timestamps are on;
-        //history written from an application machine with a drifting clock would otherwise report
-        //durations that disagree with them, or run negative. BaseTime caches an offset, so this costs
-        //no round trip.
+        //Time comes from the configured provider rather than the local clock. On SQL Server and
+        //PostgreSQL that provider is the database server, which is where the rest of the queue's
+        //timestamps come from. History written from an application machine with a drifting clock
+        //would otherwise disagree with the data beside it, and a duration taken from a start and an
+        //end on different clocks can come out negative. BaseTime caches an offset, so this costs no
+        //round trip.
         private readonly IGetTime _getTime;
 
         /// <inheritdoc />
