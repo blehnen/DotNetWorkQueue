@@ -49,6 +49,14 @@ namespace DotNetWorkQueue.Queue
                     "HeartBeat.Time must be greater than zero when heartbeats are enabled; " +
                     "it is how long a worker's claim on a message remains valid.");
 
+            //PeriodicTimer's range. Without this the consumer starts and the first message throws while
+            //its heartbeat worker is being built, which is a much worse place to find out.
+            if (heartBeat.UpdateTime < TimeSpan.FromMilliseconds(1) ||
+                heartBeat.UpdateTime.TotalMilliseconds > int.MaxValue)
+                throw new DotNetWorkQueueException(
+                    $"HeartBeat.UpdateTime ({heartBeat.UpdateTime}) must be between one millisecond and " +
+                    $"{TimeSpan.FromMilliseconds(int.MaxValue)}.");
+
             const int minimumAttempts = 3;
             var attempts = (int)(heartBeat.Time.Ticks / heartBeat.UpdateTime.Ticks);
             if (attempts >= minimumAttempts) return;
@@ -59,8 +67,8 @@ namespace DotNetWorkQueue.Queue
                 $"the message's claim expiring. With the current values there are {attempts} attempts " +
                 "before the claim expires; a single delayed beat can cause the message to be reset and " +
                 "processed a second time. Either raise HeartBeat.Time to " +
-                $"{TimeSpan.FromTicks(heartBeat.UpdateTime.Ticks * minimumAttempts)} or lower " +
-                $"HeartBeat.UpdateTime to {TimeSpan.FromTicks(heartBeat.Time.Ticks / minimumAttempts)}.");
+                $"{TimeSpan.FromTicks(heartBeat.UpdateTime.Ticks * minimumAttempts)}, or lower " +
+                $"HeartBeat.UpdateTime to {TimeSpan.FromTicks(heartBeat.Time.Ticks / minimumAttempts)}");
         }
     }
 }

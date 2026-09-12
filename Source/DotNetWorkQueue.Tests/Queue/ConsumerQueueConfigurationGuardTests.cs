@@ -82,6 +82,19 @@ namespace DotNetWorkQueue.Tests.Queue
             ConsumerQueueConfigurationGuard.GuardHeartBeatSchedule(null);
         }
 
+        [TestMethod]
+        public void AnIntervalPeriodicTimerCannotAccept_IsRejected()
+        {
+            //caught at start-up rather than when the first message builds its heartbeat worker
+            Assert.ThrowsExactly<DotNetWorkQueueException>(() =>
+                ConsumerQueueConfigurationGuard.GuardHeartBeatSchedule(
+                    Configuration(TimeSpan.FromDays(365), TimeSpan.FromTicks(1))));
+
+            Assert.ThrowsExactly<DotNetWorkQueueException>(() =>
+                ConsumerQueueConfigurationGuard.GuardHeartBeatSchedule(
+                    Configuration(TimeSpan.FromDays(365), TimeSpan.FromDays(90))));
+        }
+
         private static IHeartBeatConfiguration Configuration(TimeSpan time, TimeSpan updateTime, bool enabled = true)
         {
             var heartBeat = Substitute.For<IHeartBeatConfiguration>();

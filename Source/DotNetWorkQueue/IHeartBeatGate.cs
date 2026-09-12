@@ -28,9 +28,15 @@ namespace DotNetWorkQueue
     public interface IHeartBeatGate : IDisposable
     {
         /// <summary>
-        /// Waits for a slot. Dispose the result to give it back.
+        /// Waits up to <paramref name="maxWait"/> for a slot. Dispose the result to give it back.
         /// </summary>
+        /// <param name="maxWait">How long to wait before going ahead without a slot.</param>
         /// <param name="cancellation">Cancels the wait.</param>
-        Task<IDisposable> EnterAsync(CancellationToken cancellation);
+        /// <remarks>
+        /// Always returns something to dispose. The bound is a throttle, not a gate on correctness: a
+        /// beat that waited too long goes ahead anyway, because missing the beat costs the message its
+        /// claim while exceeding a concurrency target costs a little database load.
+        /// </remarks>
+        Task<IDisposable> EnterAsync(TimeSpan maxWait, CancellationToken cancellation);
     }
 }

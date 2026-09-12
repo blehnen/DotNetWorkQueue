@@ -45,6 +45,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
             _consumer.Configuration.Worker.SingleWorkerWhenNoWorkFound = true;
             _consumer.Configuration.HeartBeat.Time = TimeSpan.FromSeconds(heartBeatSeconds);
             _consumer.Configuration.HeartBeat.MonitorTime = TimeSpan.FromSeconds(heartBeatSeconds / 2);
+            //shortening the claim means shortening the beat with it - the transport default is two
+            //minutes, which against a five minute claim leaves no room for a late beat
+            _consumer.Configuration.HeartBeat.UpdateTime = TimeSpan.FromSeconds(heartBeatSeconds / 4.0);
 
             var signal = _blockSignal;
             _consumer.Start<FakeMessage>((message, notifications) =>
@@ -91,12 +94,15 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
             _consumer.Configuration.Worker.WorkerCount = workerCount;
             _consumer.Configuration.Worker.SingleWorkerWhenNoWorkFound = true;
             // HeartBeat is written at dequeue time (ReceiveMessage sets HeartBeat = NOW in ticks).
-            // By NOT setting UpdateTime, the HeartBeatWorker never schedules updates,
-            // so HeartBeat stays at its dequeue-time value and becomes stale within seconds.
-            // Keep Time large (300s) so the consumer's heartbeat monitor doesn't reset
-            // the message back to Waiting before the Dashboard stale query can detect it.
+            // The update interval is set far longer than this test runs, so no beat ever lands and the
+            // stored HeartBeat stays at its dequeue-time value - which is what the dashboard's stale
+            // query is meant to notice. It has to be set rather than left alone: the transport default
+            // is two minutes, which against a 300s claim is the ratio the consumer now rejects.
+            // Time stays large so the consumer's own monitor does not reset the message back to
+            // Waiting before the dashboard can see it.
             _consumer.Configuration.HeartBeat.Time = TimeSpan.FromSeconds(300);
             _consumer.Configuration.HeartBeat.MonitorTime = TimeSpan.FromSeconds(150);
+            _consumer.Configuration.HeartBeat.UpdateTime = TimeSpan.FromSeconds(60);
 
             var signal = _blockSignal;
             _consumer.Start<FakeMessage>((message, notifications) =>

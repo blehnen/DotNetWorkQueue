@@ -359,6 +359,69 @@ namespace DotNetWorkQueue.Tests.Queue
             return (worker, () => () => { _ = worker.BeatOnceAsync(); }, () => token.IsCancellationRequested);
         }
 
+        [TestMethod]
+        public async Task ABeatThatNeverReturns_DoesNotBlockTeardownForever()
+        {
+            //a transport call that hangs holds the beat lock; disposal must give up on it rather than
+            //keeping the message from ever completing
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+            var beatStarted = new ManualResetEventSlim(false);
+            var never = new TaskCompletionSource<IHeartBeatStatus>(TaskCreationOptions.RunContinuationsAsynchronously);
+            sendHeartBeat.SendAsync(context).Returns(_ => { beatStarted.Set(); return never.Task; });
+
+            var test = Create(TimeSpan.FromMinutes(5), TimeSpan.FromMilliseconds(50), context, sendHeartBeat,
+                drainTimeout: TimeSpan.FromMilliseconds(250));
+            test.Start();
+            Assert.IsTrue(beatStarted.Wait(TimeSpan.FromSeconds(20)), "the heartbeat never started");
+
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            await test.DisposeAsync();
+            timer.Stop();
+
+            Assert.IsLessThan(TimeSpan.FromSeconds(15), timer.Elapsed,
+                "disposal waited on a heartbeat that was never coming back");
+            never.SetResult(Substitute.For<IHeartBeatStatus>());
+        }
+
+        [TestMethod]
+        public void ABeatThatNeverReturns_DoesNotBlockSynchronousTeardownForever()
+        {
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+            var beatStarted = new ManualResetEventSlim(false);
+            var never = new TaskCompletionSource<IHeartBeatStatus>(TaskCreationOptions.RunContinuationsAsynchronously);
+            sendHeartBeat.SendAsync(context).Returns(_ => { beatStarted.Set(); return never.Task; });
+
+            var test = Create(TimeSpan.FromMinutes(5), TimeSpan.FromMilliseconds(50), context, sendHeartBeat,
+                drainTimeout: TimeSpan.FromMilliseconds(250));
+            test.Start();
+            Assert.IsTrue(beatStarted.Wait(TimeSpan.FromSeconds(20)), "the heartbeat never started");
+
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            test.Dispose();
+            timer.Stop();
+
+            Assert.IsLessThan(TimeSpan.FromSeconds(15), timer.Elapsed,
+                "disposal waited on a heartbeat that was never coming back");
+            never.SetResult(Substitute.For<IHeartBeatStatus>());
+        }
+
+        [TestMethod]
+        public async Task StartingAndStoppingWithoutABeat_TearsDownCleanly()
+        {
+            //the interval never elapses, so the loop is parked on the timer the whole time
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+
+            var test = Create(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5), context, sendHeartBeat);
+            test.Start();
+            await test.StopAsync();
+            await test.DisposeAsync();
+
+            await sendHeartBeat.DidNotReceiveWithAnyArgs().SendAsync(null);
+        }
+
         private HeartBeatWorker Create()
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
@@ -367,7 +430,7 @@ namespace DotNetWorkQueue.Tests.Queue
 
 
         private HeartBeatWorker Create(TimeSpan checkSpan, TimeSpan updateTime, IMessageContext context, ISendHeartBeat sendHeartBeat,
-            IWorkerHeartBeatNotificationFactory notificationFactory = null)
+            IWorkerHeartBeatNotificationFactory notificationFactory = null, TimeSpan drainTimeout = default)
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             fixture.Inject(context);
@@ -384,6 +447,8 @@ namespace DotNetWorkQueue.Tests.Queue
             fixture.Inject(getTimeFactory);
             var threadPoolConfiguration = fixture.Create<IHeartBeatThreadPoolConfiguration>();
             threadPoolConfiguration.ThreadsMax.Returns(1);
+            threadPoolConfiguration.WaitForThreadPoolToFinish
+                .Returns(drainTimeout == default ? TimeSpan.FromSeconds(5) : drainTimeout);
             fixture.Inject(threadPoolConfiguration);
             IHeartBeatConfiguration configuration = fixture.Create<HeartBeatConfiguration>();
             configuration.Time = checkSpan;
@@ -391,7 +456,7 @@ namespace DotNetWorkQueue.Tests.Queue
             fixture.Inject(configuration);
             //a gate that hands out a slot straight away; the bound itself has its own tests
             var gate = Substitute.For<IHeartBeatGate>();
-            gate.EnterAsync(Arg.Any<CancellationToken>())
+            gate.EnterAsync(Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>())
                 .Returns(_ => Task.FromResult<IDisposable>(new NoOpSlot()));
             fixture.Inject(gate);
             return fixture.Create<HeartBeatWorker>();

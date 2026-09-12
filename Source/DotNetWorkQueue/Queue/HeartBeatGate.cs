@@ -37,6 +37,7 @@ namespace DotNetWorkQueue.Queue
     {
         private readonly SemaphoreSlim _slots;
         private readonly TimeSpan _warnAfter;
+        private readonly int _workerCount;
         private readonly ILogger _logger;
         private int _disposeCount;
 
@@ -60,15 +61,28 @@ namespace DotNetWorkQueue.Queue
             if (max <= 0)
                 max = Math.Max(1, configuration.Worker.WorkerCount);
 
+            _workerCount = configuration.Worker.WorkerCount;
             _slots = new SemaphoreSlim(max, max);
         }
 
         /// <inheritdoc />
-        public async Task<IDisposable> EnterAsync(CancellationToken cancellation)
+        public async Task<IDisposable> EnterAsync(TimeSpan maxWait, CancellationToken cancellation)
         {
             var waited = System.Diagnostics.Stopwatch.StartNew();
-            await _slots.WaitAsync(cancellation).ConfigureAwait(false);
+            var taken = await _slots.WaitAsync(maxWait, cancellation).ConfigureAwait(false);
             waited.Stop();
+
+            if (!taken)
+            {
+                //Going ahead without a slot. A beat held back until its claim has already lapsed is
+                //worse than a moment of extra load: the worker would then cancel itself over a queue
+                //this class created. The bound is a throttle, so it yields to the deadline.
+                _logger.LogWarning(
+                    "A heartbeat waited {WaitedMs}ms for a slot and went ahead without one. " +
+                    "HeartBeat.ThreadPoolConfiguration.ThreadsMax is too low for {Workers} workers",
+                    waited.Elapsed.TotalMilliseconds, _workerCount);
+                return NullSlot;
+            }
 
             //Waiting longer than the interval means the next beat is already due - the condition that
             //used to be invisible, because a beat that could not get a thread simply sat in a queue
@@ -81,6 +95,13 @@ namespace DotNetWorkQueue.Queue
             }
 
             return new Slot(_slots);
+        }
+
+        private static readonly IDisposable NullSlot = new NoSlot();
+
+        private sealed class NoSlot : IDisposable
+        {
+            public void Dispose() { }
         }
 
         /// <inheritdoc />

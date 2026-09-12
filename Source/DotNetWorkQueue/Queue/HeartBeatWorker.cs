@@ -217,14 +217,18 @@ namespace DotNetWorkQueue.Queue
             //holding it would deadlock
             StopLoop();
 
-            _beatLock.Wait(CancellationToken.None);
+            //bounded for the same reason the loop wait is: a transport call that never returns holds
+            //this lock, and an unbounded wait here would block the message from completing at all
+            var taken = _beatLock.Wait(DrainWindow(), CancellationToken.None);
             try
             {
+                if (!taken)
+                    _logger.LogWarning("A heartbeat was still updating after {Timeout}; tearing down anyway", DrainWindow());
                 ReleaseCancel();
             }
             finally
             {
-                _beatLock.Release();
+                if (taken) _beatLock.Release();
             }
         }
 
@@ -236,15 +240,17 @@ namespace DotNetWorkQueue.Queue
             await StopLoopAsync().ConfigureAwait(false);
 
             //the same teardown as Dispose, but the wait for an in-flight beat is awaited - this runs on
-            //the asynchronous consumer's continuation, once per message
-            await _beatLock.WaitAsync(CancellationToken.None).ConfigureAwait(false);
+            //the asynchronous consumer's continuation, once per message. Bounded for the same reason.
+            var taken = await _beatLock.WaitAsync(DrainWindow(), CancellationToken.None).ConfigureAwait(false);
             try
             {
+                if (!taken)
+                    _logger.LogWarning("A heartbeat was still updating after {Timeout}; tearing down anyway", DrainWindow());
                 ReleaseCancel();
             }
             finally
             {
-                _beatLock.Release();
+                if (taken) _beatLock.Release();
             }
             GC.SuppressFinalize(this);
         }
@@ -262,7 +268,7 @@ namespace DotNetWorkQueue.Queue
             {
                 //a beat that has not come back inside the drain window is abandoned rather than holding
                 //up the consumer's shutdown; the transport call will finish or fault on its own
-                if (!loop.Wait(DrainWindow()))
+                if (!loop.Wait(DrainWindow(), CancellationToken.None))
                     _logger.LogWarning("A heartbeat was still running after {Timeout}; it was not waited for", DrainWindow());
             }
             catch (AggregateException error)
@@ -278,7 +284,7 @@ namespace DotNetWorkQueue.Queue
             if (loop == null) return;
             try
             {
-                var finished = await Task.WhenAny(loop, Task.Delay(DrainWindow())).ConfigureAwait(false);
+                var finished = await Task.WhenAny(loop, Task.Delay(DrainWindow(), CancellationToken.None)).ConfigureAwait(false);
                 if (!ReferenceEquals(finished, loop))
                     _logger.LogWarning("A heartbeat was still running after {Timeout}; it was not waited for", DrainWindow());
                 else
@@ -314,6 +320,9 @@ namespace DotNetWorkQueue.Queue
         private void ReleaseCancel()
         {
             Stopped = true;
+            //disposed here rather than in SignalLoopToStop: the loop is awaiting on this token, and
+            //disposing it while that wait is unwinding races the cancellation
+            _loopCancel.Dispose();
             lock (_cancelLocker)
             {
                 if (_cancel == null) return;
@@ -340,7 +349,9 @@ namespace DotNetWorkQueue.Queue
                     if (IsDisposed || Stopped)
                         return;
 
-                    using (await _gate.EnterAsync(_loopCancel.Token).ConfigureAwait(false))
+                    //bounded by the interval: a beat held back until the claim has lapsed would make
+                    //this worker cancel itself over a queue the gate created
+                    using (await _gate.EnterAsync(_interval, _loopCancel.Token).ConfigureAwait(false))
                     {
                         await BeatOnceAsync().ConfigureAwait(false);
                     }
