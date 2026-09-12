@@ -169,7 +169,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 meta.Columns.Add(new Column("Priority", ColumnTypes.Integer, false));
             }
 
-            meta.Columns.Add(new Column("QueuedDateTime", ColumnTypes.Timestamp, false));
+            meta.Columns.Add(new Column("QueuedDateTime", ColumnTypes.TimestampTZ, false));
 
             if (_options.Value.EnableStatus)
             {
@@ -315,7 +315,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 metaErrors.Columns.Add(c.Clone());
             }
             metaErrors.Columns.Add(new Column("LastException", ColumnTypes.Text, -1, true));
-            metaErrors.Columns.Add(new Column("LastExceptionDate", ColumnTypes.Timestamp, true));
+            metaErrors.Columns.Add(new Column("LastExceptionDate", ColumnTypes.TimestampTZ, true));
 
             //add primary key constraint
             metaErrors.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataErrorsName, ConstraintType.PrimaryKey, "ID"));
@@ -342,9 +342,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             history.Columns.Add(new Column(ColumnQueueId, ColumnTypes.Varchar, 100, false));
             history.Columns.Add(new Column("CorrelationID", ColumnTypes.Varchar, 38, true));
             history.Columns.Add(new Column(ColumnStatus, ColumnTypes.Integer, false));
-            history.Columns.Add(new Column("EnqueuedUtc", ColumnTypes.Timestamp, false));
-            history.Columns.Add(new Column("StartedUtc", ColumnTypes.Timestamp, true));
-            history.Columns.Add(new Column("CompletedUtc", ColumnTypes.Timestamp, true));
+            //timestamptz, not timestamp. Npgsql maps a DateTime to "timestamp with time zone", so a
+            //UTC value written into a naive column was converted to the session time zone on the way
+            //in - the stored value was local time under a column named ...Utc (GitHub #311)
+            history.Columns.Add(new Column("EnqueuedUtc", ColumnTypes.TimestampTZ, false));
+            history.Columns.Add(new Column("StartedUtc", ColumnTypes.TimestampTZ, true));
+            history.Columns.Add(new Column("CompletedUtc", ColumnTypes.TimestampTZ, true));
             history.Columns.Add(new Column("DurationMs", ColumnTypes.Bigint, true));
             history.Columns.Add(new Column("ExceptionText", ColumnTypes.Text, -1, true));
             history.Columns.Add(new Column("RetryCount", ColumnTypes.Integer, false));

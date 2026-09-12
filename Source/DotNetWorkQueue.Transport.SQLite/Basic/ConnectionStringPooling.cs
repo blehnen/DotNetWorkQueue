@@ -52,6 +52,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
     internal static class ConnectionStringPooling
     {
         private const string PoolingKeyword = "Pooling";
+        private const string DateTimeKindKeyword = "DateTimeKind";
 
         private static readonly IGetFileNameFromConnectionString FileNameParser =
             new GetFileNameFromConnectionString();
@@ -120,14 +121,23 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 return connectionString;
             }
 
+            var result = connectionString;
+
+            //Timestamps are written and read as UTC. Without this the provider converts a stored UTC
+            //value to local time on the way out and drops the Kind, so a history record written as
+            //04:05 came back as 22:05 the day before - see GitHub #311. Applied before the pooling
+            //decision below, which returns early in cases that have nothing to do with time.
+            if (!builder.ContainsKey(DateTimeKindKeyword))
+                result = Append(result, DateTimeKindKeyword, nameof(DateTimeKind.Utc));
+
             //an explicit Pooling=true or Pooling=false is the caller's decision; do not override it
             if (builder.ContainsKey(PoolingKeyword))
-                return connectionString;
+                return result;
 
             //an in-memory database is kept alive by SqLiteHoldConnection, and with shared cache a
             //pooled connection would keep it alive past the point the caller disposed of it
             if (FileNameParser.GetFileName(connectionString).IsInMemory)
-                return connectionString;
+                return result;
 
             //Append rather than returning builder.ConnectionString. The builder is used only to
             //inspect: round-tripping through it rewrites the caller's string, and for input it
@@ -135,9 +145,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             //string=;;;" comes back as "pooling=True". Appending keeps whatever the caller passed
             //exactly as they passed it, so a connection string we misjudge still fails the way it
             //would have without us.
+            return Append(result, PoolingKeyword, "True");
+        }
+
+        private static string Append(string connectionString, string keyword, string value)
+        {
             var trimmed = connectionString.TrimEnd();
             var separator = trimmed.EndsWith(';') ? string.Empty : ";";
-            return trimmed + separator + PoolingKeyword + "=True;";
+            return trimmed + separator + keyword + "=" + value + ";";
         }
     }
 }

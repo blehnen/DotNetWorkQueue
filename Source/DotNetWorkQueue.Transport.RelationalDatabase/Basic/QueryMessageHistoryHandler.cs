@@ -157,9 +157,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 QueueId = reader.GetString(0),
                 CorrelationId = reader.IsDBNull(1) ? null : reader.GetString(1),
                 Status = (MessageHistoryStatus)reader.GetInt32(2),
-                EnqueuedUtc = reader.GetDateTime(3),
-                StartedUtc = reader.IsDBNull(4) ? null : (DateTime?)reader.GetDateTime(4),
-                CompletedUtc = reader.IsDBNull(5) ? null : (DateTime?)reader.GetDateTime(5),
+                EnqueuedUtc = Utc(reader.GetDateTime(3)),
+                StartedUtc = reader.IsDBNull(4) ? null : (DateTime?)Utc(reader.GetDateTime(4)),
+                CompletedUtc = reader.IsDBNull(5) ? null : (DateTime?)Utc(reader.GetDateTime(5)),
                 DurationMs = reader.IsDBNull(6) ? null : (long?)reader.GetInt64(6),
                 ExceptionText = reader.IsDBNull(7) ? null : reader.GetString(7),
                 RetryCount = reader.GetInt32(8),
@@ -167,6 +167,18 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 MessageType = reader.IsDBNull(10) ? null : reader.GetString(10)
             };
         }
+
+        /// <summary>
+        /// Labels a stored timestamp as UTC, which is what these columns hold.
+        /// </summary>
+        /// <remarks>
+        /// SQL Server's datetime carries no time zone, so the provider hands back Unspecified and a
+        /// caller comparing it to DateTime.UtcNow gets the right answer by luck rather than by type.
+        /// PostgreSQL's timestamptz and SQLite with DateTimeKind=Utc already answer Utc, so for those
+        /// this is a no-op that keeps the three transports returning the same thing.
+        /// </remarks>
+        private static DateTime Utc(DateTime value) =>
+            value.Kind == DateTimeKind.Utc ? value : DateTime.SpecifyKind(value, DateTimeKind.Utc);
 
         private static void AddParameter(DbCommand command, string name, DbType dbType, object value)
         {

@@ -75,7 +75,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var result = ConnectionStringPooling.Apply(inMemory, false);
 
             Assert.IsFalse(SpecifiesPooling(result));
-            Assert.AreEqual(inMemory, result);
+            //the caller's string is still there; the timestamp kind is added to every connection,
+            //an in-memory database included - its history has the same reads (GitHub #311)
+            Assert.StartsWith(inMemory, result);
         }
 
         [TestMethod]
@@ -87,7 +89,27 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var result = ConnectionStringPooling.Apply(sharedMemory, false);
 
             Assert.IsFalse(SpecifiesPooling(result));
-            Assert.AreEqual(sharedMemory, result);
+            Assert.StartsWith(sharedMemory, result);
+        }
+
+        [TestMethod]
+        public void Apply_ReadsAndWritesTimestampsAsUtc()
+        {
+            //without this the provider converts a stored UTC value to local on the way out and drops
+            //the kind, so a history record written at 04:05 came back as 22:05 the day before (#311)
+            var result = ConnectionStringPooling.Apply(FileDb, false);
+
+            Assert.Contains("DateTimeKind=Utc", result);
+        }
+
+        [TestMethod]
+        public void Apply_DoesNotOverrideACallersTimestampKind()
+        {
+            var chosen = FileDb + "DateTimeKind=Local;";
+
+            var result = ConnectionStringPooling.Apply(chosen, false);
+
+            Assert.DoesNotContain("DateTimeKind=Utc", result);
         }
 
         [TestMethod]
