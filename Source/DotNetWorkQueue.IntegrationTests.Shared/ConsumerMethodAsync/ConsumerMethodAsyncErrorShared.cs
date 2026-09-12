@@ -59,7 +59,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync
             int messageCount, int workerCount, int timeOut,
             int queueSize, int readerCount,
             TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime,
-            Guid id, string updateTime, bool enableChaos, ICreationScope scope)
+            Guid id, TimeSpan updateTime, bool enableChaos, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
 

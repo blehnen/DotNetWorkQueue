@@ -59,8 +59,9 @@ namespace DotNetWorkQueue
         /// How often the heartbeat will be updated.
         /// </summary>
         /// <remarks>
-        /// This is expected to be in standard cron format (5-field) or cron format with seconds (6-field).
+        /// Must divide into <see cref="Time"/> at least three times, so that a beat can be missed
+        /// without the message's claim expiring. The queue validates this when the consumer starts.
         /// </remarks>
-        string UpdateTime { get; set; }
+        TimeSpan UpdateTime { get; set; }
     }
 }

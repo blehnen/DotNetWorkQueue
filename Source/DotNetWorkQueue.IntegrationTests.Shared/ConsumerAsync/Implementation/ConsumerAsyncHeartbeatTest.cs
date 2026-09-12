@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync.Implementation
                                 using (var consumer =
                                     queueContainer.CreateConsumerQueueScheduler(queueConnection, taskFactory))
                                 {
-                                    consumer.Configuration.HeartBeat.UpdateTime = "*/2 * * * * *";
+                                    consumer.Configuration.HeartBeat.UpdateTime = TimeSpan.FromSeconds(2);
                                     consumer.Configuration.HeartBeat.Time = TimeSpan.FromSeconds(10);
                                     consumer.Configuration.HeartBeat.MonitorTime = TimeSpan.FromSeconds(12);
                                     consumer.Configuration.HeartBeat.ThreadPoolConfiguration.ThreadsMax = 2;

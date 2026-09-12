@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Factory
     {
         private readonly IHeartBeatConfiguration _configuration;
         private readonly ISendHeartBeat _sendHeartBeat;
-        private readonly IHeartBeatScheduler _scheduler;
+        private readonly IHeartBeatGate _gate;
         private readonly ILogger _log;
         private readonly IWorkerHeartBeatNotificationFactory _heartBeatNotificationFactory;
         private readonly IGetTimeFactory _getTimeFactory;
@@ -38,13 +38,13 @@ namespace DotNetWorkQueue.Factory
         /// </summary>
         /// <param name="configuration">The configuration.</param>
         /// <param name="sendHeartBeat">The send heart beat module.</param>
-        /// <param name="scheduler">The scheduler.</param>
+        /// <param name="gate">Bounds how many beats the consumer has in flight at once.</param>
         /// <param name="logFactory">The log factory.</param>
         /// <param name="heartBeatNotificationFactory">The heart beat notification factory.</param>
         /// <param name="getTimeFactory">The time factory; the transport's clock.</param>
         public HeartBeatWorkerFactory(IHeartBeatConfiguration configuration,
             ISendHeartBeat sendHeartBeat,
-            IHeartBeatScheduler scheduler,
+            IHeartBeatGate gate,
             ILogger logFactory,
             IWorkerHeartBeatNotificationFactory heartBeatNotificationFactory,
             IGetTimeFactory getTimeFactory)
@@ -52,13 +52,13 @@ namespace DotNetWorkQueue.Factory
             Guard.NotNull(getTimeFactory);
             Guard.NotNull(configuration);
             Guard.NotNull(sendHeartBeat);
-            Guard.NotNull(scheduler);
+            Guard.NotNull(gate);
             Guard.NotNull(logFactory);
             Guard.NotNull(heartBeatNotificationFactory);
 
             _configuration = configuration;
             _sendHeartBeat = sendHeartBeat;
-            _scheduler = scheduler;
+            _gate = gate;
             _log = logFactory;
             _heartBeatNotificationFactory = heartBeatNotificationFactory;
             _getTimeFactory = getTimeFactory;
@@ -70,7 +70,7 @@ namespace DotNetWorkQueue.Factory
             IHeartBeatWorker hb;
             if (_configuration.Enabled)
             {
-                hb = new HeartBeatWorker(_configuration, context, _sendHeartBeat, _scheduler, _log,
+                hb = new HeartBeatWorker(_configuration, context, _sendHeartBeat, _gate, _log,
                     _heartBeatNotificationFactory, _getTimeFactory);
             }
             else

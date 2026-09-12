@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethodAsync.Implementa
                         false,
                         logProvider,
                         messageCount, workerCount, timeOut, queueSize, readerCount, TimeSpan.FromSeconds(30),
-                        TimeSpan.FromSeconds(35), id, "*/10 * * * * *", enableChaos, scope);
+                        TimeSpan.FromSeconds(35), id, TimeSpan.FromSeconds(10), enableChaos, scope);
                     validateErrorCounts(queueConnection, messageCount, scope);
                     verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, messageCount, true, false);
 

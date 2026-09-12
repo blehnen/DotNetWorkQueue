@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
             ILogger logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime,
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, TimeSpan updateTime,
             string route, bool enableChaos, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {

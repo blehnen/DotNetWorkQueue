@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
         private int _workerCount;
         private TimeSpan _heartBeatTime;
         private TimeSpan _heartBeatMonitorTime;
-        private string _updatetime;
+        private TimeSpan _updatetime;
         private IConsumerMethodQueue _queue;
         private QueueContainer<TTransportInit> _badQueueContainer;
         private Action<IContainer> _badQueueAdditions;
@@ -23,7 +23,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             ILogger logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, Action<IContainer> badQueueAdditions,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, Guid id, bool enableChaos, ICreationScope scope)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, TimeSpan updateTime, Guid id, bool enableChaos, ICreationScope scope)
         {
             _queueConnection = queueConnection;
             _workerCount = workerCount;
@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
             ILogger logProvider,
             int runTime, int messageCount,
             int workerCount, int timeOut, IDisposable queueBad,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, string updateTime, bool enableChaos, ICreationScope scope)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, TimeSpan updateTime, bool enableChaos, ICreationScope scope)
         {
 
             using (var trace = SharedSetup.CreateTrace("consumer-cancel"))

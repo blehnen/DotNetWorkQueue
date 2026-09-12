@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Configuration
     {
         private TimeSpan _monitorTime;
         private TimeSpan _time;
-        private string _updateTime;
+        private TimeSpan _updateTime;
         private readonly TransportConfigurationReceive _transportConfigurationReceive;
         #region Constructor
         /// <summary>
@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Configuration
         }
 
         /// <inheritdoc />
-        public string UpdateTime
+        public TimeSpan UpdateTime
         {
             get => _updateTime;
             set

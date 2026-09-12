@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
         public void RunConsumer<TTransportInit>(QueueConnection queueConnection, bool addInterceptors,
             ILogger logProvider,
             int workerCount, int timeOut, int messageCount,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, string updateTime, bool enableChaos, ICreationScope scope)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, Guid id, TimeSpan updateTime, bool enableChaos, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
             if (enableChaos)

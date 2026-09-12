@@ -11,7 +11,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
         public void RunConsumer<TTransportInit>(QueueConnection queueConnection, bool addInterceptors,
             ILogger logProvider,
             int workerCount, int timeOut, int messageCount,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, string updateTime, string route, bool enableChaos, ICreationScope scope)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, TimeSpan updateTime, string route, bool enableChaos, ICreationScope scope)
             where TTransportInit : ITransportInit, new()
         {
 

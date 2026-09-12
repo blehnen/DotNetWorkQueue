@@ -113,6 +113,8 @@ namespace DotNetWorkQueue.Queue
             Guard.NotNull(workerAction);
             Started = true;
 
+            ConsumerQueueConfigurationGuard.GuardHeartBeatSchedule(_configuration.HeartBeat);
+
             _registerMessages.Register(workerAction);
             if (_configuration.MaintenanceMode == DotNetWorkQueue.Configuration.MaintenanceMode.Consumer)
             {

@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.UserDequeue
            TimeSpan heartBeatTime,
            TimeSpan heartBeatMonitorTime,
            ICreationScope scope,
-           string updateTime, bool enableChaos,
+           TimeSpan updateTime, bool enableChaos,
            Action<QueueConsumerConfiguration, int> setQueueOptions)
            where TTransportInit : ITransportInit, new()
            where TMessage : class

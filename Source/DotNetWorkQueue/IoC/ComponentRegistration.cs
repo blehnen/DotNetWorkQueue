@@ -231,7 +231,7 @@ namespace DotNetWorkQueue.IoC
                 container.Register<IClearExpiredMessagesMonitor, ClearExpiredMessagesMonitor>(LifeStyles.Singleton);
                 container.Register<IClearErrorMessagesMonitor, ClearErrorMessagesMonitor>(LifeStyles.Singleton);
 
-                container.Register<IHeartBeatScheduler, HeartBeatScheduler>(LifeStyles.Singleton);
+                container.Register<IHeartBeatGate, HeartBeatGate>(LifeStyles.Singleton);
 
                 container.Register<IHeartBeatWorkerFactory, HeartBeatWorkerFactory>(LifeStyles.Singleton);
                 container.Register<IQueueWaitFactory, QueueWaitFactory>(LifeStyles.Singleton);
