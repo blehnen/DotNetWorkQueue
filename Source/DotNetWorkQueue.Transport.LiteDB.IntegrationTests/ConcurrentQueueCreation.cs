@@ -25,6 +25,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
     public class ConcurrentQueueCreation
     {
         [TestMethod]
+        //table creation takes a lock, so a mistake there hangs the run rather than failing it
+        [Timeout(30000)]
         public void CreatingManyQueuesAtOnce_AllSucceed()
         {
             const int queues = 16;
