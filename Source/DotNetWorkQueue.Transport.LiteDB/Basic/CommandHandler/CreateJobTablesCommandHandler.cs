@@ -54,9 +54,14 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
         /// <inheritdoc />
         public QueueCreationResult Handle(CreateJobTablesCommand<ITable> command)
         {
-            foreach (var table in command.Tables)
+            //the same gate the queue tables take: both map the same types through one global mapper,
+            //so a job queue starting alongside a message queue races exactly as two queues do
+            lock (SchemaCreation.Gate)
             {
-                table.Create(_connectionInformation, _options.Value, _tableNameHelper);
+                foreach (var table in command.Tables)
+                {
+                    table.Create(_connectionInformation, _options.Value, _tableNameHelper);
+                }
             }
             return new QueueCreationResult(QueueCreationStatus.Success);
         }

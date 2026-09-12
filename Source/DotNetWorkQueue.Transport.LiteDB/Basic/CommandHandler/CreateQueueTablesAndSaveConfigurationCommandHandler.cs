@@ -72,10 +72,13 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                 db.Database.Pragma("UTC_DATE", true);
 
 
-                //create all tables
-                foreach (var table in command.Tables)
+                //create all tables - see SchemaCreation for why this is serialised
+                lock (SchemaCreation.Gate)
                 {
-                    table.Create(_connectionInformation, _options.Value, _tableNameHelper);
+                    foreach (var table in command.Tables)
+                    {
+                        table.Create(_connectionInformation, _options.Value, _tableNameHelper);
+                    }
                 }
 
                 //save configuration
