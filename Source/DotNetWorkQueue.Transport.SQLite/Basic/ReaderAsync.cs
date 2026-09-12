@@ -25,9 +25,7 @@ using DotNetWorkQueue.Transport.SQLite;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
-    /// <summary>
-    /// A async <see cref="IDbCommand"/> wrapper that allows async usage
-    /// </summary>
+    /// <inheritdoc />
     public class ReaderAsync : IReaderAsync
     {
         /// <inheritdoc />
