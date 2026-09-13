@@ -43,6 +43,12 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
         private static void RunDashboardTest(int messageCount, int consumeCount,
             Action<IContainer> testAction)
         {
+            RunDashboardTest(messageCount, consumeCount, testAction, null);
+        }
+
+        private static void RunDashboardTest(int messageCount, int consumeCount,
+            Action<IContainer> testAction, Action<IContainer> additionalRegistrations)
+        {
             using (var connectionInfo = new IntegrationConnectionInfo())
             {
                 var queueName = GenerateQueueName.Create();
@@ -61,7 +67,10 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
                         {
                             using (var creator = new QueueContainer<MemoryDashboardInit>(
                                        serviceRegister =>
-                                           serviceRegister.RegisterNonScopedSingleton(scope)))
+                                       {
+                                           serviceRegister.RegisterNonScopedSingleton(scope);
+                                           additionalRegistrations?.Invoke(serviceRegister);
+                                       }))
                             {
                                 // Send messages — all start in waiting state
                                 if (messageCount > 0)
@@ -316,6 +325,54 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
                 Assert.IsNotNull(detail.QueuedDateTime);
                 Assert.IsFalse(string.IsNullOrEmpty(detail.CorrelationId));
             });
+        }
+
+        /// <summary>
+        /// DataStorage stamps QueuedDateTime from the queue's time provider. Asserting only that it is
+        /// not null says nothing about where it came from, so a return to DateTime.UtcNow would pass -
+        /// this pins the value to a clock no machine will report.
+        /// </summary>
+        [TestMethod]
+        public void MessageDetail_QueuedDateTimeComesFromTheConfiguredTimeProvider()
+        {
+            RunDashboardTest(1, 0, container =>
+            {
+                var listHandler =
+                    container
+                        .GetInstance<IQueryHandlerAsync<GetDashboardMessagesQuery,
+                            IReadOnlyList<DashboardMessage>>>();
+                var messages = listHandler
+                    .HandleAsync(new GetDashboardMessagesQuery(0, 100, null))
+                    .GetAwaiter().GetResult();
+                Assert.HasCount(1, messages);
+
+                var detailHandler =
+                    container
+                        .GetInstance<IQueryHandlerAsync<GetDashboardMessageDetailQuery,
+                            DashboardMessage>>();
+                var detail = detailHandler
+                    .HandleAsync(new GetDashboardMessageDetailQuery(messages[0].QueueId))
+                    .GetAwaiter().GetResult();
+
+                Assert.IsNotNull(detail.QueuedDateTime);
+                Assert.AreEqual(FixedUtc, detail.QueuedDateTime.Value.UtcDateTime,
+                    $"expected the timestamp the configured provider gave ({FixedUtc:O}), got {detail.QueuedDateTime.Value.UtcDateTime:O}");
+            }, serviceRegister => serviceRegister.Register<IGetTimeFactory, FixedTimeFactory>(LifeStyles.Singleton));
+        }
+
+        /// <summary>A date far from any machine clock, so a timestamp from the wrong source cannot match.</summary>
+        private static readonly DateTime FixedUtc = new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Utc);
+
+        private class FixedTimeFactory : IGetTimeFactory
+        {
+            public IGetTime Create() => new FixedTime();
+        }
+
+        private class FixedTime : IGetTime
+        {
+            public DateTime GetCurrentUtcDate() => FixedUtc;
+            public TimeSpan GetCurrentOffset => TimeSpan.Zero;
+            public string Name => "Fixed";
         }
 
         [TestMethod]

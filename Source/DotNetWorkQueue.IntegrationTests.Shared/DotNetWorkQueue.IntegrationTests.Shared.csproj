@@ -17,6 +17,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
+    <!-- the dashboard query contracts a scenario asserts against live here -->
+    <ProjectReference Include="..\DotNetWorkQueue.Transport.Shared\DotNetWorkQueue.Transport.Shared.csproj" />
   </ItemGroup>
 
 </Project>
