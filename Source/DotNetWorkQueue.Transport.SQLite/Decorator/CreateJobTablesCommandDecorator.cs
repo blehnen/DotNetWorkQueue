@@ -25,6 +25,7 @@ using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SQLite;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.SQLite.Decorator
 {
@@ -34,6 +35,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         private readonly ICommandHandlerWithOutput<CreateJobTablesCommand<ITable>, QueueCreationResult> _decorated;
         private readonly IGetFileNameFromConnectionString _getFileNameFromConnection;
         private readonly DatabaseExists _databaseExists;
+        private readonly ISqLiteMessageQueueTransportOptionsFactory _options;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateJobTablesCommandDecorator" /> class.
@@ -42,31 +45,55 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         /// <param name="decorated">The decorated.</param>
         /// <param name="getFileNameFromConnection">The get file name from connection.</param>
         /// <param name="databaseExists">The database exists.</param>
+        /// <param name="options">The options.</param>
+        /// <param name="logger">The logger.</param>
         public CreateJobTablesCommandDecorator(IConnectionInformation connectionInformation,
             ICommandHandlerWithOutput<CreateJobTablesCommand<ITable>, QueueCreationResult> decorated,
             IGetFileNameFromConnectionString getFileNameFromConnection,
-            DatabaseExists databaseExists)
+            DatabaseExists databaseExists,
+            ISqLiteMessageQueueTransportOptionsFactory options,
+            ILogger logger)
         {
             Guard.NotNull(connectionInformation);
             Guard.NotNull(decorated);
             Guard.NotNull(getFileNameFromConnection);
             Guard.NotNull(databaseExists);
+            Guard.NotNull(options);
+            Guard.NotNull(logger);
 
             _connectionInformation = connectionInformation;
             _decorated = decorated;
             _getFileNameFromConnection = getFileNameFromConnection;
             _databaseExists = databaseExists;
+            _options = options;
+            _logger = logger;
         }
         public QueueCreationResult Handle(CreateJobTablesCommand<ITable> command)
         {
-            if (!_databaseExists.Exists(_connectionInformation.ConnectionString))
+            //A brand-new database is the one moment nothing else can be holding it, so the journal
+            //mode is set here rather than after the tables are created. SQLite refuses the
+            //conversion while another connection has the database, and a refusal that arrives after
+            //the schema has committed cannot be retried: the next attempt finds the tables and
+            //returns AlreadyExists without coming back through here.
+            var newDatabase = !_databaseExists.Exists(_connectionInformation.ConnectionString);
+            if (newDatabase)
             { //no db file, create
                 var fileName = _getFileNameFromConnection.GetFileName(_connectionInformation.ConnectionString);
                 File.Create(fileName.FileName).Dispose();
+                WalJournalMode.Apply(_connectionInformation, _getFileNameFromConnection, _options, _logger);
             }
             try
             {
-                return _decorated.Handle(command);
+                var result = _decorated.Handle(command);
+
+                //a database that already existed without job tables in it has not been through the
+                //new-database path above
+                if (!newDatabase && result.Status == QueueCreationStatus.Success)
+                {
+                    WalJournalMode.Apply(_connectionInformation, _getFileNameFromConnection, _options, _logger);
+                }
+
+                return result;
             }
             //if the queue already exists, return that status; otherwise, bubble the error
             catch (SQLiteException error)

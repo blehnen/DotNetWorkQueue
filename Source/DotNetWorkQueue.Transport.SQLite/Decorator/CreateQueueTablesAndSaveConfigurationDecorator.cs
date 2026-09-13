@@ -25,6 +25,7 @@ using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SQLite;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.SQLite.Decorator
 {
@@ -35,57 +36,53 @@ namespace DotNetWorkQueue.Transport.SQLite.Decorator
         private readonly IGetFileNameFromConnectionString _getFileNameFromConnection;
         private readonly DatabaseExists _databaseExists;
         private readonly ISqLiteMessageQueueTransportOptionsFactory _options;
+        private readonly ILogger _logger;
 
         public CreateQueueTablesAndSaveConfigurationDecorator(IConnectionInformation connectionInformation,
             ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> decorated,
             IGetFileNameFromConnectionString getFileNameFromConnection,
             DatabaseExists databaseExists,
-            ISqLiteMessageQueueTransportOptionsFactory options)
+            ISqLiteMessageQueueTransportOptionsFactory options,
+            ILogger logger)
         {
             Guard.NotNull(connectionInformation);
             Guard.NotNull(decorated);
             Guard.NotNull(getFileNameFromConnection);
             Guard.NotNull(databaseExists);
             Guard.NotNull(options);
+            Guard.NotNull(logger);
 
             _connectionInformation = connectionInformation;
             _decorated = decorated;
             _getFileNameFromConnection = getFileNameFromConnection;
             _databaseExists = databaseExists;
             _options = options;
+            _logger = logger;
         }
         public QueueCreationResult Handle(CreateQueueTablesAndSaveConfigurationCommand<ITable> command)
         {
-            if (!_databaseExists.Exists(_connectionInformation.ConnectionString))
+            //A brand-new database is the one moment nothing else can be holding it, so the journal
+            //mode is set here rather than after the tables are created. SQLite refuses the
+            //conversion while another connection has the database, and a refusal that arrives after
+            //the schema has committed cannot be retried: the next attempt finds the tables and
+            //returns AlreadyExists without coming back through here.
+            var newDatabase = !_databaseExists.Exists(_connectionInformation.ConnectionString);
+            if (newDatabase)
             { //no db file, create
                 var fileName = _getFileNameFromConnection.GetFileName(_connectionInformation.ConnectionString);
                 File.Create(fileName.FileName).Dispose();
+                WalJournalMode.Apply(_connectionInformation, _getFileNameFromConnection, _options, _logger);
             }
 
             try
             {
                 var result = _decorated.Handle(command);
 
-                // Enable WAL mode for file-based databases when configured
-                if (result.Status == QueueCreationStatus.Success)
+                //a database that already existed without queue tables in it has not been through the
+                //new-database path above
+                if (!newDatabase && result.Status == QueueCreationStatus.Success)
                 {
-                    var transportOptions = _options.Create();
-                    if (transportOptions.EnableWalMode)
-                    {
-                        var fileName = _getFileNameFromConnection.GetFileName(_connectionInformation.ConnectionString);
-                        if (!fileName.IsInMemory)
-                        {
-                            using (var connection = new SQLiteConnection(_connectionInformation.ConnectionString))
-                            {
-                                connection.Open();
-                                using (var cmd = connection.CreateCommand())
-                                {
-                                    cmd.CommandText = "PRAGMA journal_mode=WAL;";
-                                    cmd.ExecuteNonQuery();
-                                }
-                            }
-                        }
-                    }
+                    WalJournalMode.Apply(_connectionInformation, _getFileNameFromConnection, _options, _logger);
                 }
 
                 return result;
