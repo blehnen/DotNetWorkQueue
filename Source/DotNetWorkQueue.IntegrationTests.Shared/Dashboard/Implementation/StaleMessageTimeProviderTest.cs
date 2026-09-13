@@ -52,8 +52,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Dashboard.Implementation
     /// </summary>
     public class StaleMessageTimeProviderTest
     {
-        /// <summary>A date no machine clock will reach during the life of this test suite.</summary>
-        public static readonly DateTime FixedFutureUtc = new DateTime(2040, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        /// <summary>
+        /// The clock the queue is configured with: fixed for the run, and far enough ahead of the
+        /// machine that a heartbeat written during the test is unambiguously older than a cut-off
+        /// derived from it. Taken relative to the machine rather than written as a literal date, so
+        /// there is no year in which this scenario quietly stops discriminating.
+        /// </summary>
+        public static readonly DateTime FixedFutureUtc = DateTime.UtcNow.AddYears(20);
 
         private const int ThresholdSeconds = 120;
 
@@ -78,6 +83,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Dashboard.Implementation
 
                     var reachedHandler = new ManualResetEventSlim(false);
                     var releaseHandler = new ManualResetEventSlim(false);
+                    var handlerFinished = new ManualResetEventSlim(false);
 
                     //the producer and consumer run on the ordinary clock, so the heartbeat lands at
                     //the real current time - it is the dashboard query below that gets the fixed one
@@ -98,8 +104,14 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Dashboard.Implementation
                             consumer.Start<FakeMessage>((message, notifications) =>
                             {
                                 reachedHandler.Set();
-                                //hold the message in Processing for the length of the assertions
-                                releaseHandler.Wait(TimeSpan.FromMinutes(2));
+                                //Hold the message in Processing until the assertions are done with it.
+                                //The timeout is a safety net against a hung run, not a budget for the
+                                //assertions: if it ever fires the row leaves Processing, and the counts
+                                //below would then be zero for a reason that has nothing to do with the
+                                //clock. handlerFinished is what keeps that from being read as a clock
+                                //failure.
+                                releaseHandler.Wait(TimeSpan.FromMinutes(10));
+                                handlerFinished.Set();
                             }, CreateNotifications.Create(logProvider));
 
                             try
@@ -108,10 +120,18 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Dashboard.Implementation
                                     "the message never reached a handler, so it was never in a processing state to be stale");
 
                                 //the heartbeat was written a moment ago on the machine clock
-                                Assert.AreEqual(0, StaleCount<TTransportInit>(logProvider, scope, queueConnection, fixedClock: false),
+                                var machineClockCount = StaleCount<TTransportInit>(logProvider, scope, queueConnection, fixedClock: false);
+                                var configuredClockCount = StaleCount<TTransportInit>(logProvider, scope, queueConnection, fixedClock: true);
+
+                                //neither count means anything if the message stopped being processed
+                                //while they were taken
+                                Assert.IsFalse(handlerFinished.IsSet,
+                                    "the handler released the message before the stale queries had run, so the counts say nothing about which clock was used");
+
+                                Assert.AreEqual(0, machineClockCount,
                                     "a message whose heartbeat is seconds old was reported as stale against a two minute threshold");
 
-                                Assert.AreEqual(1, StaleCount<TTransportInit>(logProvider, scope, queueConnection, fixedClock: true),
+                                Assert.AreEqual(1, configuredClockCount,
                                     $"the cut-off did not come from the configured clock ({FixedFutureUtc:O}); a message held in processing should be stale against it");
                             }
                             finally
