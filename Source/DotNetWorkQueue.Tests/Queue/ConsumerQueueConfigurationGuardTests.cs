@@ -42,6 +42,16 @@ namespace DotNetWorkQueue.Tests.Queue
             Assert.Contains("2 attempts", error.Message);
             Assert.Contains("00:00:09", error.Message);
             Assert.Contains("00:00:02", error.Message);
+
+            //Three times is the floor, not advice, and the reason is that a claim has to outlast the
+            //slowest heartbeat write - a beat measured at 15 seconds against a 10 second claim is what
+            //reset a message mid-processing in GitHub #328. Someone tidying this message would take
+            //the only statement of that with it, so it is asserted rather than left to survive on its
+            //own. Matched on the phrases that carry the meaning rather than whole sentences, so
+            //rewording around them still passes - but split any further and they stop asserting it:
+            //"not" and "a recommendation" can both appear in a message that says neither.
+            Assert.Contains("not a recommendation", error.Message);
+            Assert.Contains("longest a single heartbeat", error.Message);
         }
 
         [TestMethod]
