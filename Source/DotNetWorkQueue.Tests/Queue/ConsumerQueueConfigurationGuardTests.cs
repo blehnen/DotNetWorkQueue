@@ -47,9 +47,10 @@ namespace DotNetWorkQueue.Tests.Queue
             //slowest heartbeat write - a beat measured at 15 seconds against a 10 second claim is what
             //reset a message mid-processing in GitHub #328. Someone tidying this message would take
             //the only statement of that with it, so it is asserted rather than left to survive on its
-            //own. Matched on short phrases, so rewording the sentences around them does not fail here.
-            Assert.Contains("not", error.Message);
-            Assert.Contains("a recommendation", error.Message);
+            //own. Matched on the phrases that carry the meaning rather than whole sentences, so
+            //rewording around them still passes - but split any further and they stop asserting it:
+            //"not" and "a recommendation" can both appear in a message that says neither.
+            Assert.Contains("not a recommendation", error.Message);
             Assert.Contains("longest a single heartbeat", error.Message);
         }
 
