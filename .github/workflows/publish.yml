@@ -31,7 +31,7 @@ jobs:
       statuses: read       # reads the Jenkins branch status on the tagged commit
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Tag regex (push trigger only)
         if: github.event_name == 'push'
@@ -121,16 +121,18 @@ jobs:
     # by gh release create; verify-gate and build-pack run with contents:read).
     # id-token:write is what lets the runner mint an OIDC token for the NuGet
     # trusted-publishing exchange below - without it the login step fails with a
-    # message that does not mention permissions.
+    # message that does not mention permissions. It also raises the stakes on every
+    # action that runs before the exchange: a moved tag on one of them could mint a
+    # token under our trusted-publishing policy, so they are pinned to commits.
     permissions:
       contents: write
       id-token: write
     steps:
       - name: Checkout (for gh release create)
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Download artifact
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: nuget-packages
           path: deploy/
@@ -145,6 +147,16 @@ jobs:
       #     into the `run:` line, which is what Sonar githubactions:S7636 is about
       # The nuget.org policy is registered against THIS workflow file. Moving the
       # push to another workflow silently invalidates it.
+      #
+      # A policy is needed for EVERY package ID this pushes - build-pack asserts
+      # twelve nupkg, and a missing one fails with 403 partway through, leaving a
+      # partial release (which has happened here before, on 0.6.6.1):
+      #   DotNetWorkQueue                              DotNetWorkQueue.Dashboard.Api
+      #   DotNetWorkQueue.Transport.Shared             DotNetWorkQueue.Dashboard.Client
+      #   DotNetWorkQueue.Transport.RelationalDatabase DotNetWorkQueue.Dashboard.Ui
+      #   DotNetWorkQueue.Transport.SqlServer          DotNetWorkQueue.Transport.Memory
+      #   DotNetWorkQueue.Transport.PostgreSQL         DotNetWorkQueue.Transport.Redis
+      #   DotNetWorkQueue.Transport.SQLite             DotNetWorkQueue.Transport.LiteDb
       - name: NuGet login (OIDC exchange for a short-lived key)
         id: login
         uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
@@ -205,7 +217,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Resolve version from tag
         id: ver
