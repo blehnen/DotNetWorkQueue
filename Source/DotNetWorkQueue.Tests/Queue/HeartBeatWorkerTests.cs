@@ -230,6 +230,154 @@ namespace DotNetWorkQueue.Tests.Queue
             }
         }
 
+        /// <summary>
+        /// Characterises what happens after a lapse is declared, which is the half that decides whether a
+        /// slow moment costs a message or not. The trigger needs load; the consequence does not, so this
+        /// runs anywhere.
+        /// </summary>
+        [TestMethod]
+        public void AClaimDeclaredLapsed_NeverBeatsAgain_EvenOnceTheTransportRecovers()
+        {
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+
+            //first the beats do not land, which is what a stalled or slow transport looks like
+            var noTime = Substitute.For<IHeartBeatStatus>();
+            noTime.LastHeartBeatTime.Returns((DateTime?)null);
+            var landed = Substitute.For<IHeartBeatStatus>();
+            landed.LastHeartBeatTime.Returns(DateTime.UtcNow);
+
+            var healthy = false;
+            var sends = 0;
+            sendHeartBeat.SendAsync(context).Returns(_ =>
+            {
+                Interlocked.Increment(ref sends);
+                return Task.FromResult(Volatile.Read(ref healthy) ? landed : noTime);
+            });
+
+            var (worker, beat, cancelled) = CreateForStaleness(context, sendHeartBeat, TimeSpan.FromMilliseconds(250));
+            using (worker)
+            {
+                worker.Start();
+
+                //drive beats until the worker declares the claim lost
+                SpinWait.SpinUntil(() =>
+                {
+                    beat()();
+                    return cancelled();
+                }, TimeSpan.FromSeconds(20));
+                Assert.IsTrue(cancelled(), "the claim never lapsed, so there is nothing to characterise");
+
+                //the transport is healthy again, and beats keep being driven
+                Volatile.Write(ref healthy, true);
+                var afterLapse = Interlocked.CompareExchange(ref sends, 0, 0);
+                for (var i = 0; i < 10; i++)
+                {
+                    beat()();
+                    Thread.Sleep(20);
+                }
+
+                var sentSinceLapse = Interlocked.CompareExchange(ref sends, 0, 0) - afterLapse;
+
+                //This is the behaviour, not a wish: once the claim is declared lapsed the worker stops
+                //beating for good, because the age it measures only grows from there. A transient stall
+                //past the expiry therefore guarantees the monitor resets the message and a second worker
+                //processes it - the message cannot be saved even if the transport recovers immediately.
+                Assert.AreEqual(0, sentSinceLapse,
+                    "the worker resumed beating after declaring the claim lost - if that is now intended, this test is the thing to update");
+            }
+        }
+
+        [TestMethod]
+        public void AClaimThatIsLateButStillOurs_KeepsBeating()
+        {
+            //The case that made the suites flaky. A tick past the expiry used to stop the beats for
+            //good, so a slow moment guaranteed the monitor reset the message and a second worker
+            //finished it. Being late is not evidence of anything: the beats continue, and the transport
+            //gets to say whether the claim is gone (GitHub #328).
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+
+            var landed = Substitute.For<IHeartBeatStatus>();
+            landed.LastHeartBeatTime.Returns(DateTime.UtcNow);
+            var sends = 0;
+            sendHeartBeat.SendAsync(context).Returns(_ =>
+            {
+                Interlocked.Increment(ref sends);
+                return Task.FromResult(landed);
+            });
+
+            //an expiry shorter than the time this test takes, so the claim is late from the outset
+            var (worker, beat, cancelled) = CreateForStaleness(context, sendHeartBeat, TimeSpan.FromMilliseconds(1));
+            using (worker)
+            {
+                worker.Start();
+                for (var i = 0; i < 5; i++)
+                    beat()();
+
+                Assert.IsGreaterThanOrEqualTo(5, Interlocked.CompareExchange(ref sends, 0, 0),
+                    "the worker stopped beating because it was late, which is the behaviour that turned a slow moment into a lost message");
+                Assert.IsFalse(cancelled(),
+                    "a worker was cancelled for being late, without the transport ever saying the claim was gone");
+            }
+        }
+
+        [TestMethod]
+        public void AHeartbeatThatMatchesNoRecord_WhileTheClaimIsLate_StopsProcessing()
+        {
+            //Evidence plus lateness is what a message actually being taken looks like: the monitor only
+            //resets a claim that is already past the expiry, so a row that has gone while we were late
+            //went to somebody else. Processing has to stop or two workers finish the same message.
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+
+            var noRecord = Substitute.For<IHeartBeatStatus>();
+            noRecord.LastHeartBeatTime.Returns((DateTime?)null);
+            sendHeartBeat.SendAsync(context).Returns(Task.FromResult(noRecord));
+
+            //an expiry this short means the claim is late from the first tick
+            var (worker, beat, cancelled) = CreateForStaleness(context, sendHeartBeat, TimeSpan.FromMilliseconds(1));
+            using (worker)
+            {
+                worker.Start();
+                SpinWait.SpinUntil(() =>
+                {
+                    beat()();
+                    return cancelled();
+                }, TimeSpan.FromSeconds(20));
+
+                Assert.IsTrue(cancelled(),
+                    "the record was gone and the claim was late, and the worker carried on processing it anyway");
+            }
+        }
+
+        [TestMethod]
+        public void AHeartbeatThatMatchesNoRecord_WhileTheClaimIsFresh_KeepsProcessing()
+        {
+            //The same transport answer, and the opposite meaning. A row that disappears while the claim
+            //is fresh is this worker finishing its own message while a beat was in flight - ordinary on
+            //every queue, and it happens on the way out of every consumer run. Cancelling here rolls
+            //back work that actually completed, which is what the integration suites caught when this
+            //treated the answer alone as proof.
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+
+            var noRecord = Substitute.For<IHeartBeatStatus>();
+            noRecord.LastHeartBeatTime.Returns((DateTime?)null);
+            sendHeartBeat.SendAsync(context).Returns(Task.FromResult(noRecord));
+
+            var (worker, beat, cancelled) = CreateForStaleness(context, sendHeartBeat, TimeSpan.FromMinutes(5));
+            using (worker)
+            {
+                worker.Start();
+                for (var i = 0; i < 5; i++)
+                    beat()();
+
+                Assert.IsFalse(cancelled(),
+                    "a worker was cancelled for finishing its own message while a heartbeat was in flight");
+            }
+        }
+
         [TestMethod]
         public void AClaimThatIsBeingKeptAlive_DoesNotCancelProcessing()
         {
@@ -293,7 +441,11 @@ namespace DotNetWorkQueue.Tests.Queue
                 Assert.AreEqual(1, Interlocked.CompareExchange(ref calls, 0, 0),
                     "a second beat reached the transport while the first was still running");
 
-                releaseFirst.SetResult(Substitute.For<IHeartBeatStatus>());
+                //a slow beat that succeeded still carries a time; a status without one is how every
+                //transport reports that the update matched no record, which now stops processing
+                var slowButFine = Substitute.For<IHeartBeatStatus>();
+                slowButFine.LastHeartBeatTime.Returns(DateTime.UtcNow);
+                releaseFirst.SetResult(slowButFine);
 
                 //the schedule survived the overrun: beating resumes once the slow beat returns
                 var deadline = DateTime.UtcNow.AddSeconds(20);
