@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: 'Skip publish + release (exercises verify-gate + build-pack only). Used for Phase 4 operational dry-run.'
+        description: 'Skip publish + release (exercises verify-gate, build-pack and the NuGet OIDC exchange). Used for the operational dry-run.'
         type: boolean
         default: true
 
@@ -31,7 +31,7 @@ jobs:
       statuses: read       # reads the Jenkins branch status on the tagged commit
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Tag regex (push trigger only)
         if: github.event_name == 'push'
@@ -77,6 +77,41 @@ jobs:
     with:
       upload_artifacts: true
 
+  # A dry run skips the publish job, so without this nothing would exercise the
+  # OIDC exchange until a real tag - the worst moment to discover the policy names
+  # the wrong workflow, or the profile name is wrong, or id-token is missing.
+  # This proves the exchange and the repository/workflow policy. It cannot prove
+  # the per-package policies: those are only tested by an actual push.
+  verify-trusted-publishing:
+    name: Verify the NuGet OIDC exchange (dry run only)
+    needs: verify-gate
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == true }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: NuGet login (OIDC exchange for a short-lived key)
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: blehnen
+
+      - name: Report
+        env:
+          MINTED: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: |
+          if [ -z "$MINTED" ]; then
+            echo "OIDC exchange produced no key" >&2
+            exit 1
+          fi
+          {
+            echo "## Trusted publishing"
+            echo ""
+            echo "- OIDC exchange succeeded; a short-lived key was issued"
+            echo "- Per-package policies are NOT proven by this job; only a real push tests those"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   publish:
     name: Push to NuGet.org and create GitHub Release
     needs: build-pack
@@ -84,17 +119,49 @@ jobs:
     runs-on: ubuntu-latest
     # Elevated permission scoped to this job only (contents:write is needed
     # by gh release create; verify-gate and build-pack run with contents:read).
+    # id-token:write is what lets the runner mint an OIDC token for the NuGet
+    # trusted-publishing exchange below - without it the login step fails with a
+    # message that does not mention permissions. It also raises the stakes on every
+    # action that runs before the exchange: a moved tag on one of them could mint a
+    # token under our trusted-publishing policy, so they are pinned to commits.
     permissions:
       contents: write
+      id-token: write
     steps:
       - name: Checkout (for gh release create)
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Download artifact
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: nuget-packages
           path: deploy/
+
+      # Trusted publishing: swap the run's OIDC token for an API key that is valid
+      # for one hour and only for this repository and workflow. There is no durable
+      # credential to leak or rotate. Three things here are load-bearing:
+      #   - `user` is the nuget.org PROFILE name, not the account email
+      #   - the exchange happens immediately before the push; one OIDC token buys
+      #     exactly one key, so this step cannot be hoisted into another job
+      #   - the key reaches the push through `env:` rather than being interpolated
+      #     into the `run:` line, which is what Sonar githubactions:S7636 is about
+      # The nuget.org policy is registered against THIS workflow file. Moving the
+      # push to another workflow silently invalidates it.
+      #
+      # A policy is needed for EVERY package ID this pushes - build-pack asserts
+      # twelve nupkg, and a missing one fails with 403 partway through, leaving a
+      # partial release (which has happened here before, on 0.6.6.1):
+      #   DotNetWorkQueue                              DotNetWorkQueue.Dashboard.Api
+      #   DotNetWorkQueue.Transport.Shared             DotNetWorkQueue.Dashboard.Client
+      #   DotNetWorkQueue.Transport.RelationalDatabase DotNetWorkQueue.Dashboard.Ui
+      #   DotNetWorkQueue.Transport.SqlServer          DotNetWorkQueue.Transport.Memory
+      #   DotNetWorkQueue.Transport.PostgreSQL         DotNetWorkQueue.Transport.Redis
+      #   DotNetWorkQueue.Transport.SQLite             DotNetWorkQueue.Transport.LiteDb
+      - name: NuGet login (OIDC exchange for a short-lived key)
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: blehnen
 
       # The nupkg and snupkg pushes are deliberately split into two commands.
       # The dotnet CLI's auto-match of .snupkg alongside .nupkg is unreliable
@@ -104,7 +171,7 @@ jobs:
       # action is needed for `dotnet nuget push`.
       - name: Push .nupkg to NuGet.org
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         run: |
           dotnet nuget push "deploy/*.nupkg" \
             --api-key "$NUGET_API_KEY" \
@@ -113,7 +180,7 @@ jobs:
 
       - name: Push .snupkg to NuGet.org
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         run: |
           dotnet nuget push "deploy/*.snupkg" \
             --api-key "$NUGET_API_KEY" \
@@ -150,7 +217,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Resolve version from tag
         id: ver
