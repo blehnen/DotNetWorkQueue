@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
         /// <inheritdoc />
         public IHeartBeatStatus Send(IMessageContext context)
         {
-            var command = new SendHeartBeatCommand<T>((T)context.MessageId.Id.Value);
+            var command = new SendHeartBeatCommand<T>((T)context.MessageId.Id.Value, LastWritten(context));
             var oDate = _commandHandler.Handle(command);
             return new HeartBeatStatus(new MessageQueueId<T>(command.QueueId), oDate);
         }
@@ -61,10 +61,20 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
         /// <inheritdoc />
         public async Task<IHeartBeatStatus> SendAsync(IMessageContext context)
         {
-            var command = new SendHeartBeatCommand<T>((T)context.MessageId.Id.Value);
+            var command = new SendHeartBeatCommand<T>((T)context.MessageId.Id.Value, LastWritten(context));
             var oDate = await _commandHandlerAsync.HandleAsync(command).ConfigureAwait(false);
             return new HeartBeatStatus(new MessageQueueId<T>(command.QueueId), oDate);
         }
+        /// <summary>
+        /// The heartbeat this worker last wrote for the message, or null before its first beat.
+        /// </summary>
+        /// <remarks>
+        /// The worker records each landed beat on the context, so the context already carries what we
+        /// need to prove the claim is still ours. See SendHeartBeatCommand.PreviousHeartBeat.
+        /// </remarks>
+        private static DateTime? LastWritten(IMessageContext context) =>
+            context.WorkerNotification?.HeartBeat?.Status?.LastHeartBeatTime;
+
         #endregion
     }
 }

@@ -66,6 +66,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
             param.Value = date.Ticks;
             dbCommand.Parameters.Add(param);
 
+            //null on the first beat, which is the state a message is dequeued in
+            param = dbCommand.CreateParameter();
+            param.ParameterName = "@previous";
+            param.DbType = DbType.Int64;
+            param.Value = command.PreviousHeartBeat.HasValue
+                ? command.PreviousHeartBeat.Value.Ticks
+                : (object)DBNull.Value;
+            dbCommand.Parameters.Add(param);
+
             return date;
         }
     }

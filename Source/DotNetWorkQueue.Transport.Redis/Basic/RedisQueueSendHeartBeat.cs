@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Queue;
 using DotNetWorkQueue.Transport.Redis.Basic.Command;
@@ -60,7 +61,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public IHeartBeatStatus Send(IMessageContext context)
         {
             if (context.MessageId == null || !context.MessageId.HasValue) return null;
-            var unixTime = _sendHeartBeat.Handle(new SendHeartBeatCommand<string>(context.MessageId.Id.Value.ToString()));
+            var unixTime = _sendHeartBeat.Handle(
+                new SendHeartBeatCommand<string>(context.MessageId.Id.Value.ToString(), LastWritten(context)));
             return Status(context, unixTime);
         }
 
@@ -72,10 +74,17 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         {
             if (context.MessageId == null || !context.MessageId.HasValue) return null;
             var unixTime = await _sendHeartBeatAsync
-                .HandleAsync(new SendHeartBeatCommand<string>(context.MessageId.Id.Value.ToString()))
+                .HandleAsync(new SendHeartBeatCommand<string>(context.MessageId.Id.Value.ToString(), LastWritten(context)))
                 .ConfigureAwait(false);
             return Status(context, unixTime);
         }
+
+        /// <summary>
+        /// The heartbeat this worker last wrote, which the worker records on the context after every
+        /// beat that lands. Null before the first one.
+        /// </summary>
+        private static DateTime? LastWritten(IMessageContext context) =>
+            context.WorkerNotification?.HeartBeat?.Status?.LastHeartBeatTime;
 
         private IHeartBeatStatus Status(IMessageContext context, long unixTime)
         {

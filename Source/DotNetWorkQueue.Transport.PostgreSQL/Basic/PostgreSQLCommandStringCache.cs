@@ -62,7 +62,16 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 $"update {TableNameHelper.MetaDataName} set status = @Status, heartbeat = null where queueID = @QueueID and status = @SourceStatus and HeartBeat = @HeartBeat");
 
             CommandCache.Add(CommandStringTypes.SendHeartBeat,
-                $"Update {TableNameHelper.MetaDataName} set HeartBeat = @date where status = @status and queueID = @queueID");
+                //The last clause is what makes this an ownership check rather than a message check: it
+                //only updates the row if the heartbeat is still the one this worker wrote. A reset nulls
+                //it and a new owner writes its own, so either way the update stops matching and the
+                //caller learns the claim is gone (GitHub #328).
+                //
+                //@previous is null only on the first beat, because the de-queue has already written a
+                //heartbeat of its own (see ReceiveMessage) and this worker does not know that value. It
+                //does not need to: a message cannot be taken away until its claim is older than
+                //HeartBeat.Time, and by then this worker has beaten several times and is checking.
+                $"Update {TableNameHelper.MetaDataName} set HeartBeat = @date where status = @status and queueID = @queueID and (@previous is null or HeartBeat = @previous)");
 
             CommandCache.Add(CommandStringTypes.InsertMessageBody,
                 $"Insert into {TableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers); SELECT lastval(); ");

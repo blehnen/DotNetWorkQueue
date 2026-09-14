@@ -40,6 +40,13 @@ namespace DotNetWorkQueue.Queue
         //Ticks of the last beat that actually landed. Long, not DateTime, so it can be read and written
         //without the beat lock - the staleness check runs on ticks where the beat itself is skipped.
         private long _lastGoodBeatUtcTicks;
+
+        //Set only when the transport has told us the claim is gone - never inferred from a clock.
+        //0 = still ours, 1 = the message belongs to someone else now.
+        private int _claimLostConfirmed;
+
+        //so the "we are running late" warning is logged once per lapse rather than on every tick
+        private int _lateWarningLogged;
         private readonly ISendHeartBeat _sendHeartbeat;
         private readonly IMessageContext _context;
         private CancellationTokenSource _cancel;
@@ -401,13 +408,22 @@ namespace DotNetWorkQueue.Queue
             if (Stopped)
                 return;
 
-            //Checked on every tick, including the ones where the beat below is skipped - a beat that is
-            //still running is exactly when the claim is most likely to be going stale.
-            if (ClaimHasLapsed() && await ConfirmLapsedAgainstAnyBeatStillRunning().ConfigureAwait(false))
-            {
-                //do not beat: the update would match the row again and renew a claim that has already
-                //been declared lost, putting this worker back to looking alive while it is stopping
+            //Once the transport has said the claim is gone there is nothing left to renew: the update
+            //below cannot match a row this worker no longer owns.
+            if (Interlocked.CompareExchange(ref _claimLostConfirmed, 0, 0) == 1)
                 return;
+
+            //Being late is not the same as having lost the message, and this used to treat it as if it
+            //were: a single tick past the expiry stopped the beats for good, so a slow moment became a
+            //guaranteed reset and a second worker finishing the same message. The clock can say we are
+            //late; only the beat below can say the claim is gone (GitHub #328).
+            if (ClaimHasLapsed() && Interlocked.Exchange(ref _lateWarningLogged, 1) == 0)
+            {
+                var lateBy = _getTime.GetCurrentUtcDate() -
+                             new DateTime(Interlocked.Read(ref _lastGoodBeatUtcTicks), DateTimeKind.Utc);
+                _logger.LogWarning(
+                    "No heartbeat has landed for message {MessageId} in {Age}, past the {Expiry} the monitor resets against. Still beating: if the message has been given to another worker the next update will not match it, and processing stops then",
+                    _context.MessageId?.Id?.Value, lateBy, _expiry);
             }
 
             if (Running)
@@ -434,6 +450,30 @@ namespace DotNetWorkQueue.Queue
                     if (Stopped)
                         return;
 
+                    //A beat proves the claim is still ours by naming the heartbeat this worker last
+                    //wrote, and until the first one lands there is nothing to name. An update that
+                    //carries no such value matches whatever the record holds, including a claim the
+                    //monitor has already handed to somebody else - it would then renew that worker's
+                    //claim and, because the value it writes is not one that worker knows about, break
+                    //the ownership check on the beats that legitimately own the message. Sending it is
+                    //only safe while the claim is fresh, which is exactly while the monitor cannot have
+                    //reset it; past the expiry with nothing to prove ownership with, the claim has to
+                    //be treated as gone (GitHub #328).
+                    //
+                    //This sits inside the lock on purpose. Outside it, a first beat that is merely slow
+                    //looks identical to one that never happened, and cancelling on that would turn a
+                    //slow transport into a lost message - the thing this whole change exists to stop.
+                    //Here, any beat that was in flight has finished and published its result.
+                    if (!LastWrittenHeartBeat().HasValue && ClaimHasLapsed())
+                    {
+                        Interlocked.Exchange(ref _claimLostConfirmed, 1);
+                        _logger.LogError(
+                            "No heartbeat has landed for message {MessageId} since it was picked up, and the claim is now past the {Expiry} the monitor resets against. There is nothing left to show the message is still this worker's, so processing is being cancelled rather than renewing a claim that may now belong to another worker",
+                            _context.MessageId?.Id?.Value, _expiry);
+                        SetCancel();
+                        return;
+                    }
+
                     Running = true;
                     //Freshness is measured from when the update was sent, not from when the reply came
                     //back. A slow reply would otherwise start a new local window while the record the
@@ -445,15 +485,39 @@ namespace DotNetWorkQueue.Queue
                     if (status.LastHeartBeatTime.HasValue)
                     {
                         Interlocked.Exchange(ref _lastGoodBeatUtcTicks, sentAt.Ticks);
+                        Interlocked.Exchange(ref _lateWarningLogged, 0);
                         _context.WorkerNotification.HeartBeat.Status = status;
                         if (_logger.IsEnabled(LogLevel.Trace))
                             _logger.LogTrace("Set heartbeat for message {MessageId}", status.MessageId.Id.Value);
                     }
                     else
                     {
-                        if (_logger.IsEnabled(LogLevel.Debug))
+                        //The update matched no row. Every transport reports that the same way - the
+                        //relational handlers return null when rows affected is not one, Redis returns
+                        //zero once the message has left the working set, LiteDb leaves the date unset
+                        //when the record is not found - but it does not by itself mean the message was
+                        //taken away. It is also what a beat sees when the message has just been finished
+                        //and its row removed while that beat was in flight, which is ordinary and
+                        //happens on every queue.
+                        //
+                        //What separates the two is the age of our own claim. The monitor only resets a
+                        //message whose stored heartbeat is older than the expiry, so a message that was
+                        //genuinely taken from us was late first. A row that vanishes while our claim is
+                        //fresh is this worker finishing its own message.
+                        if (ClaimHasLapsed())
+                        {
+                            Interlocked.Exchange(ref _claimLostConfirmed, 1);
+                            _logger.LogError(
+                                "The heartbeat for message {MessageId} matched no record and this worker's claim was already past the {Expiry} the monitor resets against, so the message has been given to another worker. Processing is being cancelled",
+                                status.MessageId?.Id?.Value, _expiry);
+                            SetCancel();
+                        }
+                        else if (_logger.IsEnabled(LogLevel.Debug))
+                        {
                             _logger.LogDebug(
-                                "Failed to set heartbeat for message ID {MessageId}; since no exception was generated, this probably means that the record no longer exists", status.MessageId.Id.Value);
+                                "The heartbeat for message {MessageId} matched no record while the claim was still fresh, which is the message being completed while this beat was in flight",
+                                status.MessageId?.Id?.Value);
+                        }
                     }
                 }
                 finally
@@ -485,6 +549,16 @@ namespace DotNetWorkQueue.Queue
         }
 
         /// <summary>
+        /// The heartbeat this worker last wrote, or null when none has landed yet.
+        /// </summary>
+        /// <remarks>
+        /// The transports read the same value when they build the ownership test into the update, so
+        /// reading it from the same place keeps the decision here and the comparison there in step.
+        /// </remarks>
+        private DateTime? LastWrittenHeartBeat() =>
+            _context.WorkerNotification?.HeartBeat?.Status?.LastHeartBeatTime;
+
+        /// <summary>
         /// Stops processing when this worker's claim on the message has aged out.
         /// </summary>
         /// <remarks>
@@ -504,39 +578,6 @@ namespace DotNetWorkQueue.Queue
             if (age < _expiry)
                 return false;
 
-            return true;
-        }
-
-        /// <summary>
-        /// Confirms a lapse against any beat that is still in flight, and cancels if it is real.
-        /// </summary>
-        /// <remarks>
-        /// A beat can have succeeded at the transport and not yet published its timestamp, because the
-        /// scheduler starts a tick without waiting for the previous beat. Reading the claim's age in that
-        /// window sees the old value and would cancel a worker whose claim had just been renewed - a
-        /// false positive that aborts healthy work. Waiting on the beat lock orders this after any beat
-        /// that is mid-flight, so the second look sees whatever that beat published.
-        /// </remarks>
-        private async Task<bool> ConfirmLapsedAgainstAnyBeatStillRunning()
-        {
-            await _beatLock.WaitAsync(CancellationToken.None).ConfigureAwait(false);
-            try
-            {
-                if (!ClaimHasLapsed())
-                    return false; //a beat landed while we were waiting; the claim is good
-            }
-            finally
-            {
-                _beatLock.Release();
-            }
-
-            var age = _getTime.GetCurrentUtcDate() -
-                      new DateTime(Interlocked.Read(ref _lastGoodBeatUtcTicks), DateTimeKind.Utc);
-            _logger.LogError(
-                "No heartbeat has been recorded for message {MessageId} in {Age}, which is past the {Expiry} the monitor resets against - the message may already have been given to another worker, so processing is being cancelled",
-                _context.MessageId?.Id?.Value, age, _expiry);
-
-            SetCancel();
             return true;
         }
 

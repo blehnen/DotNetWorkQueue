@@ -23,6 +23,9 @@ using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
 using StackExchange.Redis;
 
+using System;
+using DotNetWorkQueue.Transport.Redis.Basic.Lua;
+
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
     /// <inheritdoc />
@@ -32,20 +35,24 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
         private readonly IUnixTimeFactory _unixTimeFactory;
         private readonly IRedisConnection _connection;
         private readonly RedisNames _redisNames;
+        private readonly HeartBeatLua _heartBeatLua;
 
         /// <summary>Initializes a new instance of the <see cref="DeleteMessageCommandHandler"/> class.</summary>
         /// <param name="unixTimeFactory">The unix time factory.</param>
         /// <param name="connection">Redis connection</param>
         /// <param name="redisNames">Redis key names</param>
+        /// <param name="heartBeatLua">Refreshes the claim only while it is still this caller's.</param>
         public SendHeartBeatCommandHandler(IUnixTimeFactory unixTimeFactory,
             IRedisConnection connection,
-            RedisNames redisNames)
+            RedisNames redisNames,
+            HeartBeatLua heartBeatLua)
         {
             Guard.NotNull(unixTimeFactory);
             Guard.NotNull(connection);
             Guard.NotNull(redisNames);
 
             _unixTimeFactory = unixTimeFactory;
+            _heartBeatLua = heartBeatLua;
             _connection = connection;
             _redisNames = redisNames;
         }
@@ -56,15 +63,12 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             if (!CanBeat(command))
                 return 0;
 
-            var db = GetDb();
             var date = _unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();
-            //SortedSetUpdate says whether the member was there to update. SortedSetAdd cannot: with
-            //When.Exists it reports whether a member was *added*, which is never - so the result was
-            //discarded and a message the monitor had already reclaimed still reported a fresh beat.
-            if (!db.SortedSetUpdate(_redisNames.Working, command.QueueId, date, SortedSetWhen.Exists))
-                return 0;
-
-            return date;
+            //The script refreshes the score only while it is still the one this caller wrote, so a
+            //message that has been reset and taken by another worker reports zero instead of having its
+            //new owner's claim renewed. Asking whether the member merely exists cannot tell those apart
+            //(GitHub #328).
+            return _heartBeatLua.Execute(command.QueueId, date, Previous(command));
         }
 
         /// <inheritdoc />
@@ -73,15 +77,28 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
             if (!CanBeat(command))
                 return 0;
 
-            var db = GetDb();
             var date = _unixTimeFactory.Create().GetCurrentUnixTimestampMilliseconds();
-            //see Handle: the update has to report whether the message was still in the working set
-            if (!await db.SortedSetUpdateAsync(_redisNames.Working, command.QueueId, date, SortedSetWhen.Exists)
-                    .ConfigureAwait(false))
-                return 0;
-
-            return date;
+            //see Handle: the refresh is conditional on the claim still being this caller's
+            return await _heartBeatLua.ExecuteAsync(command.QueueId, date, Previous(command))
+                .ConfigureAwait(false);
         }
+
+        /// <summary>
+        /// The score this caller last wrote, as the working set stores it.
+        /// </summary>
+        /// <remarks>
+        /// The command carries it as a DateTime because that is what the worker records; the working set
+        /// keeps unix milliseconds, and the conversion is exact in both directions because the DateTime
+        /// was built from those same milliseconds.
+        /// </remarks>
+        private static long? Previous(SendHeartBeatCommand<string> command) =>
+            command.PreviousHeartBeat.HasValue
+                ? (long)(command.PreviousHeartBeat.Value - UnixEpoch).TotalMilliseconds
+                : (long?)null;
+
+        //the same epoch BaseUnixTime converts against, so a value that came from the working set
+        //converts back to exactly the score it was written as
+        private static readonly DateTime UnixEpoch = DateTime.UnixEpoch;
 
         /// <summary>
         /// The database to beat against. Virtual so a test can supply one - <see cref="IRedisConnection"/>
