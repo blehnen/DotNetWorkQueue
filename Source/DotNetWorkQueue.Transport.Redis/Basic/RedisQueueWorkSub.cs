@@ -48,6 +48,25 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
         private int _disposeCount;
 
+        /// <summary>
+        /// How long a reader waits to be told about work before looking at the queue anyway.
+        /// </summary>
+        /// <remarks>
+        /// Redis pub/sub is fire and forget. A notification published while this subscriber's
+        /// connection is briefly down is gone - StackExchange.Redis re-subscribes on reconnect, but
+        /// nothing replays what was published in the gap. Waiting on the notification alone therefore
+        /// risks waiting forever, and the message it happens to is the LAST one in a queue: for any
+        /// other, the next enqueue publishes again and wakes the reader, while the last one has
+        /// nothing behind it to rescue it. That is a message sitting unprocessed until the consumer
+        /// is restarted.
+        ///
+        /// The notification is still the fast path and nothing about it changes. This only decides
+        /// what a lost one costs: one interval instead of forever.
+        /// </remarks>
+        private static readonly TimeSpan DefaultNotificationPollFallback = TimeSpan.FromSeconds(30);
+
+        private readonly TimeSpan _notificationPollFallback;
+
         #endregion
 
         #region Constructor
@@ -60,6 +79,18 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         public RedisQueueWorkSub(IRedisConnection connection,
             RedisNames redisNames,
             IQueueCancelWork cancelWork)
+            : this(connection, redisNames, cancelWork, DefaultNotificationPollFallback)
+        {
+        }
+
+        /// <summary>
+        /// Test seam for the fallback interval. Waiting out the shipped thirty seconds to prove a
+        /// bounded wait is bounded would be thirty seconds of a test suite doing nothing.
+        /// </summary>
+        internal RedisQueueWorkSub(IRedisConnection connection,
+            RedisNames redisNames,
+            IQueueCancelWork cancelWork,
+            TimeSpan notificationPollFallback)
         {
             Guard.NotNull(connection);
             Guard.NotNull(redisNames);
@@ -68,6 +99,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             _connection = connection;
             _redisNames = redisNames;
             _cancelWork = cancelWork;
+            _notificationPollFallback = notificationPollFallback;
         }
         #endregion
 
@@ -84,7 +116,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             {
                 try
                 {
-                    _waitHandle.Wait(cts.Token);
+                    //bounded rather than indefinite - see NotificationPollFallback. The return value
+                    //is deliberately ignored: whether a notification arrived or the interval elapsed,
+                    //true sends the caller back to re-read the queue, which is all a notification
+                    //would have done anyway.
+                    _waitHandle.Wait(_notificationPollFallback, cts.Token);
                 }
                 catch (OperationCanceledException)
                 {
@@ -128,7 +164,17 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             if (cancellation.CanBeCanceled) tokens.Add(cancellation);
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(tokens.ToArray());
             await using var registration = cts.Token.Register(CancelAsyncWait).ConfigureAwait(false);
-            return await wait.ConfigureAwait(false);
+
+            //Same bound as the synchronous path. The delay is not given the token: cancellation
+            //completes `wait` itself through the registration above, so racing an un-cancellable
+            //delay keeps a cancelled run from leaving a faulted task nobody observes.
+            var finished = await Task.WhenAny(wait, Task.Delay(_notificationPollFallback)).ConfigureAwait(false);
+            if (finished == wait)
+                return await wait.ConfigureAwait(false);
+
+            //the interval elapsed with no notification; the shared waiter is left pending on purpose,
+            //since another reader may still be waiting on it
+            return true;
         }
 
         /// <summary>
