@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 
         public async Task<DashboardMessage> HandleAsync(GetDashboardMessageDetailQuery query)
         {
-            using (var connection = (DbConnection)_dbConnectionFactory.Create())
+            using (var connection = _dbConnectionFactory.Create())
             {
                 await connection.OpenAsync().ConfigureAwait(false);
 

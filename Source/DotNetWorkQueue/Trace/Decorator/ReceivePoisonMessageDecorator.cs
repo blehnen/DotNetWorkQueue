@@ -31,6 +31,9 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.IReceivePoisonMessage" />
     public class ReceivePoisonMessageDecorator : IReceivePoisonMessage
     {
+        //the span name these traces are found by, in one place
+        private const string ActivityName = "PoisonMessage";
+
         private readonly ActivitySource _tracer;
         private readonly IReceivePoisonMessage _handler;
         private readonly IStandardHeaders _headers;
@@ -58,7 +61,7 @@ namespace DotNetWorkQueue.Trace.Decorator
             if (header != null)
             {
                 var activityContext = header.Extract(_tracer, _headers);
-                using (var scope = _tracer.StartActivity("PoisonMessage", ActivityKind.Internal, activityContext))
+                using (var scope = _tracer.StartActivity(ActivityName, ActivityKind.Internal, activityContext))
                 {
                     scope?.AddMessageIdTag(context);
                     scope?.AddException(exception);
@@ -68,7 +71,7 @@ namespace DotNetWorkQueue.Trace.Decorator
             }
             else
             {
-                using (var scope = _tracer.StartActivity("PoisonMessage"))
+                using (var scope = _tracer.StartActivity(ActivityName))
                 {
                     scope?.AddMessageIdTag(context);
                     scope?.AddException(exception);
@@ -85,7 +88,7 @@ namespace DotNetWorkQueue.Trace.Decorator
             if (header != null)
             {
                 var activityContext = header.Extract(_tracer, _headers);
-                using (var scope = _tracer.StartActivity("PoisonMessage", ActivityKind.Internal, activityContext))
+                using (var scope = _tracer.StartActivity(ActivityName, ActivityKind.Internal, activityContext))
                 {
                     scope?.AddMessageIdTag(context);
                     scope?.AddException(exception);
@@ -95,7 +98,7 @@ namespace DotNetWorkQueue.Trace.Decorator
             }
             else
             {
-                using (var scope = _tracer.StartActivity("PoisonMessage"))
+                using (var scope = _tracer.StartActivity(ActivityName))
                 {
                     scope?.AddMessageIdTag(context);
                     scope?.AddException(exception);

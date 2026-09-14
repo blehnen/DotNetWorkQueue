@@ -29,6 +29,9 @@ namespace DotNetWorkQueue.Trace.Decorator
     /// <seealso cref="DotNetWorkQueue.IRemoveMessage" />
     public class RemoveMessageDecorator : IRemoveMessage
     {
+        //the span name these traces are found by, in one place
+        private const string ActivityName = "Remove";
+
         private readonly ActivitySource _tracer;
         private readonly IRemoveMessage _handler;
         private readonly IStandardHeaders _headers;
@@ -58,14 +61,14 @@ namespace DotNetWorkQueue.Trace.Decorator
             if (header != null)
             {
                 var activityContext = header.Extract(_tracer, _headers);
-                using (var scope = _tracer.StartActivity("Remove", ActivityKind.Internal, parentContext: activityContext))
+                using (var scope = _tracer.StartActivity(ActivityName, ActivityKind.Internal, parentContext: activityContext))
                 {
                     scope?.AddMessageIdTag(id);
                     scope?.SetTag("RemovedBecause", reason.ToString());
                     return _handler.Remove(id, reason);
                 }
             }
-            using (var scope = _tracer.StartActivity("Remove"))
+            using (var scope = _tracer.StartActivity(ActivityName))
             {
                 scope?.AddMessageIdTag(id);
                 scope?.SetTag("RemovedBecause", reason.ToString());
@@ -77,7 +80,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         public RemoveMessageStatus Remove(IMessageContext context, RemoveMessageReason reason)
         {
             var activityContext = context.Extract(_tracer, _headers);
-            using (var scope = _tracer.StartActivity("Remove", ActivityKind.Internal, parentContext: activityContext))
+            using (var scope = _tracer.StartActivity(ActivityName, ActivityKind.Internal, parentContext: activityContext))
             {
                 scope?.AddMessageIdTag(context);
                 scope?.SetTag("RemovedBecause", reason.ToString());
@@ -92,14 +95,14 @@ namespace DotNetWorkQueue.Trace.Decorator
             if (header != null)
             {
                 var activityContext = header.Extract(_tracer, _headers);
-                using (var scope = _tracer.StartActivity("Remove", ActivityKind.Internal, parentContext: activityContext))
+                using (var scope = _tracer.StartActivity(ActivityName, ActivityKind.Internal, parentContext: activityContext))
                 {
                     scope?.AddMessageIdTag(id);
                     scope?.SetTag("RemovedBecause", reason.ToString());
                     return await _handler.RemoveAsync(id, reason).ConfigureAwait(false);
                 }
             }
-            using (var scope = _tracer.StartActivity("Remove"))
+            using (var scope = _tracer.StartActivity(ActivityName))
             {
                 scope?.AddMessageIdTag(id);
                 scope?.SetTag("RemovedBecause", reason.ToString());
@@ -111,7 +114,7 @@ namespace DotNetWorkQueue.Trace.Decorator
         public async Task<RemoveMessageStatus> RemoveAsync(IMessageContext context, RemoveMessageReason reason)
         {
             var activityContext = context.Extract(_tracer, _headers);
-            using (var scope = _tracer.StartActivity("Remove", ActivityKind.Internal, parentContext: activityContext))
+            using (var scope = _tracer.StartActivity(ActivityName, ActivityKind.Internal, parentContext: activityContext))
             {
                 scope?.AddMessageIdTag(context);
                 scope?.SetTag("RemovedBecause", reason.ToString());

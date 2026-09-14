@@ -105,13 +105,14 @@ namespace DotNetWorkQueue.Tests.Queue
                 var notification = context.WorkerNotification.HeartBeat;
                 _ = test.BeatOnceAsync();
 
-                //the beat is started and left to run, so wait for the failure to be recorded
-                var deadline = DateTime.UtcNow.AddSeconds(20);
-                while (DateTime.UtcNow < deadline &&
-                       notification.ReceivedCalls().All(c => c.GetMethodInfo().Name != nameof(IWorkerHeartBeatNotification.SetError)))
-                {
-                    Thread.Sleep(50);
-                }
+                //the beat is started and left to run, so wait for the failure to be recorded. Waiting
+                //on the condition rather than sleeping means this takes as long as it takes and no
+                //longer, and a timeout fails here rather than falling through to a confusing assertion.
+                Assert.IsTrue(
+                    SpinWait.SpinUntil(
+                        () => notification.ReceivedCalls().Any(c => c.GetMethodInfo().Name == nameof(IWorkerHeartBeatNotification.SetError)),
+                        TimeSpan.FromSeconds(20)),
+                    "the beat never recorded its failure");
 
                 //a beat that throws has to reach user code: the error is recorded and the token tripped,
                 //which is how a worker learns its message is no longer protected
@@ -218,12 +219,11 @@ namespace DotNetWorkQueue.Tests.Queue
 
                 //keep ticking the way the scheduler does, rather than relying on one tick landing at
                 //the right moment - the beat is started and left to run, so a single tick is a race
-                var deadline = DateTime.UtcNow.AddSeconds(20);
-                while (!cancelled() && DateTime.UtcNow < deadline)
+                SpinWait.SpinUntil(() =>
                 {
                     beat()();
-                    Thread.Sleep(50);
-                }
+                    return cancelled();
+                }, TimeSpan.FromSeconds(20));
 
                 Assert.IsTrue(cancelled(),
                     "the worker kept processing a message whose claim had lapsed");
@@ -489,9 +489,9 @@ namespace DotNetWorkQueue.Tests.Queue
                 Thread.Sleep(400);          //let the claim age, but not past the expiry
 
                 beat()();                   //a beat starts here, so its timestamp will be recent
-                var deadline = DateTime.UtcNow.AddSeconds(10);
-                while (Interlocked.CompareExchange(ref calls, 0, 0) < 1 && DateTime.UtcNow < deadline)
-                    Thread.Sleep(10);
+                Assert.IsTrue(
+                    SpinWait.SpinUntil(() => Interlocked.CompareExchange(ref calls, 0, 0) >= 1, TimeSpan.FromSeconds(10)),
+                    "the first beat never started, so there was nothing in flight to read a stale time against");
 
                 Thread.Sleep(300);          //now the claim is past the expiry, measured from the last landed beat
                 beat()();                   //this tick sees a lapsed claim while the beat above is still out
