@@ -14,11 +14,18 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation
             Action<TTransportCreate> setOptions,
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
-            Action<QueueConnection, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount)
+            Action<QueueConnection, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount,
+            TimeSpan? heartBeatTimeOverride = null,
+            TimeSpan? heartBeatMonitorTimeOverride = null,
+            TimeSpan? heartBeatUpdateTimeOverride = null)
             where TTransportInit : ITransportInit, new()
             where TMessage : class
             where TTransportCreate : class, IQueueCreation
         {
+
+            var heartBeatTime = heartBeatTimeOverride ?? TimeSpan.FromSeconds(10);
+            var heartBeatMonitorTime = heartBeatMonitorTimeOverride ?? TimeSpan.FromSeconds(12);
+            var heartBeatUpdateTime = heartBeatUpdateTimeOverride ?? TimeSpan.FromSeconds(3);
 
             var logProvider = LoggerShared.Create(queueConnection.Queue, GetType().Name);
             using (
@@ -41,12 +48,16 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation
                         logProvider, generateData,
                         verify, false, oCreation.Scope, false);
 
+                    //The claim window has to clear the slowest single heartbeat write this transport
+                    //can produce, and still sit below runtime - above runtime the handler finishes
+                    //before a claim could ever lapse and the scenario stops testing heartbeats at all.
+                    //See the caller for why SQLite needs a wider window than the default (GitHub #328).
                     var consumer = new ConsumerHeartBeatShared<TMessage>();
                     consumer.RunConsumer<TTransportInit>(queueConnection,
                         false,
                         logProvider,
                         runtime, messageCount,
-                        workerCount, timeOut, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(12), TimeSpan.FromSeconds(3),
+                        workerCount, timeOut, heartBeatTime, heartBeatMonitorTime, heartBeatUpdateTime,
                         null, enableChaos, scope);
 
                     verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope, 0, false, false);
