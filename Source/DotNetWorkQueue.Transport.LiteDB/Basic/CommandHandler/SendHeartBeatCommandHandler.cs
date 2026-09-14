@@ -63,33 +63,31 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                 {
                     var col = db.Database.GetCollection<Schema.MetaDataTable>(_tableNameHelper.MetaDataName);
 
-                    var results = col.Query()
-                        .Where(x => x.QueueId == command.QueueId)
-                        .Limit(1)
-                        .ToList();
+                    //Truncated to the precision LiteDb actually stores. A BSON date keeps
+                    //milliseconds, so handing the caller a tick-precision value would hand it something
+                    //that was never written - and the next beat, which asks for the value it last wrote,
+                    //would never match again.
+                    var date = TruncateToStoredPrecision(_getTime.GetCurrentUtcDate());
+                    var queueId = command.QueueId;
 
-                    DateTime? date = null;
-                    //The second test is the ownership check the relational transports make in SQL: beat
-                    //only if the stored heartbeat is still the one this worker wrote. Once the monitor
-                    //has reset the message and another worker has taken it, the value differs and this
-                    //worker is told its claim is gone rather than refreshing somebody else's
-                    //(GitHub #328). A null expectation is the first beat, which does not constrain -
-                    //the de-queue wrote a heartbeat this worker never saw.
-                    if (results.Count == 1 &&
-                        (!command.PreviousHeartBeat.HasValue || results[0].HeartBeat == command.PreviousHeartBeat))
-                    {
-                        var record = results[0];
-                        //Truncated to the precision LiteDb actually stores. A BSON date keeps
-                        //milliseconds, so handing the caller a tick-precision value would hand it
-                        //something that was never written - and the next beat, which compares what it
-                        //last wrote against the stored value, would never match again.
-                        date = TruncateToStoredPrecision(_getTime.GetCurrentUtcDate());
-                        record.HeartBeat = date;
-                        col.Update(record);
-                    }
+                    //The ownership test goes into the query rather than being made here, for two
+                    //reasons. Update() writes by document id and would not re-test anything, so reading
+                    //first and writing after leaves a reset and re-claim free to land in between - and
+                    //LiteDb's transactions do not hold the record against that (see #318, where queue
+                    //creation had to be serialised with a lock of our own). And a heartbeat read back
+                    //into a POCO comes out with a local Kind, so comparing it here compares shifted
+                    //ticks; the engine compares the stored value properly.
+                    //
+                    //Zero updated is the same answer rows-affected gives on the relational transports:
+                    //the claim is no longer this worker's (GitHub #328).
+                    var updated = command.PreviousHeartBeat.HasValue
+                        ? col.UpdateMany(x => new Schema.MetaDataTable { HeartBeat = date },
+                            x => x.QueueId == queueId && x.HeartBeat == command.PreviousHeartBeat.Value)
+                        : col.UpdateMany(x => new Schema.MetaDataTable { HeartBeat = date },
+                            x => x.QueueId == queueId);
 
                     db.Database.Commit();
-                    return date;
+                    return updated == 1 ? date : (DateTime?)null;
                 }
                 catch
                 {
