@@ -121,7 +121,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.History.Implementation
                             //RetryCount is the assertion that matters: it is only incremented by
                             //RecordRollback, so a zero here means the rollback history was not written -
                             //which is exactly what happened on Redis before the decorator was fixed.
-                            Assert.IsTrue(records.Any(r => r.RetryCount > 0),
+                            Assert.Contains(r => r.RetryCount > 0, records,
                                 "No history record shows a retry, so the rollback was never recorded.");
                         }
                     }

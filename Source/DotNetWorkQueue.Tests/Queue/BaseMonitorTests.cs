@@ -52,7 +52,9 @@ namespace DotNetWorkQueue.Tests.Queue
             using (var test = CreateMonitor(action, monitor, fixture.Create<ILogger>()))
             {
                 test.Start();
-                Thread.Sleep(3000);
+                //wait for the first run rather than for a fixed three seconds: the monitor time is an
+                //hour, so nothing else can run and this takes as long as the first run actually takes
+                SpinWait.SpinUntil(() => action.ReceivedCalls().Any(), TimeSpan.FromSeconds(10));
             }
             Assert.ContainsSingle(action.ReceivedCalls());
         }

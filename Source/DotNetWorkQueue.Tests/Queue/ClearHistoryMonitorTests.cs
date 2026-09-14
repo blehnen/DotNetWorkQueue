@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
@@ -34,7 +35,8 @@ namespace DotNetWorkQueue.Tests.Queue
             using (var monitor = new ClearHistoryMonitor(options, purge, fixture.Create<ILogger>(), FixedClock()))
             {
                 monitor.Start();
-                Thread.Sleep(3000);
+                //wait for the purge rather than for a fixed three seconds
+                SpinWait.SpinUntil(() => purge.ReceivedCalls().Any(), TimeSpan.FromSeconds(10));
             }
 
             purge.Received(1).Purge(FixedNow.AddDays(-retentionDays));

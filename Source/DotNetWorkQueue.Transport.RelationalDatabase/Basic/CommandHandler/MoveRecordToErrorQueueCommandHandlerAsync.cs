@@ -156,7 +156,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
 
                 //commit the original transaction
                 await connHolder.Transaction.CommitAsync().ConfigureAwait(false);
-                connHolder.Transaction.Dispose();
+                await connHolder.Transaction.DisposeAsync().ConfigureAwait(false);
                 connHolder.Transaction = null;
 
                 if (_options.Value.EnableStatusTable)

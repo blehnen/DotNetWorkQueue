@@ -116,6 +116,8 @@ namespace DotNetWorkQueue.Queue
             }
             catch (OperationCanceledException)
             {
+                //deliberately swallowed - see above: returning normally is what keeps this path
+                //behaviourally identical to the one that does not throw
             }
         }
 
