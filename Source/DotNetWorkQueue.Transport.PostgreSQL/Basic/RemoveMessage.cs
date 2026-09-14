@@ -201,7 +201,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             }
 
             //ensure that transaction won't be used anymore
-            connection.Transaction.Dispose();
+            await connection.Transaction.DisposeAsync().ConfigureAwait(false);
             connection.Transaction = null;
 
             if (_configuration.Options().EnableStatusTable)

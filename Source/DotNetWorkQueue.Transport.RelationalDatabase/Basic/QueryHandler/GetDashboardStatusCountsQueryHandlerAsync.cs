@@ -47,7 +47,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
 
         public async Task<DashboardStatusCounts> HandleAsync(GetDashboardStatusCountsQuery query)
         {
-            using (var connection = (DbConnection)_dbConnectionFactory.Create())
+            using (var connection = _dbConnectionFactory.Create())
             {
                 await connection.OpenAsync().ConfigureAwait(false);
                 using (var command = connection.CreateCommand())

@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         public async Task<IReadOnlyList<DashboardErrorRetry>> HandleAsync(GetDashboardErrorRetriesQuery query)
         {
             var results = new List<DashboardErrorRetry>();
-            using (var connection = (DbConnection)_dbConnectionFactory.Create())
+            using (var connection = _dbConnectionFactory.Create())
             {
                 await connection.OpenAsync().ConfigureAwait(false);
                 using (var command = connection.CreateCommand())

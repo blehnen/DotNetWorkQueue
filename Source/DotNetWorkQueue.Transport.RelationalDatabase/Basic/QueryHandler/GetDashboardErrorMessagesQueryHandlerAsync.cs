@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.QueryHandler
         public async Task<IReadOnlyList<DashboardErrorMessage>> HandleAsync(GetDashboardErrorMessagesQuery query)
         {
             var results = new List<DashboardErrorMessage>();
-            using (var connection = (DbConnection)_dbConnectionFactory.Create())
+            using (var connection = _dbConnectionFactory.Create())
             {
                 await connection.OpenAsync().ConfigureAwait(false);
                 using (var command = connection.CreateCommand())
