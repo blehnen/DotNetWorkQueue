@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         /// <param name="dequeueLua">The dequeue.</param>
         /// <param name="unixTimeFactory">The unix time factory.</param>
         /// <param name="messageFactory">The message factory.</param>
-        public AReceiveMessageQueryHandler(
+        protected AReceiveMessageQueryHandler(
             ICompositeSerialization serializer,
             IReceivedMessageFactory receivedMessageFactory,
             IRemoveMessage removeMessage,

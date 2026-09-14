@@ -55,7 +55,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             Assert.IsFalse(string.IsNullOrEmpty(connection.DataSource), "DataSource came back empty");
             Assert.IsFalse(string.IsNullOrEmpty(connection.ServerVersion), "ServerVersion came back empty");
             Assert.AreEqual(ConnectionState.Open, connection.State);
-            Assert.IsTrue(connection.ConnectionTimeout >= 0);
+            Assert.IsGreaterThanOrEqualTo(0, connection.ConnectionTimeout);
         }
 
         [TestMethod]
