@@ -155,6 +155,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
             //LUA scripts
             container.Register<DequeueLua>(LifeStyles.Singleton);
+            container.Register<HeartBeatLua>(LifeStyles.Singleton);
             container.Register<EnqueueLua>(LifeStyles.Singleton);
             container.Register<EnqueueDelayedLua>(LifeStyles.Singleton);
             container.Register<EnqueueExpirationLua>(LifeStyles.Singleton);

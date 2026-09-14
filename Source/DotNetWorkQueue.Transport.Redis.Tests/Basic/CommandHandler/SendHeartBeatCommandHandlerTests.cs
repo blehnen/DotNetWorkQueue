@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.Redis.Basic;
 using DotNetWorkQueue.Transport.Redis.Basic.CommandHandler;
+using DotNetWorkQueue.Transport.Redis.Basic.Lua;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -55,22 +56,18 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.CommandHandler
         {
             var harness = new Harness(stillWorking: true);
             Assert.AreEqual(0, harness.Handler.Handle(new SendHeartBeatCommand<string>(string.Empty)));
-            harness.Db.DidNotReceiveWithAnyArgs()
-                .SortedSetUpdate(default, default, default, default(SortedSetWhen), default);
+            Assert.AreEqual(0, harness.Lua.Calls, "a message with no id still reached redis");
         }
 
         private sealed class Harness
         {
             public TestableHandler Handler { get; }
             public IDatabase Db { get; }
+            public FakeHeartBeatLua Lua { get; }
 
             public Harness(bool stillWorking)
             {
                 Db = Substitute.For<IDatabase>();
-                Db.SortedSetUpdate(Arg.Any<RedisKey>(), Arg.Any<RedisValue>(), Arg.Any<double>(),
-                    Arg.Any<SortedSetWhen>(), Arg.Any<CommandFlags>()).Returns(stillWorking);
-                Db.SortedSetUpdateAsync(Arg.Any<RedisKey>(), Arg.Any<RedisValue>(), Arg.Any<double>(),
-                    Arg.Any<SortedSetWhen>(), Arg.Any<CommandFlags>()).Returns(Task.FromResult(stillWorking));
 
                 var unixTime = Substitute.For<IUnixTime>();
                 unixTime.GetCurrentUnixTimestampMilliseconds().Returns(1_700_000_000_000);
@@ -81,7 +78,37 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.CommandHandler
                 connection.IsDisposed.Returns(false);
                 var names = Substitute.For<RedisNames>(Substitute.For<IConnectionInformation>());
 
-                Handler = new TestableHandler(unixTimeFactory, connection, names, Db);
+                //the claim check lives in the script now, so that is what decides whether a beat lands
+                Lua = new FakeHeartBeatLua(connection, names, stillWorking ? 1_700_000_000_000 : 0);
+                Handler = new TestableHandler(unixTimeFactory, connection, names, Db, Lua);
+            }
+        }
+
+        /// <summary>
+        /// Stands in for the real script: the compare-and-set runs inside redis, so a unit test can only
+        /// say what answer came back.
+        /// </summary>
+        private sealed class FakeHeartBeatLua : HeartBeatLua
+        {
+            private readonly long _result;
+            public int Calls { get; private set; }
+
+            public FakeHeartBeatLua(IRedisConnection connection, RedisNames redisNames, long result)
+                : base(connection, redisNames)
+            {
+                _result = result;
+            }
+
+            public override long Execute(string messageId, long timestamp, long? previousTimestamp)
+            {
+                Calls++;
+                return _result;
+            }
+
+            public override Task<long> ExecuteAsync(string messageId, long timestamp, long? previousTimestamp)
+            {
+                Calls++;
+                return Task.FromResult(_result);
             }
         }
 
@@ -90,8 +117,8 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.CommandHandler
             private readonly IDatabase _db;
 
             public TestableHandler(IUnixTimeFactory unixTimeFactory, IRedisConnection connection,
-                RedisNames redisNames, IDatabase db)
-                : base(unixTimeFactory, connection, redisNames)
+                RedisNames redisNames, IDatabase db, HeartBeatLua heartBeatLua)
+                : base(unixTimeFactory, connection, redisNames, heartBeatLua)
             {
                 _db = db;
             }

@@ -69,10 +69,21 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                         .ToList();
 
                     DateTime? date = null;
-                    if (results.Count == 1)
+                    //The second test is the ownership check the relational transports make in SQL: beat
+                    //only if the stored heartbeat is still the one this worker wrote. Once the monitor
+                    //has reset the message and another worker has taken it, the value differs and this
+                    //worker is told its claim is gone rather than refreshing somebody else's
+                    //(GitHub #328). A null expectation is the first beat, which does not constrain -
+                    //the de-queue wrote a heartbeat this worker never saw.
+                    if (results.Count == 1 &&
+                        (!command.PreviousHeartBeat.HasValue || results[0].HeartBeat == command.PreviousHeartBeat))
                     {
                         var record = results[0];
-                        date = _getTime.GetCurrentUtcDate();
+                        //Truncated to the precision LiteDb actually stores. A BSON date keeps
+                        //milliseconds, so handing the caller a tick-precision value would hand it
+                        //something that was never written - and the next beat, which compares what it
+                        //last wrote against the stored value, would never match again.
+                        date = TruncateToStoredPrecision(_getTime.GetCurrentUtcDate());
                         record.HeartBeat = date;
                         col.Update(record);
                     }
@@ -87,5 +98,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                 }
             }
         }
+
+        /// <summary>
+        /// The value as LiteDb will store it, so that what a caller is told it wrote is what a later
+        /// read returns.
+        /// </summary>
+        private static DateTime TruncateToStoredPrecision(DateTime value) =>
+            new DateTime(value.Ticks - value.Ticks % TimeSpan.TicksPerMillisecond, value.Kind);
     }
 }

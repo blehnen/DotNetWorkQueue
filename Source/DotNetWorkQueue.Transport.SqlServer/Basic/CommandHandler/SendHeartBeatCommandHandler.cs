@@ -110,6 +110,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             commandSql.Parameters["@QueueID"].Value = command.QueueId;
             commandSql.Parameters.Add("@status", SqlDbType.Int);
             commandSql.Parameters["@status"].Value = Convert.ToInt16(QueueStatuses.Processing);
+
+            //the heartbeat this worker last wrote, so the update only matches a claim that is still its
+            //own - null on the first beat, which does not constrain (see SendHeartBeatCommand)
+            commandSql.Parameters.Add("@previous", SqlDbType.DateTime);
+            commandSql.Parameters["@previous"].Value =
+                command.PreviousHeartBeat.HasValue ? command.PreviousHeartBeat.Value : (object)DBNull.Value;
         }
     }
 }

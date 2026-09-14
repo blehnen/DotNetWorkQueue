@@ -65,7 +65,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 $"update {TableNameHelper.MetaDataName} set status = @Status, heartbeat = null where queueID = @QueueID and status = @SourceStatus and HeartBeat = @HeartBeat");
 
             CommandCache.Add(CommandStringTypes.SendHeartBeat,
-                $"Update {TableNameHelper.MetaDataName} set HeartBeat = @date where status = @Status and queueID = @QueueID");
+                //see the PostgreSQL cache: the trailing clause is the ownership check (GitHub #328)
+                $"Update {TableNameHelper.MetaDataName} set HeartBeat = @date where status = @Status and queueID = @QueueID and (@previous is null or HeartBeat = @previous)");
 
             CommandCache.Add(CommandStringTypes.InsertMessageBody,
                 $"Insert into {TableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers); ");

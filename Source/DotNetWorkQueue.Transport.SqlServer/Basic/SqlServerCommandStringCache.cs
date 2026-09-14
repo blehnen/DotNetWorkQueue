@@ -67,7 +67,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 $"update {TableNameHelper.MetaDataName} with (updlock, readpast, rowlock) set status = @Status, heartbeat = null where queueID = @QueueID and status = @SourceStatus and HeartBeat = @HeartBeat");
 
             CommandCache.Add(CommandStringTypes.SendHeartBeat,
-                $"declare @date as datetime set @date = GETUTCDATE() Update {TableNameHelper.MetaDataName} set HeartBeat = @date where status = @status and queueID = @queueID select @date");
+                //see the PostgreSQL cache: the trailing clause is the ownership check (GitHub #328)
+                $"declare @date as datetime set @date = GETUTCDATE() Update {TableNameHelper.MetaDataName} set HeartBeat = @date where status = @status and queueID = @queueID and (@previous is null or HeartBeat = @previous) select @date");
 
             CommandCache.Add(CommandStringTypes.InsertMessageBody,
                 $"Insert into {TableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers) select SCOPE_IDENTITY() ");
