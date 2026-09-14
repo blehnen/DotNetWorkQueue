@@ -307,13 +307,20 @@ namespace DotNetWorkQueue.Tests.Queue
                 return Task.FromResult(landed);
             });
 
-            //an expiry shorter than the time this test takes, so the claim is late from the outset
-            var (worker, beat, cancelled) = CreateForStaleness(context, sendHeartBeat, TimeSpan.FromMilliseconds(1));
+            var (worker, beat, cancelled) = CreateForStaleness(context, sendHeartBeat, TimeSpan.FromMilliseconds(20));
             using (worker)
             {
                 worker.Start();
+
+                //Start() stamps the claim as fresh, and every landed beat re-stamps it, so driving beats
+                //back to back can finish before the expiry has passed even once - the test would then
+                //pass without the late path ever running. Sleeping past the expiry before each beat is
+                //what makes every one of these a late beat.
                 for (var i = 0; i < 5; i++)
+                {
+                    Thread.Sleep(40);
                     beat()();
+                }
 
                 Assert.IsGreaterThanOrEqualTo(5, Interlocked.CompareExchange(ref sends, 0, 0),
                     "the worker stopped beating because it was late, which is the behaviour that turned a slow moment into a lost message");
