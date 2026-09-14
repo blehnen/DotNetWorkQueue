@@ -68,7 +68,11 @@ namespace DotNetWorkQueue.Queue
                 "before the claim expires; a single delayed beat can cause the message to be reset and " +
                 "processed a second time. Either raise HeartBeat.Time to " +
                 $"{TimeSpan.FromTicks(heartBeat.UpdateTime.Ticks * minimumAttempts)}, or lower " +
-                $"HeartBeat.UpdateTime to {TimeSpan.FromTicks(heartBeat.Time.Ticks / minimumAttempts)}");
+                $"HeartBeat.UpdateTime to {TimeSpan.FromTicks(heartBeat.Time.Ticks / minimumAttempts)}. " +
+                $"Note that {minimumAttempts} times is the point below which this refuses to start, not " +
+                "a recommendation: HeartBeat.Time also has to exceed the longest a single heartbeat " +
+                "write can take on your transport, which under write contention can be far longer than " +
+                "the update interval itself (GitHub #328).");
         }
     }
 }
