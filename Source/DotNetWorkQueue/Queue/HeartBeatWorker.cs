@@ -450,6 +450,30 @@ namespace DotNetWorkQueue.Queue
                     if (Stopped)
                         return;
 
+                    //A beat proves the claim is still ours by naming the heartbeat this worker last
+                    //wrote, and until the first one lands there is nothing to name. An update that
+                    //carries no such value matches whatever the record holds, including a claim the
+                    //monitor has already handed to somebody else - it would then renew that worker's
+                    //claim and, because the value it writes is not one that worker knows about, break
+                    //the ownership check on the beats that legitimately own the message. Sending it is
+                    //only safe while the claim is fresh, which is exactly while the monitor cannot have
+                    //reset it; past the expiry with nothing to prove ownership with, the claim has to
+                    //be treated as gone (GitHub #328).
+                    //
+                    //This sits inside the lock on purpose. Outside it, a first beat that is merely slow
+                    //looks identical to one that never happened, and cancelling on that would turn a
+                    //slow transport into a lost message - the thing this whole change exists to stop.
+                    //Here, any beat that was in flight has finished and published its result.
+                    if (!LastWrittenHeartBeat().HasValue && ClaimHasLapsed())
+                    {
+                        Interlocked.Exchange(ref _claimLostConfirmed, 1);
+                        _logger.LogError(
+                            "No heartbeat has landed for message {MessageId} since it was picked up, and the claim is now past the {Expiry} the monitor resets against. There is nothing left to show the message is still this worker's, so processing is being cancelled rather than renewing a claim that may now belong to another worker",
+                            _context.MessageId?.Id?.Value, _expiry);
+                        SetCancel();
+                        return;
+                    }
+
                     Running = true;
                     //Freshness is measured from when the update was sent, not from when the reply came
                     //back. A slow reply would otherwise start a new local window while the record the
@@ -523,6 +547,16 @@ namespace DotNetWorkQueue.Queue
                 Running = false;
             }
         }
+
+        /// <summary>
+        /// The heartbeat this worker last wrote, or null when none has landed yet.
+        /// </summary>
+        /// <remarks>
+        /// The transports read the same value when they build the ownership test into the update, so
+        /// reading it from the same place keeps the decision here and the comparison there in step.
+        /// </remarks>
+        private DateTime? LastWrittenHeartBeat() =>
+            _context.WorkerNotification?.HeartBeat?.Status?.LastHeartBeatTime;
 
         /// <summary>
         /// Stops processing when this worker's claim on the message has aged out.

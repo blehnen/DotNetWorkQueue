@@ -312,6 +312,11 @@ namespace DotNetWorkQueue.Tests.Queue
             {
                 worker.Start();
 
+                //one beat while the claim is still fresh, so the worker holds a heartbeat of its own to
+                //prove the claim with; without that the beats below carry no proof of ownership and
+                //stopping is the correct answer rather than the regression this test is about
+                beat()();
+
                 //Start() stamps the claim as fresh, and every landed beat re-stamps it, so driving beats
                 //back to back can finish before the expiry has passed even once - the test would then
                 //pass without the late path ever running. Sleeping past the expiry before each beat is
@@ -322,7 +327,7 @@ namespace DotNetWorkQueue.Tests.Queue
                     beat()();
                 }
 
-                Assert.IsGreaterThanOrEqualTo(5, Interlocked.CompareExchange(ref sends, 0, 0),
+                Assert.IsGreaterThanOrEqualTo(6, Interlocked.CompareExchange(ref sends, 0, 0),
                     "the worker stopped beating because it was late, which is the behaviour that turned a slow moment into a lost message");
                 Assert.IsFalse(cancelled(),
                     "a worker was cancelled for being late, without the transport ever saying the claim was gone");
@@ -338,15 +343,29 @@ namespace DotNetWorkQueue.Tests.Queue
             var context = Substitute.For<IMessageContext>();
             var sendHeartBeat = Substitute.For<ISendHeartBeat>();
 
+            var landed = Substitute.For<IHeartBeatStatus>();
+            landed.LastHeartBeatTime.Returns(DateTime.UtcNow);
             var noRecord = Substitute.For<IHeartBeatStatus>();
             noRecord.LastHeartBeatTime.Returns((DateTime?)null);
-            sendHeartBeat.SendAsync(context).Returns(Task.FromResult(noRecord));
 
-            //an expiry this short means the claim is late from the first tick
-            var (worker, beat, cancelled) = CreateForStaleness(context, sendHeartBeat, TimeSpan.FromMilliseconds(1));
+            //the first beat lands, so what cancels below is the transport's answer rather than the
+            //worker having nothing to prove the claim with
+            var first = true;
+            sendHeartBeat.SendAsync(context).Returns(_ =>
+            {
+                if (!first) return Task.FromResult(noRecord);
+                first = false;
+                return Task.FromResult(landed);
+            });
+
+            var (worker, beat, cancelled) = CreateForStaleness(context, sendHeartBeat, TimeSpan.FromMilliseconds(20));
             using (worker)
             {
                 worker.Start();
+                beat()();                   //lands while the claim is still fresh
+                Assert.IsFalse(cancelled(), "a landed beat cancelled the worker");
+
+                Thread.Sleep(60);           //now the claim is past the expiry
                 SpinWait.SpinUntil(() =>
                 {
                     beat()();
@@ -382,6 +401,42 @@ namespace DotNetWorkQueue.Tests.Queue
 
                 Assert.IsFalse(cancelled(),
                     "a worker was cancelled for finishing its own message while a heartbeat was in flight");
+            }
+        }
+
+        [TestMethod]
+        public void AFirstBeatThatIsAlreadyLate_StopsInsteadOfRenewingAClaimItCannotProve()
+        {
+            //Every beat but the first can say which heartbeat it expects to find, and the transports
+            //refuse the update when the record no longer holds it. The first beat has nothing to name,
+            //so its update matches whatever is there - including a claim the monitor has already handed
+            //to another worker. That is harmless while the claim is fresh, because nothing can have
+            //taken it yet, and unsafe afterwards: it would renew the new owner's claim and leave that
+            //worker's own next beat looking at a value it never wrote (GitHub #328).
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+
+            var landed = Substitute.For<IHeartBeatStatus>();
+            landed.LastHeartBeatTime.Returns(DateTime.UtcNow);
+            var sends = 0;
+            sendHeartBeat.SendAsync(context).Returns(_ =>
+            {
+                Interlocked.Increment(ref sends);
+                return Task.FromResult(landed);
+            });
+
+            var (worker, beat, cancelled) = CreateForStaleness(context, sendHeartBeat, TimeSpan.FromMilliseconds(20));
+            using (worker)
+            {
+                worker.Start();
+                Thread.Sleep(60);           //the claim ages out before this worker ever beats
+
+                beat()();
+
+                Assert.AreEqual(0, Interlocked.CompareExchange(ref sends, 0, 0),
+                    "an update the worker could not prove ownership with was sent anyway, which is how a second worker's claim gets renewed");
+                Assert.IsTrue(cancelled(),
+                    "the worker carried on processing a message it had no way of showing was still its own");
             }
         }
 
