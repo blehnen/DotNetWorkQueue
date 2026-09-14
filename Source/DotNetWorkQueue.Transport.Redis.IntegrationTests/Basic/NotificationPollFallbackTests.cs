@@ -21,6 +21,13 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Basic
     /// These tests never publish anything, which is the same position a reader is in after a lost
     /// notification. An unbounded wait does not return here at all; it has to be timed out by the test
     /// harness, which is the failure this prevents.
+    ///
+    /// They exercise the wait directly rather than through a consumer, and that boundary is worth
+    /// knowing: they prove the wait is bounded, not that the receive loop still calls it. Reaching this
+    /// end to end would mean manufacturing a lost notification inside a running consumer, and the
+    /// transport offers no seam for that - a message cannot be enqueued without the same Lua script
+    /// publishing the notification. The consumer suites cover the loop calling the wait at all; what is
+    /// uncovered is a wiring change that stopped it doing so.
     /// </summary>
     [TestClass]
     public class NotificationPollFallbackTests

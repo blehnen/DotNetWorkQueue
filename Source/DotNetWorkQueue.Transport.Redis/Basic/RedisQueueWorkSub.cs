@@ -165,10 +165,17 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(tokens.ToArray());
             await using var registration = cts.Token.Register(CancelAsyncWait).ConfigureAwait(false);
 
-            //Same bound as the synchronous path. The delay is not given the token: cancellation
-            //completes `wait` itself through the registration above, so racing an un-cancellable
-            //delay keeps a cancelled run from leaving a faulted task nobody observes.
-            var finished = await Task.WhenAny(wait, Task.Delay(_notificationPollFallback)).ConfigureAwait(false);
+            //Same bound as the synchronous path.
+            //
+            //The delay deliberately does NOT observe the queue's cancellation. Cancellation already
+            //completes `wait` through the registration above, and a delay that cancelled too could
+            //win the race during shutdown - returning true, which tells the caller to go back and
+            //read the queue at exactly the moment it is stopping. Its own source exists only so the
+            //timer is released when a notification wins, rather than being left to run out.
+            using var delayCancel = new CancellationTokenSource();
+            var finished = await Task.WhenAny(wait, Task.Delay(_notificationPollFallback, delayCancel.Token))
+                .ConfigureAwait(false);
+            delayCancel.Cancel();
             if (finished == wait)
                 return await wait.ConfigureAwait(false);
 
