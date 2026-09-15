@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -67,12 +67,35 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
         }
         #endregion
 
+        /// <summary>
+        /// The longest queue name that can actually be created.
+        /// </summary>
+        /// <remarks>
+        /// Lower than PostgreSQL's own 63 byte identifier limit, because the queue name is not itself the
+        /// longest identifier built from it. Creation generates <c>PK_{name}MetaDataErrors</c> - seventeen
+        /// characters more than the name - alongside <c>PK_{name}MetaData</c>, and
+        /// <c>IX_{name}History_Status_Completed</c> alongside <c>IX_{name}History_QueueID</c>. From 52
+        /// characters up, each pair truncates to the same 63 bytes and the second one raises
+        /// <c>42710 duplicate_object</c>.
+        ///
+        /// That error is caught and reported as <see cref="QueueCreationStatus.AttemptedToCreateAlreadyExists"/>,
+        /// which carries <c>Success == true</c>, so the caller was told the queue was ready while the whole
+        /// batch had rolled back and nothing existed. Rejecting the name is the only way to fail where the
+        /// mistake is (GitHub #339).
+        ///
+        /// Measured rather than derived: 51 creates, 52 does not.
+        /// </remarks>
+        private const int MaxQueueNameLength = 51;
+
         /// <summary>Validates that the queue name contains only safe characters for use as a PostgreSQL identifier.</summary>
         private static void ValidateQueueName(string name)
         {
             if (string.IsNullOrEmpty(name)) return; // allow empty for backward compatibility
-            Guard.IsValid(name, n => n.Length <= 63,
-                $"Queue name exceeds maximum length of 63 characters. Got {name.Length} characters.");
+            Guard.IsValid(name, n => n.Length <= MaxQueueNameLength,
+                $"Queue name exceeds maximum length of {MaxQueueNameLength} characters. Got {name.Length} characters. "
+                + "PostgreSQL truncates every identifier at 63 bytes, and the queue name is a prefix for names longer "
+                + "than itself - the longest is PK_<name>MetaDataErrors, 17 characters more - so a longer queue name "
+                + "produces two constraints that truncate to the same identifier.");
             Guard.IsValid(name, n => ValidQueueNamePattern().IsMatch(n),
                 "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
         }

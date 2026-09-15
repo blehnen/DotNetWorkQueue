@@ -101,21 +101,32 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
             Assert.IsNotNull(test);
         }
 
+        /// <summary>
+        /// The limit is 51 rather than PostgreSQL's own 63, because the queue name is a prefix for
+        /// identifiers longer than itself. These two tests used to assert 63, which accepted names that
+        /// could never create a queue: at 52 and above, PK_{name}MetaDataErrors truncates onto
+        /// PK_{name}MetaData and creation fails as duplicate_object - reported as "already exists" with
+        /// Success == true, having created nothing (GitHub #339).
+        /// </summary>
         [TestMethod]
-        public void QueueName_ExceedsMaxLength_63()
+        public void QueueName_ExceedsMaxLength_52()
         {
-            var longName = new string('a', 64);
-            Assert.ThrowsExactly<ArgumentException>(
+            var longName = new string('a', 52);
+            var error = Assert.ThrowsExactly<ArgumentException>(
                 delegate
                 {
                     var test = new SqlConnectionInformation(new QueueConnection(longName, GoodConnection));
                 });
+
+            //the message has to say why, or 51 reads as an arbitrary number
+            Assert.Contains("51", error.Message, "the limit is not stated");
+            Assert.Contains("MetaDataErrors", error.Message, "the reason for the limit is not stated");
         }
 
         [TestMethod]
-        public void QueueName_AtMaxLength_63()
+        public void QueueName_AtMaxLength_51()
         {
-            var maxName = new string('a', 63);
+            var maxName = new string('a', 51);
             var test = new SqlConnectionInformation(new QueueConnection(maxName, GoodConnection));
             Assert.IsNotNull(test);
         }
