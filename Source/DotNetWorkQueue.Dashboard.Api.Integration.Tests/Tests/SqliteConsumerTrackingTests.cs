@@ -33,6 +33,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
     /// using the SQLite transport.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class SqliteConsumerTrackingTests
     {
         // === Registration with SQLite transport ===

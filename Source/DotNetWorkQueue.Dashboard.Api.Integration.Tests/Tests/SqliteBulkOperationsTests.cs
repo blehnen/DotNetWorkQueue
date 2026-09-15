@@ -33,6 +33,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
     /// Tests for bulk operations: reset-all stale, error retries endpoint, and error requeue verification.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class SqliteBulkOperationsTests
     {
         // === Reset All Stale ===

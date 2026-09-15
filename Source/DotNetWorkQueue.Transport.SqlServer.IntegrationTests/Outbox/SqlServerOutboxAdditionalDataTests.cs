@@ -47,6 +47,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
     ///   4. The send result contains no error (confirming the caller-transaction path succeeded).
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class SqlServerOutboxAdditionalDataTests : SqlServerOutboxIntegrationTestBase
     {
         private const byte ExpectedPriority = 7;

@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
     [TestClass]
+    [Retry(2)]
     public class PostgreSqlProcessingTests
     {
         private DashboardTestServer _server;

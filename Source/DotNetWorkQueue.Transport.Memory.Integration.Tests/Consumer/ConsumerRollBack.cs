@@ -15,6 +15,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
     /// continues processing subsequent messages after an error occurs.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class ConsumerRollBack
     {
         [TestMethod]

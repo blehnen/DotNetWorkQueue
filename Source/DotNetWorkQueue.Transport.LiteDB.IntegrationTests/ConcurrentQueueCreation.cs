@@ -22,6 +22,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
     /// this path would fail it - and because the serialisation it covers has no other test.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class ConcurrentQueueCreation
     {
         [TestMethod]

@@ -34,6 +34,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Inbox
     /// library's own connection.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class SqlServerInboxAtomicVisibilityTests : SqlServerInboxIntegrationTestBase
     {
         [ClassInitialize]

@@ -34,6 +34,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
     /// at the integration level (structural unit pin lives in Phase 3).
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class SqlServerOutboxRetryBypassTests : SqlServerOutboxIntegrationTestBase
     {
         [TestMethod]

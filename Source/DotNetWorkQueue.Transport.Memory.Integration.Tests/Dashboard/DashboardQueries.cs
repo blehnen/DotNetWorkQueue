@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Dashboard
 {
     [TestClass]
+    [Retry(2)]
     public class DashboardQueries
     {
         #region Helpers

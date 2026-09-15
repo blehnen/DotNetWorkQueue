@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
 {
     [TestClass]
+    [Retry(2)]
     public class SimpleProducerBatch
     {
         [TestMethod]

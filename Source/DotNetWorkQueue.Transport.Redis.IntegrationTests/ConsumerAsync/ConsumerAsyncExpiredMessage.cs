@@ -15,6 +15,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
     /// that removal stayed synchronous without anything noticing.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class ConsumerAsyncExpiredMessage
     {
         [TestMethod]

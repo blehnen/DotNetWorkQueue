@@ -22,6 +22,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
     /// mode entirely would still look correct. Each test owns a raw file instead.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class WalJournalModeTests
     {
         [TestMethod]

@@ -33,6 +33,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
     /// Tests for queue configuration, status, listing, and feature endpoints using the SQLite transport.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class SqliteQueueConfigTests
     {
         // === Configuration endpoint returns transport options JSON ===

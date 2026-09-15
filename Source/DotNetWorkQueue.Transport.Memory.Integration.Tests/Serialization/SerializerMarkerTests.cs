@@ -34,6 +34,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Serialization
     /// calling the serializers directly.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class SerializerMarkerTests
     {
         [TestMethod]

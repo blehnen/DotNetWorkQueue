@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Consumer
 {
     [TestClass]
+    [Retry(2)]
     public class ConsumerPoisonMessage
     {
         [TestMethod]

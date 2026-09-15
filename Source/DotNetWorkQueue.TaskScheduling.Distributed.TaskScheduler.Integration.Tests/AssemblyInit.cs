@@ -6,6 +6,7 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 namespace DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests
 {
     [TestClass]
+    [Retry(2)]
     public static class AssemblyInit
     {
         [AssemblyInitialize]

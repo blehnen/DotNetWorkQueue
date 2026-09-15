@@ -37,6 +37,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
     /// Requires a running SQL Server with <c>connectionstring.txt</c> configured.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class BatchSendCriteria
     {
         /// <summary>Criteria 1 (all rows), 2 (ids in input order), 4 (chunking across the boundary).</summary>

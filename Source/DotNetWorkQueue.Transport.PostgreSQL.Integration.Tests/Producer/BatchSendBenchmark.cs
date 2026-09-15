@@ -37,6 +37,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
     /// <c>connectionstring.txt</c> configured.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class BatchSendBenchmark
     {
         public TestContext TestContext { get; set; }

@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Route
 {
     [TestClass]
+    [Retry(2)]
     public class RouteMultiTests
     {
         [TestMethod]

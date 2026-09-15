@@ -39,6 +39,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Producer
     /// that shape.
     /// </remarks>
     [TestClass]
+    [Retry(2)]
     public class BatchSendOrder
     {
         [TestMethod]

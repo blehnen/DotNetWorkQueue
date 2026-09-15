@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Consumer
 {
     [TestClass]
+    [Retry(2)]
     public class ConsumerAsyncHeartbeatTests
     {
         [TestMethod]

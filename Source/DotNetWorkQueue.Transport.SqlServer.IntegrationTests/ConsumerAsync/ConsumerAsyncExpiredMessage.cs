@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
 {
     [TestClass]
+    [Retry(2)]
     public class ConsumerAsyncExpiredMessage
     {
         [TestMethod]

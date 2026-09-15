@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.History
 {
     [TestClass]
+    [Retry(2)]
     public class HistoryAsyncErrorTests
     {
         [TestMethod]

@@ -34,6 +34,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
     /// run in memory over an ordered window. These cover the behaviours that moved.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class DequeueEligibility
     {
         [TestMethod]

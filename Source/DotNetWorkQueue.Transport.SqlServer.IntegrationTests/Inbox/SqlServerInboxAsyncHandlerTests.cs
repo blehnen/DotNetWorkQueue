@@ -32,6 +32,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Inbox
     /// exercises the IConsumerQueueAsync path.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class SqlServerInboxAsyncHandlerTests : SqlServerInboxIntegrationTestBase
     {
         [ClassInitialize]

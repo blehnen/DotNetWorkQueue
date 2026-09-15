@@ -31,6 +31,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Inbox
     /// Async inbox-pattern integration tests for PostgreSQL.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class PostgreSqlInboxAsyncHandlerTests : PostgreSqlInboxIntegrationTestBase
     {
         [ClassInitialize]

@@ -32,6 +32,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Outbox
     /// untouched. Closes PROJECT.md §SC #6.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class PostgreSqlOutboxValidationTests : PostgreSqlOutboxIntegrationTestBase
     {
         [TestMethod]

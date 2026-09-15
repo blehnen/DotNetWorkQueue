@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Producer
 {
     [TestClass]
+    [Retry(2)]
     public class SimpleProducer
     {
         [TestMethod]

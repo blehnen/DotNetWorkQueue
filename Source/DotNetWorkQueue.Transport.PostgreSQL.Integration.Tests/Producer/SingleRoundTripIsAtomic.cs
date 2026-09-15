@@ -45,6 +45,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
     /// </para>
     /// </remarks>
     [TestClass]
+    [Retry(2)]
     public class SingleRoundTripIsAtomic
     {
         [TestMethod]

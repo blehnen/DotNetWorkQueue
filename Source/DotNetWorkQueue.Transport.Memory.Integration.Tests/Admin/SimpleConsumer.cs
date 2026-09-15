@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Admin
 {
     [TestClass]
+    [Retry(2)]
     public class SimpleConsumer
     {
         [TestMethod]

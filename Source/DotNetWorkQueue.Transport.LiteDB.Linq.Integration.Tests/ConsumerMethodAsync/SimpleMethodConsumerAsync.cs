@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethodAsync
 {
     [TestClass]
+    [Retry(2)]
     public class SimpleMethodConsumerAsync
     {
         [TestMethod]

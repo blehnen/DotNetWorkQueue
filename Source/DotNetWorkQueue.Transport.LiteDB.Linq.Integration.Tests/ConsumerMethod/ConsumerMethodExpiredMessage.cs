@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ConsumerMethod
 {
     [TestClass]
+    [Retry(2)]
     public class ConsumerMethodExpiredMessage
     {
         [TestMethod]

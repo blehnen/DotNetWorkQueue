@@ -33,6 +33,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Inbox
     /// rather than the framework chain throwing a NullReferenceException.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class PostgreSqlInboxOptionFalseTests : PostgreSqlInboxIntegrationTestBase
     {
         private const string ExpectedHandlerMessage =

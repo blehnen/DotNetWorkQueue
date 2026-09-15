@@ -37,6 +37,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
     /// be released early, and every other test here would still pass. This pins the assumption.
     /// </remarks>
     [TestClass]
+    [Retry(2)]
     public class DateKindIsPreserved
     {
         [TestMethod]

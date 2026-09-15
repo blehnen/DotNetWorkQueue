@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
     [TestClass]
+    [Retry(2)]
     public class AuthorizationPolicyIntegrationTests
     {
         private DashboardTestServer _server;

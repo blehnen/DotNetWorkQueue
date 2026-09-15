@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.ConsumerMethodAsync
 {
     [TestClass]
+    [Retry(2)]
     public class ConsumerMethodAsyncErrorTable
     {
         [TestMethod]

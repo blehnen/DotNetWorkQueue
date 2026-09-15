@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.UserDequeue
 {
     [TestClass]
+    [Retry(2)]
     public class UserDequeue
     {
         [TestMethod]

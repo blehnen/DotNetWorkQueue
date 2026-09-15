@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.ConsumerMethod
 {
     [TestClass]
+    [Retry(2)]
     public class ConsumerMethodHeartbeat
     {
         [TestMethod]

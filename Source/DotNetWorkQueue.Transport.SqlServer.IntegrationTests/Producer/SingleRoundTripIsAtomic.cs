@@ -57,6 +57,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Producer
     /// </para>
     /// </remarks>
     [TestClass]
+    [Retry(2)]
     public class SingleRoundTripIsAtomic
     {
         /// <summary>

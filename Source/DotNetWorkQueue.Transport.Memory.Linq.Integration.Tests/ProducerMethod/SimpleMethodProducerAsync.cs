@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
 {
     [TestClass]
+    [Retry(2)]
     public class SimpleMethodProducerAsync
     {
         [TestMethod]

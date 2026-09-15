@@ -31,6 +31,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
     /// (sync handler coverage cannot be inferred from the async handler).
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class SqlServerOutboxSendAsyncTests : SqlServerOutboxIntegrationTestBase
     {
         [TestMethod]

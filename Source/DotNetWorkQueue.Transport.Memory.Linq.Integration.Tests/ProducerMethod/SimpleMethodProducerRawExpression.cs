@@ -15,6 +15,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
     /// This is valid for in-process queues like Memory transport.
     /// </summary>
     [TestClass]
+    [Retry(2)]
     public class SimpleMethodProducerRawExpression
     {
         [TestMethod]

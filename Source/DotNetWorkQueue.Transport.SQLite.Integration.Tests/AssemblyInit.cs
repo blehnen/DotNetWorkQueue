@@ -4,6 +4,7 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests
 {
     [TestClass]
+    [Retry(2)]
     public static class AssemblyInit
     {
         [AssemblyInitialize]

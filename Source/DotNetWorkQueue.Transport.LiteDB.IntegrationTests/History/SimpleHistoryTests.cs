@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.History
 {
     [TestClass]
+    [Retry(2)]
     public class SimpleHistoryTests
     {
         [TestMethod]

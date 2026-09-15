@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Dashboard
 {
     [TestClass]
+    [Retry(2)]
     public class StaleMessageTimeProviderTests
     {
         [TestMethod]

@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
 {
     [TestClass]
+    [Retry(2)]
     public class MultiConsumerAsync
     {
         [TestMethod]

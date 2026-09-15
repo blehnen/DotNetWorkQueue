@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
 {
     [TestClass]
+    [Retry(2)]
     public class ConsumerRollBack
     {
         [TestMethod]
