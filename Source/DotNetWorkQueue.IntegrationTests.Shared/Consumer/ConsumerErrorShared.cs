@@ -60,11 +60,19 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
 
                             //wait 3 more seconds before starting to shutdown
                             Thread.Sleep(3000);
-                        }
 
-                        if (rollBacks)
-                            VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics,
-                                messageCount, 2, 2);
+                            //Checked while the queue is still running, on purpose.
+                            //
+                            //This overload polls for up to 30 seconds waiting for the counts to land.
+                            //Outside the using block that budget buys nothing: the queue is disposed,
+                            //no further work can happen, and every pass re-reads the same final
+                            //snapshot - so a count that had not arrived never would, and the wait only
+                            //added half a minute to the failure. Here the tolerance is real
+                            //(GitHub #314).
+                            if (rollBacks)
+                                VerifyMetrics.VerifyRollBackCount(queueConnection.Queue, metrics,
+                                    messageCount, 2, 2);
+                        }
                     }
                 }
             }
