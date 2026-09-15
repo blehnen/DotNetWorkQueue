@@ -36,6 +36,35 @@ namespace DotNetWorkQueue.Tests.Trace.Decorator
     [TestClass]
     public class RemoveMessageDecoratorTests
     {
+        private const string SourceName = "DotNetWorkQueue.Tests.Remove";
+        private ActivityListener _listener;
+
+        /// <summary>The RemovedBecause tag of the last span the decorator finished.</summary>
+        private string _lastRemovedBecause;
+
+        /// <summary>
+        /// Without a listener every StartActivity returns null, the null-conditionals below it are all
+        /// skipped, and the decorator's tagging never executes in any test - so nothing here would
+        /// notice a span losing its tags. Sampling makes the scopes real, and ActivityStopped is the
+        /// only point the decorator's activity is reachable from outside the using block that made it.
+        /// </summary>
+        [TestInitialize]
+        public void Listen()
+        {
+            _lastRemovedBecause = null;
+            _listener = new ActivityListener
+            {
+                ShouldListenTo = source => source.Name == SourceName,
+                Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
+                SampleUsingParentId = (ref ActivityCreationOptions<string> _) => ActivitySamplingResult.AllData,
+                ActivityStopped = a => _lastRemovedBecause = a.GetTagItem("RemovedBecause") as string
+            };
+            ActivitySource.AddActivityListener(_listener);
+        }
+
+        [TestCleanup]
+        public void StopListening() => _listener?.Dispose();
+
         [TestMethod]
         public void Remove_WithNoId_DoesNotAskForHeaders()
         {
@@ -72,6 +101,54 @@ namespace DotNetWorkQueue.Tests.Trace.Decorator
 
             Assert.AreEqual(RemoveMessageStatus.Removed, status);
             harness.GetHeader.Received(1).GetHeaders(harness.MessageId);
+            Assert.AreEqual(nameof(RemoveMessageReason.Expired), _lastRemovedBecause,
+                "the span did not carry the reason the message was removed");
+        }
+
+        [TestMethod]
+        public void Remove_WithAnId_StillReadsHeadersToParentTheSpan()
+        {
+            //the synchronous twin of the async case below it: both branches of the id overload have to
+            //be exercised, or the header lookup only ever runs on one of the two paths a caller can take
+            var harness = new Harness(hasId: true);
+
+            var status = harness.Decorator.Remove(harness.MessageId, RemoveMessageReason.Expired);
+
+            Assert.AreEqual(RemoveMessageStatus.Removed, status);
+            harness.GetHeader.Received(1).GetHeaders(harness.MessageId);
+            harness.Decorated.Received(1).Remove(harness.MessageId, RemoveMessageReason.Expired);
+            Assert.AreEqual(nameof(RemoveMessageReason.Expired), _lastRemovedBecause,
+                "the span did not carry the reason the message was removed");
+        }
+
+        [TestMethod]
+        public void Remove_FromAContext_ReachesTheDecoratedHandler()
+        {
+            var harness = new Harness(hasId: true);
+            var context = Substitute.For<IMessageContext>();
+
+            harness.Decorator.Remove(context, RemoveMessageReason.Complete);
+
+            harness.Decorated.Received(1).Remove(context, RemoveMessageReason.Complete);
+            //the context overload traces from the context rather than from a header lookup
+            harness.GetHeader.DidNotReceiveWithAnyArgs().GetHeaders(null);
+        }
+
+        [TestMethod]
+        public async Task RemoveAsync_WithAnId_WhenNothingIsTracing_StillRemoves()
+        {
+            //the ordinary production case: no exporter is configured, so StartActivity returns null and
+            //every scope?. under it is skipped. Removal has to behave the same either way
+            _listener.Dispose();
+            var harness = new Harness(hasId: true);
+
+            var status = await harness.Decorator
+                .RemoveAsync(harness.MessageId, RemoveMessageReason.Expired).ConfigureAwait(false);
+
+            Assert.AreEqual(RemoveMessageStatus.Removed, status);
+            await harness.Decorated.Received(1)
+                .RemoveAsync(harness.MessageId, RemoveMessageReason.Expired).ConfigureAwait(false);
+            Assert.IsNull(_lastRemovedBecause, "a span was recorded with no listener registered");
         }
 
         [TestMethod]
@@ -93,6 +170,7 @@ namespace DotNetWorkQueue.Tests.Trace.Decorator
             public IGetHeader GetHeader { get; }
             public IMessageId MessageId { get; }
 
+
             public Harness(bool hasId)
             {
                 Decorated = Substitute.For<IRemoveMessage>();
@@ -110,8 +188,7 @@ namespace DotNetWorkQueue.Tests.Trace.Decorator
                 GetHeader = Substitute.For<IGetHeader>();
                 GetHeader.GetHeaders(Arg.Any<IMessageId>()).Returns(new Dictionary<string, object>());
 
-                Decorator = new RemoveMessageDecorator(Decorated,
-                    new ActivitySource("DotNetWorkQueue.Tests.Remove"),
+                Decorator = new RemoveMessageDecorator(Decorated, new ActivitySource(SourceName),
                     Substitute.For<IStandardHeaders>(), GetHeader);
             }
         }

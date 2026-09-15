@@ -441,6 +441,108 @@ namespace DotNetWorkQueue.Tests.Queue
         }
 
         [TestMethod]
+        public void AClaimGivenUpOnAMessageWithNoId_IsStillReported()
+        {
+            //The id reaches the log through a null-conditional chain because a context is not obliged to
+            //carry one - a message removed while this was in flight leaves nothing to read. If that
+            //chain were ever written as a plain dereference, these two log calls would throw inside the
+            //beat and the failure would surface as an unrelated heartbeat error.
+            var context = Substitute.For<IMessageContext>();
+            context.MessageId.Returns((IMessageId)null);
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+
+            var (worker, beat, cancelled) = CreateForStaleness(context, sendHeartBeat, TimeSpan.FromMilliseconds(20));
+            using (worker)
+            {
+                worker.Start();
+                Thread.Sleep(60);       //no beat has landed and the claim is now past the expiry
+
+                beat()();
+
+                Assert.IsTrue(cancelled(),
+                    "a claim with nothing to prove it stayed alive because the message had no id to log");
+
+                //Cancellation on its own proves nothing here: a throw inside the beat is caught, and
+                //that handler cancels too. Without this the test passes when the id is read straight
+                //through rather than conditionally - which is the mistake it exists to catch.
+                context.WorkerNotification.HeartBeat.DidNotReceive().SetError(Arg.Any<Exception>());
+            }
+        }
+
+        [TestMethod]
+        public void ABeatThatMatchesNoRecord_OnAMessageWithNoId_IsStillReported()
+        {
+            //the same chain on the other reporting path, where the id is read off the status the
+            //transport handed back rather than off the context
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+
+            var landed = Substitute.For<IHeartBeatStatus>();
+            landed.LastHeartBeatTime.Returns(DateTime.UtcNow);
+            var noRecord = Substitute.For<IHeartBeatStatus>();
+            noRecord.LastHeartBeatTime.Returns((DateTime?)null);
+            noRecord.MessageId.Returns((IMessageId)null);
+
+            var first = true;
+            sendHeartBeat.SendAsync(context).Returns(_ =>
+            {
+                if (!first) return Task.FromResult(noRecord);
+                first = false;
+                return Task.FromResult(landed);
+            });
+
+            var (worker, beat, cancelled) = CreateForStaleness(context, sendHeartBeat, TimeSpan.FromMilliseconds(20));
+            using (worker)
+            {
+                worker.Start();
+                beat()();               //lands, so the claim is provably ours
+                beat()();               //matches nothing while still fresh - the completion race, logged at debug
+                Assert.IsFalse(cancelled(), "a row that vanished while the claim was fresh cancelled the worker");
+
+                Thread.Sleep(60);
+                SpinWait.SpinUntil(() =>
+                {
+                    beat()();
+                    return cancelled();
+                }, TimeSpan.FromSeconds(20));
+
+                Assert.IsTrue(cancelled(),
+                    "the record was gone and the claim was late, and the worker carried on because there was no id to log");
+
+                //as above - the cancellation has to be the decision, not a caught exception
+                context.WorkerNotification.HeartBeat.DidNotReceive().SetError(Arg.Any<Exception>());
+            }
+        }
+
+        [TestMethod]
+        public void ABeatThatMatchesNoRecordWhileFresh_WithDebugOff_SkipsTheLogAndCarriesOn()
+        {
+            //the completion race is reported at debug and nowhere else, so with debug off the branch has
+            //to fall through without touching the logger - and without cancelling
+            var quiet = Substitute.For<ILogger>();
+            quiet.IsEnabled(Arg.Any<LogLevel>()).Returns(false);
+
+            var context = Substitute.For<IMessageContext>();
+            var sendHeartBeat = Substitute.For<ISendHeartBeat>();
+            var noRecord = Substitute.For<IHeartBeatStatus>();
+            noRecord.LastHeartBeatTime.Returns((DateTime?)null);
+            sendHeartBeat.SendAsync(context).Returns(Task.FromResult(noRecord));
+
+            var (worker, beat, cancelled) =
+                CreateForStaleness(context, sendHeartBeat, TimeSpan.FromMinutes(5), quiet);
+            using (worker)
+            {
+                worker.Start();
+                for (var i = 0; i < 3; i++)
+                    beat()();
+
+                Assert.IsFalse(cancelled(),
+                    "a worker was cancelled for finishing its own message while a heartbeat was in flight");
+                quiet.DidNotReceiveWithAnyArgs().Log<object>(default, default, default, default, default);
+            }
+        }
+
+        [TestMethod]
         public void AClaimThatIsBeingKeptAlive_DoesNotCancelProcessing()
         {
             //The negative case matters more than the positive one: cancelling a worker whose heartbeat is
@@ -563,7 +665,8 @@ namespace DotNetWorkQueue.Tests.Queue
         private (HeartBeatWorker worker,
             Func<Action> beat,
             Func<bool> cancelled)
-            CreateForStaleness(IMessageContext context, ISendHeartBeat sendHeartBeat, TimeSpan expiry)
+            CreateForStaleness(IMessageContext context, ISendHeartBeat sendHeartBeat, TimeSpan expiry,
+                ILogger logger = null)
         {
             //the token the worker hands to user code is the one it trips, so capture it on its way through
             var token = CancellationToken.None;
@@ -571,7 +674,7 @@ namespace DotNetWorkQueue.Tests.Queue
             factory.Create(Arg.Do<CancellationToken>(t => token = t))
                 .Returns(Substitute.For<IWorkerHeartBeatNotification>());
 
-            var worker = Create(expiry, TimeSpan.FromMinutes(5), context, sendHeartBeat, factory);
+            var worker = Create(expiry, TimeSpan.FromMinutes(5), context, sendHeartBeat, factory, logger: logger);
             //read through a closure: the token only exists once the worker has built it
             return (worker, () => () => { _ = worker.BeatOnceAsync(); }, () => token.IsCancellationRequested);
         }
@@ -696,7 +799,8 @@ namespace DotNetWorkQueue.Tests.Queue
 
 
         private HeartBeatWorker Create(TimeSpan checkSpan, TimeSpan updateTime, IMessageContext context, ISendHeartBeat sendHeartBeat,
-            IWorkerHeartBeatNotificationFactory notificationFactory = null, TimeSpan drainTimeout = default)
+            IWorkerHeartBeatNotificationFactory notificationFactory = null, TimeSpan drainTimeout = default,
+            ILogger logger = null)
         {
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             fixture.Inject(context);
@@ -705,8 +809,11 @@ namespace DotNetWorkQueue.Tests.Queue
             //a logger that reports every level as enabled. Without this the trace and debug branches
             //never run, and one of them reads status.MessageId.Id.Value - the kind of line that throws
             //only once it is actually reached
-            var logger = Substitute.For<ILogger>();
-            logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+            if (logger == null)
+            {
+                logger = Substitute.For<ILogger>();
+                logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+            }
             fixture.Inject(logger);
             if (notificationFactory != null)
                 fixture.Inject(notificationFactory);

@@ -34,27 +34,23 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
     {
         private readonly IUnixTimeFactory _unixTimeFactory;
         private readonly IRedisConnection _connection;
-        private readonly RedisNames _redisNames;
         private readonly HeartBeatLua _heartBeatLua;
 
         /// <summary>Initializes a new instance of the <see cref="DeleteMessageCommandHandler"/> class.</summary>
         /// <param name="unixTimeFactory">The unix time factory.</param>
         /// <param name="connection">Redis connection</param>
-        /// <param name="redisNames">Redis key names</param>
         /// <param name="heartBeatLua">Refreshes the claim only while it is still this caller's.</param>
         public SendHeartBeatCommandHandler(IUnixTimeFactory unixTimeFactory,
             IRedisConnection connection,
-            RedisNames redisNames,
             HeartBeatLua heartBeatLua)
         {
             Guard.NotNull(unixTimeFactory);
             Guard.NotNull(connection);
-            Guard.NotNull(redisNames);
+            Guard.NotNull(heartBeatLua);
 
             _unixTimeFactory = unixTimeFactory;
             _heartBeatLua = heartBeatLua;
             _connection = connection;
-            _redisNames = redisNames;
         }
 
         /// <inheritdoc />
