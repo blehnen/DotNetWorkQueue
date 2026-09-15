@@ -79,7 +79,21 @@ WHERE  ErrorTrackingID IN (SELECT KeepId FROM dnwq_upgrade_totals);
 
 DROP TABLE dnwq_upgrade_totals;
 
-CREATE UNIQUE INDEX IF NOT EXISTS IX_QueueIDExceptionTypeYourQueueNameErrorTracking
+-- Dropped and recreated rather than created with IF NOT EXISTS.
+--
+-- IF NOT EXISTS checks the name and nothing else, so an index that merely shares
+-- the name without being a two column unique key would make the statement
+-- succeed while the queue kept counting on the older racy path - a silent no-op
+-- reported as a successful upgrade. The runtime detector matches on shape, not
+-- on the name, so the two would disagree with nothing to say why.
+--
+-- Recreating leaves the right shape whatever was there before, and is still safe
+-- to run twice. The name embeds this queue's own table, so it belongs to the
+-- library rather than to anything the operator put there, and ErrorTracking
+-- holds one row per failing message - rebuilding the index costs nothing.
+DROP INDEX IF EXISTS IX_QueueIDExceptionTypeYourQueueNameErrorTracking;
+
+CREATE UNIQUE INDEX IX_QueueIDExceptionTypeYourQueueNameErrorTracking
     ON YourQueueNameErrorTracking (QueueID, ExceptionType);
 
 COMMIT;

@@ -50,12 +50,25 @@
 DO $$
 DECLARE
     queue_name  text := 'YourQueueName';   -- <<< the queue, exactly as the application names it
-    tracking    text := lower(queue_name || 'ErrorTracking');
-    index_name  text := lower('IX_QueueIDExceptionType' || queue_name || 'ErrorTracking');
+    tracking    regclass;
+    index_name  text;
     collapsed   bigint;
 BEGIN
-    IF to_regclass(quote_ident(tracking)) IS NULL THEN
-        RAISE EXCEPTION 'No table %, so % is not a queue in this database', tracking, queue_name;
+    --Resolved through to_regclass on the unqualified name rather than assembled as a string, because
+    --that makes PostgreSQL parse it exactly as the transport's own unquoted CREATE TABLE did:
+    --
+    --  * identifiers are truncated at 63 bytes. A queue name may be 63 characters, so the generated
+    --    table name can be longer than that and the stored one is cut short. A literal comparison
+    --    against the full name then matches nothing, and this script would quietly do nothing.
+    --  * a dot separates schema from table. Queue names may contain dots, so 'tenant.orders' is a
+    --    queue in schema "tenant" - quoting the whole thing as one identifier looks for a table
+    --    actually named "tenant.orderserrortracking", which does not exist.
+    --
+    --Everything below works from the resolved relation, so both cases are handled once.
+    tracking := to_regclass(queue_name || 'ErrorTracking');
+    IF tracking IS NULL THEN
+        RAISE EXCEPTION 'No table %ErrorTracking on the search_path, so % is not a queue reachable from this session',
+            queue_name, queue_name;
     END IF;
 
     --Already done, or created by 0.12.0 in the first place.
@@ -69,7 +82,7 @@ BEGIN
     --The library detects it the same way, for the same reason (GitHub #299).
     IF EXISTS (
         SELECT 1 FROM pg_index ix
-        WHERE ix.indrelid = to_regclass(quote_ident(tracking))
+        WHERE ix.indrelid = tracking
           AND ix.indisunique AND ix.indpred IS NULL
           AND ix.indnkeyatts = 2
           AND EXISTS (SELECT 1 FROM pg_attribute a
@@ -78,7 +91,7 @@ BEGIN
           AND EXISTS (SELECT 1 FROM pg_attribute a
                       WHERE a.attrelid = ix.indrelid AND a.attnum IN (ix.indkey[0], ix.indkey[1])
                         AND lower(a.attname) = 'exceptiontype')) THEN
-        RAISE NOTICE 'Step 1: a unique index on (QueueID, ExceptionType) is already on %, nothing to do', tracking;
+        RAISE NOTICE 'Step 1: a unique index on (QueueID, ExceptionType) is already on %, nothing to do', tracking::text;
         RETURN;
     END IF;
 
@@ -89,31 +102,34 @@ BEGIN
                     QueueID,
                     ExceptionType,
                     sum(RetryCount)      AS total_retries
-             FROM %I
+             FROM %s
              GROUP BY QueueID, ExceptionType
-             HAVING count(*) > 1', tracking);
+             HAVING count(*) > 1', tracking::text);
 
     GET DIAGNOSTICS collapsed = ROW_COUNT;
 
     IF collapsed > 0 THEN
         EXECUTE format(
-            'DELETE FROM %I t
+            'DELETE FROM %s t
              USING dnwq_upgrade_totals d
              WHERE t.QueueID = d.QueueID
                AND t.ExceptionType = d.ExceptionType
-               AND t.ErrorTrackingID <> d.keep_id', tracking);
+               AND t.ErrorTrackingID <> d.keep_id', tracking::text);
 
         EXECUTE format(
-            'UPDATE %I t
+            'UPDATE %s t
              SET RetryCount = d.total_retries
              FROM dnwq_upgrade_totals d
-             WHERE t.ErrorTrackingID = d.keep_id', tracking);
+             WHERE t.ErrorTrackingID = d.keep_id', tracking::text);
 
-        RAISE NOTICE 'Step 1: collapsed duplicates for % message/exception pairs, retry counts summed', collapsed;
+        RAISE NOTICE 'Step 1: collapsed duplicates for % message/exception pairs on %, retry counts summed', collapsed, tracking::text;
     END IF;
 
-    EXECUTE format('CREATE UNIQUE INDEX %I ON %I (QueueID, ExceptionType)', index_name, tracking);
-    RAISE NOTICE 'Step 1: created %', index_name;
+    --the name the transport would have used; PostgreSQL truncates it the same way it truncated the
+    --table name, and nothing reads it back by name anyway
+    index_name := lower('IX_QueueIDExceptionType' || queue_name || 'ErrorTracking');
+    EXECUTE format('CREATE UNIQUE INDEX %I ON %s (QueueID, ExceptionType)', index_name, tracking::text);
+    RAISE NOTICE 'Step 1: created a unique index on % (QueueID, ExceptionType)', tracking::text;
 END $$;
 
 -- ---------------------------------------------------------------------------
@@ -155,30 +171,42 @@ DO $$
 DECLARE
     queue_name text := 'YourQueueName';   -- <<< the same queue as step 1
     target     record;
+    rel        regclass;
     converted  int := 0;
 BEGIN
     FOR target IN
         SELECT * FROM (VALUES
-            (lower(queue_name || 'MetaData'),       'queueddatetime'),
-            (lower(queue_name || 'MetaDataErrors'), 'queueddatetime'),
-            (lower(queue_name || 'MetaDataErrors'), 'lastexceptiondate'),
-            (lower(queue_name || 'History'),        'enqueuedutc'),
-            (lower(queue_name || 'History'),        'startedutc'),
-            (lower(queue_name || 'History'),        'completedutc')
+            (queue_name || 'MetaData',       'queueddatetime'),
+            (queue_name || 'MetaDataErrors', 'queueddatetime'),
+            (queue_name || 'MetaDataErrors', 'lastexceptiondate'),
+            (queue_name || 'History',        'enqueuedutc'),
+            (queue_name || 'History',        'startedutc'),
+            (queue_name || 'History',        'completedutc')
         ) AS t(table_name, column_name)
     LOOP
-        --the column is absent when the option that creates it is off, and already
-        --timestamptz when this has been run before or the table was made by 0.12.0
-        CONTINUE WHEN NOT EXISTS (
-            SELECT 1 FROM information_schema.columns
-            WHERE table_name = target.table_name
-              AND column_name = target.column_name
-              AND data_type = 'timestamp without time zone');
+        --Resolved the same way step 1 resolves its table, and for the same two reasons: a generated
+        --name longer than 63 bytes is stored truncated, and a dot in a queue name is a schema
+        --separator. Matching those names as strings against a catalog view would silently convert
+        --nothing on exactly the queues that need it most - the long-named ones.
+        rel := to_regclass(target.table_name);
 
-        EXECUTE format('ALTER TABLE %I ALTER COLUMN %I TYPE timestamptz',
-                       target.table_name, target.column_name);
+        --the table is absent when the option that creates it is off; History in particular is
+        --off by default
+        CONTINUE WHEN rel IS NULL;
+
+        --already timestamptz when this has been run before, or the table was made by 0.12.0.
+        --Read off the relation itself rather than information_schema, which matches on a bare
+        --table name and can answer for a same-named table in another schema.
+        CONTINUE WHEN NOT EXISTS (
+            SELECT 1 FROM pg_attribute a
+            WHERE a.attrelid = rel
+              AND a.attnum > 0 AND NOT a.attisdropped
+              AND lower(a.attname) = target.column_name
+              AND a.atttypid = 'timestamp without time zone'::regtype);
+
+        EXECUTE format('ALTER TABLE %s ALTER COLUMN %I TYPE timestamptz', rel::text, target.column_name);
         converted := converted + 1;
-        RAISE NOTICE 'Step 2: %.% is now timestamptz', target.table_name, target.column_name;
+        RAISE NOTICE 'Step 2: %.% is now timestamptz', rel::text, target.column_name;
     END LOOP;
 
     IF converted = 0 THEN

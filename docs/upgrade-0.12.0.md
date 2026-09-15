@@ -80,14 +80,23 @@ Skip this step if you set `EnableWalMode = false` deliberately.
   otherwise. Stop everything using the file first. The script prints the mode it ended up
   in; anything other than `wal` means something still had the file open, and re-running is
   safe.
-- Every script is safe to run twice. The index steps check for what they are about to
-  create, and PostgreSQL's conversion checks the column type first — which is what stops a
-  second run shifting timestamps again.
+- Every script is safe to run twice. PostgreSQL and SQL Server check for the index by its
+  *shape* rather than its name, the way the library does at runtime — a name check would
+  report "nothing to do" against an index that merely shares the name, leaving the queue on
+  the racy path with nothing to say why. SQLite recreates the index for the same reason.
+  PostgreSQL's conversion checks the column type first, which is what stops a second run
+  shifting timestamps again.
+- PostgreSQL resolves each table through `to_regclass` rather than matching an assembled
+  name, so a queue name containing a dot — which the transport accepts, and which names a
+  schema — is handled the same way the transport handles it.
 
 ## Running them
 
-Set the queue name at the top of the script — a find-and-replace of `YourQueueName` — and
-on PostgreSQL also set the time zone. Run one script per queue.
+Set the queue name at the top of the script — a find-and-replace of `YourQueueName`. On
+PostgreSQL also set the time zone; on SQL Server also set `@Schema` if the queue was
+configured with `SetSchema`, since the transport qualifies its tables with it and an
+unqualified name would resolve through whatever default schema you happen to log in with.
+Run one script per queue.
 
 ```bash
 psql -v ON_ERROR_STOP=1 -f docs/upgrade/0.12.0/postgresql.sql
