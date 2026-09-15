@@ -27,7 +27,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Cancellation
 {
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class MessageCancellationTests
     {
         [TestMethod]

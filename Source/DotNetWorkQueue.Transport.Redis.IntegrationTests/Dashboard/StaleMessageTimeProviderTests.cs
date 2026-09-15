@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Dashboard
 {
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class StaleMessageTimeProviderTests
     {
         [TestMethod]

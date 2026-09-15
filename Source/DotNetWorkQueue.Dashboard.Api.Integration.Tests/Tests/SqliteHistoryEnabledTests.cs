@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
     /// Messages are sent and consumed to completion so that history records are populated.
     /// </summary>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class SqliteHistoryEnabledTests
     {
         private const int MessageCount = 5;

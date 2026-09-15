@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
     /// The NoOp handlers should return empty results.
     /// </summary>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class LiteDbHistoryDisabledTests
     {
         private DashboardTestServer _server;
@@ -125,7 +125,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
     /// Messages are sent and consumed to completion so that history records are populated.
     /// </summary>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class LiteDbHistoryEnabledTests
     {
         private const int MessageCount = 5;

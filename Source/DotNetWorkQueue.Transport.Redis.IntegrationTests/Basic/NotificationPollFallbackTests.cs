@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Basic
     /// uncovered is a wiring change that stopped it doing so.
     /// </summary>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class NotificationPollFallbackTests
     {
         private static readonly TimeSpan Fallback = TimeSpan.FromMilliseconds(500);

@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
     /// untouched. Closes PROJECT.md §SC #6.
     /// </summary>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class SqlServerOutboxValidationTests : SqlServerOutboxIntegrationTestBase
     {
         [TestMethod]

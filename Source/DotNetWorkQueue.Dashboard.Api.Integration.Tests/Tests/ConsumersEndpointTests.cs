@@ -14,7 +14,7 @@ using DotNetWorkQueue.Tests.Shared;
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class ConsumersEndpointTests
     {
         private DashboardTestServer _server;

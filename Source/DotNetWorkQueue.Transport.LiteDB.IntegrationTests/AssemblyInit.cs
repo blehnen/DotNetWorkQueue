@@ -4,7 +4,7 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests
 {
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public static class AssemblyInit
     {
         [AssemblyInitialize]

@@ -28,7 +28,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Outbox
     /// Single + batch x commit + rollback = 4 tests.
     /// </summary>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class SqlServerOutboxSendTests : SqlServerOutboxIntegrationTestBase
     {
         [TestMethod]

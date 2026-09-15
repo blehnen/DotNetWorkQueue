@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Concurrency
     //is exactly the passing case - throws InvalidOperationException instead of letting the test
     //pass. The failure text reads the same either way.
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     [DoNotParallelize]
     public class StarvationReceiveBaselineTests
     {

@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Route
 {
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class RouteTests
     {
         [TestMethod]

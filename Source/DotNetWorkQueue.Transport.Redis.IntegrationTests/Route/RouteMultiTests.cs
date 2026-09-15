@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Route
 {
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class RouteMultiTests
     {
         [TestMethod]

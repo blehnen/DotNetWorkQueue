@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Outbox
     /// populate it outside the caller's transaction, and nothing would say so.
     /// </remarks>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class PostgreSqlOutboxStatusTableTests : PostgreSqlOutboxIntegrationTestBase
     {
         [TestMethod]

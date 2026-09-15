@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
     /// SQLite is embedded, so these run locally with no external service.
     /// </summary>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class BatchSendCriteria
     {
         /// <summary>Criteria 1 (all rows), 2 (ids in input order), 4 (chunking across the boundary).</summary>

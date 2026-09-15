@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ConsumerMethodAsync
 {
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class ConsumerMethodAsyncErrorTable
     {
         [TestMethod]

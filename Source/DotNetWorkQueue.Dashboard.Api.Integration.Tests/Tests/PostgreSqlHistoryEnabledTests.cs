@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
     /// cached options reported false despite the history table containing data.
     /// </summary>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class PostgreSqlHistoryEnabledTests
     {
         private const int MessageCount = 5;

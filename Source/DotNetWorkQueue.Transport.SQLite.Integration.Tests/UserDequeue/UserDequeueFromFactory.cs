@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.UserDequeue
     /// dequeue, which the script cache in ReceiveMessageQueryHandler has to preserve.
     /// </summary>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class UserDequeueFromFactory
     {
         private readonly ConcurrentDictionary<int, int> _clauseCalls = new ConcurrentDictionary<int, int>();

@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMethod
 {
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class SimpleProducerMethodAsync
     {
         [TestMethod]

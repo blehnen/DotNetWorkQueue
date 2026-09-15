@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.T
     /// accepts the injection without errors.
     /// </summary>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class EndToEndSchedulingTests
     {
         private static int _portCounter = TestHelpers.EndToEndPortBase;

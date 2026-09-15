@@ -15,7 +15,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
     /// which use MessageExpressionPayloads.ActionRaw instead of serializing the expression.
     /// </summary>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class SimpleMethodProducerAsyncRawExpression
     {
         [TestMethod]

@@ -25,7 +25,7 @@ using System.Linq;
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class CorsIntegrationTests
     {
         private static readonly string[] CorsOriginsValue = { "https://example.com" };

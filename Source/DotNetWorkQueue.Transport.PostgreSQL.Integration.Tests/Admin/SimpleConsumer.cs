@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Admin
 {
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class SimpleConsumer
     {
         [TestMethod]

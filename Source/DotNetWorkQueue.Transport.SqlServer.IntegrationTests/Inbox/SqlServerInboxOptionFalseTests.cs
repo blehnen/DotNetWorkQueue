@@ -37,7 +37,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Inbox
     /// an obscure <see cref="NullReferenceException"/>.
     /// </summary>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class SqlServerInboxOptionFalseTests : SqlServerInboxIntegrationTestBase
     {
         private const string ExpectedHandlerMessage =

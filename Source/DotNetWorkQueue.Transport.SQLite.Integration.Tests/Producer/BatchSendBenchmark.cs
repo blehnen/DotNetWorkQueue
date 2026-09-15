@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
     /// runners. SQLite is embedded, so this runs locally with no external service.
     /// </summary>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class BatchSendBenchmark
     {
         public TestContext TestContext { get; set; }

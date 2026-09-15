@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
 {
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class MultiProducer
     {
         [TestMethod]

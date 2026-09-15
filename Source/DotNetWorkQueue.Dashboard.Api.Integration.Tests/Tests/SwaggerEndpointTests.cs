@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class SwaggerEndpointTests
     {
         private DashboardTestServer _server;

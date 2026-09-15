@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.JobScheduler
 {
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class JobSchedulerMultipleTests
     {
         [TestMethod]

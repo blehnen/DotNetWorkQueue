@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Inbox
     /// returned per message.
     /// </summary>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class SqlServerInboxBatchSendTests : SqlServerInboxIntegrationTestBase
     {
         [TestMethod]

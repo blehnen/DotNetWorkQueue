@@ -43,7 +43,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
     /// reads resilient to stale/default options.
     /// </summary>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class DashboardStartupTimingTests
     {
         private const int MessageCount = 3;

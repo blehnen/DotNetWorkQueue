@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Outbox
     /// at the integration level (structural unit pin lives in Phase 3).
     /// </summary>
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class PostgreSqlOutboxRetryBypassTests : PostgreSqlOutboxIntegrationTestBase
     {
         [TestMethod]

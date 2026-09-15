@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
 {
     [TestClass]
-    [Retry(2)]
+    [Retry(1)]
     public class MultiConsumerAsync
     {
         [TestMethod]
