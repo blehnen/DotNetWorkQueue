@@ -461,6 +461,11 @@ namespace DotNetWorkQueue.Tests.Queue
 
                 Assert.IsTrue(cancelled(),
                     "a claim with nothing to prove it stayed alive because the message had no id to log");
+
+                //Cancellation on its own proves nothing here: a throw inside the beat is caught, and
+                //that handler cancels too. Without this the test passes when the id is read straight
+                //through rather than conditionally - which is the mistake it exists to catch.
+                context.WorkerNotification.HeartBeat.DidNotReceive().SetError(Arg.Any<Exception>());
             }
         }
 
@@ -503,6 +508,9 @@ namespace DotNetWorkQueue.Tests.Queue
 
                 Assert.IsTrue(cancelled(),
                     "the record was gone and the claim was late, and the worker carried on because there was no id to log");
+
+                //as above - the cancellation has to be the decision, not a caught exception
+                context.WorkerNotification.HeartBeat.DidNotReceive().SetError(Arg.Any<Exception>());
             }
         }
 
