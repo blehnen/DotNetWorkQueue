@@ -1,4 +1,4 @@
-﻿### Unreleased
+﻿### 0.12.0 — 2026-09-15
 - Existing SQL Server, PostgreSQL and SQLite queues can gain 0.12.0's schema fixes in place, with no drain and no re-create. One script per transport in `docs/upgrade/0.12.0`; costs and the PostgreSQL time-zone requirement are in `docs/upgrade-0.12.0.md` (GitHub #321)
 - Fix: a Redis consumer no longer stops delivering when a work notification is lost. Redis pub/sub does not replay notifications published while a subscriber is briefly disconnected, so an idle reader now re-checks the queue every 30 seconds rather than waiting indefinitely (GitHub #331)
 - ⚠️ SQLite job databases are created in WAL journal mode, as queues already were. A job producer that reaches a database before anything else converts it on start, leaving `-wal` and `-shm` files beside it (GitHub #325)
