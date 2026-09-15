@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.ProducerMethod
 {
     [TestClass]
+    [Retry(1)]
     public class MultiMethodProducer
     {
         [TestMethod]

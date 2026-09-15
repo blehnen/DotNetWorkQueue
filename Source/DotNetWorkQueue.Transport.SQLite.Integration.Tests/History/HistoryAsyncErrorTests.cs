@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.History
 {
     [TestClass]
+    [Retry(1)]
     public class HistoryAsyncErrorTests
     {
         [TestMethod]

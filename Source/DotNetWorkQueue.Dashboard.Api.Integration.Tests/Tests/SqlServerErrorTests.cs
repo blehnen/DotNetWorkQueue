@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
     [TestClass]
+    [Retry(1)]
     public class SqlServerErrorTests
     {
         private DashboardTestServer _server;

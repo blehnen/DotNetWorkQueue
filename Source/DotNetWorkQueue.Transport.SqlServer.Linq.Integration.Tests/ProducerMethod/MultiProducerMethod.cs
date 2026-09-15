@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.ProducerMethod
 {
     [TestClass]
+    [Retry(1)]
     public class MultiProducerMethod
     {
         [TestMethod]

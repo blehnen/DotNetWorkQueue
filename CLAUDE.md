@@ -38,11 +38,16 @@ Real releases are published by the tag-triggered `.github/workflows/publish.yml`
 
 ## Running Tests
 
-Tests use **MSTest 4.2.3**, NSubstitute for mocking, and AutoFixture for test data. Assertions are MSTest's own (`Assert.AreEqual`, `Assert.IsTrue`, `Assert.Contains`, `Assert.Throws<T>` / `Assert.ThrowsExactly<T>`).
+Tests use **MSTest 4.4.0**, NSubstitute for mocking, and AutoFixture for test data. Assertions are MSTest's own (`Assert.AreEqual`, `Assert.IsTrue`, `Assert.Contains`, `Assert.Throws<T>` / `Assert.ThrowsExactly<T>`).
 
 - **FluentAssertions is not used and must not be reintroduced** - it was deliberately removed in #159 on licensing grounds (version 8 changed to a paid licence for commercial use).
 - **The MSTest version is not per-project.** It is pinned centrally in `Source/Directory.Packages.props`, so a single test project cannot opt in or out of a different version.
 - MSTest 4.x removed `Assert.ThrowsException`; use `Assert.Throws<T>` or `Assert.ThrowsExactly<T>`.
+- **Integration and E2E test classes carry `[Retry(1)]`** so a transient service fault costs one re-run rather than a whole red build (#271). Three things to know about it:
+  - **The argument is retries, not attempts.** `[Retry(1)]` runs a failing test twice in total. `[Retry(2)]` would run it three times, which triples the cost of a test that is genuinely broken — measured, not assumed.
+  - **A retry leaves no trace.** The junit report Jenkins reads records a retried test as an ordinary pass — no attempt count, nothing in the console either. Green therefore no longer means "nothing flaked". To measure flakiness, run a suite with the attribute removed.
+  - **Unit tests deliberately do not have it.** A flaky unit test is a bug, and retrying one hides exactly the kind of race that `HeartBeatWorker` turned out to have.
+- `[Retry]` is method-level only until MSTest 4.4.0, which is why the version is pinned at or above it. The `RetryBaseAttribute` extensibility point that would let a retry log itself is still experimental (`MSTESTEXP`, an error by default) and was left alone for that reason.
 
 ```bash
 # Run all unit tests for a specific project

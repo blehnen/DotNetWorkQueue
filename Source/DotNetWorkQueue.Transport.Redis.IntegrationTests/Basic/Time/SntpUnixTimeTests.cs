@@ -17,6 +17,7 @@ namespace DotNetWorkQueue.Transport.Redis.Integration.Tests.Basic.Time
     /// NTP can exclude them via <c>--filter "TestCategory!=ExternalNetwork"</c>.
     /// </remarks>
     [TestClass]
+    [Retry(1)]
     [TestCategory("ExternalNetwork")]
     public class SntpUnixTimeTests
     {

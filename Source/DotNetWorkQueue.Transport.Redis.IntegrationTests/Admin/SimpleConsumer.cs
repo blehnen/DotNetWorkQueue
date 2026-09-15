@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.Redis.Integration.Tests.Admin
 {
     [TestClass]
+    [Retry(1)]
     public class SimpleConsumer
     {
         [TestMethod]

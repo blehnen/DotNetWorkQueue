@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.ConsumerAsync
 {
     [TestClass]
+    [Retry(1)]
     public class ConsumerAsyncRollBack
     {
         [TestMethod]

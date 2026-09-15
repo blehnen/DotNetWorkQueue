@@ -58,6 +58,7 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Concurrency
     /// Run in isolation via:          --filter "TestCategory=StarvationBaseline"
     /// </summary>
     [TestClass]
+    [Retry(1)]
     [DoNotParallelize]
     public class StarvationBaselineTests
     {

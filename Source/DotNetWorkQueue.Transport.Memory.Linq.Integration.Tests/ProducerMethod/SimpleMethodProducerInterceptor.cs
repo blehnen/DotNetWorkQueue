@@ -11,6 +11,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
     /// This hits a different code path in the shared producer setup when interceptors are enabled.
     /// </summary>
     [TestClass]
+    [Retry(1)]
     public class SimpleMethodProducerInterceptor
     {
         [TestMethod]

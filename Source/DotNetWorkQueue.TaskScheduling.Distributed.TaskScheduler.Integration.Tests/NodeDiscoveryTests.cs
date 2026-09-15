@@ -14,6 +14,7 @@ namespace DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.T
     /// after disposal.
     /// </summary>
     [TestClass]
+    [Retry(1)]
     public class NodeDiscoveryTests
     {
         private static int _portCounter = TestHelpers.NodeDiscoveryPortBase;

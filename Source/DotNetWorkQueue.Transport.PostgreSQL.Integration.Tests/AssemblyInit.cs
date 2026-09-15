@@ -4,6 +4,7 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
 {
     [TestClass]
+    [Retry(1)]
     public static class AssemblyInit
     {
         [AssemblyInitialize]

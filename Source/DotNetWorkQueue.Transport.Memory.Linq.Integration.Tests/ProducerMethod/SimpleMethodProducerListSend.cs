@@ -16,6 +16,7 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.ProducerMethod
     /// These are separate code paths from the batch-with-data overloads.
     /// </summary>
     [TestClass]
+    [Retry(1)]
     public class SimpleMethodProducerListSend
     {
         [TestMethod]

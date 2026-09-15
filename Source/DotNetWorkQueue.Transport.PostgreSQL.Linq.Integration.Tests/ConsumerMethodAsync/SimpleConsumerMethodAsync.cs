@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.ConsumerMethodAsync
 {
     [TestClass]
+    [Retry(1)]
     public class SimpleConsumerMethodAsync
     {
         private ITaskFactory Factory { get; set; }

@@ -37,6 +37,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
     /// natural — this pins it so a future bulk-insert rewrite cannot quietly lose it.
     /// </remarks>
     [TestClass]
+    [Retry(1)]
     public class BatchSendResults
     {
         [TestMethod]

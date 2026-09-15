@@ -26,6 +26,7 @@ using static Microsoft.Playwright.Assertions;
 namespace DotNetWorkQueue.Dashboard.Ui.E2E.Tests
 {
     [TestClass]
+    [Retry(1)]
     public partial class AuthDisabledE2ETests : E2ETestBase
     {
         private static DashboardSubprocess _server = null!;

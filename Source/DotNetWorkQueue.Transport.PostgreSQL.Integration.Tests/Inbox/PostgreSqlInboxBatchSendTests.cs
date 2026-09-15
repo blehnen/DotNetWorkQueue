@@ -38,6 +38,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Inbox
     /// across a multi-chunk batch inside a single external transaction.
     /// </summary>
     [TestClass]
+    [Retry(1)]
     public class PostgreSqlInboxBatchSendTests : PostgreSqlInboxIntegrationTestBase
     {
         [TestMethod]

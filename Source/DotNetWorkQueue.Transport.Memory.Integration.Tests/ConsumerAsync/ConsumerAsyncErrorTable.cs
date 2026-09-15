@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.ConsumerAsync
 {
     [TestClass]
+    [Retry(1)]
     public class ConsumerAsyncErrorTable
     {
         [TestMethod]

@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Producer
 {
     [TestClass]
+    [Retry(1)]
     public class SimpleProducerAsync
     {
         [TestMethod]

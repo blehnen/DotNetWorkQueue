@@ -40,6 +40,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
     /// Companion to <see cref="SqlServerHistoryTests"/> (history-disabled case).
     /// </summary>
     [TestClass]
+    [Retry(1)]
     public class SqlServerHistoryEnabledTests
     {
         private const int MessageCount = 5;

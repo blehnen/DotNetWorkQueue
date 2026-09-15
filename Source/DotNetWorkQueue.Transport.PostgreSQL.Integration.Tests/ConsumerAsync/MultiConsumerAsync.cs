@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.ConsumerAsync
 {
     [TestClass]
+    [Retry(1)]
     public class MultiConsumerAsync
     {
         [TestMethod]

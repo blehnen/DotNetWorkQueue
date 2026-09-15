@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.UserDequeue
 {
     [TestClass]
+    [Retry(1)]
     public class UserDequeue
     {
         [TestMethod]

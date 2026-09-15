@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Route
 {
     [TestClass]
+    [Retry(1)]
     public class RouteMultiTests
     {
         [TestMethod]

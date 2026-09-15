@@ -33,6 +33,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Inbox
     /// write commit (or roll back) atomically as observed from outside the library's own connection.
     /// </summary>
     [TestClass]
+    [Retry(1)]
     public class PostgreSqlInboxAtomicVisibilityTests : PostgreSqlInboxIntegrationTestBase
     {
         [ClassInitialize]

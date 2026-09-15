@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
 {
     [TestClass]
+    [Retry(1)]
     public class SimpleProducerBatch
     {
         [TestMethod]

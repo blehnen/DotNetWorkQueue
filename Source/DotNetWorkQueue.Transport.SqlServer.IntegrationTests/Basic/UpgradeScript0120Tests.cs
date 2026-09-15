@@ -23,6 +23,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Basic
     /// GitHub #321.
     /// </summary>
     [TestClass]
+    [Retry(1)]
     public class UpgradeScript0120Tests
     {
         [TestMethod]

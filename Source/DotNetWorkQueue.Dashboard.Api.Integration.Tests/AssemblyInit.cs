@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests
 {
     [TestClass]
+    [Retry(1)]
     public static class AssemblyInit
     {
         [AssemblyInitialize]

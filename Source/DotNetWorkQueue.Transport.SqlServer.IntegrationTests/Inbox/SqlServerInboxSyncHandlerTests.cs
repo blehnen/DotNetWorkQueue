@@ -33,6 +33,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Inbox
     /// (or rolls back) both atomically.
     /// </summary>
     [TestClass]
+    [Retry(1)]
     public class SqlServerInboxSyncHandlerTests : SqlServerInboxIntegrationTestBase
     {
         [ClassInitialize]

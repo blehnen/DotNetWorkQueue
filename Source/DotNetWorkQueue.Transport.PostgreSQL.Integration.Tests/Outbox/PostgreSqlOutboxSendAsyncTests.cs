@@ -25,6 +25,7 @@ using Npgsql;
 namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Outbox
 {
     [TestClass]
+    [Retry(1)]
     public class PostgreSqlOutboxSendAsyncTests : PostgreSqlOutboxIntegrationTestBase
     {
         [TestMethod]

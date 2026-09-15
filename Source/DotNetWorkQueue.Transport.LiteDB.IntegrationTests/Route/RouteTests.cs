@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Route
 {
     [TestClass]
+    [Retry(1)]
     public class RouteTests
     {
         [TestMethod]

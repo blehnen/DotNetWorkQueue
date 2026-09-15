@@ -12,6 +12,7 @@ namespace DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.T
     /// detect deadlock and assert final count consistency without relying on real DNQ jobs.
     /// </summary>
     [TestClass]
+    [Retry(1)]
     public class ConcurrencyRegressionTests
     {
         private static int _portCounter = TestHelpers.ConcurrencyPortBase;

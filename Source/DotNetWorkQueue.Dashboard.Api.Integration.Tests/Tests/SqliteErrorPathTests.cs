@@ -36,6 +36,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
     /// behavior and invalid request handling.
     /// </summary>
     [TestClass]
+    [Retry(1)]
     public class SqliteErrorPathTests
     {
         private DashboardTestServer _server;

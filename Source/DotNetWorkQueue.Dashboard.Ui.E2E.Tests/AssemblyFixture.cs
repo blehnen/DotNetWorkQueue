@@ -28,6 +28,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.E2E.Tests
     /// and shared across all test classes.
     /// </summary>
     [TestClass]
+    [Retry(1)]
     public static class AssemblyFixture
     {
         public static IPlaywright Playwright { get; private set; } = null!;

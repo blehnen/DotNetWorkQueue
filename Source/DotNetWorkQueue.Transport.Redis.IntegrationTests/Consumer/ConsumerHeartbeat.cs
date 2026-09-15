@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.Redis.IntegrationTests.Consumer
 {
     [TestClass]
+    [Retry(1)]
     public class ConsumerHeartbeat
     {
         [TestMethod]

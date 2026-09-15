@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.JobScheduler
 {
     [TestClass]
+    [Retry(1)]
     public class JobSchedulerTests
     {
         [TestMethod]

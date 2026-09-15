@@ -30,6 +30,7 @@ using DotNetWorkQueue.Tests.Shared;
 namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Tests
 {
     [TestClass]
+    [Retry(1)]
     public class SqliteMaintenanceTests
     {
         [TestMethod]

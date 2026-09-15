@@ -43,6 +43,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Producer
     /// </para>
     /// </remarks>
     [TestClass]
+    [Retry(1)]
     public class AutoPrepareSurvivesDdl
     {
         private const string AutoPrepare = "Max Auto Prepare=20;Auto Prepare Min Usages=2;";

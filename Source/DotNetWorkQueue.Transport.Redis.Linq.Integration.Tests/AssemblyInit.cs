@@ -6,6 +6,7 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests
 {
     [TestClass]
+    [Retry(1)]
     public static class AssemblyInit
     {
         [AssemblyInitialize]

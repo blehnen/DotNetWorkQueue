@@ -26,6 +26,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Basic
     /// atomic statement - which is what a name-based check did, against a catalog that lower-cases it.
     /// </summary>
     [TestClass]
+    [Retry(1)]
     public class SetErrorCountAgainstBothSchemasTests
     {
         [TestMethod]

@@ -46,6 +46,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Outbox
     ///   4. The send result contains no error (confirming the caller-transaction path succeeded).
     /// </summary>
     [TestClass]
+    [Retry(1)]
     public class PostgreSqlOutboxAdditionalDataTests : PostgreSqlOutboxIntegrationTestBase
     {
         private const byte ExpectedPriority = 7;

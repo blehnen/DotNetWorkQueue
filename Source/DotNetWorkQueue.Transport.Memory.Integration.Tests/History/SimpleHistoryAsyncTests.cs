@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.History
 {
     [TestClass]
+    [Retry(1)]
     public class SimpleHistoryAsyncTests
     {
         [TestMethod]

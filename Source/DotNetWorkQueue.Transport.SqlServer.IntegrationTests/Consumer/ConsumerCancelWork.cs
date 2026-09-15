@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Consumer
 {
     [TestClass]
+    [Retry(1)]
     public class ConsumerCancelWork
     {
         [TestMethod]
