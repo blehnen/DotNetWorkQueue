@@ -175,7 +175,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             using var delayCancel = new CancellationTokenSource();
             var finished = await Task.WhenAny(wait, Task.Delay(_notificationPollFallback, delayCancel.Token))
                 .ConfigureAwait(false);
-            delayCancel.Cancel();
+            await delayCancel.CancelAsync().ConfigureAwait(false);
             if (finished == wait)
                 return await wait.ConfigureAwait(false);
 

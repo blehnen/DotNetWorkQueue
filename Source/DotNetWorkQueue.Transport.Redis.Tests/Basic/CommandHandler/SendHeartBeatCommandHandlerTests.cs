@@ -80,7 +80,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.CommandHandler
 
                 //the claim check lives in the script now, so that is what decides whether a beat lands
                 Lua = new FakeHeartBeatLua(connection, names, stillWorking ? 1_700_000_000_000 : 0);
-                Handler = new TestableHandler(unixTimeFactory, connection, names, Db, Lua);
+                Handler = new TestableHandler(unixTimeFactory, connection, Db, Lua);
             }
         }
 
@@ -117,8 +117,8 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.CommandHandler
             private readonly IDatabase _db;
 
             public TestableHandler(IUnixTimeFactory unixTimeFactory, IRedisConnection connection,
-                RedisNames redisNames, IDatabase db, HeartBeatLua heartBeatLua)
-                : base(unixTimeFactory, connection, redisNames, heartBeatLua)
+                IDatabase db, HeartBeatLua heartBeatLua)
+                : base(unixTimeFactory, connection, heartBeatLua)
             {
                 _db = db;
             }
