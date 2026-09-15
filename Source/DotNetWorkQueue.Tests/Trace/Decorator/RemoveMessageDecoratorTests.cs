@@ -135,6 +135,23 @@ namespace DotNetWorkQueue.Tests.Trace.Decorator
         }
 
         [TestMethod]
+        public async Task RemoveAsync_WithAnId_WhenNothingIsTracing_StillRemoves()
+        {
+            //the ordinary production case: no exporter is configured, so StartActivity returns null and
+            //every scope?. under it is skipped. Removal has to behave the same either way
+            _listener.Dispose();
+            var harness = new Harness(hasId: true);
+
+            var status = await harness.Decorator
+                .RemoveAsync(harness.MessageId, RemoveMessageReason.Expired).ConfigureAwait(false);
+
+            Assert.AreEqual(RemoveMessageStatus.Removed, status);
+            await harness.Decorated.Received(1)
+                .RemoveAsync(harness.MessageId, RemoveMessageReason.Expired).ConfigureAwait(false);
+            Assert.IsNull(_lastRemovedBecause, "a span was recorded with no listener registered");
+        }
+
+        [TestMethod]
         public async Task RemoveAsync_FromAContext_ReachesTheDecoratedHandler()
         {
             var harness = new Harness(hasId: true);
