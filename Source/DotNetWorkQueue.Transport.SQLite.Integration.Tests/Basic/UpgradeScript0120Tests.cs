@@ -133,6 +133,50 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
             }
         }
 
+        [TestMethod]
+        public void TheScript_RefusesToTouchAnIndexBelongingToAnotherTable()
+        {
+            //Index names in SQLite are database-wide rather than scoped to a table, so the generated
+            //name existing does not prove it belongs to this queue. The script recreates the index to
+            //guarantee its shape, and recreating means dropping - which would take somebody else's
+            //uniqueness constraint with it. It has to refuse instead.
+            using (var connectionInfo = new RawDatabase())
+            {
+                var queueName = GenerateQueueName.Create();
+                var connectionString = connectionInfo.ConnectionString;
+                var queueConnection = new QueueConnection(queueName, connectionString);
+                var errorTable = $"{queueName}ErrorTracking";
+                var indexName = $"IX_QueueIDExceptionType{errorTable}";
+                var logProvider = LoggerShared.Create(queueName, GetType().Name);
+
+                using (var container = new QueueCreationContainer<SqLiteMessageQueueInit>(
+                    serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
+                using (var creation = container.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection))
+                {
+                    creation.Options.EnableWalMode = false;
+                    Assert.IsTrue(creation.CreateQueue().Success);
+
+                    //somebody else's table, holding the name this script wants
+                    Execute(connectionString, $"DROP INDEX {indexName}");
+                    Execute(connectionString, "CREATE TABLE somebody_elses (a INTEGER, b INTEGER)");
+                    Execute(connectionString, $"CREATE UNIQUE INDEX {indexName} ON somebody_elses (a, b)");
+                }
+
+                Quiesce();
+                var error = Assert.Throws<SQLiteException>(
+                    () => Execute(connectionString, UpgradeScript.Read("sqlite.sql", queueName)),
+                    "the script went ahead and dropped an index that belongs to another table");
+
+                Assert.Contains("dnwq_index_name_is_on_another_table", error.Message,
+                    "the failure did not name the guard, so an operator cannot tell what to fix");
+
+                //and it left the other table's constraint alone
+                Assert.AreEqual(1, Scalar(connectionString,
+                    $"SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name = '{indexName}' AND tbl_name = 'somebody_elses'"),
+                    "somebody else's index was dropped");
+            }
+        }
+
         private static bool UniqueIndexFound(QueueConnection queueConnection,
             Microsoft.Extensions.Logging.ILogger logProvider, string errorTable)
         {

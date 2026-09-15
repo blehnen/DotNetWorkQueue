@@ -79,18 +79,40 @@ WHERE  ErrorTrackingID IN (SELECT KeepId FROM dnwq_upgrade_totals);
 
 DROP TABLE dnwq_upgrade_totals;
 
--- Dropped and recreated rather than created with IF NOT EXISTS.
+-- The index is dropped and recreated rather than created with IF NOT EXISTS.
 --
 -- IF NOT EXISTS checks the name and nothing else, so an index that merely shares
 -- the name without being a two column unique key would make the statement
 -- succeed while the queue kept counting on the older racy path - a silent no-op
--- reported as a successful upgrade. The runtime detector matches on shape, not
--- on the name, so the two would disagree with nothing to say why.
+-- reported as a successful upgrade. The runtime detector matches on shape rather
+-- than on the name, so the two would disagree with nothing to say why.
+-- Recreating leaves the right shape whatever was there before, and stays safe to
+-- run twice. ErrorTracking holds one row per failing message, so rebuilding the
+-- index costs nothing.
 --
--- Recreating leaves the right shape whatever was there before, and is still safe
--- to run twice. The name embeds this queue's own table, so it belongs to the
--- library rather than to anything the operator put there, and ErrorTracking
--- holds one row per failing message - rebuilding the index costs nothing.
+-- But index names in SQLite are database-wide rather than scoped to a table, so
+-- the name existing does not prove it belongs to this queue - and dropping
+-- somebody else's index would take a uniqueness constraint with it. The insert
+-- below fails its CHECK when the name is attached to any other table, which is
+-- how a plain SQL script says "stop" on an engine with no IF. The error names
+-- the guard, so what went wrong is legible:
+--
+--   CHECK constraint failed: dnwq_index_name_is_on_another_table
+--
+-- If that happens, the fix is to rename or drop whatever else holds the name,
+-- and run this again.
+DROP TABLE IF EXISTS dnwq_index_name_is_on_another_table;
+CREATE TEMP TABLE dnwq_index_name_is_on_another_table (
+    offenders INTEGER CONSTRAINT dnwq_index_name_is_on_another_table CHECK (offenders = 0));
+
+INSERT INTO dnwq_index_name_is_on_another_table (offenders)
+SELECT COUNT(*) FROM sqlite_master
+WHERE type = 'index'
+  AND name = 'IX_QueueIDExceptionTypeYourQueueNameErrorTracking'
+  AND tbl_name <> 'YourQueueNameErrorTracking';
+
+DROP TABLE dnwq_index_name_is_on_another_table;
+
 DROP INDEX IF EXISTS IX_QueueIDExceptionTypeYourQueueNameErrorTracking;
 
 CREATE UNIQUE INDEX IX_QueueIDExceptionTypeYourQueueNameErrorTracking
