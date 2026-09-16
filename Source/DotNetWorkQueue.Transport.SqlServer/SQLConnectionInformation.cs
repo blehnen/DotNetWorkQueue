@@ -1,4 +1,4 @@
-﻿// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 //This file is part of DotNetWorkQueue
 //Copyright © 2015-2026 Brian Lehnen
 //
@@ -88,12 +88,37 @@ namespace DotNetWorkQueue.Transport.SqlServer
         }
         #endregion
 
+        /// <summary>
+        /// The longest queue name that can actually be created.
+        /// </summary>
+        /// <remarks>
+        /// Lower than SQL Server's own 128 character identifier limit, because the queue name is not
+        /// itself the longest identifier built from it. The longest is
+        /// <c>IX_{name}History_Status_Completed</c> - twenty-seven characters more than the name - so at
+        /// 102 characters creation fails with "The identifier that starts with ... is too long".
+        ///
+        /// Measured rather than derived: 101 creates, 102 does not.
+        ///
+        /// The real limit depends on the options, which the validator cannot see: with history off the
+        /// longest identifier is an ErrorTracking one and names into the low 110s create successfully.
+        /// The lower number is taken deliberately. A name that works only while history is off would
+        /// break the moment somebody enabled it - a configuration change silently breaking an existing
+        /// queue, which is worse than refusing a long name up front (GitHub #344).
+        ///
+        /// Unlike PostgreSQL in #339, going over this fails loudly and names the offending identifier,
+        /// so nothing was ever silently wrong here. This turns a confusing failure at creation into a
+        /// clear one where the name is supplied.
+        /// </remarks>
+        private const int MaxQueueNameLength = 101;
+
         /// <summary>Validates that the queue name contains only safe characters for use as a SQL Server table name identifier.</summary>
         private static void ValidateQueueName(string name)
         {
             if (string.IsNullOrEmpty(name)) return; // allow empty for backward compatibility
-            Guard.IsValid(name, n => n.Length <= 128,
-                $"Queue name exceeds maximum length of 128 characters. Got {name.Length} characters.");
+            Guard.IsValid(name, n => n.Length <= MaxQueueNameLength,
+                $"Queue name exceeds maximum length of {MaxQueueNameLength} characters. Got {name.Length} characters. "
+                + "SQL Server identifiers stop at 128 characters, and the queue name is a prefix for names longer "
+                + "than itself - the longest is IX_<name>History_Status_Completed, twenty-seven characters more.");
             Guard.IsValid(name, n => ValidQueueNamePattern().IsMatch(n),
                 "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
         }
