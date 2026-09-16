@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 $"Insert into {TableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers) select SCOPE_IDENTITY() ");
 
             CommandCache.Add(CommandStringTypes.UpdateErrorCount,
-                $"update {TableNameHelper.ErrorTrackingName} set retrycount = @RetryCount where queueid = @queueid and ExceptionType = @ExceptionType");
+                $"update {TableNameHelper.ErrorTrackingName} set retrycount = case when retrycount > @RetryCount then retrycount else @RetryCount end where queueid = @queueid and ExceptionType = @ExceptionType");
 
             CommandCache.Add(CommandStringTypes.InsertErrorCount,
                 $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,@RetryCount)");
@@ -85,7 +85,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             CommandCache.Add(CommandStringTypes.UpsertErrorCount,
                 $@"set nocount on;
                    begin transaction;
-                   update {TableNameHelper.ErrorTrackingName} with (updlock, holdlock) set retrycount = @RetryCount
+                   update {TableNameHelper.ErrorTrackingName} with (updlock, holdlock) set retrycount = case when retrycount > @RetryCount then retrycount else @RetryCount end
                    where queueid = @QueueID and ExceptionType = @ExceptionType;
                    if @@rowcount = 0
                    insert into {TableNameHelper.ErrorTrackingName} (QueueID, ExceptionType, RetryCount) values (@QueueID, @ExceptionType, @RetryCount);

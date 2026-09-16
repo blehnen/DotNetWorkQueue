@@ -63,6 +63,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
                     Assert.AreEqual(2, RetryCount(connectionString, errorTable, 1),
                         "replaying the same total counted a second failure");
 
+                    //and a stale total cannot undo it. A worker whose claim lapsed can still be holding a
+                    //count it read before another worker advanced the row, and that write may land afterwards;
+                    //letting it lower the count would hand the message attempts it had already used.
+                    CountOnce(queueConnection, logProvider, oCreation.Scope, 1, 1);
+                    Assert.AreEqual(2, RetryCount(connectionString, errorTable, 1),
+                        "a stale lower total overwrote a higher one");
+
                     //now an older queue: same table, no index
                     Execute(connectionString, $"DROP INDEX IX_QueueIDExceptionType{errorTable}");
                     Assert.IsFalse(UniqueIndexFound(queueConnection, logProvider, oCreation.Scope, errorTable),
@@ -80,6 +87,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
                     CountOnce(queueConnection, logProvider, oCreation.Scope, 2, 2);
                     Assert.AreEqual(2, RetryCount(connectionString, errorTable, 2),
                         "replaying the same total counted a second failure");
+
+                    //and a stale total cannot undo it. A worker whose claim lapsed can still be holding a
+                    //count it read before another worker advanced the row, and that write may land afterwards;
+                    //letting it lower the count would hand the message attempts it had already used.
+                    CountOnce(queueConnection, logProvider, oCreation.Scope, 2, 1);
+                    Assert.AreEqual(2, RetryCount(connectionString, errorTable, 2),
+                        "a stale lower total overwrote a higher one");
                 }
                 finally
                 {
