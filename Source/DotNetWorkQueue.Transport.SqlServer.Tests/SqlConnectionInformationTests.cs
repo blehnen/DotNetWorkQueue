@@ -101,21 +101,31 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
             Assert.IsNotNull(test);
         }
 
+        /// <summary>
+        /// The limit is 101 rather than SQL Server's own 128, because the queue name is a prefix for
+        /// identifiers longer than itself. These two used to assert 128, which accepted names that
+        /// cannot create a queue: at 102 and above, IX_{name}History_Status_Completed exceeds the
+        /// identifier limit and creation fails (GitHub #344).
+        /// </summary>
         [TestMethod]
-        public void QueueName_ExceedsMaxLength_128()
+        public void QueueName_ExceedsMaxLength_102()
         {
-            var longName = new string('a', 129);
-            Assert.ThrowsExactly<ArgumentException>(
+            var longName = new string('a', 102);
+            var error = Assert.ThrowsExactly<ArgumentException>(
                 delegate
                 {
                     var test = new SqlConnectionInformation(new QueueConnection(longName, GoodConnection));
                 });
+
+            //the message has to say why, or 101 reads as an arbitrary number
+            Assert.Contains("101", error.Message, "the limit is not stated");
+            Assert.Contains("History_Status_Completed", error.Message, "the reason for the limit is not stated");
         }
 
         [TestMethod]
-        public void QueueName_AtMaxLength_128()
+        public void QueueName_AtMaxLength_101()
         {
-            var maxName = new string('a', 128);
+            var maxName = new string('a', 101);
             var test = new SqlConnectionInformation(new QueueConnection(maxName, GoodConnection));
             Assert.IsNotNull(test);
         }
