@@ -99,7 +99,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
                 {
                     DelayNextAttempt(context, info, retries);
                     _commandSetErrorCount.Handle(
-                        new SetErrorCountCommand<T>(exceptionType, MessageId(context)));
+                        new SetErrorCountCommand<T>(exceptionType, MessageId(context), retries + 1));
                     return ReceiveMessagesErrorResult.Retry;
                 }
             }
@@ -125,7 +125,7 @@ namespace DotNetWorkQueue.Transport.Shared.Basic
                 {
                     DelayNextAttempt(context, info, retries);
                     await _commandSetErrorCountAsync.HandleAsync(
-                        new SetErrorCountCommand<T>(exceptionType, MessageId(context))).ConfigureAwait(false);
+                        new SetErrorCountCommand<T>(exceptionType, MessageId(context), retries + 1)).ConfigureAwait(false);
                     return ReceiveMessagesErrorResult.Retry;
                 }
             }

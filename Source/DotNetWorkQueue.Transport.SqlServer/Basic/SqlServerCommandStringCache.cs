@@ -74,10 +74,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
                 $"Insert into {TableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers) select SCOPE_IDENTITY() ");
 
             CommandCache.Add(CommandStringTypes.UpdateErrorCount,
-                $"update {TableNameHelper.ErrorTrackingName} set retrycount = retrycount + 1 where queueid = @queueid and ExceptionType = @ExceptionType");
+                $"update {TableNameHelper.ErrorTrackingName} set retrycount = @RetryCount where queueid = @queueid and ExceptionType = @ExceptionType");
 
             CommandCache.Add(CommandStringTypes.InsertErrorCount,
-                $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,1)");
+                $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,@RetryCount)");
 
             //One transaction on purpose. Without it each statement commits on its own, the range lock
             //the update took is released before the insert runs, and two first failures can both find no
@@ -85,10 +85,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             CommandCache.Add(CommandStringTypes.UpsertErrorCount,
                 $@"set nocount on;
                    begin transaction;
-                   update {TableNameHelper.ErrorTrackingName} with (updlock, holdlock) set retrycount = retrycount + 1
+                   update {TableNameHelper.ErrorTrackingName} with (updlock, holdlock) set retrycount = @RetryCount
                    where queueid = @QueueID and ExceptionType = @ExceptionType;
                    if @@rowcount = 0
-                   insert into {TableNameHelper.ErrorTrackingName} (QueueID, ExceptionType, RetryCount) values (@QueueID, @ExceptionType, 1);
+                   insert into {TableNameHelper.ErrorTrackingName} (QueueID, ExceptionType, RetryCount) values (@QueueID, @ExceptionType, @RetryCount);
                    commit transaction;");
 
             //By shape, not by name: an index name is not something this can rely on. It is folded,

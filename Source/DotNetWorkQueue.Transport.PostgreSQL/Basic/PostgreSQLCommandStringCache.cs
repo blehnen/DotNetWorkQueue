@@ -77,16 +77,16 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
                 $"Insert into {TableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers); SELECT lastval(); ");
 
             CommandCache.Add(CommandStringTypes.UpdateErrorCount,
-                $"update {TableNameHelper.ErrorTrackingName} set retrycount = retrycount + 1 where queueid = @queueid and ExceptionType = @ExceptionType");
+                $"update {TableNameHelper.ErrorTrackingName} set retrycount = @RetryCount where queueid = @queueid and ExceptionType = @ExceptionType");
 
             CommandCache.Add(CommandStringTypes.InsertErrorCount,
-                $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,1)");
+                $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,@RetryCount)");
 
             CommandCache.Add(CommandStringTypes.UpsertErrorCount,
                 $@"insert into {TableNameHelper.ErrorTrackingName} (QueueID, ExceptionType, RetryCount)
-                   values (@QueueID, @ExceptionType, 1)
+                   values (@QueueID, @ExceptionType, @RetryCount)
                    on conflict (QueueID, ExceptionType)
-                   do update set retrycount = {TableNameHelper.ErrorTrackingName}.retrycount + 1");
+                   do update set retrycount = @RetryCount");
 
             //By shape, not by name. PostgreSQL folds unquoted identifiers to lower case and truncates
             //them at 63 bytes, so comparing the name the schema asked for against the catalog misses -

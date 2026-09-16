@@ -57,6 +57,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
                         CountTwice(queueConnection, logProvider, oCreation.Scope, 1);
                         Assert.AreEqual(2, RetryCount(connectionString, errorTable, 1));
 
+                        //and writing that same total again changes nothing. The write is wrapped in a retry
+                        //policy, so a transient fault raised after the server had already committed it replays
+                        //the statement - which used to count one real failure twice and cost the message an
+                        //attempt it never used (GitHub #350).
+                        CountOnce(queueConnection, logProvider, oCreation.Scope, 1, 2);
+                        Assert.AreEqual(2, RetryCount(connectionString, errorTable, 1),
+                            "replaying the same total counted a second failure");
+
                         //now an older queue: same table, no index
                         Execute(connectionString, $"DROP INDEX IX_QueueIDExceptionType{errorTable}");
                         Assert.IsFalse(UniqueIndexFound(queueConnection, logProvider, oCreation.Scope, errorTable),
@@ -66,6 +74,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
                         CountTwice(queueConnection, logProvider, oCreation.Scope, 2);
                         Assert.AreEqual(2, RetryCount(connectionString, errorTable, 2),
                             "the fallback stopped counting errors on a queue without the index");
+
+                        //and writing that same total again changes nothing. The write is wrapped in a retry
+                        //policy, so a transient fault raised after the server had already committed it replays
+                        //the statement - which used to count one real failure twice and cost the message an
+                        //attempt it never used (GitHub #350).
+                        CountOnce(queueConnection, logProvider, oCreation.Scope, 2, 2);
+                        Assert.AreEqual(2, RetryCount(connectionString, errorTable, 2),
+                            "replaying the same total counted a second failure");
                     }
                     finally
                     {
@@ -109,8 +125,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
 
                         Assert.AreEqual(1, RowCount(connectionString, errorTable, 1),
                             "concurrent first failures wrote more than one row for the same message and exception type");
-                        Assert.AreEqual(failures, RetryCount(connectionString, errorTable, 1),
-                            "a concurrent failure was not counted");
+                        //One, not `failures`. Since #350 the count is a total the caller supplies rather
+                        //than an increment the statement applies, and every racer here read the same count
+                        //before writing - so they all agree on the same total. Losing the other failures is
+                        //the deliberate cost of making the write idempotent: a replayed retry no longer
+                        //counts one failure twice, at the price of concurrent failures counting as one.
+                        //An extra attempt still ends at the error queue; a missing one does not.
+                        Assert.AreEqual(1, RetryCount(connectionString, errorTable, 1),
+                            "the count is not the total the callers supplied");
                     }
                     finally
                     {
@@ -137,7 +159,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
                         running[i] = Task.Factory.StartNew(() =>
                         {
                             start.Wait();
-                            handler.Handle(new SetErrorCountCommand<long>("System.Exception", queueId));
+                            //every racer read the same count, because none of them has a row yet
+                            handler.Handle(new SetErrorCountCommand<long>("System.Exception", queueId, 1));
                         }, TaskCreationOptions.LongRunning);
                     }
                     start.Set();
@@ -174,6 +197,20 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
             }
         }
 
+        /// <summary>
+        /// Writes one error count, the way a replayed retry would.
+        /// </summary>
+        private static void CountOnce(QueueConnection queueConnection,
+            Microsoft.Extensions.Logging.ILogger logProvider, ICreationScope scope, long queueId, int retryCount)
+        {
+            using (var container = Container(logProvider, scope))
+            using (var admin = container.CreateAdminContainer(queueConnection))
+            {
+                var handler = admin.GetInstance<ICommandHandler<SetErrorCountCommand<long>>>();
+                handler.Handle(new SetErrorCountCommand<long>("System.Exception", queueId, retryCount));
+            }
+        }
+
         private static void CountTwice(QueueConnection queueConnection,
             Microsoft.Extensions.Logging.ILogger logProvider, ICreationScope scope, long queueId)
         {
@@ -182,8 +219,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
             using (var admin = container.CreateAdminContainer(queueConnection))
             {
                 var handler = admin.GetInstance<ICommandHandler<SetErrorCountCommand<long>>>();
-                handler.Handle(new SetErrorCountCommand<long>("System.Exception", queueId));
-                handler.Handle(new SetErrorCountCommand<long>("System.Exception", queueId));
+                //the count is a total, and the real caller reads it before each write - so a first
+                //failure records one and the second records two
+                handler.Handle(new SetErrorCountCommand<long>("System.Exception", queueId, 1));
+                handler.Handle(new SetErrorCountCommand<long>("System.Exception", queueId, 2));
             }
         }
 

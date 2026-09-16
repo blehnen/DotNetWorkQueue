@@ -66,7 +66,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                     if (results != null && results.Count == 1)
                     {
                         //update
-                        results[0].RetryCount = results[0].RetryCount + 1;
+                        results[0].RetryCount = command.RetryCount;
                         meta.Update(results[0]);
                     }
                     else
@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                         {
                             QueueId = command.QueueId,
                             ExceptionType = command.ExceptionType,
-                            RetryCount = 1
+                            RetryCount = command.RetryCount
                         };
                         meta.Insert(record);
                     }
