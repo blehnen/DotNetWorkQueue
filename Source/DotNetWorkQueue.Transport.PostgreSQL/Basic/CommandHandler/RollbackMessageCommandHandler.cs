@@ -144,7 +144,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.CommandHandler
             {
                 if (rollBackCommand.LastHeartBeat.HasValue)
                 {
-                    command.CommandText = GetRollbackSql(false, true);
+                    command.CommandText = GetRollbackSql(true, true);
                     command.Parameters.Add(HeartBeatParameter, NpgsqlDbType.Bigint);
                     command.Parameters[HeartBeatParameter].Value = rollBackCommand.LastHeartBeat.Value.Ticks;
                 }

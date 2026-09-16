@@ -173,7 +173,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.CommandHandler
                 {
                     if (rollBackCommand.LastHeartBeat.HasValue)
                     {
-                        command.CommandText = GetRollbackSql(false, true);
+                        command.CommandText = GetRollbackSql(true, true);
 
                         param = command.CreateParameter();
                         param.ParameterName = "@HeartBeat";
