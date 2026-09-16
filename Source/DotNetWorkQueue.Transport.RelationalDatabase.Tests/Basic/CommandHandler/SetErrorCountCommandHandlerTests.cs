@@ -49,7 +49,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.CommandHandle
         {
             var h = new Harness(indexExists: true);
 
-            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42));
+            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42, 1));
 
             h.PrepareCommand.Received(1).Handle(Arg.Any<SetErrorCountCommand<long>>(), Arg.Any<System.Data.Common.DbCommand>(),
                 CommandStringTypes.UpsertErrorCount);
@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.CommandHandle
             //a queue created before the index existed; the old path has to still count errors
             var h = new Harness(indexExists: false, recordExists: false);
 
-            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42));
+            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42, 1));
 
             h.PrepareCommand.Received(1).Handle(Arg.Any<SetErrorCountCommand<long>>(), Arg.Any<System.Data.Common.DbCommand>(),
                 CommandStringTypes.InsertErrorCount);
@@ -73,7 +73,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.CommandHandle
         {
             var h = new Harness(indexExists: false, recordExists: true);
 
-            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42));
+            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42, 1));
 
             h.PrepareCommand.Received(1).Handle(Arg.Any<SetErrorCountCommand<long>>(), Arg.Any<System.Data.Common.DbCommand>(),
                 CommandStringTypes.UpdateErrorCount);
@@ -85,9 +85,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.CommandHandle
             //the schema does not change underneath a running consumer, and this is on the failure path
             var h = new Harness(indexExists: true);
 
-            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42));
-            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42));
-            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 43));
+            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42, 1));
+            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42, 1));
+            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 43, 1));
 
             h.IndexQuery.Received(1).Handle(Arg.Any<GetErrorTrackingUniqueIndexExistsQuery>());
         }
@@ -98,7 +98,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.CommandHandle
             //the look-up needs the database too; failing to answer is not a reason to stop counting
             var h = new Harness(indexAnswer: () => throw new TimeoutException());
 
-            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42));
+            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42, 1));
 
             h.PrepareCommand.Received(1).Handle(Arg.Any<SetErrorCountCommand<long>>(), Arg.Any<System.Data.Common.DbCommand>(),
                 CommandStringTypes.InsertErrorCount);
@@ -111,8 +111,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.CommandHandle
             var attempts = 0;
             var h = new Harness(indexAnswer: () => attempts++ == 0 ? throw new TimeoutException() : true);
 
-            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42));
-            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42));
+            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42, 1));
+            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42, 1));
 
             Assert.AreEqual(2, attempts, "the look-up was not attempted again after it failed");
             h.PrepareCommand.Received(1).Handle(Arg.Any<SetErrorCountCommand<long>>(), Arg.Any<System.Data.Common.DbCommand>(),

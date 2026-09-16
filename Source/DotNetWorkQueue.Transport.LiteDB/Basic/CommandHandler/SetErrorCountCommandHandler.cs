@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Validation;
@@ -66,7 +67,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                     if (results != null && results.Count == 1)
                     {
                         //update
-                        results[0].RetryCount = results[0].RetryCount + 1;
+                        results[0].RetryCount = Math.Max(results[0].RetryCount, command.RetryCount);
                         meta.Update(results[0]);
                     }
                     else
@@ -75,7 +76,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.CommandHandler
                         {
                             QueueId = command.QueueId,
                             ExceptionType = command.ExceptionType,
-                            RetryCount = 1
+                            RetryCount = command.RetryCount
                         };
                         meta.Insert(record);
                     }

@@ -72,16 +72,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
                 $"Insert into {TableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers); ");
 
             CommandCache.Add(CommandStringTypes.UpdateErrorCount,
-                $"update {TableNameHelper.ErrorTrackingName} set retrycount = retrycount + 1 where queueid = @QueueID and ExceptionType = @ExceptionType");
+                $"update {TableNameHelper.ErrorTrackingName} set retrycount = max(retrycount, @RetryCount) where queueid = @QueueID and ExceptionType = @ExceptionType");
 
             CommandCache.Add(CommandStringTypes.InsertErrorCount,
-                $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,1)");
+                $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,@RetryCount)");
 
             CommandCache.Add(CommandStringTypes.UpsertErrorCount,
                 $@"insert into {TableNameHelper.ErrorTrackingName} (QueueID, ExceptionType, RetryCount)
-                   values (@QueueID, @ExceptionType, 1)
+                   values (@QueueID, @ExceptionType, @RetryCount)
                    on conflict (QueueID, ExceptionType)
-                   do update set retrycount = retrycount + 1");
+                   do update set retrycount = max({TableNameHelper.ErrorTrackingName}.retrycount, @RetryCount)");
 
             //By shape, not by name - see the other transports; SQLite appends the table name to an
             //index name of its own accord, which is one more reason not to match on it. A partial index

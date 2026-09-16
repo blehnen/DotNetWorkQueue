@@ -53,6 +53,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandPrepareHandl
             param.Size = 500;
             param.Value = command.ExceptionType;
             dbCommand.Parameters.Add(param);
+
+            param = dbCommand.CreateParameter();
+            param.ParameterName = "@RetryCount";
+            param.DbType = DbType.Int32;
+            param.Value = command.RetryCount;
+            dbCommand.Parameters.Add(param);
         }
     }
 }
