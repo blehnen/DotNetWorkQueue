@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.Tests.Factory
             var info = factory.Create(t, times);
 
             Assert.AreEqual(info.ExceptionType, t);
-            Assert.AreEqual(info.Times, times);
+            Assert.AreSame(times, info.Times);
             Assert.HasCount(info.MaxRetries, times);
         }
         [TestMethod]

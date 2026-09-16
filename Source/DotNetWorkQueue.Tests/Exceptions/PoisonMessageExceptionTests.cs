@@ -44,7 +44,7 @@ namespace DotNetWorkQueue.Tests.Exceptions
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var message = fixture.Create<byte[]>();
             var e = new PoisonMessageException("error", Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, message, null);
-            Assert.AreEqual(message, e.MessagePayload);
+            Assert.AreSame(message, e.MessagePayload);
         }
 
         [TestMethod]
@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.Tests.Exceptions
             var fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
             var header = fixture.Create<byte[]>();
             var e = new PoisonMessageException("error", Substitute.For<IMessageId>(), Substitute.For<ICorrelationId>(), null, null, header);
-            Assert.AreEqual(header, e.HeaderPayload);
+            Assert.AreSame(header, e.HeaderPayload);
         }
     }
 }

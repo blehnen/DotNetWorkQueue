@@ -60,10 +60,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryPrepareH
             Assert.AreEqual(7L, queueIdParam.Value);
 
             var bodyParam = parameters.First(p => p.ParameterName == "@Body");
-            Assert.AreEqual(body, bodyParam.Value);
+            Assert.AreSame(body, bodyParam.Value);
 
             var headersParam = parameters.First(p => p.ParameterName == "@Headers");
-            Assert.AreEqual(headerBytes, headersParam.Value);
+            Assert.AreSame(headerBytes, headersParam.Value);
         }
 
         private static DashboardUpdateMessageBodyPrepareHandler CreateHandler()

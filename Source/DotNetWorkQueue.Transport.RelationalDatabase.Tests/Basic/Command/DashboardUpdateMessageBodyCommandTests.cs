@@ -34,8 +34,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.Command
             var test = new DashboardUpdateMessageBodyCommand(id, body, headers);
 
             Assert.AreEqual(id, test.MessageId);
-            Assert.AreEqual(body, test.Body);
-            Assert.AreEqual(headers, test.Headers);
+            Assert.AreSame(body, test.Body);
+            Assert.AreSame(headers, test.Headers);
         }
     }
 }

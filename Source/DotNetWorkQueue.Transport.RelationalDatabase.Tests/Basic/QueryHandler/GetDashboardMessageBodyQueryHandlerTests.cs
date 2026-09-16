@@ -26,8 +26,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
             var result = handler.Handle(new GetDashboardMessageBodyQuery("42"));
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(bodyBytes, result.Body);
-            Assert.AreEqual(headerBytes, result.Headers);
+            Assert.AreSame(bodyBytes, result.Body);
+            Assert.AreSame(headerBytes, result.Headers);
         }
 
         [TestMethod]
