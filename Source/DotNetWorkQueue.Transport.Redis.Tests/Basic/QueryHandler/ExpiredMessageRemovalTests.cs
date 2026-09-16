@@ -151,13 +151,24 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.QueryHandler
                 };
             }
 
+            /// <summary>The claim recorder is not what these tests are about, so it is a plain substitute.</summary>
+            private static IMessageClaim MessageClaim
+            {
+                get
+                {
+                    var claim = Substitute.For<IMessageClaim>();
+                    claim.ClaimedAt.Returns(Substitute.For<IMessageContextData<ValueTypeWrapper<DateTime>>>());
+                    return claim;
+                }
+            }
+
             public ReceiveMessageQueryHandler CreateSync() =>
                 new ReceiveMessageQueryHandler(_serializer, _receivedMessageFactory, RemoveMessage,
-                    _redisHeaders, _dequeueLua, _unixTimeFactory, _messageFactory);
+                    _redisHeaders, _dequeueLua, _unixTimeFactory, _messageFactory, MessageClaim);
 
             public ReceiveMessageQueryHandlerAsync CreateAsync() =>
                 new ReceiveMessageQueryHandlerAsync(_serializer, _receivedMessageFactory, RemoveMessage,
-                    _redisHeaders, _dequeueLua, _unixTimeFactory, _messageFactory);
+                    _redisHeaders, _dequeueLua, _unixTimeFactory, _messageFactory, MessageClaim);
         }
 
         private class TestableDequeueLua : DequeueLua

@@ -56,9 +56,17 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             _serialization = serialization;
         }
 
-        public IReceivedMessageInternal Read(SqlDataReader reader)
+        /// <summary>Reads the de-queued message, and the heartbeat the de-queue stamped on it.</summary>
+        /// <param name="reader">The reader.</param>
+        /// <param name="claimedAt">
+        /// The stamped heartbeat, or null when this de-queue shape does not write one - holding the
+        /// transaction, or deleting rather than marking, or heartbeats off (GitHub #336).
+        /// </param>
+        public IReceivedMessageInternal Read(SqlDataReader reader, out DateTime? claimedAt)
         {
+            claimedAt = null;
             if (!reader.Read()) return null;
+            claimedAt = TryReadHeartBeat(reader);
 
             //load up the message from the DB
             long id = 0;
@@ -91,5 +99,33 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
 
             }
         }
+
+        /// <summary>
+        /// Reads the heartbeat column when the de-queue asked for one.
+        /// </summary>
+        /// <remarks>
+        /// Found by name rather than position because only one of the three de-queue shapes selects it,
+        /// and this reader serves all three. Looking it up keeps the reader from having to know which
+        /// shape produced the row.
+        /// </remarks>
+        private static DateTime? TryReadHeartBeat(SqlDataReader reader)
+        {
+            for (var i = 0; i < reader.FieldCount; i++)
+            {
+                if (!string.Equals(reader.GetName(i), "HeartBeat", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (reader.IsDBNull(i))
+                    return null;
+
+                //GetUTCDate() wrote it, so it is UTC - but a datetime column carries no zone and the
+                //reader hands back Unspecified. Saying so here stops anything downstream treating it as
+                //local and shifting it by the machine's offset.
+                return DateTime.SpecifyKind(reader.GetDateTime(i), DateTimeKind.Utc);
+            }
+
+            return null;
+        }
+
     }
 }

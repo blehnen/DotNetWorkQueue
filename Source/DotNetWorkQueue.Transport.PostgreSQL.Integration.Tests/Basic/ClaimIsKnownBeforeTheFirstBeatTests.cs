@@ -1,0 +1,92 @@
+using System;
+using System.Threading;
+using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.IntegrationTests.Shared;
+using DotNetWorkQueue.IntegrationTests.Shared.Producer;
+using DotNetWorkQueue.Transport.PostgreSQL.Basic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
+{
+    /// <summary>
+    /// A worker knows the heartbeat its claim is held by from the moment it is handed the message.
+    ///
+    /// The de-queue stamps a heartbeat and every later beat replaces it, and both places that prove
+    /// ownership work by naming the current value. Until #336 the worker only learned the value when its
+    /// own first beat landed, so in between it held a claim it could not name: the beat gave the claim up
+    /// rather than renewing it, and the rollback stopped checking whose row it was reset.
+    ///
+    /// The value reaches user code through <see cref="IWorkerNotification.HeartBeat"/>, so the handler is
+    /// where it can be observed without reaching into the library.
+    /// </summary>
+    [TestClass]
+    [Retry(1)]
+    public class ClaimIsKnownBeforeTheFirstBeatTests
+    {
+        [TestMethod]
+        public void TheClaimIsKnownWhenTheHandlerRuns()
+        {
+            var queueName = GenerateQueueName.Create();
+            var connectionString = ConnectionInfo.ConnectionString;
+            var queueConnection = new QueueConnection(queueName, connectionString);
+            var logProvider = LoggerShared.Create(queueName, GetType().Name);
+
+            using (var queueCreator = new QueueCreationContainer<PostgreSqlMessageQueueInit>(
+                serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
+            {
+                var oCreation = queueCreator.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
+                try
+                {
+                    oCreation.Options.EnableHeartBeat = true;
+                    oCreation.Options.EnableStatus = true;
+                    oCreation.Options.EnableDelayedProcessing = true;
+                    Assert.IsTrue(oCreation.CreateQueue().Success);
+
+                    new ProducerShared().RunTest<PostgreSqlMessageQueueInit, FakeMessage>(queueConnection, false, 1,
+                        logProvider, Helpers.GenerateData, Helpers.Verify, false, oCreation.Scope, false);
+
+                    DateTime? claimWhenHandlerRan = null;
+                    var handlerRan = new ManualResetEventSlim(false);
+
+                    using (var container = new QueueContainer<PostgreSqlMessageQueueInit>(
+                        serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
+                    using (var queue = container.CreateConsumer(queueConnection))
+                    {
+                        //an update time long enough that no beat of this worker's own can land while the
+                        //handler runs - so a value that is present had to come from the de-queue
+                        queue.Configuration.Worker.WorkerCount = 1;
+                        queue.Configuration.Worker.TimeToWaitForWorkersToStop = TimeSpan.FromSeconds(5);
+                        queue.Configuration.Worker.SingleWorkerWhenNoWorkFound = true;
+                        queue.Configuration.HeartBeat.Time = TimeSpan.FromSeconds(90);
+                        queue.Configuration.HeartBeat.MonitorTime = TimeSpan.FromSeconds(95);
+                        queue.Configuration.HeartBeat.UpdateTime = TimeSpan.FromSeconds(30);
+
+                        queue.Start<FakeMessage>((message, notifications) =>
+                        {
+                            claimWhenHandlerRan = notifications.HeartBeat?.Status?.LastHeartBeatTime;
+                            handlerRan.Set();
+                        }, CreateNotifications.Create(logProvider));
+
+                        Assert.IsTrue(handlerRan.Wait(TimeSpan.FromSeconds(60)), "the message was never delivered");
+                    }
+
+                    Assert.IsNotNull(claimWhenHandlerRan,
+                        "the worker did not know the heartbeat its claim is held by, so neither the beat nor the "
+                        + "rollback could name it");
+
+                    //and it is the de-queue's stamp rather than a placeholder: the queue was created moments
+                    //ago, so the claim has to sit between then and now
+                    Assert.IsGreaterThan(DateTime.UtcNow.AddMinutes(-5), claimWhenHandlerRan.Value.ToUniversalTime(),
+                        "the claim is older than this test run, so it is not the stamp the de-queue wrote");
+                    Assert.IsLessThan(DateTime.UtcNow.AddMinutes(5), claimWhenHandlerRan.Value.ToUniversalTime(),
+                        "the claim is in the future");
+                }
+                finally
+                {
+                    oCreation.RemoveQueue();
+                    oCreation.Dispose();
+                }
+            }
+        }
+    }
+}

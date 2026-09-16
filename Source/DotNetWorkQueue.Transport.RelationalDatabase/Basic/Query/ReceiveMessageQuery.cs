@@ -37,10 +37,13 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// <param name="routes">The routes.</param>
         /// <param name="userParameterCollection">user params to use with <see cref="UserWhereClause"/></param>
         /// <param name="userWhereClause">an optional where clause to apply to the de-queue</param>
-        public ReceiveMessageQuery(List<string> routes, IReadOnlyList<DbParameter> userParameterCollection, string userWhereClause)
+        /// <param name="messageContext">The context the de-queue records the claim it takes on.</param>
+        public ReceiveMessageQuery(List<string> routes, IReadOnlyList<DbParameter> userParameterCollection, string userWhereClause,
+            IMessageContext messageContext)
         {
             Connection = default(TConnection);
             Transaction = default(TTransaction);
+            MessageContext = messageContext;
             Routes = routes;
             UserParameterCollection = userParameterCollection;
             UserWhereClause = userWhereClause;
@@ -52,14 +55,27 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
         /// <param name="routes">The routes.</param>
         /// <param name="userParameterCollection">An optional collection of user params to pass to the query</param>
         /// <param name="userWhereClause">An option user AND clause to pass to the query</param>
-        public ReceiveMessageQuery(TConnection connection, TTransaction transaction, List<string> routes, IReadOnlyList<DbParameter> userParameterCollection, string userWhereClause)
+        /// <param name="messageContext">The context the de-queue records the claim it takes on.</param>
+        public ReceiveMessageQuery(TConnection connection, TTransaction transaction, List<string> routes, IReadOnlyList<DbParameter> userParameterCollection, string userWhereClause,
+            IMessageContext messageContext)
         {
             Connection = connection;
             Transaction = transaction;
+            MessageContext = messageContext;
             Routes = routes;
             UserParameterCollection = userParameterCollection;
             UserWhereClause = userWhereClause;
         }
+
+        /// <summary>
+        /// The context this de-queue is running for.
+        /// </summary>
+        /// <remarks>
+        /// Carried so the handler can record the heartbeat it stamps. The value is the proof of the claim
+        /// the de-queue has just taken, and the worker cannot defend a claim whose value it never saw
+        /// (GitHub #336).
+        /// </remarks>
+        public IMessageContext MessageContext { get; }
 
         /// <summary>
         /// Gets the connection.

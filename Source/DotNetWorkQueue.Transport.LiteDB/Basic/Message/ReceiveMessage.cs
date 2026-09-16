@@ -68,7 +68,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.Message
 
             //ask for the next message
             var receivedTransportMessage =
-                _receiveMessage.Handle(new ReceiveMessageQuery(_configuration.Routes));
+                _receiveMessage.Handle(new ReceiveMessageQuery(_configuration.Routes, context));
 
             //if no message (null) run the no message action and return
             if (receivedTransportMessage == null)

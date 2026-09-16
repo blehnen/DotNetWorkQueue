@@ -42,6 +42,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         /// <param name="dequeueLua">The dequeue.</param>
         /// <param name="unixTimeFactory">The unix time factory.</param>
         /// <param name="messageFactory">The message factory.</param>
+        /// <param name="messageClaim">Records the heartbeat this de-queue stamps.</param>
         public ReceiveMessageQueryHandlerAsync(
             ICompositeSerialization serializer,
             IReceivedMessageFactory receivedMessageFactory,
@@ -49,9 +50,10 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             RedisHeaders redisHeaders,
             DequeueLua dequeueLua,
             IUnixTimeFactory unixTimeFactory,
-            IMessageFactory messageFactory)
+            IMessageFactory messageFactory,
+            IMessageClaim messageClaim)
             : base(serializer, receivedMessageFactory, removeMessage, redisHeaders, dequeueLua,
-                unixTimeFactory, messageFactory)
+                unixTimeFactory, messageFactory, messageClaim)
         {
         }
 

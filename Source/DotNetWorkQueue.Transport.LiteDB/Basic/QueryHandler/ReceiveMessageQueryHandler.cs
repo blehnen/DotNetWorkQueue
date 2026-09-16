@@ -42,6 +42,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         //these values are stored and compared against each other, so they take whichever clock
         //the queue was told to use rather than going around it
         private readonly IGetTime _getTime;
+        private readonly IMessageClaim _messageClaim;
 
         /// <summary>
         /// Where the next poll resumes its search. Only ever read or written inside
@@ -58,15 +59,18 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         /// <param name="databaseExists">The database exists.</param>
         /// <param name="messageDeQueue">The message de queue.</param>
         /// <param name="getTimeFactory">The time provider the queue is configured with.</param>
+        /// <param name="messageClaim">Records the heartbeat this de-queue stamps, so the worker can prove its claim.</param>
         public ReceiveMessageQueryHandler(ILiteDbMessageQueueTransportOptionsFactory optionsFactory,
             TableNameHelper tableNameHelper,
             LiteDbConnectionManager connectionInformation,
             DatabaseExists databaseExists,
             MessageDeQueue messageDeQueue,
-            IGetTimeFactory getTimeFactory)
+            IGetTimeFactory getTimeFactory,
+            IMessageClaim messageClaim)
         {
             Guard.NotNull(getTimeFactory);
             _getTime = getTimeFactory.Create();
+            _messageClaim = messageClaim;
             Guard.NotNull(optionsFactory);
             Guard.NotNull(tableNameHelper);
             Guard.NotNull(databaseExists);
@@ -236,8 +240,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
             var record = FindNextEligible(query, col);
             if (record != null)
             {
-                record.HeartBeat = _getTime.GetCurrentUtcDate();
+                //Truncated to the precision a BSON date keeps. The value published as the claim has to
+                //be the value that ends up stored, or the worker's first beat names something that was
+                //never written and matches nothing - the same trap the heartbeat handler hit in #328.
+                record.HeartBeat = TruncateToStoredPrecision(_getTime.GetCurrentUtcDate());
                 record.Status = QueueStatuses.Processing;
+                RecordClaim(query, record.HeartBeat.Value);
 
                 col.Update(record);
 
@@ -275,5 +283,21 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
 
             return null;
         }
+
+        /// <summary>
+        /// Publishes the heartbeat this de-queue stamped, so the worker can prove its claim before it has
+        /// written a beat of its own (GitHub #336).
+        /// </summary>
+        private void RecordClaim(ReceiveMessageQuery query, DateTime claimedAt)
+        {
+            if (!_options.Value.EnableHeartBeat || query.MessageContext == null)
+                return;
+
+            query.MessageContext.Set(_messageClaim.ClaimedAt, new ValueTypeWrapper<DateTime>(claimedAt));
+        }
+
+        private static DateTime TruncateToStoredPrecision(DateTime value) =>
+            new DateTime(value.Ticks - value.Ticks % TimeSpan.TicksPerMillisecond, value.Kind);
+
     }
 }

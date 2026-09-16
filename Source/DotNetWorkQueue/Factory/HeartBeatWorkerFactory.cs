@@ -32,6 +32,7 @@ namespace DotNetWorkQueue.Factory
         private readonly ILogger _log;
         private readonly IWorkerHeartBeatNotificationFactory _heartBeatNotificationFactory;
         private readonly IGetTimeFactory _getTimeFactory;
+        private readonly IMessageClaim _messageClaim;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HeartBeatWorkerFactory" /> class.
@@ -42,12 +43,14 @@ namespace DotNetWorkQueue.Factory
         /// <param name="logFactory">The log factory.</param>
         /// <param name="heartBeatNotificationFactory">The heart beat notification factory.</param>
         /// <param name="getTimeFactory">The time factory; the transport's clock.</param>
+        /// <param name="messageClaim">Carries the heartbeat the de-queue stamped, if the transport stamped one.</param>
         public HeartBeatWorkerFactory(IHeartBeatConfiguration configuration,
             ISendHeartBeat sendHeartBeat,
             IHeartBeatGate gate,
             ILogger logFactory,
             IWorkerHeartBeatNotificationFactory heartBeatNotificationFactory,
-            IGetTimeFactory getTimeFactory)
+            IGetTimeFactory getTimeFactory,
+            IMessageClaim messageClaim)
         {
             Guard.NotNull(getTimeFactory);
             Guard.NotNull(configuration);
@@ -55,6 +58,7 @@ namespace DotNetWorkQueue.Factory
             Guard.NotNull(gate);
             Guard.NotNull(logFactory);
             Guard.NotNull(heartBeatNotificationFactory);
+            Guard.NotNull(messageClaim);
 
             _configuration = configuration;
             _sendHeartBeat = sendHeartBeat;
@@ -62,6 +66,7 @@ namespace DotNetWorkQueue.Factory
             _log = logFactory;
             _heartBeatNotificationFactory = heartBeatNotificationFactory;
             _getTimeFactory = getTimeFactory;
+            _messageClaim = messageClaim;
         }
 
         /// <inheritdoc />
@@ -71,7 +76,7 @@ namespace DotNetWorkQueue.Factory
             if (_configuration.Enabled)
             {
                 hb = new HeartBeatWorker(_configuration, context, _sendHeartBeat, _gate, _log,
-                    _heartBeatNotificationFactory, _getTimeFactory);
+                    _heartBeatNotificationFactory, _getTimeFactory, _messageClaim);
             }
             else
             {

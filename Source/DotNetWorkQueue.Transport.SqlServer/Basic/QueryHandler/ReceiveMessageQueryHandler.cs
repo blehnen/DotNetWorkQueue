@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using Microsoft.Data.SqlClient;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
@@ -31,19 +32,23 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
     {
         private readonly BuildDequeueCommand _buildDequeueCommand;
         private readonly ReadMessage _readMessage;
+        private readonly IMessageClaim _messageClaim;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceiveMessageQueryHandler" /> class.
         /// </summary>
         /// <param name="readMessage">The read message.</param>
         /// <param name="buildDequeueCommand">The build dequeue command.</param>
+        /// <param name="messageClaim">Records the heartbeat this de-queue stamps, so the worker can prove its claim.</param>
         public ReceiveMessageQueryHandler(ReadMessage readMessage,
-            BuildDequeueCommand buildDequeueCommand)
+            BuildDequeueCommand buildDequeueCommand,
+            IMessageClaim messageClaim)
         {
             Guard.NotNull(readMessage);
             Guard.NotNull(buildDequeueCommand);
 
             _readMessage = readMessage;
+            _messageClaim = messageClaim;
             _buildDequeueCommand = buildDequeueCommand;
         }
         /// <summary>
@@ -58,7 +63,15 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                 _buildDequeueCommand.BuildCommand(selectCommand, query);
                 using (var reader = selectCommand.ExecuteReader())
                 {
-                    return _readMessage.Read(reader);
+                    var message = _readMessage.Read(reader, out var claimedAt);
+                    if (message != null && claimedAt.HasValue && query.MessageContext != null)
+                    {
+                        //the stamp the database wrote, which is the value this claim is held by
+                        query.MessageContext.Set(_messageClaim.ClaimedAt,
+                            new ValueTypeWrapper<DateTime>(claimedAt.Value));
+                    }
+
+                    return message;
                 }
             }
         }

@@ -44,6 +44,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         private readonly IHeaders _headers;
         private readonly IGetTime _getTime;
         private readonly QueueConsumerConfiguration _configuration;
+        private readonly IMessageClaim _messageClaim;
 
 
         /// <summary>Initializes a new instance of the <see cref="ReceiveMessageQueryHandler" /> class.</summary>
@@ -56,6 +57,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         /// <param name="serialization">The serialization.</param>
         /// <param name="getTimeFactory">The get time factory.</param>
         /// <param name="configuration">Queue Configuration</param>
+        /// <param name="messageClaim">Records the heartbeat this de-queue stamps.</param>
         public ReceiveMessageQueryHandler(IPostgreSqlMessageQueueTransportOptionsFactory optionsFactory,
             ITableNameHelper tableNameHelper,
             IReceivedMessageFactory receivedMessageFactory,
@@ -64,7 +66,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             IHeaders headers,
             ICompositeSerialization serialization,
             IGetTimeFactory getTimeFactory,
-            QueueConsumerConfiguration configuration)
+            QueueConsumerConfiguration configuration,
+            IMessageClaim messageClaim)
         {
             Guard.NotNull(optionsFactory);
             Guard.NotNull(tableNameHelper);
@@ -75,6 +78,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             Guard.NotNull(headers);
             Guard.NotNull(getTimeFactory);
             Guard.NotNull(configuration);
+            Guard.NotNull(messageClaim);
 
             _options = new Lazy<PostgreSqlMessageQueueTransportOptions>(optionsFactory.Create);
             _tableNameHelper = tableNameHelper;
@@ -85,6 +89,24 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
             _serialization = serialization;
             _getTime = getTimeFactory.Create();
             _configuration = configuration;
+            _messageClaim = messageClaim;
+        }
+
+        /// <summary>
+        /// Publishes the heartbeat this de-queue stamped, so the worker can prove the claim before it
+        /// has written a beat of its own (GitHub #336).
+        /// </summary>
+        /// <remarks>
+        /// Only when the heartbeat option is on, because only then does the de-queue write one. With it
+        /// off there is no claim to prove and nothing should be published - an absent value means the
+        /// same thing it meant before this existed.
+        /// </remarks>
+        private void RecordClaim(ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction> query, DateTime claimedAt)
+        {
+            if (!_options.Value.EnableHeartBeat || query.MessageContext == null)
+                return;
+
+            query.MessageContext.Set(_messageClaim.ClaimedAt, new ValueTypeWrapper<DateTime>(claimedAt));
         }
 
         /// <inheritdoc />
@@ -97,8 +119,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                     ReceiveMessage.GetDeQueueCommand(_commandCache, _tableNameHelper, _options.Value,
                         _configuration, query.Routes, out var userParameters);
 
+                //the same instant is the heartbeat this de-queue stamps, so it is kept rather than
+                //recomputed - the value the worker has to prove its claim with must be the one written
+                var claimedAt = _getTime.GetCurrentUtcDate();
                 selectCommand.Parameters.Add("@CurrentDate", NpgsqlDbType.Bigint);
-                selectCommand.Parameters["@CurrentDate"].Value = _getTime.GetCurrentUtcDate().Ticks;
+                selectCommand.Parameters["@CurrentDate"].Value = claimedAt.Ticks;
 
 
                 if (_options.Value.AdditionalColumnsOnMetaData && userParameters != null && userParameters.Count > 0)
@@ -145,6 +170,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
                         var message = _serialization.Serializer
                             .BytesToMessage<MessageBody>(messagePayload, messageGraph, headers).Body;
                         var newMessage = _messageFactory.Create(message, headers);
+
+                        RecordClaim(query, claimedAt);
 
                         return _receivedMessageFactory.Create(newMessage,
                             new MessageQueueId<long>(id),

@@ -82,7 +82,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Message
             //ask for the next message
             var receivedTransportMessage =
                 _receiveMessage.Handle(new ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction>(connectionHolder.Connection,
-                    connectionHolder.Transaction, routes, userParameterCollection, userWhereClause));
+                    connectionHolder.Transaction, routes, userParameterCollection, userWhereClause, context));
 
             return ProcessMessage(receivedTransportMessage, connectionHolder, context, noMessageFoundActon);
         }

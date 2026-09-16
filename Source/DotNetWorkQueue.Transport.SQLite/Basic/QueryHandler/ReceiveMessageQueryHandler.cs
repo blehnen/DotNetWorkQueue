@@ -45,6 +45,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         private readonly IDbFactory _dbFactory;
         private readonly DatabaseExists _databaseExists;
         private readonly QueueConsumerConfiguration _configuration;
+        private readonly IMessageClaim _messageClaim;
 
         /// <summary>
         /// The dequeue script, built on first use for a given set of routes and caller clause and
@@ -73,6 +74,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// <param name="dbFactory">The transaction factory.</param>
         /// <param name="databaseExists">The database exists.</param>
         /// <param name="configuration">Queue configuration</param>
+        /// <param name="messageClaim">Records the heartbeat this de-queue stamps, so the worker can prove its claim.</param>
         public ReceiveMessageQueryHandler(ISqLiteMessageQueueTransportOptionsFactory optionsFactory,
             ITableNameHelper tableNameHelper,
             IConnectionInformation connectionInformation,
@@ -80,7 +82,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             MessageDeQueue messageDeQueue,
             IDbFactory dbFactory,
             DatabaseExists databaseExists,
-            QueueConsumerConfiguration configuration)
+            QueueConsumerConfiguration configuration,
+            IMessageClaim messageClaim)
         {
             Guard.NotNull(optionsFactory);
             Guard.NotNull(tableNameHelper);
@@ -98,6 +101,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             _dbFactory = dbFactory;
             _databaseExists = databaseExists;
             _configuration = configuration;
+            _messageClaim = messageClaim;
         }
 
         /// <summary>
@@ -134,11 +138,14 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                     {
                         selectCommand.Transaction = transaction;
 
-                        _buildDequeueCommand.BuildCommand(selectCommand, commandString, _options.Value,
+                        var claimedAt = _buildDequeueCommand.BuildCommand(selectCommand, commandString, _options.Value,
                             query.Routes, userParameters);
                         using (var reader = selectCommand.ExecuteReader())
                         {
-                            return _messageDeQueue.HandleMessage(connection, transaction, reader, commandString);
+                            var message = _messageDeQueue.HandleMessage(connection, transaction, reader, commandString);
+                            if (message != null)
+                                RecordClaim(query, claimedAt);
+                            return message;
                         }
                     }
                 }
@@ -199,5 +206,18 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
 
             return key.ToString();
         }
+
+        /// <summary>
+        /// Publishes the heartbeat this de-queue stamped, so the worker can prove its claim before it has
+        /// written a beat of its own (GitHub #336).
+        /// </summary>
+        private void RecordClaim(ReceiveMessageQuery<DbConnection, DbTransaction> query, DateTime claimedAt)
+        {
+            if (!_options.Value.EnableHeartBeat || query.MessageContext == null)
+                return;
+
+            query.MessageContext.Set(_messageClaim.ClaimedAt, new ValueTypeWrapper<DateTime>(claimedAt));
+        }
+
     }
 }

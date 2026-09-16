@@ -314,6 +314,7 @@ namespace DotNetWorkQueue.IoC
 
             container.Register<IHeaders, Headers>(LifeStyles.Singleton);
             container.Register<IStandardHeaders, StandardHeaders>(LifeStyles.Singleton);
+            container.Register<IMessageClaim, MessageClaim>(LifeStyles.Singleton);
             container.Register<ICustomHeaders, CustomHeaders>(LifeStyles.Singleton);
 
             container.Register<IWriteMessageHistory, WriteMessageHistoryNoOp>(LifeStyles.Singleton);

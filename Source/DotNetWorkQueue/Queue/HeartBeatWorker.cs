@@ -37,6 +37,7 @@ namespace DotNetWorkQueue.Queue
         //treated as abandoned and handed to another worker, so it is also the deadline this worker has
         //to keep meeting to keep its claim.
         private readonly TimeSpan _expiry;
+        private readonly IMessageClaim _messageClaim;
         //Ticks of the last beat that actually landed. Long, not DateTime, so it can be read and written
         //without the beat lock - the staleness check runs on ticks where the beat itself is skipped.
         private long _lastGoodBeatUtcTicks;
@@ -102,13 +103,15 @@ namespace DotNetWorkQueue.Queue
         /// <param name="log">The log.</param>
         /// <param name="heartBeatNotificationFactory">The heart beat notification factory.</param>
         /// <param name="getTimeFactory">The time factory; the transport's clock, which is the one the monitor ages against.</param>
+        /// <param name="messageClaim">Carries the heartbeat the de-queue stamped, if the transport stamped one.</param>
         public HeartBeatWorker(IHeartBeatConfiguration configuration,
             IMessageContext context,
             ISendHeartBeat sendHeartBeat,
             IHeartBeatGate gate,
             ILogger log,
             IWorkerHeartBeatNotificationFactory heartBeatNotificationFactory,
-            IGetTimeFactory getTimeFactory)
+            IGetTimeFactory getTimeFactory,
+            IMessageClaim messageClaim)
         {
             Guard.NotNull(configuration);
             Guard.NotNull(getTimeFactory);
@@ -117,7 +120,9 @@ namespace DotNetWorkQueue.Queue
             Guard.NotNull(gate);
             Guard.NotNull(log);
             Guard.NotNull(heartBeatNotificationFactory);
+            Guard.NotNull(messageClaim);
 
+            _messageClaim = messageClaim;
             _context = context;
             _interval = configuration.UpdateTime;
             _expiry = configuration.Time;
@@ -150,6 +155,7 @@ namespace DotNetWorkQueue.Queue
                 {
                     //the claim is fresh as of now; staleness is measured from here until a beat lands
                     Interlocked.Exchange(ref _lastGoodBeatUtcTicks, _getTime.GetCurrentUtcDate().Ticks);
+                    SeedStatusFromTheDeQueue();
                     _timer = new PeriodicTimer(_interval);
                     _loop = Task.Run(RunLoopAsync, CancellationToken.None);
                 }
@@ -577,6 +583,35 @@ namespace DotNetWorkQueue.Queue
                     "The heartbeat for message {MessageId} matched no record while the claim was still fresh, which is the message being completed while this beat was in flight",
                     status.MessageId?.Id?.Value);
             }
+        }
+
+        /// <summary>
+        /// Adopts the heartbeat the de-queue stamped, so the claim can be proved before this worker has
+        /// written one of its own.
+        /// </summary>
+        /// <remarks>
+        /// Both places that prove ownership read <see cref="IWorkerHeartBeatNotification.Status"/> - the
+        /// beat names the value it expects to replace, and the rollback names the value it expects to
+        /// reset - so publishing the de-queue's stamp here fixes both without either of them changing.
+        ///
+        /// Until this existed the status was null until the first beat landed, which left the beat
+        /// giving up a claim it could not name and the rollback resetting a row without checking whose
+        /// it was (GitHub #336).
+        ///
+        /// A transport that stamps nothing leaves this absent, and the older behaviour stands: that is a
+        /// de-queue which deletes the record rather than marking it, or a queue with heartbeats off.
+        /// </remarks>
+        private void SeedStatusFromTheDeQueue()
+        {
+            if (_context.MessageId == null || !_context.MessageId.HasValue)
+                return;
+
+            var claimedAt = _context.Get(_messageClaim.ClaimedAt);
+            if (claimedAt == null)
+                return;
+
+            _context.WorkerNotification.HeartBeat.Status =
+                new HeartBeatStatus(_context.MessageId, claimedAt.Value);
         }
 
         /// <summary>
