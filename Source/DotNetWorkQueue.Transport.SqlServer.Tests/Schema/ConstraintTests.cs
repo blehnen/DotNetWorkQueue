@@ -34,7 +34,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Schema
         {
             var columns = new List<string> { "test" };
             var test = new Constraint("test", ConstraintType.Constraint, columns);
-            Assert.AreEqual(columns, test.Columns);
+            Assert.AreSame(columns, test.Columns);
         }
         [TestMethod]
         public void GetSet_Name()

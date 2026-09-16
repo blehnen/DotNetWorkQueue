@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.Transport.Redis.Tests.Basic.Command
         {
             var messages = new List<QueueMessage<IMessage, IAdditionalMessageData>>();
             var test = new SendMessageCommandBatch(messages);
-            Assert.AreEqual(messages, test.Messages);
+            Assert.AreSame(messages, test.Messages);
         }
     }
 }

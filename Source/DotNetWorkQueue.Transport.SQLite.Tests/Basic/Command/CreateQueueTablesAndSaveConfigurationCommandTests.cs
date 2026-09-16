@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic.Command
         {
             var tables = new List<Table>();
             var test = new CreateQueueTablesAndSaveConfigurationCommand<Table>(tables);
-            Assert.AreEqual(tables, test.Tables);
+            Assert.AreSame(tables, test.Tables);
         }
     }
 }

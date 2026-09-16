@@ -22,7 +22,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.QueryHandler
 
             var result = handler.Handle(new GetDashboardConfigurationQuery());
 
-            Assert.AreEqual(expected, result);
+            Assert.AreSame(expected, result);
         }
 
         [TestMethod]

@@ -13,7 +13,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             var commands = new List<string>();
             var test = new CommandString("testing", commands);
             Assert.AreEqual("testing", test.CommandText);
-            Assert.AreEqual(commands, test.AdditionalCommands);
+            Assert.AreSame(commands, test.AdditionalCommands);
         }
     }
 }
