@@ -107,6 +107,7 @@ namespace DotNetWorkQueue.Tests.IoC
             public HashSet<Type> TypesThatCanBeSuppressed => new HashSet<Type>();
 
             public TService GetInstance<TService>() where TService : class => throw NotUsed();
+            public TService TryGetInstance<TService>() where TService : class => throw NotUsed();
             public object GetInstance(Type serviceType) => throw NotUsed();
 
             public IContainer Register<TService, TImplementation>(LifeStyles lifeStyle)

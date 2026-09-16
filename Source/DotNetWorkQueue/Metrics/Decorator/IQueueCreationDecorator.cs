@@ -59,6 +59,9 @@ namespace DotNetWorkQueue.Metrics.Decorator
 
         /// <inheritdoc />
         public ICreationScope Scope => _handler.Scope;
+        /// <inheritdoc />
+        public bool RequiresCreation => _handler.RequiresCreation;
+
 
         /// <inheritdoc />
         public QueueCreationResult CreateQueue()

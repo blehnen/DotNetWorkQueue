@@ -125,6 +125,16 @@ namespace DotNetWorkQueue.IoC
             return _container.GetInstance<TService>();
         }
 
+        /// <inheritdoc />
+        public TService TryGetInstance<TService>() where TService : class
+        {
+            //asking for the registration rather than the instance: a missing registration is the
+            //question being asked, while anything thrown while building a registered service is not
+            //this method's to swallow
+            var registration = _container.GetRegistration(typeof(TService), false);
+            return (TService)registration?.GetInstance();
+        }
+
         /// <summary>
         /// Returns the specified instance based on the input service type
         /// </summary>

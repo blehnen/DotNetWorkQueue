@@ -44,6 +44,18 @@ namespace DotNetWorkQueue
         TService GetInstance<TService>() where TService : class;
 
         /// <summary>
+        /// Returns the service if something has registered one, and null if nothing has.
+        /// </summary>
+        /// <remarks>
+        /// For a service a transport is free not to provide. Asking for one of those with
+        /// <see cref="GetInstance{TService}"/> throws, which cannot be told apart from the registered
+        /// service failing to build - and the caller here wants to carry on in the first case and not
+        /// in the second.
+        /// </remarks>
+        /// <typeparam name="TService">The service type.</typeparam>
+        TService TryGetInstance<TService>() where TService : class;
+
+        /// <summary>
         /// Returns the specified instance based on the input service type
         /// </summary>
         /// <param name="serviceType">Type of the service.</param>

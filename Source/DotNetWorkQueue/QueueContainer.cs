@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.TaskScheduling;
 using DotNetWorkQueue.Validation;
@@ -85,6 +86,7 @@ namespace DotNetWorkQueue
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
             Containers.Add(container);
+            GuardQueueExists(container, queueConnection);
             return container.GetInstance<IConsumerQueue>();
         }
 
@@ -100,6 +102,7 @@ namespace DotNetWorkQueue
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, registerServiceInternal, _setOptions);
             Containers.Add(container);
+            GuardQueueExists(container, queueConnection);
             return container.GetInstance<IConsumerMethodQueue>();
         }
 
@@ -116,6 +119,7 @@ namespace DotNetWorkQueue
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerQueueAsync, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
             Containers.Add(container);
+            GuardQueueExists(container, queueConnection);
             return container.GetInstance<IConsumerQueueAsync>();
         }
         #endregion
@@ -263,6 +267,7 @@ namespace DotNetWorkQueue
                 }
             }
             Containers.Add(container);
+            GuardQueueExists(container, queueConnection);
             return container.GetInstance<IConsumerQueueScheduler>();
         }
 
@@ -326,6 +331,7 @@ namespace DotNetWorkQueue
                 }
             }
             Containers.Add(container);
+            GuardQueueExists(container, queueConnection);
             return container.GetInstance<IConsumerMethodQueueScheduler>();
         }
         #endregion
@@ -348,6 +354,7 @@ namespace DotNetWorkQueue
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             Containers.Add(container);
+            GuardQueueExists(container, queueConnection);
             return container.GetInstance<IProducerQueue<TMessage>>();
         }
 
@@ -365,6 +372,7 @@ namespace DotNetWorkQueue
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             Containers.Add(container);
+            GuardQueueExists(container, queueConnection);
             return container.GetInstance<IProducerMethodQueue>();
         }
 
@@ -382,6 +390,8 @@ namespace DotNetWorkQueue
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             Containers.Add(container);
+            //deliberately not guarded: a job producer builds the storage it needs, so reaching a
+            //database that has nothing in it yet is how it is meant to be used
             return container.GetInstance<IProducerMethodJobQueue>();
         }
 
@@ -458,6 +468,28 @@ namespace DotNetWorkQueue
         public IContainer CreateAdminContainer(QueueConnection queueConnection)
         {
             return CreateAdminContainer(queueConnection, null);
+        }
+
+        /// <summary>
+        /// Refuses to build a producer or consumer for a queue that has not been created.
+        /// </summary>
+        /// <remarks>
+        /// The library has never required the queue to exist first, and what happened when it did not
+        /// was neither an error nor recovery: SQL Server and PostgreSQL logged a transport error on every
+        /// de-queue until the queue appeared, while SQLite and LiteDb never recovered - LiteDb without
+        /// logging anything at all, leaving a consumer that looked healthy and processed nothing for as
+        /// long as it ran.
+        ///
+        /// Checked here because this is the last point the caller is still in control. It costs one read
+        /// per producer or consumer, not one per de-queue, which is what made the previous attempt at
+        /// this unusable (GitHub #348).
+        /// </remarks>
+        private static void GuardQueueExists(IContainer container, QueueConnection queueConnection)
+        {
+            //a transport is not obliged to publish one - nothing to check if it does not
+            var creation = container.TryGetInstance<IQueueCreation>();
+            if (creation != null && creation.RequiresCreation && !creation.QueueExists)
+                throw new QueueDoesNotExistException(queueConnection.Queue);
         }
 
         /// <summary>

@@ -50,14 +50,17 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
             using var connectionInfo = new IntegrationConnectionInfo(connectionType);
             var queueConnection = new QueueConnection(GenerateQueueName.Create(), connectionInfo.ConnectionString);
 
-            using (var creation = new QueueCreationContainer<LiteDbMessageQueueInit>())
-            {
-                using var creator = creation.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
-                var created = creator.CreateQueue();
-                Assert.IsTrue(created.Success, created.ErrorMessage);
-            }
+            //The creation scope is what keeps an in-memory database alive, and it has to be shared with
+            //whatever uses the queue. Letting it go and building on its own gave a different, empty
+            //database - the send still succeeded, against nothing, and the assertions below could not
+            //tell the difference.
+            using var creation = new QueueCreationContainer<LiteDbMessageQueueInit>();
+            using var creator = creation.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
+            var created = creator.CreateQueue();
+            Assert.IsTrue(created.Success, created.ErrorMessage);
 
-            using var container = new QueueContainer<LiteDbMessageQueueInit>();
+            using var container = new QueueContainer<LiteDbMessageQueueInit>(
+                serviceRegister => serviceRegister.RegisterNonScopedSingleton(creator.Scope));
             using var producer = container.CreateProducer<FakeMessage>(queueConnection);
 
             var batch = Enumerable.Range(0, messageCount).Select(_ => new FakeMessage()).ToList();
@@ -177,14 +180,17 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
 
             //the batch handler also returns an empty result when the database is missing, so
             //without this the assertion below would pass for a queue that was never created
-            using (var creation = new QueueCreationContainer<LiteDbMessageQueueInit>())
-            {
-                using var creator = creation.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
-                var created = creator.CreateQueue();
-                Assert.IsTrue(created.Success, created.ErrorMessage);
-            }
+            //The creation scope is what keeps an in-memory database alive, and it has to be shared with
+            //whatever uses the queue. Letting it go and building on its own gave a different, empty
+            //database - the send still succeeded, against nothing, and the assertions below could not
+            //tell the difference.
+            using var creation = new QueueCreationContainer<LiteDbMessageQueueInit>();
+            using var creator = creation.GetQueueCreation<LiteDbMessageQueueCreation>(queueConnection);
+            var created = creator.CreateQueue();
+            Assert.IsTrue(created.Success, created.ErrorMessage);
 
-            using var container = new QueueContainer<LiteDbMessageQueueInit>();
+            using var container = new QueueContainer<LiteDbMessageQueueInit>(
+                serviceRegister => serviceRegister.RegisterNonScopedSingleton(creator.Scope));
             using var producer = container.CreateProducer<FakeMessage>(queueConnection);
 
             var results = producer.Send(new List<FakeMessage>()).ToList();
