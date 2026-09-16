@@ -1,4 +1,5 @@
 ﻿### Unreleased
+- Fix: with delayed processing on, a rolled-back message goes to the back of the queue again on SQL Server, PostgreSQL and SQLite. It kept its place at the front, so a consumer that repeatedly cancelled one message re-read it in a tight loop and never reached the messages behind it (GitHub #352)
 - ⚠️ SQL Server queue names are limited to 101 characters rather than 128. Anything longer failed at creation on an over-long index name; names of 102 to roughly 113 worked only while history was off, and would have broken when it was enabled (GitHub #344)
 - Fix: a message rolled back before its first heartbeat no longer resets a claim that has since been given to another worker, which could let the same message be processed twice (GitHub #336)
 - ⚠️ PostgreSQL queue names are limited to 51 characters rather than 63. Names above that could never create a queue — creation failed on a truncated identifier and reported the queue as already existing, having created nothing — so this rejects them with an error that says why (GitHub #339)
