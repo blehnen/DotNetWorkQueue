@@ -16,6 +16,7 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -35,17 +36,24 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             _getTime = getTimeFactory.Create();
         }
 
+        /// <summary>Builds the de-queue command, and returns the instant it stamped it with.</summary>
+        /// <remarks>
+        /// The caller needs that instant: when the heartbeat option is on it is also the heartbeat this
+        /// de-queue writes, and therefore the value the claim is held by (GitHub #336). Returning it is
+        /// cheaper than recomputing, which would produce a different instant and prove nothing.
+        /// </remarks>
         [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification =
             "Query checked")]
-        internal void BuildCommand(DbCommand selectCommand, CommandString commandString,
+        internal DateTime BuildCommand(DbCommand selectCommand, CommandString commandString,
             SqLiteMessageQueueTransportOptions options, List<string> routes, List<SQLiteParameter> userParameters)
         {
             selectCommand.CommandText = commandString.CommandText;
 
+            var claimedAt = _getTime.GetCurrentUtcDate();
             var paramDate = selectCommand.CreateParameter();
             paramDate.ParameterName = "@CurrentDateTime";
             paramDate.DbType = DbType.Int64;
-            paramDate.Value = _getTime.GetCurrentUtcDate().Ticks;
+            paramDate.Value = claimedAt.Ticks;
             selectCommand.Parameters.Add(paramDate);
 
             if (options.EnableRoute && routes != null && routes.Count > 0)
@@ -69,6 +77,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
                     selectCommand.Parameters.Add(userParam.Clone()); //clone to avoid sharing
                 }
             }
+
+            return claimedAt;
         }
     }
 }

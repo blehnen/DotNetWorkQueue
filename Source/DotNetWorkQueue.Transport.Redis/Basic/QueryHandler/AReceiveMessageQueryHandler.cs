@@ -49,6 +49,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
     internal abstract class AReceiveMessageQueryHandler
     {
         private readonly ICompositeSerialization _serializer;
+        private readonly IMessageClaim _messageClaim;
         private readonly IReceivedMessageFactory _receivedMessageFactory;
         protected readonly IRemoveMessage RemoveMessage;
         private readonly RedisHeaders _redisHeaders;
@@ -66,6 +67,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         /// <param name="dequeueLua">The dequeue.</param>
         /// <param name="unixTimeFactory">The unix time factory.</param>
         /// <param name="messageFactory">The message factory.</param>
+        /// <param name="messageClaim">Records the heartbeat this de-queue stamps, so the worker can prove its claim.</param>
         protected AReceiveMessageQueryHandler(
             ICompositeSerialization serializer,
             IReceivedMessageFactory receivedMessageFactory,
@@ -73,7 +75,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             RedisHeaders redisHeaders,
             DequeueLua dequeueLua,
             IUnixTimeFactory unixTimeFactory,
-            IMessageFactory messageFactory)
+            IMessageFactory messageFactory,
+            IMessageClaim messageClaim)
         {
             Guard.NotNull(serializer);
             Guard.NotNull(receivedMessageFactory);
@@ -88,6 +91,8 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             _redisHeaders = redisHeaders;
             DequeueLua = dequeueLua;
             UnixTimeFactory = unixTimeFactory;
+            Guard.NotNull(messageClaim);
+            _messageClaim = messageClaim;
             _messageFactory = messageFactory;
         }
 
@@ -161,6 +166,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 
                 var newMessage = _messageFactory.Create(messageData.Body, allHeaders);
                 query.MessageContext.SetMessageAndHeaders(query.MessageContext.MessageId, new RedisQueueCorrelationId(correlationId.Id), new ReadOnlyDictionary<string, object>(allHeaders));
+                RecordClaim(query, unixTimestamp);
 
                 return new RedisMessage(
                         messageId,
@@ -181,5 +187,20 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 
             }
         }
+
+        /// <summary>
+        /// Publishes the working set score this de-queue wrote, which is the heartbeat the claim is held
+        /// by, so the worker can prove it before writing a beat of its own (GitHub #336).
+        /// </summary>
+        /// <remarks>
+        /// Converted through the same epoch the heartbeat handler converts back through, so the value the
+        /// worker names is the score that is actually in the set.
+        /// </remarks>
+        private void RecordClaim(ReceiveMessageQuery query, long unixTimestampMilliseconds)
+        {
+            query.MessageContext.Set(_messageClaim.ClaimedAt,
+                new ValueTypeWrapper<DateTime>(DateTime.UnixEpoch.AddMilliseconds(unixTimestampMilliseconds)));
+        }
+
     }
 }

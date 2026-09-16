@@ -78,6 +78,14 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             sb.AppendLine("( ");
             sb.AppendLine("QueueID bigint, ");
             sb.AppendLine("CorrelationID uniqueidentifier ");
+            //The heartbeat this de-queue is about to stamp comes back with the message, because the
+            //worker has to be able to name the value its claim is held by before it writes a beat of its
+            //own. Unlike the other transports this one stamps with GetUTCDate(), the database's clock,
+            //so the value cannot be known here without asking for it (GitHub #336).
+            if (_options.Value.EnableStatus && !_options.Value.EnableHoldTransactionUntilMessageCommitted && _options.Value.EnableHeartBeat)
+            {
+                sb.AppendLine(", HeartBeat datetime ");
+            }
             sb.AppendLine("); ");
             sb.AppendLine("with cte as ( ");
             sb.AppendLine("select top(1)  ");
@@ -205,7 +213,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
                 {
                     sb.AppendLine(", HeartBeat = GetUTCDate() ");
                 }
-                sb.AppendLine("output inserted.QueueID, inserted.CorrelationID into @Queue1 ");
+                sb.AppendLine(_options.Value.EnableHeartBeat
+                    ? "output inserted.QueueID, inserted.CorrelationID, inserted.HeartBeat into @Queue1 "
+                    : "output inserted.QueueID, inserted.CorrelationID into @Queue1 ");
             }
             else if (_options.Value.EnableHoldTransactionUntilMessageCommitted)
             {
@@ -222,7 +232,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             }
 
             //grab the rest of the data - this is all standard
-            sb.AppendLine("select q.queueid, qm.body, qm.Headers, q.CorrelationID from @Queue1 q ");
+            sb.AppendLine(_options.Value.EnableStatus && !_options.Value.EnableHoldTransactionUntilMessageCommitted && _options.Value.EnableHeartBeat
+                ? "select q.queueid, qm.body, qm.Headers, q.CorrelationID, q.HeartBeat from @Queue1 q "
+                : "select q.queueid, qm.body, qm.Headers, q.CorrelationID from @Queue1 q ");
             sb.AppendLine($"INNER JOIN {_tableNameHelper.QueueName} qm with (nolock) "); //a dirty read on the data here should be ok, since we have exclusive access to the queue record on the meta data table
             sb.AppendLine("ON q.QueueID = qm.QueueID  ");
 

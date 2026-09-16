@@ -30,9 +30,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.Query
         /// Initializes a new instance of the <see cref="ReceiveMessageQuery" /> class.
         /// </summary>
         /// <param name="routes">The routes.</param>
-        public ReceiveMessageQuery(List<string> routes)
+        /// <param name="messageContext">The context the de-queue records the claim it takes on.</param>
+        public ReceiveMessageQuery(List<string> routes, IMessageContext messageContext)
         {
             Routes = routes;
+            MessageContext = messageContext;
         }
 
         /// <summary>
@@ -42,5 +44,11 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.Query
         /// The route.
         /// </value>
         public List<string> Routes { get; }
+
+        /// <summary>
+        /// The context this de-queue is running for, so the handler can record the heartbeat it stamps
+        /// (GitHub #336).
+        /// </summary>
+        public IMessageContext MessageContext { get; }
     }
 }
