@@ -145,7 +145,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.CommandHandler
             {
                 if (rollBackCommand.LastHeartBeat.HasValue)
                 {
-                    command.CommandText = GetRollbackSql(false, true);
+                    command.CommandText = GetRollbackSql(true, true);
                     command.Parameters.Add(HeartBeatParameter, SqlDbType.DateTime);
                     command.Parameters[HeartBeatParameter].Value = rollBackCommand.LastHeartBeat.Value;
                 }
