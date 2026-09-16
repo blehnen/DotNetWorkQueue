@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using DotNetWorkQueue.Exceptions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -100,7 +101,18 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             foreach (var metric in data.Counters.Where(
                 c => c.Key.EndsWith(name, StringComparison.InvariantCultureIgnoreCase)))
             {
-                Assert.AreEqual(messageCount * rollbackCount, metric.Value);
+                //The whole snapshot goes into the message on failure. This is the assertion GitHub #314
+                //fails on, it has never reproduced outside Jenkins, and the count on its own cannot say
+                //which of two things happened:
+                //
+                //  - the message was redelivered fewer times than configured, and rolled back less often
+                //  - the message exhausted its retries early and went to the error queue, so a rollback
+                //    that was expected never had a delivery to follow
+                //
+                //The error-queue and retry meters separate those, and they are already in the snapshot.
+                //Without them a sighting is a single sample with nothing to read, which is how this has
+                //stayed open through two rounds of theories.
+                Assert.AreEqual(messageCount * rollbackCount, metric.Value, Describe(data));
                 found = true;
                 break;
             }
@@ -115,7 +127,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 foreach (var metric in data.Meters.Where(
                     m => m.Key.EndsWith(retryName, StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    Assert.AreEqual(messageCount * failedCount, metric.Value);
+                    Assert.AreEqual(messageCount * failedCount, metric.Value, Describe(data));
                     found = true;
                     break;
                 }
@@ -353,5 +365,31 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 timeoutMs,
                 data => VerifyProcessedCount(queueName, data, messageCount));
         }
+
+        /// <summary>
+        /// Every counter and meter in the snapshot, for a failure message.
+        /// </summary>
+        /// <remarks>
+        /// Named metrics are trimmed to their last segment so the line stays readable; the full key is
+        /// long and repeats the queue name on every entry.
+        /// </remarks>
+        private static string Describe(MetricsSnapshot data)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine();
+            sb.AppendLine("metrics at the point of failure:");
+            foreach (var counter in data.Counters.OrderBy(c => c.Key))
+                sb.AppendLine($"  counter {Short(counter.Key)} = {counter.Value}");
+            foreach (var meter in data.Meters.OrderBy(m => m.Key))
+                sb.AppendLine($"  meter   {Short(meter.Key)} = {meter.Value}");
+            return sb.ToString();
+        }
+
+        private static string Short(string key)
+        {
+            var parts = key.Split('.');
+            return parts.Length <= 2 ? key : string.Join(".", parts[^2..]);
+        }
+
     }
 }
