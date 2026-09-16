@@ -101,6 +101,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
             _dbFactory = dbFactory;
             _databaseExists = databaseExists;
             _configuration = configuration;
+            Guard.NotNull(messageClaim);
             _messageClaim = messageClaim;
         }
 
@@ -211,9 +212,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler
         /// Publishes the heartbeat this de-queue stamped, so the worker can prove its claim before it has
         /// written a beat of its own (GitHub #336).
         /// </summary>
+        /// <remarks>
+        /// Status has to be on as well as the heartbeat: the stamp lives in the update branch, and with
+        /// status off the de-queue deletes the row instead - the query builder says as much, "even if
+        /// heartbeat is enabled, there is no point in setting it". Publishing there would hand the worker
+        /// a claim with no row behind it.
+        /// </remarks>
         private void RecordClaim(ReceiveMessageQuery<DbConnection, DbTransaction> query, DateTime claimedAt)
         {
-            if (!_options.Value.EnableHeartBeat || query.MessageContext == null)
+            if (!_options.Value.EnableHeartBeat || !_options.Value.EnableStatus || query.MessageContext == null)
                 return;
 
             query.MessageContext.Set(_messageClaim.ClaimedAt, new ValueTypeWrapper<DateTime>(claimedAt));

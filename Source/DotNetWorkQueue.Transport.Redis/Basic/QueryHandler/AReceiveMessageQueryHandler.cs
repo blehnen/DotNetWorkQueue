@@ -91,6 +91,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
             _redisHeaders = redisHeaders;
             DequeueLua = dequeueLua;
             UnixTimeFactory = unixTimeFactory;
+            Guard.NotNull(messageClaim);
             _messageClaim = messageClaim;
             _messageFactory = messageFactory;
         }

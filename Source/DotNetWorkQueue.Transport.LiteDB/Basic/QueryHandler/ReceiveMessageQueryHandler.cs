@@ -70,6 +70,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic.QueryHandler
         {
             Guard.NotNull(getTimeFactory);
             _getTime = getTimeFactory.Create();
+            Guard.NotNull(messageClaim);
             _messageClaim = messageClaim;
             Guard.NotNull(optionsFactory);
             Guard.NotNull(tableNameHelper);

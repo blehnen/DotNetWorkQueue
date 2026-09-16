@@ -48,6 +48,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler
             Guard.NotNull(buildDequeueCommand);
 
             _readMessage = readMessage;
+            Guard.NotNull(messageClaim);
             _messageClaim = messageClaim;
             _buildDequeueCommand = buildDequeueCommand;
         }

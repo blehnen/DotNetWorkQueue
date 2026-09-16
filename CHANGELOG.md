@@ -1,5 +1,5 @@
 ﻿### Unreleased
-- Fix: a message rolled back before its first heartbeat no longer resets a claim that now belongs to another worker. The de-queue's heartbeat travels with the message, so a worker can prove the claim is its own from the moment it is handed one (GitHub #336)
+- Fix: a message rolled back before its first heartbeat no longer resets a claim that has since been given to another worker, which could let the same message be processed twice (GitHub #336)
 - ⚠️ PostgreSQL queue names are limited to 51 characters rather than 63. Names above that could never create a queue — creation failed on a truncated identifier and reported the queue as already existing, having created nothing — so this rejects them with an error that says why (GitHub #339)
 
 ### 0.12.0 — 2026-09-15

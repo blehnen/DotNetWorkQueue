@@ -53,14 +53,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
                         serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
                     using (var queue = container.CreateConsumer(queueConnection))
                     {
-                        //an update time long enough that no beat of this worker's own can land while the
-                        //handler runs - so a value that is present had to come from the de-queue
+                        //The update time has to exceed the whole wait below, not merely the handler. A beat
+                        //of this worker's own would populate the same status, so if one could land before
+                        //delivery the test would pass without the de-queue's value ever being read - it
+                        //would be measuring the thing it is supposed to rule out.
+                        //Time is three times UpdateTime because the consumer refuses to start otherwise.
                         queue.Configuration.Worker.WorkerCount = 1;
                         queue.Configuration.Worker.TimeToWaitForWorkersToStop = TimeSpan.FromSeconds(5);
                         queue.Configuration.Worker.SingleWorkerWhenNoWorkFound = true;
-                        queue.Configuration.HeartBeat.Time = TimeSpan.FromSeconds(90);
-                        queue.Configuration.HeartBeat.MonitorTime = TimeSpan.FromSeconds(95);
-                        queue.Configuration.HeartBeat.UpdateTime = TimeSpan.FromSeconds(30);
+                        queue.Configuration.HeartBeat.UpdateTime = TimeSpan.FromSeconds(120);
+                        queue.Configuration.HeartBeat.Time = TimeSpan.FromSeconds(360);
+                        queue.Configuration.HeartBeat.MonitorTime = TimeSpan.FromSeconds(365);
 
                         queue.Start<FakeMessage>((message, notifications) =>
                         {

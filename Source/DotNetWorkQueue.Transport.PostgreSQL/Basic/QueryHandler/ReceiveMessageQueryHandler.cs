@@ -97,13 +97,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryHandler
         /// has written a beat of its own (GitHub #336).
         /// </summary>
         /// <remarks>
-        /// Only when the heartbeat option is on, because only then does the de-queue write one. With it
-        /// off there is no claim to prove and nothing should be published - an absent value means the
-        /// same thing it meant before this existed.
+        /// Only when the de-queue actually writes one. The heartbeat option alone is not enough: the
+        /// write lives inside the status branch, so with status off the de-queue deletes the row and
+        /// stamps nothing, and publishing a value there would hand the worker a claim with no row behind
+        /// it. An absent value means the same thing it meant before this existed.
         /// </remarks>
         private void RecordClaim(ReceiveMessageQuery<NpgsqlConnection, NpgsqlTransaction> query, DateTime claimedAt)
         {
-            if (!_options.Value.EnableHeartBeat || query.MessageContext == null)
+            if (!_options.Value.EnableHeartBeat || !_options.Value.EnableStatus || query.MessageContext == null)
                 return;
 
             query.MessageContext.Set(_messageClaim.ClaimedAt, new ValueTypeWrapper<DateTime>(claimedAt));
