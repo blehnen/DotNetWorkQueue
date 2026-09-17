@@ -27,7 +27,7 @@ namespace DotNetWorkQueue.Tests.Messages
 
             Assert.AreEqual(translatedMessage.Body, rec.Body);
             Assert.AreEqual(translatedMessage.CorrelationId, rec.CorrelationId);
-            Assert.AreEquivalent(translatedMessage.Headers, rec.Headers);
+            Assert.AreSequenceEqual(translatedMessage.Headers, rec.Headers, SequenceOrder.InAnyOrder);
             Assert.AreEqual(translatedMessage.MessageId, rec.MessageId);
         }
 

@@ -30,7 +30,7 @@ namespace DotNetWorkQueue.Tests.Messages
             var test = new Message(data, headers);
 
             Assert.HasCount(headers.Count, test.Headers);
-            Assert.AreEquivalent(test.Headers, headers);
+            Assert.AreSequenceEqual(test.Headers, headers, SequenceOrder.InAnyOrder);
             Assert.AreNotSame(headers, test.Headers);
         }
         [TestMethod]

@@ -32,7 +32,8 @@ namespace DotNetWorkQueue.Transport.Redis.Tests
             var cloned = test.Clone();
             Assert.IsNotNull(cloned);
             Assert.AreEqual(test.Server, cloned.Server);
-            Assert.AreEquivalent(test.AdditionalConnectionSettings, cloned.AdditionalConnectionSettings);
+            Assert.AreSequenceEqual(test.AdditionalConnectionSettings, cloned.AdditionalConnectionSettings,
+                SequenceOrder.InAnyOrder);
             Assert.AreEqual(test.ConnectionString, cloned.ConnectionString);
             Assert.AreEqual(test.Container, cloned.Container);
             Assert.AreEqual(test.QueueName, cloned.QueueName);

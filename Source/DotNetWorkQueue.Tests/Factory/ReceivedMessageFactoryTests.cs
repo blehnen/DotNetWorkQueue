@@ -25,7 +25,7 @@ namespace DotNetWorkQueue.Tests.Factory
 
             Assert.AreEqual(messageInternal.MessageId, messageId);
             Assert.AreEqual(messageInternal.Body, message.Body);
-            Assert.AreEquivalent<IEnumerable<KeyValuePair<string, object>>>(messageInternal.Headers, message.Headers);
+            Assert.AreSequenceEqual(messageInternal.Headers, message.Headers, SequenceOrder.InAnyOrder);
             Assert.AreEqual(messageInternal.CorrelationId, correlationId);
         }
         private IReceivedMessageFactory Create(IFixture fixture)

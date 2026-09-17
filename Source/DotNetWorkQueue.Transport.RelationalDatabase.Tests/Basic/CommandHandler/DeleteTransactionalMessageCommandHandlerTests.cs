@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.CommandHandle
 
             harness.CreateSync().Handle(harness.Command);
 
-            Assert.AreEquivalent(Expected, harness.Prepared.ToArray(),
+            Assert.AreSequenceEqual(Expected, harness.Prepared.ToArray(), SequenceOrder.InAnyOrder,
                 "The held-transaction delete cleared a different set of tables than the ordinary one.");
         }
 
@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.CommandHandle
 
             await harness.CreateAsync().HandleAsync(harness.Command).ConfigureAwait(false);
 
-            Assert.AreEquivalent(Expected, harness.Prepared.ToArray(),
+            Assert.AreSequenceEqual(Expected, harness.Prepared.ToArray(), SequenceOrder.InAnyOrder,
                 "The asynchronous held-transaction delete diverged from its synchronous twin.");
         }
 
