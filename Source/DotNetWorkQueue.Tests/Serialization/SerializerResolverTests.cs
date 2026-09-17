@@ -242,7 +242,7 @@ namespace DotNetWorkQueue.Tests.Serialization
                 new MessageBody { Body = new Payload { Name = "written" } }, headers).Output;
 
             //byte-identical to what the registered serializer produces on its own
-            CollectionAssert.AreEqual(
+            Assert.AreSequenceEqual(
                 stj.ConvertMessageToBytes(new MessageBody { Body = new Payload { Name = "written" } }, headers),
                 written);
         }

@@ -62,7 +62,7 @@ namespace DotNetWorkQueue.Tests.JobScheduler
                 popped.Add((int)(heap.Pop().ScheduledTime - Base).TotalSeconds);
             }
 
-            CollectionAssert.AreEqual(offsets.OrderBy(o => o).ToList(), popped,
+            Assert.AreSequenceEqual(offsets.OrderBy(o => o).ToList(), popped,
                 "heap must yield events in ascending scheduled-time order");
             Assert.AreEqual(0, heap.Count);
         }

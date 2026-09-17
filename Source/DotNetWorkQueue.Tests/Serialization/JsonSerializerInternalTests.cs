@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.Tests.Serialization
             var serializedBytes = test.ConvertToBytes(testData);
             var testData2 = test.ConvertBytesTo<TestData>(serializedBytes);
 
-            CollectionAssert.AreEqual(testData.Data, testData2.Data);
+            Assert.AreSequenceEqual(testData.Data, testData2.Data);
         }
 
         [TestMethod]

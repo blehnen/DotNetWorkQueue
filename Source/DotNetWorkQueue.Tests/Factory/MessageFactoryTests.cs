@@ -21,7 +21,7 @@ namespace DotNetWorkQueue.Tests.Factory
             var factory = Create();
             var test = factory.Create(data, headers);
             Assert.AreEqual(test.Body, data);
-            CollectionAssert.AreEquivalent((System.Collections.ICollection)test.Headers, (System.Collections.ICollection)headers);
+            Assert.AreEquivalent(test.Headers, headers);
         }
 
         [TestMethod]

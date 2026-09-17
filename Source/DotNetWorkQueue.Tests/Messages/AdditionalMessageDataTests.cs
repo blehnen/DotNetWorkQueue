@@ -149,7 +149,7 @@ namespace DotNetWorkQueue.Tests.Messages
             Assert.IsTrue(held.TryGetValue("Test", out var value));
             Assert.AreEqual(headerData, value);
             Assert.AreEqual(headerData, held["Test"]);
-            CollectionAssert.AreEqual(new[] { "Test" }, held.Keys.ToList());
+            Assert.AreSequenceEqual(new[] { "Test" }, held.Keys.ToList());
             Assert.AreEqual(headerData, held.Values.Single());
             Assert.AreEqual("Test", held.First().Key);
         }

@@ -53,7 +53,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Producer.Implementation
                                 "Expected at least one trace activity to be collected, but none were recorded.");
 
                             var activityNames = trace.CollectedActivities.Select(a => a.OperationName).ToList();
-                            CollectionAssert.Contains(activityNames, "SendMessage",
+                            Assert.Contains("SendMessage", activityNames,
                                 $"Expected a 'SendMessage' span. Found: [{string.Join(", ", activityNames)}]");
                         }
                     }

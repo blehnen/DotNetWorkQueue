@@ -78,7 +78,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
             Assert.AreEqual(ConstraintType.PrimaryKey, table.PrimaryKey.Type);
             Assert.AreEqual("PK_" + JobTableName, table.PrimaryKey.Name);
             Assert.IsTrue(table.PrimaryKey.Unique);
-            CollectionAssert.Contains(table.PrimaryKey.Columns, "JobName");
+            Assert.Contains("JobName", table.PrimaryKey.Columns);
         }
 
         [TestMethod]

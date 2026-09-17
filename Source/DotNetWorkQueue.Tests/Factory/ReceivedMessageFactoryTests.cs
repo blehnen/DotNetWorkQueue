@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Factory;
@@ -24,7 +25,7 @@ namespace DotNetWorkQueue.Tests.Factory
 
             Assert.AreEqual(messageInternal.MessageId, messageId);
             Assert.AreEqual(messageInternal.Body, message.Body);
-            CollectionAssert.AreEquivalent((System.Collections.ICollection)messageInternal.Headers, (System.Collections.ICollection)message.Headers);
+            Assert.AreEquivalent<IEnumerable<KeyValuePair<string, object>>>(messageInternal.Headers, message.Headers);
             Assert.AreEqual(messageInternal.CorrelationId, correlationId);
         }
         private IReceivedMessageFactory Create(IFixture fixture)

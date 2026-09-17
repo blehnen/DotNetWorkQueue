@@ -36,7 +36,7 @@ namespace DotNetWorkQueue.Tests.Messages
             Assert.AreEqual(messageInternal.MessageId, messageId);
             Assert.AreEqual(messageInternal.Body, message.Body);
             Assert.AreEqual(messageInternal.CorrelationId, correlationId);
-            CollectionAssert.AreEquivalent((System.Collections.ICollection)messageInternal.Headers, (System.Collections.ICollection)message.Headers);
+            Assert.AreEquivalent<IEnumerable<KeyValuePair<string, object>>>(messageInternal.Headers, message.Headers);
         }
 
         private class FakeMessage

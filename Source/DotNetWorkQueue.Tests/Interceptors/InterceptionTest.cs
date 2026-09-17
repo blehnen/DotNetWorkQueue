@@ -88,10 +88,10 @@ namespace DotNetWorkQueue.Tests.Interceptors
             var body = Encoding.UTF8.GetBytes("coexistence body");
 
             var aesMsg = producer.MessageToBytes(body, null);
-            CollectionAssert.AreEqual(body, consumer.BytesToMessage(aesMsg.Output, aesMsg.Graph, null));
+            Assert.AreSequenceEqual(body, consumer.BytesToMessage(aesMsg.Output, aesMsg.Graph, null));
 
             var tdesMsg = legacyProducer.MessageToBytes(body, null);
-            CollectionAssert.AreEqual(body, consumer.BytesToMessage(tdesMsg.Output, tdesMsg.Graph, null));
+            Assert.AreSequenceEqual(body, consumer.BytesToMessage(tdesMsg.Output, tdesMsg.Graph, null));
         }
 
         private void Test(IMessageInterceptorRegistrar register, string body)

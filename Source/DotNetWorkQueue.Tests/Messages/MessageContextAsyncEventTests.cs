@@ -74,7 +74,7 @@ namespace DotNetWorkQueue.Tests.Messages
 
             //Not WhenAll: the second handler must not start until the first has finished, because the
             //transports commit against a shared connection and transaction.
-            CollectionAssert.AreEqual(SequentialOrder, order);
+            Assert.AreSequenceEqual(SequentialOrder, order);
         }
 
         [TestMethod]

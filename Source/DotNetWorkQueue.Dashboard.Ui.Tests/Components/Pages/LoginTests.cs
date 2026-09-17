@@ -99,7 +99,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
             await SetCredentials(cut, "alice", "   ");
             cut.Find("button").Click();
 
-            Assert.HasCount(0, invocation.Invocations);
+            Assert.IsEmpty(invocation.Invocations);
         }
 
         [TestMethod]
@@ -125,7 +125,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Pages
             await SetCredentials(cut, "bob", "hunter2");
             cut.FindAll("input")[0].KeyDown(new KeyboardEventArgs { Key = "a" });
 
-            Assert.HasCount(0, invocation.Invocations);
+            Assert.IsEmpty(invocation.Invocations);
         }
 
         private static async Task SetCredentials(IRenderedComponent<Login> cut, string username, string password)

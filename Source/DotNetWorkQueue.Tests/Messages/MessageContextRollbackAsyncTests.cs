@@ -67,7 +67,7 @@ namespace DotNetWorkQueue.Tests.Messages
 
             await context.RaiseRollbackAsync().ConfigureAwait(false);
 
-            CollectionAssert.AreEqual(SequentialOrder, order);
+            Assert.AreSequenceEqual(SequentialOrder, order);
         }
 
         [TestMethod]

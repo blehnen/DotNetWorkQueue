@@ -80,7 +80,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic
 
             var flattened = source.Partition(1000).SelectMany(c => c).ToList();
 
-            CollectionAssert.AreEqual(source, flattened);
+            Assert.AreSequenceEqual(source, flattened);
         }
 
         [TestMethod]

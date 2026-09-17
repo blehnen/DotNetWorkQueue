@@ -297,7 +297,7 @@ namespace DotNetWorkQueue.Dashboard.Ui.Tests.Components.Shared
             ClickButton(cut, "Edit Body");
             ClickButton(cut, "Cancel");
 
-            Assert.HasCount(0, cut.FindComponents<MudTextField<string>>());
+            Assert.IsEmpty(cut.FindComponents<MudTextField<string>>());
             StringAssert.Contains(cut.Markup, "Edit Body");
         }
 

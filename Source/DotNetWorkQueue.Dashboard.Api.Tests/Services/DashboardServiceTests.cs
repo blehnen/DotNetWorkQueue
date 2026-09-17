@@ -596,8 +596,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             StringAssert.Contains(result.DecodingError, "Verify that the dashboard has the same interceptors configured");
             Assert.IsTrue(result.WasIntercepted);
             Assert.HasCount(2, result.InterceptorChain);
-            CollectionAssert.Contains((System.Collections.ICollection)result.InterceptorChain, "TripleDesMessageInterceptor");
-            CollectionAssert.Contains((System.Collections.ICollection)result.InterceptorChain, "GZipMessageInterceptor");
+            Assert.Contains("TripleDesMessageInterceptor", result.InterceptorChain);
+            Assert.Contains("GZipMessageInterceptor", result.InterceptorChain);
         }
 
         [TestMethod]
@@ -701,7 +701,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             // Even for generic exceptions, interceptor info should be populated since headers parsed OK
             Assert.IsTrue(result.WasIntercepted);
             Assert.HasCount(1, result.InterceptorChain);
-            CollectionAssert.Contains((System.Collections.ICollection)result.InterceptorChain, "GZipMessageInterceptor");
+            Assert.Contains("GZipMessageInterceptor", result.InterceptorChain);
         }
 
         [TestMethod]
@@ -755,8 +755,8 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             Assert.IsNull(result.DecodingError);
             Assert.IsTrue(result.WasIntercepted);
             Assert.HasCount(2, result.InterceptorChain);
-            CollectionAssert.Contains((System.Collections.ICollection)result.InterceptorChain, "TripleDesMessageInterceptor");
-            CollectionAssert.Contains((System.Collections.ICollection)result.InterceptorChain, "GZipMessageInterceptor");
+            Assert.Contains("TripleDesMessageInterceptor", result.InterceptorChain);
+            Assert.Contains("GZipMessageInterceptor", result.InterceptorChain);
         }
 
         [TestMethod]
