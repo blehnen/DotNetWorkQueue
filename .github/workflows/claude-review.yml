@@ -49,6 +49,13 @@ jobs:
         uses: anthropics/claude-code-action@3b8197d3d486006dd4af54613517f21ac6ac625e # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          # TEMPORARY - diagnosing why the first model request fails with
+          # is_error:true and no model usage. The action hides the SDK error by
+          # default and debug logging does not lift it, so there is no other way to
+          # read the message. Revert once the cause is known: this prints every
+          # Claude message into a public build log.
+          show_full_output: true
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
