@@ -12,9 +12,17 @@ name: Claude PR review
 # Fork pull requests are skipped explicitly. GitHub does not pass repository
 # secrets to them, so the action would run, find no token and fail on every such
 # pull request - a red check that says nothing about the change. The condition on
-# the job turns that into not running at all. Note this differs from the other
-# workflows here, which do run for fork pull requests; they need no secret to be
-# useful, and they run on GitHub's throwaway runners rather than our own hardware.
+# the job turns that into not running at all. Dependabot is skipped for the same
+# reason: its pull requests read from a separate secret store, so this one is not
+# available to them either, and dependency bumps are not what this is for.
+#
+# Note this differs from the other workflows here, which do run for fork pull
+# requests; they need no secret to be useful, and they run on GitHub's throwaway
+# runners rather than on our own hardware.
+#
+# Both actions are pinned to commit SHAs rather than moving tags. This job holds a
+# long-lived credential and can mint an OIDC token, so a retagged or compromised
+# upstream release would run with both. Dependabot can propose SHA bumps for review.
 
 on:
   pull_request:
@@ -22,8 +30,10 @@ on:
 
 jobs:
   review:
-    # Same-repository pull requests only - see the note above.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    # Same-repository, human-authored pull requests only - see the note above.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -31,12 +41,12 @@ jobs:
       id-token: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 1
 
       - name: Claude PR review
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@3b8197d3d486006dd4af54613517f21ac6ac625e # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
