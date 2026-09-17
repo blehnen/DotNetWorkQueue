@@ -49,6 +49,20 @@ jobs:
         uses: anthropics/claude-code-action@3b8197d3d486006dd4af54613517f21ac6ac625e # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          # TEMPORARY, to be reverted as soon as the cause is known.
+          #
+          # The review dies on its first model request - one turn, under two seconds,
+          # an empty modelUsage and is_error:true - with the secret present and no tool
+          # permission denied. It has now done that with two separately generated
+          # tokens, so it is not a mistyped secret and not a one-off.
+          #
+          # The action hides the SDK's message by default and debug logging does not
+          # lift it: the text stays in claude-execution-output.json on the runner, which
+          # is never uploaded. This has to be on the default branch to take effect,
+          # because the action refuses to run when the workflow differs from the version
+          # there - which is why it could not be diagnosed from a branch.
+          show_full_output: true
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
