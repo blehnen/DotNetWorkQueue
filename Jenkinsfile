@@ -32,7 +32,7 @@
 // one from before these stages owned their services - survives, and the suites give an
 // existing file precedence over starting a container. Left alone it would silently send
 // CI back to the shared servers while the build still looked correct.
-def useOwnServiceContainers(String projectDir) {
+def withOwnServiceContainers(String projectDir, Closure body) {
     withEnv(["TEST_PROJECT_DIR=${projectDir}"]) {
         sh '''
             set -eu
@@ -47,6 +47,13 @@ def useOwnServiceContainers(String projectDir) {
             fi
             echo "Service containers will be started on $DOCKER_HOST"
         '''
+    }
+
+    // Makes the suite assert it actually started a container. Removing the file above is
+    // not enough on its own: if one ever reappears the tests would run green against a
+    // shared server, which is indistinguishable from success in the build log.
+    withEnv(['DNWQ_REQUIRE_SERVICE_CONTAINERS=true']) {
+        body()
     }
 }
 
@@ -279,13 +286,14 @@ pipeline {
                             // its own service container and owns it for the run (issue #281). The daemon
                             // comes from DOCKER_HOST on the agent template, and Testcontainers resolves the
                             // published port from that same URI, so the mapped port is reachable from here.
-                            useOwnServiceContainers('DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests')
-                            sh '''
-                                dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj" \
-                                    -f net10.0 -c Debug \
-                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-postgresql/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-                            '''
+                            withOwnServiceContainers('DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests') {
+                                sh '''
+                                    dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj" \
+                                        -f net10.0 -c Debug \
+                                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-postgresql/ \
+                                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+                                '''
+                            }
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-postgresql', allowEmpty: true
                         stash includes: 'junit-results/**/*.xml', name: 'junit-postgresql', allowEmpty: true
@@ -303,13 +311,14 @@ pipeline {
                             // its own service container and owns it for the run (issue #281). The daemon
                             // comes from DOCKER_HOST on the agent template, and Testcontainers resolves the
                             // published port from that same URI, so the mapped port is reachable from here.
-                            useOwnServiceContainers('DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests')
-                            sh '''
-                                dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" \
-                                    -f net10.0 -c Debug \
-                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-postgresql-linq/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-                            '''
+                            withOwnServiceContainers('DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests') {
+                                sh '''
+                                    dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" \
+                                        -f net10.0 -c Debug \
+                                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-postgresql-linq/ \
+                                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+                                '''
+                            }
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-postgresql-linq', allowEmpty: true
                         stash includes: 'junit-results/**/*.xml', name: 'junit-postgresql-linq', allowEmpty: true
@@ -327,14 +336,15 @@ pipeline {
                             // its own service container and owns it for the run (issue #281). The daemon
                             // comes from DOCKER_HOST on the agent template, and Testcontainers resolves the
                             // published port from that same URI, so the mapped port is reachable from here.
-                            useOwnServiceContainers('DotNetWorkQueue.Transport.Redis.IntegrationTests')
-                            sh '''
-                                dotnet test "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" \
-                                    -f net10.0 -c Debug \
-                                    --filter "TestCategory!=StarvationBaseline" \
-                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-redis/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-                            '''
+                            withOwnServiceContainers('DotNetWorkQueue.Transport.Redis.IntegrationTests') {
+                                sh '''
+                                    dotnet test "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" \
+                                        -f net10.0 -c Debug \
+                                        --filter "TestCategory!=StarvationBaseline" \
+                                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-redis/ \
+                                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+                                '''
+                            }
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-redis', allowEmpty: true
                         stash includes: 'junit-results/**/*.xml', name: 'junit-redis', allowEmpty: true
@@ -352,14 +362,15 @@ pipeline {
                             // its own service container and owns it for the run (issue #281). The daemon
                             // comes from DOCKER_HOST on the agent template, and Testcontainers resolves the
                             // published port from that same URI, so the mapped port is reachable from here.
-                            useOwnServiceContainers('DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests')
-                            sh '''
-                                dotnet test "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" \
-                                    -f net10.0 -c Debug \
-                                    --filter "TestCategory!=StarvationBaseline" \
-                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-redis-linq/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-                            '''
+                            withOwnServiceContainers('DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests') {
+                                sh '''
+                                    dotnet test "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" \
+                                        -f net10.0 -c Debug \
+                                        --filter "TestCategory!=StarvationBaseline" \
+                                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-redis-linq/ \
+                                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+                                '''
+                            }
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-redis-linq', allowEmpty: true
                         stash includes: 'junit-results/**/*.xml', name: 'junit-redis-linq', allowEmpty: true

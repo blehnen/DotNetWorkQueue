@@ -41,6 +41,17 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
 
         private const string ConnectionStringFile = "connectionstring.txt";
 
+        /// <summary>
+        /// Set by CI for the stages that are supposed to own their service. A connectionstring.txt
+        /// left in the output directory by an earlier build takes precedence over starting a
+        /// container, and agents keep their workspace between builds - so without this a run could
+        /// quietly go back to a shared server and still report every test as passing. Green has to
+        /// mean the container was used, not merely that the tests were happy.
+        /// </summary>
+        private static bool RequireOwnContainer =>
+            string.Equals(Environment.GetEnvironmentVariable("DNWQ_REQUIRE_SERVICE_CONTAINERS"),
+                "true", StringComparison.OrdinalIgnoreCase);
+
         private static readonly object Sync = new object();
         private static string _connectionString;
         private static RedisContainer _container;
@@ -74,6 +85,22 @@ namespace DotNetWorkQueue.Transport.Redis.IntegrationTests
         public static void EnsureStarted()
         {
             _ = ConnectionString;
+
+            if (!RequireOwnContainer)
+                return;
+
+            bool startedOwnContainer;
+            lock (Sync)
+            {
+                startedOwnContainer = _container != null;
+            }
+
+            if (!startedOwnContainer)
+                throw new InvalidOperationException(
+                    "DNWQ_REQUIRE_SERVICE_CONTAINERS is set, so this suite must start its own " +
+                    "Redis, but the endpoint came from a connectionstring.txt in the output " +
+                    "directory instead. That file would send the run against a shared server while " +
+                    "every test still passed. See issue #281.");
         }
 
         /// <summary>
