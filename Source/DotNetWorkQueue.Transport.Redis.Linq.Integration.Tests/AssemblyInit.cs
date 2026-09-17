@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DotNetWorkQueue.IntegrationTests.Shared;
+using DotNetWorkQueue.Transport.Redis.IntegrationTests;
 
 namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests
 {
@@ -23,6 +24,16 @@ namespace DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests
             var targetMinWorker = Math.Max(Environment.ProcessorCount * 4, 200);
             if (currentMinWorker < targetMinWorker)
                 ThreadPool.SetMinThreads(targetMinWorker, currentMinIocp);
+
+            // Resolve the Redis endpoint here so a container start, if this run needs one, is paid
+            // once during initialization instead of inside the first test to touch Redis.
+            ConnectionInfo.EnsureStarted();
+        }
+
+        [AssemblyCleanup]
+        public static void Cleanup()
+        {
+            ConnectionInfo.Shutdown();
         }
     }
 }

@@ -285,16 +285,20 @@ pipeline {
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" -c Debug'
-                            withCredentials([string(credentialsId: 'redis-connstring', variable: 'REDIS_CONN')]) {
-                                sh 'echo "$REDIS_CONN" > "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/bin/Debug/net10.0/connectionstring.txt"'
+                            // No connectionstring.txt is written here any more: with no such file the
+                            // suite starts its own Redis container and owns it for the run (issue #281).
+                            // Testcontainers talks to the daemon over DOCKER_HOST and resolves the
+                            // published port from that same URI, so the mapped port is reachable from
+                            // inside this agent. Held as a credential because this repo is public.
+                            withCredentials([string(credentialsId: 'docker-host-uri', variable: 'DOCKER_HOST')]) {
+                                sh '''
+                                    dotnet test "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" \
+                                        -f net10.0 -c Debug \
+                                        --filter "TestCategory!=StarvationBaseline" \
+                                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-redis/ \
+                                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+                                '''
                             }
-                            sh '''
-                                dotnet test "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" \
-                                    -f net10.0 -c Debug \
-                                    --filter "TestCategory!=StarvationBaseline" \
-                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-redis/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-                            '''
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-redis', allowEmpty: true
                         stash includes: 'junit-results/**/*.xml', name: 'junit-redis', allowEmpty: true
@@ -308,16 +312,20 @@ pipeline {
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" -c Debug'
-                            withCredentials([string(credentialsId: 'redis-connstring', variable: 'REDIS_CONN')]) {
-                                sh 'echo "$REDIS_CONN" > "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"'
+                            // No connectionstring.txt is written here any more: with no such file the
+                            // suite starts its own Redis container and owns it for the run (issue #281).
+                            // Testcontainers talks to the daemon over DOCKER_HOST and resolves the
+                            // published port from that same URI, so the mapped port is reachable from
+                            // inside this agent. Held as a credential because this repo is public.
+                            withCredentials([string(credentialsId: 'docker-host-uri', variable: 'DOCKER_HOST')]) {
+                                sh '''
+                                    dotnet test "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" \
+                                        -f net10.0 -c Debug \
+                                        --filter "TestCategory!=StarvationBaseline" \
+                                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-redis-linq/ \
+                                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+                                '''
                             }
-                            sh '''
-                                dotnet test "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" \
-                                    -f net10.0 -c Debug \
-                                    --filter "TestCategory!=StarvationBaseline" \
-                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-redis-linq/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-                            '''
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-redis-linq', allowEmpty: true
                         stash includes: 'junit-results/**/*.xml', name: 'junit-redis-linq', allowEmpty: true

@@ -76,7 +76,7 @@ The pipeline runs 13 integration test stages in parallel, so you need at least 1
 
 Go to **Manage Jenkins > Credentials > System > Global credentials > Add Credentials**.
 
-Create four Secret Text credentials:
+Create five Secret Text credentials:
 
 ### SQL Server Connection String
 
@@ -98,11 +98,33 @@ Create four Secret Text credentials:
 
 ### Redis Connection String
 
+Used by the Dashboard API stage only. The Redis and Redis Linq transport stages no
+longer read a connection string - they start a Redis container per run and own it
+for the lifetime of the test process (issue #281), reaching the daemon through
+`docker-host-uri` below.
+
 - **Kind**: Secret text
 - **ID**: `redis-connstring`
 - **Secret**: Your Redis connection string, e.g.:
   ```
   <redis-host>,defaultDatabase=1,syncTimeout=15000
+  ```
+
+### Docker Host URI
+
+The endpoint integration tests use to start their own service containers. It is the
+same daemon Docker Cloud spawns agents on (section 3), and Testcontainers derives the
+reachable address of a published port from this URI - so a container started by a test
+is reachable from inside the agent without a socket mount or docker-in-docker.
+
+Kept in the credential store rather than the Jenkinsfile because this repository is
+public and the value is an internal host address.
+
+- **Kind**: Secret text
+- **ID**: `docker-host-uri`
+- **Secret**: The daemon URI, e.g.:
+  ```
+  tcp://<docker-host-ip>:2375
   ```
 
 ### Codecov Token
@@ -183,7 +205,7 @@ Note: These services may not respond to curl properly, but the connection attemp
 | "No nodes with label docker" | Docker cloud not configured or hosts unreachable | Check cloud config, verify Docker TCP is open |
 | "docker: not found" in pipeline | Using `docker { image }` agent syntax | Use `agent { label 'docker' }`; the cloud provisions the container |
 | Java version error in agent | JRE in Docker image older than Jenkins master | Match the JRE version in the [dotnetworkqueue-ci](https://github.com/blehnen/dotnetworkqueue-ci) image to your Jenkins master |
-| Connection string errors | Credentials not created or wrong ID | Verify credential IDs match Jenkinsfile: `sqlserver-connstring`, `postgresql-connstring`, `redis-connstring`, `codecov-token` |
+| Connection string errors | Credentials not created or wrong ID | Verify credential IDs match Jenkinsfile: `sqlserver-connstring`, `postgresql-connstring`, `redis-connstring`, `docker-host-uri`, `codecov-token` |
 | `connectionstring.txt` not found | File written to wrong path | Connection strings must be in `bin/Debug/net10.0/` (written after build) |
 | SQLite `libdl.so` errors | Missing native library symlink | Pull the latest [dotnetworkqueue-ci](https://github.com/blehnen/dotnetworkqueue-ci) image; it includes the fix |
 | Test host crash (ObjectDisposedException) | Timer callback race on Linux | Fixed in `BaseMonitor.cs`; ensure you have the latest code |
