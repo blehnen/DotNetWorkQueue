@@ -15,7 +15,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests
         }
 
         /// <summary>
-        /// Returns any service containers this run started. Nothing is started here: this
+        /// Disposes any service containers this run started. Nothing is started here: this
         /// assembly covers several transports, so each endpoint starts on first use and a run
         /// filtered to the in-process transports starts none at all.
         /// </summary>

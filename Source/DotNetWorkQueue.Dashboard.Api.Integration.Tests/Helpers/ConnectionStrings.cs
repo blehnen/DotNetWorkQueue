@@ -54,7 +54,12 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
 
         private const string SqlServerDatabase = "IntegrationTests";
         private const string PostgreSqlDatabase = "integrationtesting";
-        private const string ContainerPassword = "IntegrationTests!Pass1";
+        /// <summary>
+        /// Generated per run. A container publishes a port on the docker host for the life of
+        /// the test process, so a password committed to a public repository is one anyone who
+        /// can reach that host could use while a build is running.
+        /// </summary>
+        private static readonly string ContainerPassword = $"Tc{Guid.NewGuid():N}!aA1";
 
         /// <summary>
         /// Set by CI for the stage that is supposed to own its services. A connectionstring file
@@ -96,15 +101,11 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
             RedisEndpoint.Shutdown();
         }
 
-        private static (string, IAsyncDisposable) StartRedis()
-        {
-            var container = new RedisBuilder(RedisImage).Build();
-            Start(container);
-
+        private static (string, IAsyncDisposable) StartRedis() =>
             // The options these tests were always run with; StackExchange.Redis defaults
             // syncTimeout to 5000, which is below what the dashboard queries need here.
-            return (container.GetConnectionString() + ",defaultDatabase=1,syncTimeout=15000", container);
-        }
+            StartAndInitialise(new RedisBuilder(RedisImage).Build(),
+                c => c.GetConnectionString() + ",defaultDatabase=1,syncTimeout=15000");
 
         private static (string, IAsyncDisposable) StartPostgreSql()
         {
@@ -116,18 +117,23 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
                 .WithPassword(ContainerPassword)
                 .WithCommand("-c", "max_connections=500")
                 .Build();
-            Start(container);
-
-            return (container.GetConnectionString() +
-                    ";Maximum Pool Size=250;Trust Server Certificate=true;Keepalive=15;Tcp Keepalive=true;",
-                container);
+            return StartAndInitialise(container,
+                c => c.GetConnectionString() +
+                     ";Maximum Pool Size=250;Trust Server Certificate=true;Keepalive=15;Tcp Keepalive=true;");
         }
 
         private static (string, IAsyncDisposable) StartSqlServer()
         {
             var container = new MsSqlBuilder(SqlServerImage).WithPassword(ContainerPassword).Build();
-            Start(container);
+            return StartAndInitialise(container, CreateDatabaseAndBuildConnectionString);
+        }
 
+        /// <summary>
+        /// The container comes up with master only, so the database this suite names has to be
+        /// created before anything connects to it.
+        /// </summary>
+        private static string CreateDatabaseAndBuildConnectionString(MsSqlContainer container)
+        {
             var result = Task.Run(() => container.ExecScriptAsync(
                     $"IF DB_ID('{SqlServerDatabase}') IS NULL CREATE DATABASE [{SqlServerDatabase}];"))
                 .GetAwaiter().GetResult();
@@ -144,11 +150,38 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
                 TrustServerCertificate = true
             }.ConnectionString;
 
-            return (connectionString, container);
+            return connectionString;
         }
 
-        private static void Start(DotNet.Testcontainers.Containers.IContainer container) =>
-            Task.Run(() => container.StartAsync()).GetAwaiter().GetResult();
+        /// <summary>
+        /// Starts a container and prepares it, disposing it if either step fails. Without this a
+        /// container that started but could not be initialised is left running and unreferenced:
+        /// the caller never receives it, so assembly cleanup cannot dispose it, and the next test
+        /// to ask for that service starts another one.
+        /// </summary>
+        private static (string, IAsyncDisposable) StartAndInitialise<TContainer>(
+            TContainer container, Func<TContainer, string> initialise)
+            where TContainer : DotNet.Testcontainers.Containers.IContainer
+        {
+            try
+            {
+                Task.Run(() => container.StartAsync()).GetAwaiter().GetResult();
+                return (initialise(container), container);
+            }
+            catch
+            {
+                try
+                {
+                    container.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
+                catch
+                {
+                    // The original failure is the one worth reporting.
+                }
+
+                throw;
+            }
+        }
 
         /// <summary>
         /// One service endpoint: a file if there is one, otherwise a container this process owns.
