@@ -53,7 +53,12 @@ namespace DotNetWorkQueue
         /// in the second.
         /// </remarks>
         /// <typeparam name="TService">The service type.</typeparam>
-        TService TryGetInstance<TService>() where TService : class;
+        /// <remarks>
+        /// Defaulted for the same reason as <see cref="GetImplementationType{TService}"/>: null means
+        /// "do not know", and every caller treats that as "nothing registered", so an
+        /// <see cref="IContainer"/> implemented elsewhere keeps compiling and keeps its old behaviour.
+        /// </remarks>
+        TService TryGetInstance<TService>() where TService : class => null;
 
         /// <summary>
         /// Returns the specified instance based on the input service type

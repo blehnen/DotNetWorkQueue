@@ -85,8 +85,9 @@ namespace DotNetWorkQueue
             Guard.NotNull(queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
-            Containers.Add(container);
+            //guarded before the container is retained, so a refusal does not leave one behind
             GuardQueueExists(container, queueConnection);
+            Containers.Add(container);
             return container.GetInstance<IConsumerQueue>();
         }
 
@@ -101,8 +102,9 @@ namespace DotNetWorkQueue
             Guard.NotNull(queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, registerServiceInternal, _setOptions);
-            Containers.Add(container);
+            //guarded before the container is retained, so a refusal does not leave one behind
             GuardQueueExists(container, queueConnection);
+            Containers.Add(container);
             return container.GetInstance<IConsumerMethodQueue>();
         }
 
@@ -118,8 +120,9 @@ namespace DotNetWorkQueue
             Guard.NotNull(queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ConsumerQueueAsync, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
-            Containers.Add(container);
+            //guarded before the container is retained, so a refusal does not leave one behind
             GuardQueueExists(container, queueConnection);
+            Containers.Add(container);
             return container.GetInstance<IConsumerQueueAsync>();
         }
         #endregion
@@ -139,8 +142,19 @@ namespace DotNetWorkQueue
             var schedulerCreator = new SchedulerContainer(_registerService);
             var factory = schedulerCreator.CreateTaskFactory();
             factory.Scheduler.Start();
-            Containers.Add(schedulerCreator);
-            return CreateConsumerQueueSchedulerInternal(queueConnection, factory, null, true);
+            try
+            {
+                //retained only once the queue has been accepted - a refusal here would otherwise
+                //leave a started scheduler owned by this container for the rest of its life
+                var queue = CreateConsumerQueueSchedulerInternal(queueConnection, factory, null, true);
+                Containers.Add(schedulerCreator);
+                return queue;
+            }
+            catch
+            {
+                schedulerCreator.Dispose();
+                throw;
+            }
         }
 
         /// <summary>
@@ -188,8 +202,19 @@ namespace DotNetWorkQueue
             var schedulerCreator = new SchedulerContainer(_registerService);
             var factory = schedulerCreator.CreateTaskFactory();
             factory.Scheduler.Start();
-            Containers.Add(schedulerCreator);
-            return CreateConsumerMethodQueueSchedulerInternal(queueConnection, factory, null, true);
+            try
+            {
+                //retained only once the queue has been accepted - a refusal here would otherwise
+                //leave a started scheduler owned by this container for the rest of its life
+                var queue = CreateConsumerMethodQueueSchedulerInternal(queueConnection, factory, null, true);
+                Containers.Add(schedulerCreator);
+                return queue;
+            }
+            catch
+            {
+                schedulerCreator.Dispose();
+                throw;
+            }
         }
 
         /// <summary>
@@ -266,8 +291,9 @@ namespace DotNetWorkQueue
                         RegisterNonScopedSingleton(factory.Scheduler), _setOptions);
                 }
             }
-            Containers.Add(container);
+            //guarded before the container is retained, so a refusal does not leave one behind
             GuardQueueExists(container, queueConnection);
+            Containers.Add(container);
             return container.GetInstance<IConsumerQueueScheduler>();
         }
 
@@ -330,8 +356,9 @@ namespace DotNetWorkQueue
                                     .RegisterNonScopedSingleton(factory.Scheduler), _setOptions);
                 }
             }
-            Containers.Add(container);
+            //guarded before the container is retained, so a refusal does not leave one behind
             GuardQueueExists(container, queueConnection);
+            Containers.Add(container);
             return container.GetInstance<IConsumerMethodQueueScheduler>();
         }
         #endregion
@@ -353,8 +380,9 @@ namespace DotNetWorkQueue
             Guard.NotNull(queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
-            Containers.Add(container);
+            //guarded before the container is retained, so a refusal does not leave one behind
             GuardQueueExists(container, queueConnection);
+            Containers.Add(container);
             return container.GetInstance<IProducerQueue<TMessage>>();
         }
 
@@ -371,8 +399,9 @@ namespace DotNetWorkQueue
             Guard.NotNull(queueConnection);
 
             var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
-            Containers.Add(container);
+            //guarded before the container is retained, so a refusal does not leave one behind
             GuardQueueExists(container, queueConnection);
+            Containers.Add(container);
             return container.GetInstance<IProducerMethodQueue>();
         }
 
@@ -488,8 +517,12 @@ namespace DotNetWorkQueue
         {
             //a transport is not obliged to publish one - nothing to check if it does not
             var creation = container.TryGetInstance<IQueueCreation>();
-            if (creation != null && creation.RequiresCreation && !creation.QueueExists)
-                throw new QueueDoesNotExistException(queueConnection.Queue);
+            if (creation == null || !creation.RequiresCreation || creation.QueueExists)
+                return;
+
+            //the caller gets an exception rather than a queue, so nothing will ever dispose this
+            container.Dispose();
+            throw new QueueDoesNotExistException(queueConnection.Queue);
         }
 
         /// <summary>

@@ -45,8 +45,11 @@ namespace DotNetWorkQueue
         ///
         /// True for a transport that builds tables or collections, where using a queue that is not
         /// there cannot work and the caller has to be told (GitHub #348).
+        ///
+        /// Defaulted rather than required, so a transport written before this existed keeps compiling
+        /// and keeps its old behaviour - it simply is not checked until it says otherwise.
         /// </remarks>
-        bool RequiresCreation { get; }
+        bool RequiresCreation => false;
 
         /// <summary>
         /// Returns true if the queue exists in the transport
