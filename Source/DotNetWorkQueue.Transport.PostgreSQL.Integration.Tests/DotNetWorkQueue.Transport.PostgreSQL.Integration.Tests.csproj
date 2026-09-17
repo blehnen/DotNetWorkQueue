@@ -13,6 +13,7 @@
     <PackageReference Include="MSTest.TestAdapter" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="Microsoft.Testing.Extensions.Retry" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
 </ItemGroup>
 
   <ItemGroup>

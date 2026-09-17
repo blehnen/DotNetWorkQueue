@@ -65,6 +65,7 @@
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <!-- Integration tests start their own service containers; see issue #281. -->
     <PackageVersion Include="Testcontainers.Redis" Version="4.15.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.15.0" />
     <PackageVersion Include="JunitXml.TestLogger" Version="8.0.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.16.0" />
     <PackageVersion Include="Tynamix.ObjectFiller" Version="1.5.9" />

@@ -89,6 +89,10 @@ Create five Secret Text credentials:
 
 ### PostgreSQL Connection String
 
+Used by the Dashboard API stage only. The PostgreSQL and PostgreSQL Linq transport
+stages start a container per run and own it for the lifetime of the test process
+(issue #281), reaching the daemon through `docker-host-uri` below.
+
 - **Kind**: Secret text
 - **ID**: `postgresql-connstring`
 - **Secret**: Your PostgreSQL connection string, e.g.:

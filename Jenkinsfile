@@ -241,15 +241,20 @@ pipeline {
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj" -c Debug'
-                            withCredentials([string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')]) {
-                                sh 'echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"'
+                            // No connectionstring.txt is written here any more: with no such file the
+                            // suite starts its own PostgreSQL container and owns it for the run
+                            // (issue #281). Testcontainers talks to the daemon over DOCKER_HOST and
+                            // resolves the published port from that same URI, so the mapped port is
+                            // reachable from inside this agent. Held as a credential because this
+                            // repo is public.
+                            withCredentials([string(credentialsId: 'docker-host-uri', variable: 'DOCKER_HOST')]) {
+                                sh '''
+                                    dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj" \
+                                        -f net10.0 -c Debug \
+                                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-postgresql/ \
+                                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+                                '''
                             }
-                            sh '''
-                                dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj" \
-                                    -f net10.0 -c Debug \
-                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-postgresql/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-                            '''
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-postgresql', allowEmpty: true
                         stash includes: 'junit-results/**/*.xml', name: 'junit-postgresql', allowEmpty: true
@@ -263,15 +268,20 @@ pipeline {
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" -c Debug'
-                            withCredentials([string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN')]) {
-                                sh 'echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"'
+                            // No connectionstring.txt is written here any more: with no such file the
+                            // suite starts its own PostgreSQL container and owns it for the run
+                            // (issue #281). Testcontainers talks to the daemon over DOCKER_HOST and
+                            // resolves the published port from that same URI, so the mapped port is
+                            // reachable from inside this agent. Held as a credential because this
+                            // repo is public.
+                            withCredentials([string(credentialsId: 'docker-host-uri', variable: 'DOCKER_HOST')]) {
+                                sh '''
+                                    dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" \
+                                        -f net10.0 -c Debug \
+                                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-postgresql-linq/ \
+                                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+                                '''
                             }
-                            sh '''
-                                dotnet test "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" \
-                                    -f net10.0 -c Debug \
-                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-postgresql-linq/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-                            '''
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-postgresql-linq', allowEmpty: true
                         stash includes: 'junit-results/**/*.xml', name: 'junit-postgresql-linq', allowEmpty: true
