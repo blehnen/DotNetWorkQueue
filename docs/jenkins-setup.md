@@ -6,6 +6,15 @@ This guide walks through setting up the Jenkins master to run the DotNetWorkQueu
 
 - Jenkins LTS installed
 - One or more Docker hosts with the Docker daemon listening on TCP (port 2375)
+
+> ⚠️ Port 2375 is Docker's **plaintext, unauthenticated** API: anything that can reach it
+> can start privileged or bind-mounted containers, which is equivalent to root on that
+> host. Keep it on a private network reachable only by the Jenkins controller and its
+> agents, and firewall it from everything else. Note that integration test code runs with
+> `DOCKER_HOST` pointed at this daemon, so anyone who can get code into a build can reach
+> it - consider restricting which pull requests build automatically. Docker's TLS
+> (port 2376, mutual certificates) or an SSH transport closes this properly.
+
 - Test services accessible from the Docker hosts:
   - SQL Server on port 1433
   - PostgreSQL on port 5432
@@ -100,7 +109,8 @@ Create four Secret Text credentials:
 
 Used by the Dashboard API stage only. The PostgreSQL and PostgreSQL Linq transport
 stages start a container per run and own it for the lifetime of the test process
-(issue #281), reaching the daemon through `docker-host-uri` below.
+(issue #281), reaching the daemon through the `DOCKER_HOST` variable set on the agent
+template in section 3.
 
 - **Kind**: Secret text
 - **ID**: `postgresql-connstring`
@@ -113,8 +123,8 @@ stages start a container per run and own it for the lifetime of the test process
 
 Used by the Dashboard API stage only. The Redis and Redis Linq transport stages no
 longer read a connection string - they start a Redis container per run and own it
-for the lifetime of the test process (issue #281), reaching the daemon through
-`docker-host-uri` below.
+for the lifetime of the test process (issue #281), reaching the daemon through the
+`DOCKER_HOST` variable set on the agent template in section 3.
 
 - **Kind**: Secret text
 - **ID**: `redis-connstring`
