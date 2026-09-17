@@ -137,13 +137,34 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
                 .WithPassword(Password)
                 .Build();
 
-            Task.Run(() => container.StartAsync()).GetAwaiter().GetResult();
-            _container = container;
+            try
+            {
+                Task.Run(() => container.StartAsync()).GetAwaiter().GetResult();
 
-            var connectionString = BuildConnectionString(container);
-            CreateDatabase(container);
-            EnsureSchemas(connectionString);
-            return connectionString;
+                var connectionString = BuildConnectionString(container);
+                CreateDatabase(container);
+                EnsureSchemas(connectionString);
+
+                // Only now is the container usable, so only now does it become ours to dispose.
+                _container = container;
+                return connectionString;
+            }
+            catch
+            {
+                // Nothing has been handed out yet, so drop it rather than leave it running. The
+                // reaper would get it eventually, but a failed start here would otherwise be
+                // retried by the next caller and leak the first one past Shutdown.
+                try
+                {
+                    container.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
+                catch
+                {
+                    // The original failure is the one worth reporting.
+                }
+
+                throw;
+            }
         }
 
         /// <summary>
