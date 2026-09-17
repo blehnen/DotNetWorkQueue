@@ -35,6 +35,23 @@ namespace DotNetWorkQueue
         IConnectionInformation ConnectionInfo { get; }
 
         /// <summary>
+        /// Whether this transport needs the queue to be created before it can be used.
+        /// </summary>
+        /// <remarks>
+        /// False for a transport that has nothing to create - Redis keeps no schema, so an empty
+        /// queue and a queue that was never created are the same thing, and <see cref="QueueExists"/>
+        /// answers on content rather than on structure. Asking whether such a queue exists before
+        /// using it would refuse every correctly configured consumer whose queue happens to be empty.
+        ///
+        /// True for a transport that builds tables or collections, where using a queue that is not
+        /// there cannot work and the caller has to be told (GitHub #348).
+        ///
+        /// Defaulted rather than required, so a transport written before this existed keeps compiling
+        /// and keeps its old behaviour - it simply is not checked until it says otherwise.
+        /// </remarks>
+        bool RequiresCreation => false;
+
+        /// <summary>
         /// Returns true if the queue exists in the transport
         /// </summary>
         /// <value>

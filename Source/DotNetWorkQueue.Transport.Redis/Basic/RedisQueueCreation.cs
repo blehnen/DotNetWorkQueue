@@ -86,6 +86,11 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
 
         /// <inheritdoc />
         public ICreationScope Scope { get; }
+        /// <inheritdoc />
+        //Redis keeps no schema - CreateQueue is a no-op, and QueueExists answers on content, so an
+        //empty queue reads as absent. Nothing here can be missing (GitHub #348).
+        public bool RequiresCreation => false;
+
 
         /// <inheritdoc />
         /// <remarks>This does nothing for the Redis transport, as pre-creating the queue is not necessary.</remarks>

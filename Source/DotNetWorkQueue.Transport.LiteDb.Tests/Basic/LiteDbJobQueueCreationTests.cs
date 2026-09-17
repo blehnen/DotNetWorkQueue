@@ -95,7 +95,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic
                 createCommand,
                 deleteCommand,
                 scope,
-                connectionManager);
+                connectionManager,
+                new TableNameHelper(connectionInfo));
         }
     }
 }

@@ -89,6 +89,10 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// <remarks>This is used to prevent queues from going out of scope before you have finished working with them. Generally
         /// speaking this only matters for queues that live in-memory. However, a valid object is always returned.</remarks>
         public ICreationScope Scope { get; }
+        /// <inheritdoc />
+        //nothing is created for an in-memory queue; it exists as soon as the container does
+        public bool RequiresCreation => false;
+
 
         /// <summary>
         /// Creates the queue if needed.

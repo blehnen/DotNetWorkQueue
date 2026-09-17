@@ -102,6 +102,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
         /// <inheritdoc />
         public ICreationScope Scope { get; }
+        /// <inheritdoc />
+        public bool RequiresCreation => true;
+
 
         /// <inheritdoc />
         public QueueCreationResult CreateQueue()

@@ -35,6 +35,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         #region Member level variables
 
         private readonly LiteDbConnectionManager _connectionManager;
+        private readonly TableNameHelper _tableNameHelper;
         private readonly LiteDbMessageQueueSchema _createSchema;
         private readonly IQueryHandler<GetTableExistsQuery, bool> _queryTableExists;
 
@@ -58,13 +59,15 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
         /// <param name="deleteCommand">The delete command.</param>
         /// <param name="creationScope">The creation scope.</param>
         /// <param name="connectionManager">DB Connection manager</param>
+        /// <param name="tableNameHelper">Names the collections this queue is made of.</param>
         public LiteDbMessageQueueCreation(IConnectionInformation connectionInfo, IQueryHandler<GetTableExistsQuery, bool> queryTableExists,
             ILiteDbMessageQueueTransportOptionsFactory options,
             LiteDbMessageQueueSchema createSchema,
             ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> createCommand,
             ICommandHandlerWithOutput<DeleteQueueTablesCommand, QueueRemoveResult> deleteCommand,
             ICreationScope creationScope,
-            LiteDbConnectionManager connectionManager
+            LiteDbConnectionManager connectionManager,
+            TableNameHelper tableNameHelper
             )
         {
             Guard.NotNull(options);
@@ -74,6 +77,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             Guard.NotNull(deleteCommand);
             Guard.NotNull(creationScope);
             Guard.NotNull(connectionManager);
+            Guard.NotNull(tableNameHelper);
 
             _options = new Lazy<LiteDbMessageQueueTransportOptions>(options.Create);
             _createSchema = createSchema;
@@ -83,6 +87,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             ConnectionInfo = connectionInfo;
             Scope = creationScope;
             _connectionManager = connectionManager;
+            _tableNameHelper = tableNameHelper;
         }
 
         #endregion
@@ -152,11 +157,20 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             {
                 using (var db = _connectionManager.GetDatabase())
                 {
+                    //The configuration collection, not the queue collection. LiteDB materialises a
+                    //collection on its first write, and creating a queue writes configuration and
+                    //nothing else - the collection named after the queue does not appear until the
+                    //first message is sent. Asking about that one answered "no" for a queue that had
+                    //just been created successfully, which left CreateQueue unable to report that it
+                    //already existed and RemoveQueue refusing to remove it (GitHub #348).
                     return _queryTableExists.Handle(new GetTableExistsQuery(db.Database,
-                        ConnectionInfo.QueueName));
+                        _tableNameHelper.ConfigurationName));
                 }
             }
         }
+
+        /// <inheritdoc />
+        public bool RequiresCreation => true;
 
         /// <inheritdoc />
         public QueueScript CreationScript => new QueueScript(null, false); //noop - we do not have a script for liteDB

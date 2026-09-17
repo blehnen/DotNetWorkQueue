@@ -1,4 +1,7 @@
 ﻿### Unreleased
+- ⚠️ A producer or consumer is refused with `QueueDoesNotExistException` if its queue does not exist yet. Starting one early failed every de-queue on SQL Server and PostgreSQL, and never recovered on SQLite or LiteDb. Create the queue first; Redis has nothing to create (GitHub #348)
+- `IQueueCreation` gains `RequiresCreation` and `IContainer` gains `TryGetInstance`, both defaulted, so existing custom transports and containers are unaffected (GitHub #348)
+- Fix: LiteDb reports that a queue exists once it has been created. It answered no until the first message was sent, so creating the same queue twice did not report that it already existed and removing it reported that it did not (GitHub #348)
 - ⚠️ Fix: a failing message gets all the attempts it was configured for on SQL Server, PostgreSQL and SQLite; a database fault could consume one it never made. Two workers failing the same message at the same instant now count one failure between them, not two (GitHub #350)
 - Fix: retry delays configured through `RetryDelayBehavior` are applied again on SQL Server, PostgreSQL and SQLite. A failing message was retried immediately instead of after the configured back-off (GitHub #352)
 - Fix: with delayed processing on, a rolled-back message goes to the back of the queue again on SQL Server, PostgreSQL and SQLite. It kept its place at the front, so a consumer that repeatedly cancelled one message re-read it in a tight loop and never reached the messages behind it (GitHub #352)

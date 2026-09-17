@@ -3,6 +3,7 @@ using System.IO;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using DotNetWorkQueue.Configuration;
+using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using NSubstitute;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -12,6 +13,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
     [TestClass]
     public class QueueCreatorTests
     {
+        //Nothing creates this queue, and since #348 a producer or consumer refuses to be built for a
+        //queue that is not there. What these cover is therefore the refusal; that the same calls
+        //succeed against a queue that exists is covered by QueueMustExistTests, which has a real one.
         private readonly string _goodConnection;
 
         public QueueCreatorTests()
@@ -40,7 +44,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
             var queue = "TestQueue";
             using (var test = new QueueContainer<SqLiteMessageQueueInit>())
             {
-                test.CreateProducer<FakeMessage>(new QueueConnection(queue, _goodConnection));
+                Assert.ThrowsExactly<QueueDoesNotExistException>(
+                    // ReSharper disable once AccessToDisposedClosure
+                    () => test.CreateProducer<FakeMessage>(new QueueConnection(queue, _goodConnection)));
             }
         }
 
@@ -50,7 +56,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
             var queue = "TestQueue";
             using (var test = new QueueContainer<SqLiteMessageQueueInit>())
             {
-                test.CreateConsumer(new QueueConnection(queue, _goodConnection));
+                Assert.ThrowsExactly<QueueDoesNotExistException>(
+                    // ReSharper disable once AccessToDisposedClosure
+                    () => test.CreateConsumer(new QueueConnection(queue, _goodConnection)));
             }
         }
 
@@ -60,7 +68,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
             var queue = "TestQueue";
             using (var test = new QueueContainer<SqLiteMessageQueueInit>())
             {
-                test.CreateConsumerQueueScheduler(new QueueConnection(queue, _goodConnection));
+                Assert.ThrowsExactly<QueueDoesNotExistException>(
+                    // ReSharper disable once AccessToDisposedClosure
+                    () => test.CreateConsumerQueueScheduler(new QueueConnection(queue, _goodConnection)));
             }
         }
 
@@ -75,7 +85,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
             var workGroup = fixture.Create<IWorkGroup>();
             using (var test = new QueueContainer<SqLiteMessageQueueInit>())
             {
-                test.CreateConsumerQueueScheduler(new QueueConnection(queue, _goodConnection), factory, workGroup);
+                Assert.ThrowsExactly<QueueDoesNotExistException>(
+                    // ReSharper disable once AccessToDisposedClosure
+                    () => test.CreateConsumerQueueScheduler(new QueueConnection(queue, _goodConnection), factory, workGroup));
             }
         }
 
@@ -85,7 +97,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests
             var queue = "TestQueue";
             using (var test = new QueueContainer<SqLiteMessageQueueInit>())
             {
-                test.CreateConsumerAsync(new QueueConnection(queue, _goodConnection));
+                Assert.ThrowsExactly<QueueDoesNotExistException>(
+                    // ReSharper disable once AccessToDisposedClosure
+                    () => test.CreateConsumerAsync(new QueueConnection(queue, _goodConnection)));
             }
         }
 
