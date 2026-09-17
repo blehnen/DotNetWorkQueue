@@ -238,15 +238,17 @@ pipeline {
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/DotNetWorkQueue.Transport.SqlServer.Integration.Tests.csproj" -c Debug'
-                            withCredentials([string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN')]) {
-                                sh 'echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/bin/Debug/net10.0/connectionstring.txt"'
+                            // No connectionstring.txt is written here: with no such file the suite starts
+                            // its own SQL Server, creates the database and the non-default schemas it
+                            // needs, and owns the container for the run (issue #281).
+                            withOwnServiceContainers('DotNetWorkQueue.Transport.SqlServer.IntegrationTests') {
+                                sh '''
+                                    dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/DotNetWorkQueue.Transport.SqlServer.Integration.Tests.csproj" \
+                                        -f net10.0 -c Debug \
+                                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-sqlserver/ \
+                                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+                                '''
                             }
-                            sh '''
-                                dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/DotNetWorkQueue.Transport.SqlServer.Integration.Tests.csproj" \
-                                    -f net10.0 -c Debug \
-                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-sqlserver/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-                            '''
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-sqlserver', allowEmpty: true
                         stash includes: 'junit-results/**/*.xml', name: 'junit-sqlserver', allowEmpty: true
@@ -260,15 +262,17 @@ pipeline {
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" -c Debug'
-                            withCredentials([string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN')]) {
-                                sh 'echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"'
+                            // No connectionstring.txt is written here: with no such file the suite starts
+                            // its own SQL Server, creates the database and the non-default schemas it
+                            // needs, and owns the container for the run (issue #281).
+                            withOwnServiceContainers('DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests') {
+                                sh '''
+                                    dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" \
+                                        -f net10.0 -c Debug \
+                                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-sqlserver-linq/ \
+                                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+                                '''
                             }
-                            sh '''
-                                dotnet test "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" \
-                                    -f net10.0 -c Debug \
-                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-sqlserver-linq/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-                            '''
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-sqlserver-linq', allowEmpty: true
                         stash includes: 'junit-results/**/*.xml', name: 'junit-sqlserver-linq', allowEmpty: true
