@@ -7,9 +7,14 @@ name: Claude PR review
 # not, and the reverse is also true.
 #
 # Authentication is a Claude subscription via CLAUDE_CODE_OAUTH_TOKEN, generated
-# with `claude setup-token`. Pull requests from forks do not receive repository
-# secrets, so this silently does not run for them - which is consistent with fork
-# pull requests not being built by Jenkins either (see docs/jenkins-setup.md).
+# with `claude setup-token`.
+#
+# Fork pull requests are skipped explicitly. GitHub does not pass repository
+# secrets to them, so the action would run, find no token and fail on every such
+# pull request - a red check that says nothing about the change. The condition on
+# the job turns that into not running at all. Note this differs from the other
+# workflows here, which do run for fork pull requests; they need no secret to be
+# useful, and they run on GitHub's throwaway runners rather than our own hardware.
 
 on:
   pull_request:
@@ -17,6 +22,8 @@ on:
 
 jobs:
   review:
+    # Same-repository pull requests only - see the note above.
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: read
