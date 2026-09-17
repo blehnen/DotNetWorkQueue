@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -66,7 +67,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
         }
 
         /// <summary>The default schema. Queues live here unless a test says otherwise.</summary>
-        public static string SchemaDefault = "dbo";
+        public static readonly string SchemaDefault = "dbo";
 
         /// <summary>
         /// Non-default schemas, proving a queue does not have to live in dbo. They are created by
@@ -74,10 +75,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
         /// server once and had since been lost, which went unnoticed because the only test using
         /// them never awaited its own work. See issue #281.
         /// </summary>
-        public static string Schema1 = "test1";
+        public static readonly string Schema1 = "test1";
 
         /// <inheritdoc cref="Schema1"/>
-        public static string Schema2 = "test2";
+        public static readonly string Schema2 = "test2";
 
         /// <summary>
         /// Resolves the endpoint up front so a container start is paid during assembly
@@ -195,8 +196,16 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
                 {
                     using (var command = connection.CreateCommand())
                     {
+                        // An identifier cannot be a bound parameter, so the name is passed as one
+                        // and the server builds the statement with QUOTENAME, which escapes it.
+                        // Nothing from this side is concatenated into executable text.
                         command.CommandText =
-                            $"IF SCHEMA_ID('{schema}') IS NULL EXEC('CREATE SCHEMA [{schema}]');";
+                            "IF SCHEMA_ID(@schema) IS NULL " +
+                            "BEGIN " +
+                            "    DECLARE @sql nvarchar(max) = N'CREATE SCHEMA ' + QUOTENAME(@schema); " +
+                            "    EXEC sp_executesql @sql; " +
+                            "END";
+                        command.Parameters.Add("@schema", SqlDbType.NVarChar, 128).Value = schema;
                         command.ExecuteNonQuery();
                     }
                 }
