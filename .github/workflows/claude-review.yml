@@ -24,15 +24,36 @@ name: Claude PR review
 # long-lived credential and can mint an OIDC token, so a retagged or compromised
 # upstream release would run with both. Dependabot can propose SHA bumps for review.
 
+# DISABLED on pull requests, pending an upstream fix. Every run that reached a model
+# died on its first request - one turn, under two seconds, empty modelUsage,
+# is_error:true - and the action reports that as a plain failure with no message.
+#
+# This is a known and open upstream problem, not a fault in this configuration:
+#   anthropics/claude-code-action#1614 - the same envelope, with the real cause
+#     (a 401 on the OAuth token, or a 429 for some reporters) visible only under
+#     show_full_output. Reported on both Pro and Max, and reproduced on a pinned
+#     known-good action revision, so it is server side rather than a regression.
+#   anthropics/claude-code-action#1720 - the same envelope across many action
+#     versions and with API key auth as well as OAuth.
+#
+# Re-minting the token does not help: reporters there went through four tokens for
+# the same 401, and we saw the identical failure on two.
+#
+# Left runnable by hand so the fix can be tested without reopening it to every pull
+# request. To restore, put back the pull_request trigger below.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+  # pull_request:
+  #   types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   review:
-    # Same-repository, human-authored pull requests only - see the note above.
+    # Same-repository, human-authored pull requests only - see the note above. The
+    # first clause is skipped under workflow_dispatch, which carries no pull request
+    # payload and can only be started by someone with write access anyway.
     if: >-
-      github.event.pull_request.head.repo.full_name == github.repository &&
+      (github.event_name == 'workflow_dispatch' ||
+       github.event.pull_request.head.repo.full_name == github.repository) &&
       github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
