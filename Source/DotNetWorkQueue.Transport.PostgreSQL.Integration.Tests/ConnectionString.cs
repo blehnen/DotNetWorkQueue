@@ -142,10 +142,32 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests
                 .Build();
 
             // Task.Run keeps the blocking wait off any context the caller captured.
-            Task.Run(() => container.StartAsync()).GetAwaiter().GetResult();
-            _container = container;
+            try
+            {
+                Task.Run(() => container.StartAsync()).GetAwaiter().GetResult();
 
-            return container.GetConnectionString() + ClientOptions;
+                var connectionString = container.GetConnectionString() + ClientOptions;
+
+                // Only now is the container usable, so only now does it become ours to dispose.
+                _container = container;
+                return connectionString;
+            }
+            catch
+            {
+                // Nothing has been handed out yet, so drop it rather than leave it running. The
+                // reaper would get it eventually, but a failed start here would otherwise be
+                // retried by the next caller and leak the first one past Shutdown.
+                try
+                {
+                    container.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
+                catch
+                {
+                    // The original failure is the one worth reporting.
+                }
+
+                throw;
+            }
         }
 
         private static string ReadConnectionStringFile()

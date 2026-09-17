@@ -14,20 +14,20 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.ConsumerAsync
         {
             var queueName = GenerateQueueName.Create();
             var task1 =
-                Task.Factory.StartNew(
+                Task.Run(
                      () =>
                         RunConsumer(queueName, messageCount, runtime, timeOut, workerCount, readerCount, queueSize,
                             useTransactions,
                             enableChaos, ConnectionInfo.Schema1, 1));
 
             var task2 =
-                Task.Factory.StartNew(
+                Task.Run(
                      () =>
                         RunConsumer(queueName, messageCount, runtime, timeOut, workerCount, readerCount, queueSize,
                             useTransactions,
                             enableChaos, ConnectionInfo.Schema2, 2));
             var task3 =
-                Task.Factory.StartNew(
+                Task.Run(
                      () =>
                         RunConsumer(queueName, messageCount, runtime, timeOut, workerCount, readerCount, queueSize,
                             useTransactions,

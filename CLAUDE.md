@@ -80,9 +80,9 @@ dotnet test "Source\DotNetWorkQueue.Dashboard.Api.Integration.Tests\DotNetWorkQu
 dotnet test "Source\DotNetWorkQueue.Dashboard.Api.Integration.Tests\DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj"
 ```
 
-Integration tests for SQL Server, SQLite, and LiteDb require running instances of those services and connection strings configured in `connectionstring.txt` files within each integration test project. The Dashboard API integration tests read their own `connectionstring-*.txt` files and still use external services too.
+Integration tests for SQLite and LiteDb require running instances of those services and connection strings configured in `connectionstring.txt` files within each integration test project. The Dashboard API integration tests read their own `connectionstring-*.txt` files and still use external services too.
 
-**The Redis and PostgreSQL transport suites do not.** With no `connectionstring.txt` in the output directory, each starts its own container and owns it for the run (issue #281) - Redis and Redis Linq, PostgreSQL and PostgreSQL Linq. That needs a reachable Docker daemon: a local one, or `DOCKER_HOST=tcp://<host>:2375` for a remote one. Dropping a `connectionstring.txt` into the output directory still wins, which is how you point a suite at a server you already have.
+**The Redis, PostgreSQL and SQL Server transport suites do not.** With no `connectionstring.txt` in the output directory, each starts its own container and owns it for the run (issue #281) - both the plain and Linq suites of all three. SQL Server additionally creates its database and the non-default `test1`/`test2` schemas, so it needs nothing prepared by hand. That needs a reachable Docker daemon. Prefer a local one. `DOCKER_HOST=tcp://<host>:2375` reaches a remote daemon, but 2375 is Docker's plaintext, unauthenticated API - anything that can reach it is effectively root on that host - so use it only on a private network limited to trusted machines, and mutual TLS (2376) or an SSH transport otherwise. `docs/jenkins-setup.md` covers the CI side of this. Dropping a `connectionstring.txt` into the output directory still wins, which is how you point a suite at a server you already have.
 
 ## Architecture
 

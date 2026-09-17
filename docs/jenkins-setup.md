@@ -107,6 +107,11 @@ Create four Secret Text credentials:
 
 ### SQL Server Connection String
 
+Used by the Dashboard API stage only. The SqlServer and SqlServer Linq transport stages
+start a container per run and own it for the lifetime of the test process (issue #281),
+creating the database and the non-default schemas they need, and reaching the daemon
+through the `DOCKER_HOST` variable set on the agent template in section 3.
+
 - **Kind**: Secret text
 - **ID**: `sqlserver-connstring`
 - **Secret**: Your SQL Server connection string, e.g.:
