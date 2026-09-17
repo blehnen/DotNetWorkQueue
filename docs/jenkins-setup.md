@@ -67,6 +67,15 @@ For each Docker host, create a cloud entry:
 > silently never reaches the agents. It cost two builds to find once already.
   - **Remote Filing System Root**: `/home/jenkins`
   - **Connect method**: Attach Docker container
+  - **Environment**: `DOCKER_HOST=tcp://<this-host-ip>:2375`
+
+> The `DOCKER_HOST` entry is what lets the integration suites start their own service
+> containers (issue #281). Point each template at **its own host's** daemon, not at a
+> single shared one: a stage's containers then run on the host that picked the stage up.
+> Naming one daemon for every template would pile every service container onto that one
+> host regardless of which agent ran the stage, and the hosts are not the same size.
+> A stage whose template is missing the variable fails early with a message saying so.
+
 
 All hosts should use the same `docker` label so the Jenkinsfile can request any available agent. If you have multiple hosts, list the preferred host first; Jenkins tries clouds top-to-bottom.
 
@@ -76,7 +85,7 @@ The pipeline runs 13 integration test stages in parallel, so you need at least 1
 
 Go to **Manage Jenkins > Credentials > System > Global credentials > Add Credentials**.
 
-Create five Secret Text credentials:
+Create four Secret Text credentials:
 
 ### SQL Server Connection String
 
@@ -112,23 +121,6 @@ for the lifetime of the test process (issue #281), reaching the daemon through
 - **Secret**: Your Redis connection string, e.g.:
   ```
   <redis-host>,defaultDatabase=1,syncTimeout=15000
-  ```
-
-### Docker Host URI
-
-The endpoint integration tests use to start their own service containers. It is the
-same daemon Docker Cloud spawns agents on (section 3), and Testcontainers derives the
-reachable address of a published port from this URI - so a container started by a test
-is reachable from inside the agent without a socket mount or docker-in-docker.
-
-Kept in the credential store rather than the Jenkinsfile because this repository is
-public and the value is an internal host address.
-
-- **Kind**: Secret text
-- **ID**: `docker-host-uri`
-- **Secret**: The daemon URI, e.g.:
-  ```
-  tcp://<docker-host-ip>:2375
   ```
 
 ### Codecov Token
@@ -209,7 +201,7 @@ Note: These services may not respond to curl properly, but the connection attemp
 | "No nodes with label docker" | Docker cloud not configured or hosts unreachable | Check cloud config, verify Docker TCP is open |
 | "docker: not found" in pipeline | Using `docker { image }` agent syntax | Use `agent { label 'docker' }`; the cloud provisions the container |
 | Java version error in agent | JRE in Docker image older than Jenkins master | Match the JRE version in the [dotnetworkqueue-ci](https://github.com/blehnen/dotnetworkqueue-ci) image to your Jenkins master |
-| Connection string errors | Credentials not created or wrong ID | Verify credential IDs match Jenkinsfile: `sqlserver-connstring`, `postgresql-connstring`, `redis-connstring`, `docker-host-uri`, `codecov-token` |
+| Connection string errors | Credentials not created or wrong ID | Verify credential IDs match Jenkinsfile: `sqlserver-connstring`, `postgresql-connstring`, `redis-connstring`, `codecov-token` |
 | `connectionstring.txt` not found | File written to wrong path | Connection strings must be in `bin/Debug/net10.0/` (written after build) |
 | SQLite `libdl.so` errors | Missing native library symlink | Pull the latest [dotnetworkqueue-ci](https://github.com/blehnen/dotnetworkqueue-ci) image; it includes the fix |
 | Test host crash (ObjectDisposedException) | Timer callback race on Linux | Fixed in `BaseMonitor.cs`; ensure you have the latest code |

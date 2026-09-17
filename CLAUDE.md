@@ -80,9 +80,9 @@ dotnet test "Source\DotNetWorkQueue.Dashboard.Api.Integration.Tests\DotNetWorkQu
 dotnet test "Source\DotNetWorkQueue.Dashboard.Api.Integration.Tests\DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj"
 ```
 
-Integration tests for SQL Server, PostgreSQL, SQLite, and LiteDb require running instances of those services and connection strings configured in `connectionstring.txt` files within each integration test project.
+Integration tests for SQL Server, SQLite, and LiteDb require running instances of those services and connection strings configured in `connectionstring.txt` files within each integration test project. The Dashboard API integration tests read their own `connectionstring-*.txt` files and still use external services too.
 
-The Redis suites no longer need one. With no `connectionstring.txt` in the output directory they start a Redis container and own it for the run (issue #281), which needs a reachable Docker daemon - local, or `DOCKER_HOST=tcp://<host>:2375` for a remote one. Dropping a `connectionstring.txt` in still wins, which is how you point them at an instance you already have.
+**The Redis and PostgreSQL transport suites do not.** With no `connectionstring.txt` in the output directory, each starts its own container and owns it for the run (issue #281) - Redis and Redis Linq, PostgreSQL and PostgreSQL Linq. That needs a reachable Docker daemon: a local one, or `DOCKER_HOST=tcp://<host>:2375` for a remote one. Dropping a `connectionstring.txt` into the output directory still wins, which is how you point a suite at a server you already have.
 
 ## Architecture
 
