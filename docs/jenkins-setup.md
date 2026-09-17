@@ -8,12 +8,21 @@ This guide walks through setting up the Jenkins master to run the DotNetWorkQueu
 - One or more Docker hosts with the Docker daemon listening on TCP (port 2375)
 
 > ⚠️ Port 2375 is Docker's **plaintext, unauthenticated** API: anything that can reach it
-> can start privileged or bind-mounted containers, which is equivalent to root on that
+> can start a privileged or bind-mounted container, which is equivalent to root on that
 > host. Keep it on a private network reachable only by the Jenkins controller and its
-> agents, and firewall it from everything else. Note that integration test code runs with
-> `DOCKER_HOST` pointed at this daemon, so anyone who can get code into a build can reach
-> it - consider restricting which pull requests build automatically. Docker's TLS
-> (port 2376, mutual certificates) or an SSH transport closes this properly.
+> agents, and firewall it from everything else.
+>
+> This matters more than it looks, because integration test code runs with `DOCKER_HOST`
+> pointed at the daemon so it can start its own services (issue #281). Anyone who can get
+> code into a build can therefore reach it, and a test file is enough - the Jenkinsfile is
+> not the only thing that runs.
+>
+> **This repository is public, so the branch source deliberately does not discover pull
+> requests from forks.** Only branches in this repository build, and only a collaborator
+> can create one. Do not re-enable fork discovery without first putting TLS (port 2376,
+> mutual certificates) or an SSH transport on the daemon: the *Trust* setting does not
+> substitute for it, because it governs which Jenkinsfile is used, not whose source code
+> gets compiled and run.
 
 - Test services accessible from the Docker hosts:
   - SQL Server on port 1433
