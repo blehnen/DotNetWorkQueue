@@ -88,7 +88,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
                     }
 
                     var first = delivered.Take(MessageCount).ToList();
-                    Assert.AreEqual(MessageCount, first.Distinct().Count(),
+                    Assert.HasCount(MessageCount, first.Distinct(),
                         "the same message was handed out again before the others were reached, so the rollback "
                         + $"left it at the front of the queue. Deliveries: {string.Join(", ", first)}");
                 }

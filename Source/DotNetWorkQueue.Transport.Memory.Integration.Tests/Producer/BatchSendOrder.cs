@@ -97,7 +97,7 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Producer
                 results.FirstOrDefault(r => r.HasError)?.SendingException?.ToString() ?? "no error");
 
             var returned = results.Select(r => (Guid)r.SentMessage.CorrelationId.Id.Value).ToList();
-            CollectionAssert.AreEqual(sent, returned,
+            Assert.AreSequenceEqual(sent, returned,
                 "results came back in a different order than the messages were sent");
 
             Assert.DoesNotContain(r => (Guid)r.SentMessage.MessageId.Id.Value == Guid.Empty, results,

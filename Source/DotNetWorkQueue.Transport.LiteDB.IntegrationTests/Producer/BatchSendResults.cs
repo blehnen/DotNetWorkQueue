@@ -76,7 +76,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Producer
             Assert.HasCount(messageCount, ids.Distinct().ToList(), "ids should be unique");
 
             //inserted sequentially in one transaction, so the caller's order is the id order
-            CollectionAssert.AreEqual(ids.OrderBy(id => id).ToList(), ids,
+            Assert.AreSequenceEqual(ids.OrderBy(id => id).ToList(), ids,
                 "ids came back in a different order than the messages were sent");
         }
 

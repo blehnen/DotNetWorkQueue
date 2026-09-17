@@ -123,8 +123,8 @@ namespace DotNetWorkQueue.Tests.Queue
         {
             using (var test = Create())
             {
-                CollectionAssert.Contains(test.Tokens.ToList(), test.CancelWorkToken);
-                CollectionAssert.Contains(test.Tokens.ToList(), test.StopWorkToken);
+                Assert.Contains(test.CancelWorkToken, test.Tokens.ToList());
+                Assert.Contains(test.StopWorkToken, test.Tokens.ToList());
             }
         }
 

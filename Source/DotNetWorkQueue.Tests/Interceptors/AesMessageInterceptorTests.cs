@@ -31,7 +31,7 @@ namespace DotNetWorkQueue.Tests.Interceptors
                 var encrypted = interceptor.MessageToBytes(original, null);
                 Assert.IsTrue(encrypted.AddToGraph);
                 var decrypted = New(key).BytesToMessage(encrypted.Output, null);
-                CollectionAssert.AreEqual(original, decrypted);
+                Assert.AreSequenceEqual(original, decrypted);
             }
         }
 
@@ -50,7 +50,7 @@ namespace DotNetWorkQueue.Tests.Interceptors
             var body = Encoding.UTF8.GetBytes("same message");
             var a = interceptor.MessageToBytes(body, null).Output;
             var b = interceptor.MessageToBytes(body, null).Output;
-            CollectionAssert.AreNotEqual(a, b); // random nonce
+            Assert.AreNotSequenceEqual(a, b); // random nonce
         }
 
         [TestMethod]

@@ -43,22 +43,6 @@ namespace DotNetWorkQueue
         /// <returns></returns>
         TService GetInstance<TService>() where TService : class;
 
-        /// <summary>
-        /// Returns the service if something has registered one, and null if nothing has.
-        /// </summary>
-        /// <remarks>
-        /// For a service a transport is free not to provide. Asking for one of those with
-        /// <see cref="GetInstance{TService}"/> throws, which cannot be told apart from the registered
-        /// service failing to build - and the caller here wants to carry on in the first case and not
-        /// in the second.
-        /// </remarks>
-        /// <typeparam name="TService">The service type.</typeparam>
-        /// <remarks>
-        /// Defaulted for the same reason as <see cref="GetImplementationType{TService}"/>: null means
-        /// "do not know", and every caller treats that as "nothing registered", so an
-        /// <see cref="IContainer"/> implemented elsewhere keeps compiling and keeps its old behaviour.
-        /// </remarks>
-        TService TryGetInstance<TService>() where TService : class => null;
 
         /// <summary>
         /// Returns the specified instance based on the input service type
@@ -66,6 +50,22 @@ namespace DotNetWorkQueue
         /// <param name="serviceType">Type of the service.</param>
         /// <returns></returns>
         object GetInstance(Type serviceType);
+
+        /// <summary>
+        /// Returns the service if something has registered one, and null if nothing has.
+        /// </summary>
+        /// <typeparam name="TService">The service type.</typeparam>
+        /// <remarks>
+        /// For a service a transport is free not to provide. Asking for one of those with
+        /// <see cref="GetInstance{TService}"/> throws, which cannot be told apart from the registered
+        /// service failing to build - and the caller here wants to carry on in the first case and not
+        /// in the second.
+        ///
+        /// Defaulted for the same reason as <see cref="GetImplementationType{TService}"/>: null means
+        /// "do not know", and every caller treats that as "nothing registered", so an
+        /// <see cref="IContainer"/> implemented elsewhere keeps compiling and keeps its old behaviour.
+        /// </remarks>
+        TService TryGetInstance<TService>() where TService : class => null;
 
         /// <summary>
         /// The concrete type this container will produce for <typeparamref name="TService"/>, or

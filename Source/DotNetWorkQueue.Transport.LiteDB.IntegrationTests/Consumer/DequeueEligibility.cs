@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
 
             var received = Consume<OrderedMessage>(queueConnection, sent.Count, m => m.Body);
 
-            CollectionAssert.AreEqual(sent, received, "messages came back in a different order");
+            Assert.AreSequenceEqual(sent, received, "messages came back in a different order");
         }
 
         [TestMethod]
@@ -84,7 +84,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
 
             var received = Consume<OrderedMessage>(queueConnection, 1, m => m.Body);
 
-            CollectionAssert.AreEqual(new List<string> { "ready" }, received,
+            Assert.AreSequenceEqual(new List<string> { "ready" }, received,
                 "the control should arrive and the message deferred an hour should not");
         }
 
@@ -111,7 +111,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
 
             var received = Consume<OrderedMessage>(queueConnection, 1, m => m.Body);
 
-            CollectionAssert.AreEqual(new List<string> { "fresh" }, received,
+            Assert.AreSequenceEqual(new List<string> { "fresh" }, received,
                 "the control should arrive and the expired message should not");
         }
 
@@ -147,7 +147,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.IntegrationTests.Consumer
 
             var received = Consume<OrderedMessage>(queueConnection, 1, m => m.Body);
 
-            CollectionAssert.AreEqual(new List<string> { "reachable" }, received,
+            Assert.AreSequenceEqual(new List<string> { "reachable" }, received,
                 "the ready message sits past what a single poll examines; only the resume finds it");
         }
 

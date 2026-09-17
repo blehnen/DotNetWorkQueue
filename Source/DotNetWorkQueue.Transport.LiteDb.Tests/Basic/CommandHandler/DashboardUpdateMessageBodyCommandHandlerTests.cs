@@ -124,8 +124,8 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.CommandHandler
                     var col = db.Database.GetCollection<QueueTable>(tableNameHelper.QueueName);
                     var updated = col.FindById(insertedId);
                     Assert.IsNotNull(updated);
-                    CollectionAssert.AreEqual(newBody, updated.Body);
-                    CollectionAssert.AreEqual(newHeaders, updated.Headers);
+                    Assert.AreSequenceEqual(newBody, updated.Body);
+                    Assert.AreSequenceEqual(newHeaders, updated.Headers);
                 }
             }
             finally
@@ -173,12 +173,12 @@ namespace DotNetWorkQueue.Transport.LiteDb.Tests.Basic.CommandHandler
                     var col = db.Database.GetCollection<QueueTable>(tableNameHelper.QueueName);
 
                     var updated = col.FindById(id1);
-                    CollectionAssert.AreEqual(newBody, updated.Body);
-                    CollectionAssert.AreEqual(newHeaders, updated.Headers);
+                    Assert.AreSequenceEqual(newBody, updated.Body);
+                    Assert.AreSequenceEqual(newHeaders, updated.Headers);
 
                     var untouched = col.FindById(id2);
-                    CollectionAssert.AreEqual(originalBody2, untouched.Body);
-                    CollectionAssert.AreEqual(originalHeaders2, untouched.Headers);
+                    Assert.AreSequenceEqual(originalBody2, untouched.Body);
+                    Assert.AreSequenceEqual(originalHeaders2, untouched.Headers);
                 }
             }
             finally

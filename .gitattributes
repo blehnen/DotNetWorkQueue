@@ -16,6 +16,11 @@
 *.yml text eol=crlf
 *.yaml text eol=crlf
 
+# Run on whatever platform the operator has, so keep them LF everywhere. A CRLF checkout
+# puts a carriage return inside the multi-line quoted literals these scripts use, and a
+# stray CR in a quoted literal is not something every client handles the same way.
+*.sql text eol=lf
+
 # Binary files
 *.dll binary
 *.exe binary

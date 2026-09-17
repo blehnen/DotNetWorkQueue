@@ -72,8 +72,8 @@ namespace DotNetWorkQueue.Tests.Transport.Memory.Basic
 
             var records = WriteMessageHistoryHandler.GetRecordsForQueue(key);
             var record = records["q1"];
-            CollectionAssert.AreEqual(body, record.Body);
-            CollectionAssert.AreEqual(headers, record.Headers);
+            Assert.AreSequenceEqual(body, record.Body);
+            Assert.AreSequenceEqual(headers, record.Headers);
         }
 
         [TestMethod]

@@ -125,8 +125,8 @@ namespace DotNetWorkQueue.Tests.JobScheduler
 
             Assert.AreEqual("aJob", job.Name);
             Assert.IsFalse(job.IsScheduleRunning, "autoRun was false");
-            CollectionAssert.AreEquivalent(SingleJobName,
-                harness.Scheduler.GetAllJobs().Select(x => x.Name).ToArray());
+            Assert.AreSequenceEqual(SingleJobName,
+                harness.Scheduler.GetAllJobs().Select(x => x.Name).ToArray(), SequenceOrder.InAnyOrder);
         }
 
         [TestMethod]
@@ -191,8 +191,8 @@ namespace DotNetWorkQueue.Tests.JobScheduler
             AddJob(harness, "first");
             AddJob(harness, "second");
 
-            CollectionAssert.AreEquivalent(TwoJobNames,
-                harness.Scheduler.GetAllJobs().Select(x => x.Name).ToArray());
+            Assert.AreSequenceEqual(TwoJobNames,
+                harness.Scheduler.GetAllJobs().Select(x => x.Name).ToArray(), SequenceOrder.InAnyOrder);
         }
 
         // --- removal ---

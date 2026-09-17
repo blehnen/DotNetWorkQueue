@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
 
             var policy = corsOptions.GetPolicy("DashboardCors");
             Assert.IsNotNull(policy);
-            CollectionAssert.AreEquivalent((System.Collections.ICollection)ExpectedCorsOrigins, (System.Collections.ICollection)(policy!.Origins));
+            Assert.AreSequenceEqual(ExpectedCorsOrigins, policy!.Origins, SequenceOrder.InAnyOrder);
         }
 
         [TestMethod]

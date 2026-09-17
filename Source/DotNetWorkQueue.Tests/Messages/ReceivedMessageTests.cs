@@ -52,7 +52,7 @@ namespace DotNetWorkQueue.Tests.Messages
 
             message.Headers.Returns(new ReadOnlyDictionary<string, object>(headers));
             var test = new ReceivedMessage<FakeMessage>(message, new GetPreviousErrorsNoOp(), NullLoggerFactory.Instance.CreateLogger("null"));
-            CollectionAssert.AreEquivalent((System.Collections.ICollection)test.Headers, (System.Collections.ICollection)message.Headers);
+            Assert.AreSequenceEqual(test.Headers, message.Headers, SequenceOrder.InAnyOrder);
         }
 
         [TestMethod]
