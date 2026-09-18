@@ -1,0 +1,45 @@
+# CodeRabbit configuration.
+#
+# CodeRabbit infers this repository's conventions from CLAUDE.md, which mostly works. Where it
+# has repeatedly read a rule as stricter than it is, the rule is restated here in a form that
+# cannot be misread. Everything below is a statement of existing convention, not a new one.
+#
+# Schema: https://storage.googleapis.com/coderabbit_public_assets/schema.v2.json
+#
+# No `version` key: the schema sets additionalProperties to false and defines no such property,
+# so including one makes the whole file invalid.
+
+reviews:
+  path_instructions:
+    - path: "**/*.cs"
+      instructions: |
+        Licence headers are for library and production source files only.
+
+        Test projects are deliberately exempt and mostly carry no header. Issue #206 scoped its
+        header sweep to production files on purpose. Do not ask for a licence header on a file in
+        a test project, and do not report its absence as a finding.
+
+        A file belongs to a test project when its path contains `.Tests/`, `.IntegrationTests/`
+        or `.Integration.Tests/`.
+
+    - path: "Source/**/*Tests*/**/*.cs"
+      instructions: |
+        This is a test project. Two conventions here are settled and should not be raised as
+        findings:
+
+        - No licence header. See above.
+        - Assertions are MSTest's own. FluentAssertions was removed in #159 on licensing grounds
+          and must not be suggested as a replacement for anything.
+
+        Integration and end-to-end test classes carry `[Retry(1)]` deliberately, so that a
+        transient service fault costs one re-run rather than a red build. The argument is retries
+        rather than attempts.
+
+    - path: "Source/**/*Integration*Tests*/**/*.csproj"
+      instructions: |
+        Integration test projects target `net10.0` only, on purpose: CI runs them on Linux Docker
+        agents against that target. Do not ask for `net8.0` to be added here.
+
+        `TreatWarningsAsErrors` and XML documentation generation are enabled for the shipped
+        library projects and deliberately not for test projects. Their absence here is not a
+        finding.
