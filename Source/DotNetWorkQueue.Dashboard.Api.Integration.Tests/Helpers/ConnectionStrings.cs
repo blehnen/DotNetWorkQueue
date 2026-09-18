@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
     /// Unlike the transport suites, this assembly covers several transports at once, so the
     /// containers are started lazily and independently. A run filtered to Memory, SQLite and LiteDb
     /// - which is what CLAUDE.md suggests for a machine with no services - starts none of them, and
-    /// a run that only touches Redis pays for Redis alone. Tests run four at a time
+    /// a run that only touches Redis pays for Redis alone. Tests run eight at a time
     /// (see ParallelExecution.cs), so first use races and each endpoint is resolved under a lock.
     /// </remarks>
     public static class ConnectionStrings
@@ -110,7 +110,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Integration.Tests.Helpers
         private static (string, IAsyncDisposable) StartPostgreSql()
         {
             // max_connections is raised to match the shared server: a stock image allows 100 and
-            // the pool ceiling below is 250, with four tests running at once.
+            // the pool ceiling below is 250, with eight tests running at once.
             var container = new PostgreSqlBuilder(PostgreSqlImage)
                 .WithDatabase(PostgreSqlDatabase)
                 .WithUsername("postgres")
