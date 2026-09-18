@@ -119,9 +119,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Schema
             //LOCAL, so it lasts for the upgrade transaction and does not leak into the connection
             script.AppendLine($"SET LOCAL TIME ZONE {Quote(timeZone)};");
 
-            foreach (var (table, column) in toConvert)
+            //One statement per table, not per column. ALTER ... TYPE rewrites the whole table and
+            //holds an ACCESS EXCLUSIVE lock while it does, so converting History's three columns
+            //separately would rewrite it three times and hold that lock three times over. Naming
+            //them in one statement rewrites it once.
+            foreach (var table in toConvert.GroupBy(x => x.Table))
             {
-                script.AppendLine($"ALTER TABLE {table} ALTER COLUMN {column} TYPE timestamptz;");
+                var alters = string.Join(", ",
+                    table.Select(x => $"ALTER COLUMN {x.Column} TYPE timestamptz"));
+                script.AppendLine($"ALTER TABLE {table.Key} {alters};");
             }
 
             return script.ToString();

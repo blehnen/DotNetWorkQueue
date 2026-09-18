@@ -168,17 +168,34 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
 
             public void DropSchemaVersionTable() => Execute($"drop table if exists {QueueName}SchemaVersion");
 
+            /// <summary>
+            /// The declared type of a column, read from the catalog.
+            /// </summary>
+            /// <remarks>
+            /// The table and column are bound rather than pasted in. They are values here, not
+            /// identifiers - to_regclass takes a name as a string - so binding them is available and
+            /// is what the rest of the library does with a catalog look-up.
+            /// </remarks>
             public string ColumnType(string tableSuffix, string column) =>
-                Text($@"SELECT format_type(a.atttypid, a.atttypmod) FROM pg_attribute a
-                        WHERE a.attrelid = to_regclass('{QueueName}{tableSuffix}')
-                          AND lower(a.attname) = '{column}' AND a.attnum > 0 AND NOT a.attisdropped");
+                Text(@"SELECT format_type(a.atttypid, a.atttypmod) FROM pg_attribute a
+                       WHERE a.attrelid = to_regclass(@Table)
+                         AND lower(a.attname) = lower(@Column) AND a.attnum > 0 AND NOT a.attisdropped",
+                    ("@Table", QueueName + tableSuffix), ("@Column", column));
 
-            public string Text(string sql)
+            public string Text(string sql, params (string Name, string Value)[] parameters)
             {
                 using var connection = new NpgsqlConnection(ConnectionInfo.ConnectionString);
                 connection.Open();
                 using var command = connection.CreateCommand();
                 command.CommandText = sql;
+                foreach (var (name, value) in parameters)
+                {
+                    var parameter = command.CreateParameter();
+                    parameter.ParameterName = name;
+                    parameter.Value = value;
+                    command.Parameters.Add(parameter);
+                }
+
                 return command.ExecuteScalar() as string;
             }
 

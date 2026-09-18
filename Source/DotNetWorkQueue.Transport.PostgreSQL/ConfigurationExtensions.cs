@@ -288,12 +288,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
         /// </remarks>
         public static void SetUpgradeSourceTimeZone(this IDictionary<string, string> settings, string timeZone)
         {
-            if (!settings.ContainsKey(UpgradeSourceTimeZoneName))
-            {
-                settings.Add(UpgradeSourceTimeZoneName, timeZone);
-                return;
-            }
-
+            //the indexer adds or replaces, so the check the older SetSchema does is not needed here
             settings[UpgradeSourceTimeZoneName] = timeZone;
         }
 
