@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 //   4 workers   5m34s / 5m39s
 //   8 workers   3m31s
 //   16 workers  3m06s
-// CPU time was ~1m40 at all three, which is the point -- these tests wait on timers rather
+// CPU time was ~1m40s at all three, which is the point -- these tests wait on timers rather
 // than work, so more workers stop the waiting without costing anything. Eight takes most of
 // the gain; sixteen adds a little more for twice the concurrency against the containers, on
 // an agent already sharing a host with other stages, which is not a good trade.
