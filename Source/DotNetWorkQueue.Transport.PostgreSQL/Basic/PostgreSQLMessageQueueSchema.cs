@@ -92,7 +92,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             main.Columns.Add(new Column("Headers", ColumnTypes.Bytea, -1, false));
 
             //add primary key constraint
-            main.Constraints.Add(new Constraint("PK_" + _tableNameHelper.QueueName, ConstraintType.PrimaryKey, ColumnQueueId));
+            main.Constraints.Add(new Constraint(PostgreSqlIdentifier.Shorten("PK_" + _tableNameHelper.QueueName), ConstraintType.PrimaryKey, ColumnQueueId));
             main.PrimaryKey.Unique = true;
             return main;
         }
@@ -107,7 +107,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             table.Columns.Add(mainPrimaryKey);
             table.Columns.Add(new Column("Configuration", ColumnTypes.Bytea, -1, false));
 
-            table.Constraints.Add(new Constraint("PK_" + _tableNameHelper.ConfigurationName, ConstraintType.PrimaryKey, "ID"));
+            table.Constraints.Add(new Constraint(PostgreSqlIdentifier.Shorten("PK_" + _tableNameHelper.ConfigurationName), ConstraintType.PrimaryKey, "ID"));
             table.PrimaryKey.Unique = true;
             return table;
         }
@@ -120,7 +120,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             status.Columns.Add(mainPrimaryKey);
 
             //add primary key constraint
-            status.Constraints.Add(new Constraint("PK_" + _tableNameHelper.StatusName, ConstraintType.PrimaryKey, ColumnQueueId));
+            status.Constraints.Add(new Constraint(PostgreSqlIdentifier.Shorten("PK_" + _tableNameHelper.StatusName), ConstraintType.PrimaryKey, ColumnQueueId));
             status.PrimaryKey.Unique = true;
 
             status.Columns.Add(new Column(ColumnStatus, ColumnTypes.Integer, false));
@@ -161,7 +161,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             meta.Columns.Add(mainPrimaryKey);
 
             //add primary key constraint
-            meta.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataName, ConstraintType.PrimaryKey, ColumnQueueId));
+            meta.Constraints.Add(new Constraint(PostgreSqlIdentifier.Shorten("PK_" + _tableNameHelper.MetaDataName), ConstraintType.PrimaryKey, ColumnQueueId));
             meta.PrimaryKey.Unique = true;
 
             if (_options.Value.EnablePriority)
@@ -242,7 +242,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             if (clusterIndex.Count > 0)
             {
-                var cluster = new Constraint($"IX_DeQueue{_tableNameHelper.MetaDataName}", ConstraintType.Index, clusterIndex)
+                var cluster = new Constraint(PostgreSqlIdentifier.Shorten($"IX_DeQueue{_tableNameHelper.MetaDataName}"), ConstraintType.Index, clusterIndex)
                 {
                     Unique = true
                 };
@@ -252,7 +252,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             //add index on heartbeat column if enabled
             if (_options.Value.EnableHeartBeat)
             {
-                meta.Constraints.Add(new Constraint($"IX_HeartBeat{_tableNameHelper.MetaDataName}", ConstraintType.Index, "HeartBeat"));
+                meta.Constraints.Add(new Constraint(PostgreSqlIdentifier.Shorten($"IX_HeartBeat{_tableNameHelper.MetaDataName}"), ConstraintType.Index, "HeartBeat"));
             }
 
             //set the table reference
@@ -282,15 +282,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             errorTracking.Columns.Add(new Column("RetryCount", ColumnTypes.Integer, false));
 
             //add primary key constraint
-            errorTracking.Constraints.Add(new Constraint("PK_" + _tableNameHelper.ErrorTrackingName, ConstraintType.PrimaryKey, "ErrorTrackingID"));
+            errorTracking.Constraints.Add(new Constraint(PostgreSqlIdentifier.Shorten("PK_" + _tableNameHelper.ErrorTrackingName), ConstraintType.PrimaryKey, "ErrorTrackingID"));
             errorTracking.PrimaryKey.Unique = true;
 
-            errorTracking.Constraints.Add(new Constraint($"IX_QueueID{_tableNameHelper.ErrorTrackingName}", ConstraintType.Index, ColumnQueueId));
+            errorTracking.Constraints.Add(new Constraint(PostgreSqlIdentifier.Shorten($"IX_QueueID{_tableNameHelper.ErrorTrackingName}"), ConstraintType.Index, ColumnQueueId));
             //One error row per message per exception type. Without this, the check-then-write in
             //SetErrorCountCommandHandler can insert a second row for the same pair under concurrency,
             //and the retry count then reads low - so a message gets more attempts than configured, and
             //a poison message can loop instead of reaching the error queue.
-            errorTracking.Constraints.Add(new Constraint($"IX_QueueIDExceptionType{_tableNameHelper.ErrorTrackingName}", ConstraintType.Index,
+            errorTracking.Constraints.Add(new Constraint(PostgreSqlIdentifier.Shorten($"IX_QueueIDExceptionType{_tableNameHelper.ErrorTrackingName}"), ConstraintType.Index,
                 new List<string> { ColumnQueueId, "ExceptionType" }) { Unique = true });
 
             foreach (var c in errorTracking.Constraints)
@@ -318,7 +318,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             metaErrors.Columns.Add(new Column("LastExceptionDate", ColumnTypes.TimestampTZ, true));
 
             //add primary key constraint
-            metaErrors.Constraints.Add(new Constraint("PK_" + _tableNameHelper.MetaDataErrorsName, ConstraintType.PrimaryKey, "ID"));
+            metaErrors.Constraints.Add(new Constraint(PostgreSqlIdentifier.Shorten("PK_" + _tableNameHelper.MetaDataErrorsName), ConstraintType.PrimaryKey, "ID"));
             metaErrors.PrimaryKey.Unique = true;
 
             //NOTE no indexes are copied from the meta table
@@ -357,13 +357,13 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             history.Columns.Add(new Column("Headers", ColumnTypes.Bytea, -1, true));
 
             //add primary key constraint
-            history.Constraints.Add(new Constraint("PK_" + _tableNameHelper.HistoryName, ConstraintType.PrimaryKey, "HistoryID"));
+            history.Constraints.Add(new Constraint(PostgreSqlIdentifier.Shorten("PK_" + _tableNameHelper.HistoryName), ConstraintType.PrimaryKey, "HistoryID"));
             history.PrimaryKey.Unique = true;
 
             // Index on QueueID for lookups by message — name must be unique per schema in PostgreSQL
-            history.Constraints.Add(new Constraint($"IX_{_tableNameHelper.HistoryName}_QueueID", ConstraintType.Index, ColumnQueueId));
+            history.Constraints.Add(new Constraint(PostgreSqlIdentifier.Shorten($"IX_{_tableNameHelper.HistoryName}_QueueID"), ConstraintType.Index, ColumnQueueId));
             // Index on Status + CompletedUtc for purge queries and status filtering
-            history.Constraints.Add(new Constraint($"IX_{_tableNameHelper.HistoryName}_Status_Completed", ConstraintType.Index,
+            history.Constraints.Add(new Constraint(PostgreSqlIdentifier.Shorten($"IX_{_tableNameHelper.HistoryName}_Status_Completed"), ConstraintType.Index,
                 new List<string> { ColumnStatus, "CompletedUtc" }));
 
             foreach (var c in history.Constraints)

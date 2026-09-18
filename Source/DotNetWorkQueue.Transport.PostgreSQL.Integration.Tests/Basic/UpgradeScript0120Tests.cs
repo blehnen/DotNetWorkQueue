@@ -65,7 +65,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
                     Assert.IsTrue(oCreation.CreateQueue().Success);
 
                     //--- put the queue back to how 0.11.0 left it ---
-                    Execute(connectionString, $"DROP INDEX IX_QueueIDExceptionType{errorTable}");
+                    DropUniqueIndex(connectionString, errorTable);
 
                     Execute(connectionString,
                         $@"INSERT INTO {historyTable} (QueueID, Status, EnqueuedUtc, RetryCount)
@@ -155,7 +155,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
                     oCreation.Options.EnableHistory = true;
                     Assert.IsTrue(oCreation.CreateQueue().Success);
 
-                    Execute(connectionString, $"DROP INDEX IX_QueueIDExceptionType{errorTable}");
+                    DropUniqueIndex(connectionString, errorTable);
                     Execute(connectionString,
                         $@"INSERT INTO {historyTable} (QueueID, Status, EnqueuedUtc, RetryCount)
                            VALUES ('a-message', 0, timestamptz '2001-02-03 04:05:06+00', 0)");
@@ -296,6 +296,43 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
                     return value == null || value == DBNull.Value ? 0 : Convert.ToInt32(value);
                 }
             }
+        }
+
+
+        /// <summary>
+        /// Drops the unique index over (QueueID, ExceptionType), found by its shape.
+        /// </summary>
+        /// <remarks>
+        /// Not by name: the name is shortened when it would not survive PostgreSQL's 63 byte limit
+        /// (GitHub #375), so a literal one is wrong for a long queue name and right for a short one -
+        /// which is exactly the kind of test that passes until it matters.
+        /// </remarks>
+        private static void DropUniqueIndex(string connectionString, string errorTable)
+        {
+            string name;
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = @"SELECT ic.relname FROM pg_index ix
+                          JOIN pg_class ic ON ic.oid = ix.indexrelid
+                          WHERE ix.indrelid = to_regclass(@Table)
+                          AND ix.indisunique AND ix.indpred IS NULL AND ix.indnkeyatts = 2
+                          AND EXISTS (SELECT 1 FROM pg_attribute a
+                                      WHERE a.attrelid = ix.indrelid AND a.attnum IN (ix.indkey[0], ix.indkey[1]) AND lower(a.attname) = 'queueid')
+                          AND EXISTS (SELECT 1 FROM pg_attribute a
+                                      WHERE a.attrelid = ix.indrelid AND a.attnum IN (ix.indkey[0], ix.indkey[1]) AND lower(a.attname) = 'exceptiontype')";
+                    var parameter = command.CreateParameter();
+                    parameter.ParameterName = "@Table";
+                    parameter.Value = errorTable;
+                    command.Parameters.Add(parameter);
+                    name = command.ExecuteScalar() as string;
+                }
+            }
+
+            Assert.IsNotNull(name, $"{errorTable} has no unique index to drop");
+            Execute(connectionString, $"DROP INDEX {name}");
         }
 
         private static void Execute(string connectionString, string sql)

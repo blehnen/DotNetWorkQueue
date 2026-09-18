@@ -28,7 +28,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
     /// <inheritdoc />
     public partial class SqlConnectionInformation : BaseConnectionInformation
     {
-        [GeneratedRegex(@"^[a-zA-Z0-9_.]+$")]
+        //no dot: the name is written into DDL unquoted, so PostgreSQL reads one as a schema separator
+        //and CREATE TABLE fails with a syntax error. Dots were allowed here and have never been
+        //creatable (GitHub #375).
+        [GeneratedRegex(@"^[a-zA-Z0-9_]+$")]
         private static partial Regex ValidQueueNamePattern();
 
         private string _server;
@@ -93,11 +96,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
             if (string.IsNullOrEmpty(name)) return; // allow empty for backward compatibility
             Guard.IsValid(name, n => n.Length <= MaxQueueNameLength,
                 $"Queue name exceeds maximum length of {MaxQueueNameLength} characters. Got {name.Length} characters. "
-                + "PostgreSQL truncates every identifier at 63 bytes, and the queue name is a prefix for names longer "
-                + "than itself - the longest is PK_<name>MetaDataErrors, 17 characters more - so a longer queue name "
-                + "produces two constraints that truncate to the same identifier.");
+                + "PostgreSQL truncates every identifier at 63 bytes, and the queue name is a prefix for table names "
+                + "longer than itself - the longest is <name>MetaDataErrors, 14 characters more - so a longer queue "
+                + "name produces two tables that truncate to the same identifier. Index and constraint names are "
+                + "shortened rather than capped, so they no longer constrain this limit.");
             Guard.IsValid(name, n => ValidQueueNamePattern().IsMatch(n),
-                "Queue name contains invalid characters. Only alphanumeric characters, underscores, and dots are allowed.");
+                "Queue name contains invalid characters. Only alphanumeric characters and underscores are allowed. "
+                + "A dot was permitted here until it was found that a queue whose name contains one cannot be created: "
+                + "the name goes into the DDL unquoted, so PostgreSQL reads the dot as a schema separator and the "
+                + "CREATE fails with a syntax error, which was then reported as the queue already existing.");
         }
 
         /// <summary>
