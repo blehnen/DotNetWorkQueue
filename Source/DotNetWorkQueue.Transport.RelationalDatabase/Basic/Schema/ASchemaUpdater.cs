@@ -234,11 +234,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
         /// <param name="versionParameterName">The parameter holding the version, including its prefix.</param>
         protected abstract string WriteVersionScript(string tableName, string versionParameterName);
 
-        /// <summary>
-        /// The parameter prefix this transport uses.
-        /// </summary>
-        protected virtual string ParameterPrefix => "@";
-
         private void EnsureVersionsLoaded()
         {
             if (_loaded)
@@ -303,7 +298,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
 
         private void WriteVersion(long version, DbConnection connection, DbTransaction transaction)
         {
-            var parameterName = $"{ParameterPrefix}Version";
+            //every transport here binds with @, including Npgsql
+            const string parameterName = "@Version";
             using (var command = connection.CreateCommand())
             {
                 command.Transaction = transaction;

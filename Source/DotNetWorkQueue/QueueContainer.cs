@@ -530,8 +530,14 @@ namespace DotNetWorkQueue
             if (schema == null)
                 return;
 
-            var current = schema.CurrentSchemaVersion;
+            //target first: it needs no database round trip, and a transport with no versions
+            //yet cannot have an out-of-date queue. Reading the current version first would cost
+            //a query per producer and consumer to learn nothing.
             var target = schema.TargetSchemaVersion;
+            if (target == 0)
+                return;
+
+            var current = schema.CurrentSchemaVersion;
             if (current >= target)
                 return;
 
