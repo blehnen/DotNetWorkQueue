@@ -1,4 +1,5 @@
 using System;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using System.Data.SQLite;
 using System.IO;
 using DotNetWorkQueue.Configuration;
@@ -185,8 +186,28 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
                 serviceRegister => serviceRegister.Register(() => logProvider, LifeStyles.Singleton)))
             using (var admin = container.CreateAdminContainer(queueConnection))
             {
-                var query = admin.GetInstance<IQueryHandler<GetErrorTrackingUniqueIndexExistsQuery, bool>>();
-                return query.Handle(new GetErrorTrackingUniqueIndexExistsQuery(errorTable));
+                //the shipped statement, run here rather than a copy of it. The library no longer
+                //exposes a query for this - the error count write has no fallback to choose any more
+                //(GitHub #308) - but schema version 1 still reads it, so this has to stay honest about
+                //what that reads. Asserting against a copy would pass with a broken one in the library.
+                var commandCache = admin.GetInstance<CommandStringCache>();
+                using (var connection = new SQLiteConnection(queueConnection.Connection))
+                {
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText =
+                            commandCache.GetCommand(CommandStringTypes.GetErrorTrackingUniqueIndexExists);
+                        var parameter = command.CreateParameter();
+                        parameter.ParameterName = "@Table";
+                        parameter.Value = errorTable;
+                        command.Parameters.Add(parameter);
+                        using (var reader = command.ExecuteReader())
+                        {
+                            return reader.Read();
+                        }
+                    }
+                }
             }
         }
 

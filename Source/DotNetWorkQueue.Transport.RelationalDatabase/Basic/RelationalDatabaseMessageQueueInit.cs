@@ -250,26 +250,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                 .Register<IPrepareCommandHandler<SetErrorCountCommand<TQueueId>>,
                     SetErrorCountCommandPrepareHandler<TQueueId>>(LifeStyles.Singleton);
 
-            container
-                .Register<IQueryHandler<GetErrorRecordExistsQuery<TQueueId>, bool>,
-                    GetErrorRecordExistsQueryHandler<TQueueId>>(LifeStyles.Singleton);
-
-            container
-                .Register<IQueryHandler<GetErrorTrackingUniqueIndexExistsQuery, bool>,
-                    GetErrorTrackingUniqueIndexExistsQueryHandler>(LifeStyles.Singleton);
-
-            container
-                .Register<IPrepareQueryHandler<GetErrorTrackingUniqueIndexExistsQuery, bool>,
-                    GetErrorTrackingUniqueIndexExistsQueryPrepareHandler>(LifeStyles.Singleton);
-
-            container
-                .Register<IQueryHandlerAsync<GetErrorRecordExistsQuery<TQueueId>, bool>,
-                    GetErrorRecordExistsQueryHandler<TQueueId>>(LifeStyles.Singleton);
-
-            container
-                .Register<IPrepareQueryHandler<GetErrorRecordExistsQuery<TQueueId>, bool>,
-                    GetErrorRecordExistsQueryPrepareHandler<TQueueId>>(LifeStyles.Singleton);
-
             // Dashboard query handlers
             container
                 .Register<IQueryHandler<GetDashboardStatusCountsQuery, DashboardStatusCounts>,

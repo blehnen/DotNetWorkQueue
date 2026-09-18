@@ -76,12 +76,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             CommandCache.Add(CommandStringTypes.InsertMessageBody,
                 $"Insert into {TableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers); SELECT lastval(); ");
 
-            CommandCache.Add(CommandStringTypes.UpdateErrorCount,
-                $"update {TableNameHelper.ErrorTrackingName} set retrycount = GREATEST({TableNameHelper.ErrorTrackingName}.retrycount, @RetryCount) where queueid = @queueid and ExceptionType = @ExceptionType");
-
-            CommandCache.Add(CommandStringTypes.InsertErrorCount,
-                $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,@RetryCount)");
-
             CommandCache.Add(CommandStringTypes.UpsertErrorCount,
                 $@"insert into {TableNameHelper.ErrorTrackingName} (QueueID, ExceptionType, RetryCount)
                    values (@QueueID, @ExceptionType, @RetryCount)
@@ -115,9 +109,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             CommandCache.Add(CommandStringTypes.GetColumnNamesFromTable,
                 "select column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = @TableName");
-
-            CommandCache.Add(CommandStringTypes.GetErrorRecordExists,
-                $"Select 1 from {TableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
 
             CommandCache.Add(CommandStringTypes.GetErrorRetryCount,
                 $"Select RetryCount from {TableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
@@ -203,7 +194,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
 
             CommandCache.Add(CommandStringTypes.GetDashboardErrorMessages,
                 $"SELECT ID, QueueID, LastException, LastExceptionDate FROM {TableNameHelper.MetaDataErrorsName} ORDER BY LastExceptionDate DESC LIMIT @PageSize OFFSET @Offset");
-
 
 
             CommandCache.Add(CommandStringTypes.GetDashboardMessages,

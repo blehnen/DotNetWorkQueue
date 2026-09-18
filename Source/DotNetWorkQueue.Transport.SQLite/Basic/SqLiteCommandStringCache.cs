@@ -71,12 +71,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             CommandCache.Add(CommandStringTypes.InsertMessageBody,
                 $"Insert into {TableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers); ");
 
-            CommandCache.Add(CommandStringTypes.UpdateErrorCount,
-                $"update {TableNameHelper.ErrorTrackingName} set retrycount = max(retrycount, @RetryCount) where queueid = @QueueID and ExceptionType = @ExceptionType");
-
-            CommandCache.Add(CommandStringTypes.InsertErrorCount,
-                $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,@RetryCount)");
-
             CommandCache.Add(CommandStringTypes.UpsertErrorCount,
                 $@"insert into {TableNameHelper.ErrorTrackingName} (QueueID, ExceptionType, RetryCount)
                    values (@QueueID, @ExceptionType, @RetryCount)
@@ -96,9 +90,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             CommandCache.Add(CommandStringTypes.GetHeartBeatExpiredMessageIds,
                 $"select {TableNameHelper.MetaDataName}.queueid, heartbeat, headers from {TableNameHelper.MetaDataName} inner join {TableNameHelper.QueueName} on {TableNameHelper.QueueName}.queueid = {TableNameHelper.MetaDataName}.queueid where status = @Status and heartbeat is not null and heartbeat < @Time");
-
-            CommandCache.Add(CommandStringTypes.GetErrorRecordExists,
-                $"Select 1 from {TableNameHelper.ErrorTrackingName} where queueid = @QueueID and ExceptionType = @ExceptionType");
 
             CommandCache.Add(CommandStringTypes.GetErrorRetryCount,
                 $"Select RetryCount from {TableNameHelper.ErrorTrackingName} where queueid = @QueueID and ExceptionType = @ExceptionType");
@@ -184,7 +175,6 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             CommandCache.Add(CommandStringTypes.GetDashboardErrorMessages,
                 $"SELECT ID, QueueID, LastException, LastExceptionDate FROM {TableNameHelper.MetaDataErrorsName} ORDER BY LastExceptionDate DESC LIMIT @PageSize OFFSET @Offset");
-
 
 
             CommandCache.Add(CommandStringTypes.GetDashboardMessages,

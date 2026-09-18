@@ -1,4 +1,5 @@
 using System;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
@@ -13,24 +14,24 @@ using System.Data.SQLite;
 namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
 {
     /// <summary>
-    /// Counting errors against a real database, with and without the unique index.
+    /// Counting errors against a real database.
     ///
-    /// A new queue gets a unique index on (QueueID, ExceptionType) and counts with a single atomic
-    /// statement. A queue created before that index existed does not have one, and the library does not
-    /// upgrade schemas, so the older check-then-write has to keep working against the older table.
-    /// Dropping the index is how an old queue is simulated, and it is the only way to reach that path
-    /// now that new queues take the other branch.
+    /// Every queue carries a unique index on (QueueID, ExceptionType) and counts with one atomic
+    /// statement: new queues are created with it, and an older one gains it at schema version 1, which
+    /// a producer or consumer refuses to start without. The check-then-write fallback these once
+    /// covered on both schemas is gone (GitHub #308), so what is left is the atomic path and the two
+    /// ways a write can arrive out of order against it - a replay of the same total, and a stale lower
+    /// one.
     ///
-    /// The assertions on detection are the ones that matter. Both paths count correctly when nothing is
-    /// racing, so a test that only counted would pass even while the queue silently never used the
-    /// atomic statement - which is what a name-based check did, against a catalog that lower-cases it.
+    /// The assertion that the index is detected stays, and it runs the library's own statement rather
+    /// than a copy: a name-based check passed here once while the catalog had lower-cased the name.
     /// </summary>
     [TestClass]
     [Retry(1)]
-    public class SetErrorCountAgainstBothSchemasTests
+    public class SetErrorCountTests
     {
         [TestMethod]
-        public void CountsErrors_OnANewQueueAndOnOneWithoutTheIndex()
+        public void CountsErrors_AndIgnoresAReplayedOrStaleTotal()
         {
             using (var connectionInfo = new IntegrationConnectionInfo(false))
             {
@@ -71,33 +72,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
                         CountOnce(queueConnection, logProvider, oCreation.Scope, 1, 1);
                         Assert.AreEqual(2, RetryCount(connectionString, errorTable, 1),
                             "a stale lower total overwrote a higher one");
-
-                        //now an older queue: same table, no index
-                        Execute(connectionString, $"DROP INDEX IX_QueueIDExceptionType{errorTable}");
-                        Assert.IsFalse(UniqueIndexFound(queueConnection, logProvider, oCreation.Scope, errorTable),
-                            "the index was still reported after it had been dropped");
-
-                        //a different message id, so this counts from zero on the fallback path
-                        CountTwice(queueConnection, logProvider, oCreation.Scope, 2);
-                        Assert.AreEqual(2, RetryCount(connectionString, errorTable, 2),
-                            "the fallback stopped counting errors on a queue without the index");
-
-                        //and writing that same total again changes nothing. The write is wrapped in a retry
-                        //policy, so a transient fault raised after the server had already committed it replays
-                        //the statement - which used to count one real failure twice and cost the message an
-                        //attempt it never used (GitHub #350).
-                        CountOnce(queueConnection, logProvider, oCreation.Scope, 2, 2);
-                        Assert.AreEqual(2, RetryCount(connectionString, errorTable, 2),
-                            "replaying the same total counted a second failure");
-
-                        //and a stale total cannot undo it. A worker whose claim lapsed can still be holding a
-                        //count it read before another worker advanced the row, and that write may land afterwards;
-                        //letting it lower the count would hand the message attempts it had already used.
-                        CountOnce(queueConnection, logProvider, oCreation.Scope, 2, 1);
-                        Assert.AreEqual(2, RetryCount(connectionString, errorTable, 2),
-                            "a stale lower total overwrote a higher one");
-                    }
-                    finally
+                }
+                finally
                     {
                         oCreation.RemoveQueue();
                         oCreation.Dispose();
@@ -206,8 +182,28 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
             using (var container = Container(logProvider, scope))
             using (var admin = container.CreateAdminContainer(queueConnection))
             {
-                var query = admin.GetInstance<IQueryHandler<GetErrorTrackingUniqueIndexExistsQuery, bool>>();
-                return query.Handle(new GetErrorTrackingUniqueIndexExistsQuery(errorTable));
+                //the shipped statement, run here rather than a copy of it. The library no longer
+                //exposes a query for this - the error count write has no fallback to choose any more
+                //(GitHub #308) - but schema version 1 still reads it, so this has to stay honest about
+                //what that reads. Asserting against a copy would pass with a broken one in the library.
+                var commandCache = admin.GetInstance<CommandStringCache>();
+                using (var connection = new SQLiteConnection(queueConnection.Connection))
+                {
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText =
+                            commandCache.GetCommand(CommandStringTypes.GetErrorTrackingUniqueIndexExists);
+                        var parameter = command.CreateParameter();
+                        parameter.ParameterName = "@Table";
+                        parameter.Value = errorTable;
+                        command.Parameters.Add(parameter);
+                        using (var reader = command.ExecuteReader())
+                        {
+                            return reader.Read();
+                        }
+                    }
+                }
             }
         }
 

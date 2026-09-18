@@ -172,14 +172,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// </summary>
         InsertMessageBody,
         /// <summary>
-        /// update error count
-        /// </summary>
-        UpdateErrorCount,
-        /// <summary>
-        /// insert error count
-        /// </summary>
-        InsertErrorCount,
-        /// <summary>
         /// get heart beat expired message ids
         /// </summary>
         GetHeartBeatExpiredMessageIds,
@@ -187,10 +179,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// get column names from table
         /// </summary>
         GetColumnNamesFromTable,
-        /// <summary>
-        /// get error record exists
-        /// </summary>
-        GetErrorRecordExists,
         /// <summary>
         /// get error retry count
         /// </summary>
@@ -424,8 +412,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         UpsertErrorCount,
         /// <summary>
         /// Whether the error tracking table carries the unique index on (QueueID, ExceptionType).
-        /// Queues created before it existed do not have one, and the library does not upgrade schemas,
-        /// so the error count write falls back to check-then-write when it is absent.
+        /// Read by schema version 1, which adds the index to a queue created before it existed and has
+        /// to know whether one is already there - a queue created after #299 has the index while still
+        /// reading as version 0, and creating it twice would fail (GitHub #308).
         /// </summary>
         GetErrorTrackingUniqueIndexExists,
     }
