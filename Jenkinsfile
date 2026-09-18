@@ -94,16 +94,20 @@ XML
 pipeline {
     agent none
 
-    // Serialize all Jenkinsfile runs across the entire repository — only one
-    // pipeline (PR, master, or any branch) executes at a time. The 14-stage
-    // parallel matrix consumes a large slice of the agent pool per run; without
-    // this lock, two concurrent PRs can saturate it. Queued runs wait their
-    // turn rather than starve agents from each other. Lockable Resources plugin
-    // provides this — the named resource doesn't need to be pre-defined; it's
-    // created on first use.
-    options {
-        lock(resource: 'dotnetworkqueue-ci')
-    }
+    // No build-level lock. There was one - lock(resource: 'dotnetworkqueue-ci') - which let a
+    // single pipeline run at a time across the whole repository. It was added when the integration
+    // suites shared long-lived PostgreSQL, SQL Server and Redis instances, which timed out when
+    // several runners hit them at once. #281 removed the sharing: every stage starts its own
+    // containers, so that cause is gone.
+    //
+    // Removing it cannot raise peak load. The agent pool is what bounds concurrency - 16 slots for
+    // the 16 stages of the parallel matrix - and that bound holds however many builds those stages
+    // belong to. The lock never limited resource usage; it only decided whose stages filled the
+    // slots, and it did so at build granularity where the pool does it at stage granularity.
+    //
+    // What it cost: a build that had to wait ran to roughly twice the usual wall clock. Measured
+    // over 70 master builds, an uncontended one takes a median 11.7 minutes, while builds starting
+    // in the same minute as another came in at 22 to 31 (GitHub #368).
 
     environment {
         DOTNET_CLI_TELEMETRY_OPTOUT = '1'
