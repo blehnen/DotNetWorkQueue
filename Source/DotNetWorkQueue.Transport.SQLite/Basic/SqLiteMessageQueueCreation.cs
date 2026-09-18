@@ -76,6 +76,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             Guard.NotNull(queryTableExists);
             Guard.NotNull(createCommand);
             Guard.NotNull(deleteCommand);
+            Guard.NotNull(schemaVersion);
             Guard.NotNull(creationScope);
 
             _options = new Lazy<SqLiteMessageQueueTransportOptions>(options.Create);

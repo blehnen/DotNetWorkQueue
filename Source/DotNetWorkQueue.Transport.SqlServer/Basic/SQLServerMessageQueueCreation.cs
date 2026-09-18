@@ -75,6 +75,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             Guard.NotNull(queryTableExists);
             Guard.NotNull(createCommand);
             Guard.NotNull(deleteCommand);
+            Guard.NotNull(schemaVersion);
             Guard.NotNull(creationScope);
 
             _options = new Lazy<SqlServerMessageQueueTransportOptions>(options.Create);

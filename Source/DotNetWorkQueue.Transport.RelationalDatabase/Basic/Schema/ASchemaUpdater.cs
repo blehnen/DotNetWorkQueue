@@ -164,7 +164,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
                             startingVersion, startingVersion);
                     }
 
-                    using (var transaction = _transactionFactory.Create(connection).BeginTransaction())
+                    using (var transaction = BeginUpgradeTransaction(connection))
                     {
                         if (!_upgradeLock.TryAcquire(connection, transaction, queueName, LockTimeout))
                         {
@@ -241,6 +241,17 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
             CreateVersionTableIfMissing(connection, transaction);
             WriteVersion(target, connection, transaction);
         }
+
+        /// <summary>
+        /// Starts the transaction the upgrade runs in.
+        /// </summary>
+        /// <param name="connection">The connection.</param>
+        /// <remarks>
+        /// Overridable because one transport's exclusion depends on how the transaction begins rather
+        /// than on a lock it takes. Everything else wants the connection's usual behaviour.
+        /// </remarks>
+        protected virtual DbTransaction BeginUpgradeTransaction(DbConnection connection) =>
+            _transactionFactory.Create(connection).BeginTransaction();
 
         /// <summary>
         /// Adds every version to <see cref="Versions"/>.

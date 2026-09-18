@@ -73,6 +73,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             Guard.NotNull(queryTableExists);
             Guard.NotNull(createCommand);
             Guard.NotNull(deleteCommand);
+            Guard.NotNull(schemaVersion);
             Guard.NotNull(creationScope);
 
             _options = new Lazy<PostgreSqlMessageQueueTransportOptions>(options.Create);

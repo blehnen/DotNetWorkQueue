@@ -16,6 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
+using System.Data.Common;
+using System.Data;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema;
@@ -58,6 +60,21 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic.Schema
         {
             //no versions yet - see the class remarks
         }
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// Serializable explicitly, which System.Data.SQLite turns into BEGIN IMMEDIATE, so the writer
+        /// lock is held from the first statement rather than taken at the first write.
+        ///
+        /// This is what makes SqLiteSchemaUpgradeLock's answer honest. Without it the isolation level
+        /// comes from the connection, and a connection string carrying
+        /// "Default IsolationLevel=ReadCommitted" begins deferred: two upgrades would then both read
+        /// the version before either wrote, and the loser would fail busy rather than wait and find
+        /// the work done. Nothing would be applied twice either way, but the behaviour would depend on
+        /// a setting nothing here controls.
+        /// </remarks>
+        protected override DbTransaction BeginUpgradeTransaction(DbConnection connection) =>
+            connection.BeginTransaction(IsolationLevel.Serializable);
 
         /// <inheritdoc />
         protected override string CreateVersionTableScript(string tableName)
