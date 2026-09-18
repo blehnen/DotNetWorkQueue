@@ -1,14 +1,14 @@
-﻿### Unreleased
-- ⚠️ Fix: the `docs/upgrade/0.12.0` scripts now keep the largest retry count when collapsing duplicate error rows, not their sum, matching what the queue itself does. If you already ran one, affected messages retire earlier than configured and the original counts cannot be recovered (GitHub #374)
-- PostgreSQL queues created before 0.12.0 can be converted to `timestamptz` in place with `IQueueSchemaVersion.UpgradeSchema()`, rather than by editing and running `docs/upgrade/0.12.0/postgresql.sql` per queue (GitHub #374)
-- ⚠️ That conversion needs the time zone the old queue wrote its timestamps in, set with `SetUpgradeSourceTimeZone` on the connection's additional settings. Nothing in the database records it, and guessing would shift every timestamp, so the upgrade refuses until it is told. Queues already on `timestamptz` need nothing (GitHub #374)
-- Fix: disposing a queue while work is still in flight no longer throws `ObjectDisposedException` from the receive, heartbeat or send path. The retry pipeline is skipped for that last call instead, as it already was on the transports (GitHub #135)
-- ⚠️ PostgreSQL queue names can no longer contain a dot. One never worked - the name goes into the DDL unquoted, so the create failed with a syntax error and was then reported as the queue already existing. It is now refused up front (GitHub #375)
-- Fix: two PostgreSQL queues whose names share a long prefix can both be created. Index names longer than 63 bytes were truncated by the server into one name, so the second queue failed to create and was reported as already existing (GitHub #375)
-- ⚠️ A producer or consumer refuses to start against a SQL Server, PostgreSQL or SQLite queue created before this release, throwing `QueueSchemaOutOfDateException`. Call `IQueueSchemaVersion.UpgradeSchema()` once per queue to bring it up to date (GitHub #308)
-- ⚠️ `SqlServerSchemaUpdater`, `PostgreSqlSchemaUpdater` and `SqLiteSchemaUpdater` take a `CommandStringCache`. Only affects code that constructs or subclasses these directly; queues built through the container are unaffected (GitHub #308)
-- ⚠️ The error count write is one statement with no fallback, so it requires the unique index that every queue now has. `GetErrorRecordExistsQuery`, `GetErrorTrackingUniqueIndexExistsQuery` and their handlers are removed; only affects custom relational transports (GitHub #308)
-- Fix: an existing queue can be upgraded in place to get the error-tracking unique index that only newly created queues had, so a failing message no longer gets more attempts than configured when two failures arrive at once. Duplicate rows already written collapse to their highest count (GitHub #299, #308)
+﻿### 0.14.0 — 2026-09-18
+- ⚠️ A producer or consumer refuses to start against a SQL Server, PostgreSQL or SQLite queue made before this release, throwing `QueueSchemaOutOfDateException`. Call `UpgradeSchema()` once per queue (GitHub #308)
+- An existing queue can be upgraded in place rather than re-created. Version 1 adds the error-tracking index that only new queues had, so two workers failing the same message at once no longer cost it an attempt (GitHub #299, #308)
+- PostgreSQL version 2 converts history and metadata timestamps to `timestamptz` in place. That used to mean editing and running a script per queue (GitHub #311, #374)
+- ⚠️ That conversion needs the zone the old queue wrote in, set with `SetUpgradeSourceTimeZone`. Guessing would shift every timestamp, so the upgrade stops and asks. Queues already on `timestamptz` need nothing (GitHub #374)
+- ⚠️ The error count write is one statement now and needs that index. `GetErrorRecordExistsQuery`, `GetErrorTrackingUniqueIndexExistsQuery` and their handlers are gone. Only affects custom relational transports (GitHub #308)
+- ⚠️ `SqlServerSchemaUpdater`, `PostgreSqlSchemaUpdater` and `SqLiteSchemaUpdater` take a `CommandStringCache`. Only affects code that constructs or subclasses these directly (GitHub #308)
+- ⚠️ PostgreSQL queue names can no longer contain a dot. One never worked: the name went into the DDL unquoted, so creation failed and was then reported as the queue already existing (GitHub #375)
+- Fix: two PostgreSQL queues whose names share a long prefix can both be created. Index names over 63 bytes truncated into one name, so the second queue failed and was reported as already existing (GitHub #375)
+- Fix: disposing a queue while work is still in flight no longer throws `ObjectDisposedException` from the receive, heartbeat or send path (GitHub #135)
+- ⚠️ Fix: the `docs/upgrade/0.12.0` scripts keep the largest retry count when collapsing duplicate error rows, not their sum. If you already ran one, affected messages retire early and the original counts are gone (GitHub #374)
 
 ### 0.13.0 — 2026-09-17
 - ⚠️ Creating a producer or consumer now throws `QueueDoesNotExistException` if its queue has not been created. Starting one early used to fail every de-queue on SQL Server and PostgreSQL, and never recover at all on SQLite or LiteDb. Create the queue first. Redis has nothing to create (GitHub #348)
