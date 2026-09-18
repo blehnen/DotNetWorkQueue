@@ -40,6 +40,8 @@ using DotNetWorkQueue.Transport.SqlServer.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.SqlServer.Basic.Time;
 using DotNetWorkQueue.Transport.SqlServer.Decorator;
 using DotNetWorkQueue.Validation;
+using DotNetWorkQueue.Transport.SqlServer.Basic.Schema;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
@@ -118,6 +120,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             container.Register<IDbConnectionFactory, DbConnectionFactory>(LifeStyles.Singleton);
             container.Register<SqlServerMessageQueueSchema>(LifeStyles.Singleton);
             container.Register<IQueueCreation, SqlServerMessageQueueCreation>(LifeStyles.Singleton);
+            //schema upgrades. Registering IQueueSchemaVersion is what makes producers and
+            //consumers check the version at all; a transport that does not register it is never
+            //checked (GitHub #308).
+            container.Register<ISchemaUpgradeLock, SqlServerSchemaUpgradeLock>(LifeStyles.Singleton);
+            container.Register<IQueueSchemaVersion, SqlServerSchemaUpdater>(LifeStyles.Singleton);
+            container.Register<ISchemaVersionStamp, SqlServerSchemaUpdater>(LifeStyles.Singleton);
             container.Register<IJobSchedulerLastKnownEvent, SqlServerJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
             container.Register<SqlServerJobSchema>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, SqlServerSendJobToQueue>(LifeStyles.Singleton);

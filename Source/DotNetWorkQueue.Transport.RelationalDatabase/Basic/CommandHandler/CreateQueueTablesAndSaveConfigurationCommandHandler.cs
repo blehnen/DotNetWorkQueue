@@ -22,6 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Command;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
 {
@@ -36,6 +37,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         private readonly IPrepareCommandHandler<CreateQueueTablesAndSaveConfigurationCommand<ITable>> _prepareCommand;
         private readonly ITransactionFactory _transactionFactory;
         private readonly IPrepareCommandHandler<SaveQueueConfigurationCommand> _prepareSaveConfigurationCommand;
+        private readonly ISchemaVersionStamp _schemaVersionStamp;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateQueueTablesAndSaveConfigurationCommandHandler" /> class.
@@ -45,20 +47,24 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         /// <param name="prepareCommand">The prepare command.</param>
         /// <param name="transactionFactory">The transaction factory.</param>
         /// <param name="prepareSaveConfigurationCommand">The prepare save configuration command.</param>
+        /// <param name="schemaVersionStamp">Records the new queue at the current schema version.</param>
         public CreateQueueTablesAndSaveConfigurationCommandHandler(IOptionsSerialization options,
             IDbConnectionFactory connectionFactory,
             IPrepareCommandHandler<CreateQueueTablesAndSaveConfigurationCommand<ITable>> prepareCommand,
             ITransactionFactory transactionFactory,
-            IPrepareCommandHandler<SaveQueueConfigurationCommand> prepareSaveConfigurationCommand)
+            IPrepareCommandHandler<SaveQueueConfigurationCommand> prepareSaveConfigurationCommand,
+            ISchemaVersionStamp schemaVersionStamp)
         {
             Guard.NotNull(options);
             Guard.NotNull(connectionFactory);
             Guard.NotNull(prepareCommand);
             Guard.NotNull(transactionFactory);
+            Guard.NotNull(schemaVersionStamp);
             Guard.NotNull(prepareSaveConfigurationCommand);
 
             _options = options;
             _connectionFactory = connectionFactory;
+            _schemaVersionStamp = schemaVersionStamp;
             _prepareCommand = prepareCommand;
             _transactionFactory = transactionFactory;
             _prepareSaveConfigurationCommand = prepareSaveConfigurationCommand;
@@ -83,6 +89,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
 
                     //save the configuration
                     SaveConfiguration(conn, trans);
+
+                    //a new queue is built at the latest shape, so record that here rather than
+                    //leave it reading as version zero and being refused as out of date (#308).
+                    //In this transaction, so the queue and its version commit together.
+                    _schemaVersionStamp.MarkCurrent(conn, trans);
+
                     trans.Commit();
                 }
             }

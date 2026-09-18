@@ -39,6 +39,8 @@ using DotNetWorkQueue.Transport.SQLite.Basic.Message;
 using DotNetWorkQueue.Transport.SQLite.Basic.QueryHandler;
 using DotNetWorkQueue.Transport.SQLite.Decorator;
 using DotNetWorkQueue.Validation;
+using DotNetWorkQueue.Transport.SQLite.Basic.Schema;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema;
 using FindExpiredRecordsToDeleteQueryPrepareHandler = DotNetWorkQueue.Transport.SQLite.Basic.QueryPrepareHandler.FindExpiredRecordsToDeleteQueryPrepareHandler;
 using FindRecordsToResetByHeartBeatQueryPrepareHandler = DotNetWorkQueue.Transport.SQLite.Basic.QueryPrepareHandler.FindRecordsToResetByHeartBeatQueryPrepareHandler;
 using FindErrorRecordsToDeleteQueryPrepareHandler = DotNetWorkQueue.Transport.SQLite.Basic.QueryPrepareHandler.FindErrorRecordsToDeleteQueryPrepareHandler;
@@ -84,6 +86,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
             container.Register<SqLiteMessageQueueSchema>(LifeStyles.Singleton);
             container.Register<IQueueCreation, SqLiteMessageQueueCreation>(LifeStyles.Singleton);
+            //schema upgrades. Registering IQueueSchemaVersion is what makes producers and
+            //consumers check the version at all; a transport that does not register it is never
+            //checked (GitHub #308).
+            container.Register<ISchemaUpgradeLock, SqLiteSchemaUpgradeLock>(LifeStyles.Singleton);
+            container.Register<IQueueSchemaVersion, SqLiteSchemaUpdater>(LifeStyles.Singleton);
+            container.Register<ISchemaVersionStamp, SqLiteSchemaUpdater>(LifeStyles.Singleton);
             container.Register<IJobSchedulerLastKnownEvent, SqliteJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, SqliteSendToJobQueue>(LifeStyles.Singleton);
             container.Register<IDbConnectionFactory, DbConnectionFactory>(LifeStyles.Singleton);
