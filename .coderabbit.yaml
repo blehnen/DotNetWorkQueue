@@ -19,8 +19,9 @@ reviews:
         header sweep to production files on purpose. Do not ask for a licence header on a file in
         a test project, and do not report its absence as a finding.
 
-        A file belongs to a test project when its path contains `.Tests/`, `.IntegrationTests/`
-        or `.Integration.Tests/`.
+        A file belongs to a test project when any directory in its path contains `Tests`, which
+        covers `.Tests`, `.Tests.Shared`, `.IntegrationTests`, `.Integration.Tests`,
+        `.IntegrationTests.Shared` and `.E2E.Tests`.
 
     - path: "Source/**/*Tests*/**/*.cs"
       instructions: |
@@ -34,12 +35,3 @@ reviews:
         Integration and end-to-end test classes carry `[Retry(1)]` deliberately, so that a
         transient service fault costs one re-run rather than a red build. The argument is retries
         rather than attempts.
-
-    - path: "Source/**/*Integration*Tests*/**/*.csproj"
-      instructions: |
-        Integration test projects target `net10.0` only, on purpose: CI runs them on Linux Docker
-        agents against that target. Do not ask for `net8.0` to be added here.
-
-        `TreatWarningsAsErrors` and XML documentation generation are enabled for the shipped
-        library projects and deliberately not for test projects. Their absence here is not a
-        finding.
