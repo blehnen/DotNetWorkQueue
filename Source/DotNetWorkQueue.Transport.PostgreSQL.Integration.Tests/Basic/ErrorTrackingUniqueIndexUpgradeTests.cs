@@ -44,9 +44,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
             var result = harness.Updater.UpgradeSchema();
 
             Assert.AreEqual(SchemaUpgradeStatus.Upgraded, result.Status, result.ErrorMessage);
-            Assert.AreEqual(1, result.EndingVersion);
+            //the target rather than a literal: PostgreSQL has a version 2 as well, and this test is
+            //about version 1 having run, not about how many there are
+            Assert.AreEqual(harness.Updater.TargetSchemaVersion, result.EndingVersion);
             Assert.IsTrue(harness.UniqueIndexExists(), "the upgrade did not create the index");
-            Assert.AreEqual(1, harness.Updater.CurrentSchemaVersion);
+            Assert.AreEqual(harness.Updater.TargetSchemaVersion, harness.Updater.CurrentSchemaVersion);
 
             var rows = harness.ReadErrorRows();
             Assert.AreEqual(3, rows.Count, "de-duplication removed rows that were not duplicates");
@@ -69,7 +71,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
             var result = harness.Updater.UpgradeSchema();
 
             Assert.AreEqual(SchemaUpgradeStatus.Upgraded, result.Status, result.ErrorMessage);
-            Assert.AreEqual(1, harness.Updater.CurrentSchemaVersion);
+            Assert.AreEqual(harness.Updater.TargetSchemaVersion, harness.Updater.CurrentSchemaVersion);
             Assert.IsTrue(harness.UniqueIndexExists());
         }
 
