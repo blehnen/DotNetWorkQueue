@@ -25,10 +25,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query
     /// Whether the unique index on the error tracking table's (QueueID, ExceptionType) is present.
     /// </summary>
     /// <remarks>
-    /// Queues created before that index existed do not have it, and the library does not upgrade
-    /// schemas - a user re-creates the queue instead. So the error count write asks once, and falls back
-    /// to check-then-write where the index is missing rather than failing on a statement the older
-    /// schema cannot support.
+    /// Queues created before that index existed do not have it. The error count write asks once, and
+    /// falls back to check-then-write where the index is missing rather than failing on a statement the
+    /// older schema cannot support.
+    ///
+    /// Schema version 1 adds the index to such a queue, so the fallback is what a queue uses between
+    /// being created and being upgraded rather than for good (#308).
     /// </remarks>
     public class GetErrorTrackingUniqueIndexExistsQuery : IQuery<bool>
     {

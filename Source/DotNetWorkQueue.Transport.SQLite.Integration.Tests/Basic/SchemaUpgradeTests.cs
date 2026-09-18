@@ -18,9 +18,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
     /// The schema upgrade framework, exercised through a version that exists only here.
     /// </summary>
     /// <remarks>
-    /// No shipped transport declares a version yet, so without a test-only one there is nothing to
-    /// upgrade and the framework would go out unproven. SQLite carries these because it needs no
-    /// server: the behaviour under test is in the shared base, not in the transport (GitHub #308).
+    /// The version under test is declared here rather than being the shipped one, so that these stay
+    /// about the framework - what it does with a version - while the shipped version's own behaviour
+    /// is covered separately. SQLite carries them because it needs no server: the behaviour under
+    /// test is in the shared base, not in the transport (GitHub #308).
     /// </remarks>
     [TestClass]
     [Retry(1)]
@@ -114,6 +115,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
             try
             {
                 Assert.IsTrue(creation.CreateQueue().Success);
+                //see Harness: without this the queue is already at the shipped version
+                DropSchemaVersionTable(connectionInfo.ConnectionString, queueName);
 
                 using var container = new QueueContainer<SqLiteMessageQueueInit>(
                     c => c.Register<IQueueSchemaVersion, TestSchemaUpdater>(LifeStyles.Singleton));
@@ -183,6 +186,19 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
         }
 
         /// <summary>
+        /// Removes a queue's schema version table, leaving it looking like one created before schema
+        /// versioning existed - which is the only state an upgrade has anything to do.
+        /// </summary>
+        private static void DropSchemaVersionTable(string connectionString, string queueName)
+        {
+            using var connection = new System.Data.SQLite.SQLiteConnection(connectionString);
+            connection.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = $"drop table if exists {queueName}SchemaVersion";
+            command.ExecuteNonQuery();
+        }
+
+        /// <summary>
         /// Creates a queue, and an updater carrying one version, against a temporary SQLite file.
         /// </summary>
         private sealed class Harness : IDisposable
@@ -206,6 +222,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
                 {
                     var created = _creation.CreateQueue();
                     Assert.IsTrue(created.Success, created.ErrorMessage);
+
+                    //CreateQueue stamps the queue at the shipped target version, which is the right
+                    //thing for it to do and the wrong starting point here: there would be nothing to
+                    //upgrade. Dropping the table leaves exactly what a queue created before schema
+                    //versioning existed looks like.
+                    DropSchemaVersionTable(ConnectionString, QueueName);
                 }
 
                 //substitute an updater that has a version, since no shipped one does yet
@@ -272,9 +294,10 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
                 ITableNameHelper tableNameHelper,
                 ISchemaTableProbe tableProbe,
                 ISchemaUpgradeLock upgradeLock,
+                CommandStringCache commandCache,
                 ILogger logger)
                 : base(connectionFactory, transactionFactory, connectionInformation, tableNameHelper,
-                    tableProbe, upgradeLock, logger)
+                    tableProbe, upgradeLock, commandCache, logger)
             {
             }
 

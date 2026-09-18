@@ -168,8 +168,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         /// The fallback for a queue whose error tracking table predates the unique index on
         /// (QueueID, ExceptionType). Two failures of the same message arriving together can each see no
         /// row and each insert one, which reads back as a lower retry count than reality - so the message
-        /// gets more attempts than configured. Nothing can close that without the index; re-create the
-        /// queue to get it.
+        /// gets more attempts than configured. Nothing can close that without the index: upgrade the
+        /// queue's schema to version 1 to get it (#308).
         /// </remarks>
         private void Prepare(SetErrorCountCommand<T> command, DbCommand commandSql, bool recordExists)
         {

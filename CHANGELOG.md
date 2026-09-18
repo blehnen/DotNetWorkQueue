@@ -1,4 +1,9 @@
-﻿### 0.13.0 — 2026-09-17
+﻿### Unreleased
+- ⚠️ A producer or consumer refuses to start against a SQL Server, PostgreSQL or SQLite queue created before this release, throwing `QueueSchemaOutOfDateException`. Call `IQueueSchemaVersion.UpgradeSchema()` once per queue to bring it up to date (GitHub #308)
+- ⚠️ `SqlServerSchemaUpdater`, `PostgreSqlSchemaUpdater` and `SqLiteSchemaUpdater` take a `CommandStringCache`. Only affects code that constructs or subclasses these directly; queues built through the container are unaffected (GitHub #308)
+- Fix: an existing queue can be upgraded in place to get the error-tracking unique index that only newly created queues had, so a failing message no longer gets more attempts than configured when two failures arrive at once. Duplicate rows already written collapse to their highest count (GitHub #299, #308)
+
+### 0.13.0 — 2026-09-17
 - ⚠️ Creating a producer or consumer now throws `QueueDoesNotExistException` if its queue has not been created. Starting one early used to fail every de-queue on SQL Server and PostgreSQL, and never recover at all on SQLite or LiteDb. Create the queue first. Redis has nothing to create (GitHub #348)
 - `IQueueCreation` has a new `RequiresCreation` member and `IContainer` a new `TryGetInstance`. Both have defaults, so existing custom transports and containers keep working (GitHub #348)
 - Fix: LiteDb reports that a queue exists once you have created one. It used to answer no until the first message was sent, so creating the same queue twice never said it already existed, and removing it said there was nothing to remove (GitHub #348)
