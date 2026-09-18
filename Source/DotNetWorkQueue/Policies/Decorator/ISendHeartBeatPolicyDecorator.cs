@@ -42,7 +42,8 @@ namespace DotNetWorkQueue.Policies.Decorator
         /// <inheritdoc />
         public IHeartBeatStatus Send(IMessageContext context)
         {
-            if (_policies.Registry.TryGetPipeline(_policies.Definition.SendHeartBeat, out var pipeline))
+            var pipeline = PolicyLookup.PipelineOrNull(_policies, _policies.Definition.SendHeartBeat);
+            if (pipeline != null)
             {
                 return pipeline.Execute(_ => _handler.Send(context));
             }
@@ -54,7 +55,8 @@ namespace DotNetWorkQueue.Policies.Decorator
         {
             //the same pipeline as the synchronous path - a heartbeat that fails transiently is the same
             //failure whichever member sent it
-            if (_policies.Registry.TryGetPipeline(_policies.Definition.SendHeartBeat, out var pipeline))
+            var pipeline = PolicyLookup.PipelineOrNull(_policies, _policies.Definition.SendHeartBeat);
+            if (pipeline != null)
             {
                 return await pipeline.ExecuteAsync(async _ =>
                     await _handler.SendAsync(context).ConfigureAwait(false)).ConfigureAwait(false);

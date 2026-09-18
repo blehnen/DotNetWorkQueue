@@ -1,4 +1,5 @@
 ﻿### Unreleased
+- Fix: disposing a queue while work is still in flight no longer throws `ObjectDisposedException` from the receive, heartbeat or send path. The retry pipeline is skipped for that last call instead, as it already was on the transports (GitHub #135)
 - ⚠️ PostgreSQL queue names can no longer contain a dot. One never worked - the name goes into the DDL unquoted, so the create failed with a syntax error and was then reported as the queue already existing. It is now refused up front (GitHub #375)
 - Fix: two PostgreSQL queues whose names share a long prefix can both be created. Index names longer than 63 bytes were truncated by the server into one name, so the second queue failed to create and was reported as already existing (GitHub #375)
 - ⚠️ A producer or consumer refuses to start against a SQL Server, PostgreSQL or SQLite queue created before this release, throwing `QueueSchemaOutOfDateException`. Call `IQueueSchemaVersion.UpgradeSchema()` once per queue to bring it up to date (GitHub #308)

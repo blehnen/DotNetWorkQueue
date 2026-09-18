@@ -48,7 +48,8 @@ namespace DotNetWorkQueue.Policies.Decorator
         /// <returns></returns>
         public IQueueOutputMessage Send(IMessage messageToSend, IAdditionalMessageData data)
         {
-            if (_policies.Registry.TryGetPipeline(_policies.Definition.SendMessage, out var pipeline))
+            var pipeline = PolicyLookup.PipelineOrNull(_policies, _policies.Definition.SendMessage);
+            if (pipeline != null)
             {
                 return pipeline.Execute(_ => _handler.Send(messageToSend, data));
             }
@@ -62,7 +63,8 @@ namespace DotNetWorkQueue.Policies.Decorator
         /// <returns></returns>
         public IQueueOutputMessages Send(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
-            if (_policies.Registry.TryGetPipeline(_policies.Definition.SendMessage, out var pipeline))
+            var pipeline = PolicyLookup.PipelineOrNull(_policies, _policies.Definition.SendMessage);
+            if (pipeline != null)
             {
                 return pipeline.Execute(_ => _handler.Send(messages));
             }
@@ -77,7 +79,8 @@ namespace DotNetWorkQueue.Policies.Decorator
         /// <returns></returns>
         public async Task<IQueueOutputMessage> SendAsync(IMessage messageToSend, IAdditionalMessageData data)
         {
-            if (_policies.Registry.TryGetPipeline(_policies.Definition.SendMessageAsync, out var pipeline))
+            var pipeline = PolicyLookup.PipelineOrNull(_policies, _policies.Definition.SendMessageAsync);
+            if (pipeline != null)
             {
                 return await pipeline.ExecuteAsync(async _ => await _handler.SendAsync(messageToSend, data).ConfigureAwait(false)).ConfigureAwait(false);
             }
@@ -91,7 +94,8 @@ namespace DotNetWorkQueue.Policies.Decorator
         /// <returns></returns>
         public async Task<IQueueOutputMessages> SendAsync(List<QueueMessage<IMessage, IAdditionalMessageData>> messages)
         {
-            if (_policies.Registry.TryGetPipeline(_policies.Definition.SendMessageAsync, out var pipeline))
+            var pipeline = PolicyLookup.PipelineOrNull(_policies, _policies.Definition.SendMessageAsync);
+            if (pipeline != null)
             {
                 return await pipeline.ExecuteAsync(async _ => await _handler.SendAsync(messages).ConfigureAwait(false)).ConfigureAwait(false);
             }
