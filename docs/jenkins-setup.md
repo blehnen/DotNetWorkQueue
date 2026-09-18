@@ -24,10 +24,8 @@ This guide walks through setting up the Jenkins master to run the DotNetWorkQueu
 > substitute for it, because it governs which Jenkinsfile is used, not whose source code
 > gets compiled and run.
 
-- Test services accessible from the Docker hosts:
-  - SQL Server on port 1433
-  - PostgreSQL on port 5432
-  - Redis on port 6379
+- No SQL Server, PostgreSQL or Redis instance is needed: the integration suites start
+  their own containers per run (issue #281) on the daemon named by `DOCKER_HOST`.
 
 ## 1. Get the Docker Agent Image
 
@@ -103,49 +101,9 @@ The pipeline runs 13 integration test stages in parallel, so you need at least 1
 
 Go to **Manage Jenkins > Credentials > System > Global credentials > Add Credentials**.
 
-Create four Secret Text credentials:
-
-### SQL Server Connection String
-
-Used by the Dashboard API stage only. The SqlServer and SqlServer Linq transport stages
-start a container per run and own it for the lifetime of the test process (issue #281),
-creating the database and the non-default schemas they need, and reaching the daemon
-through the `DOCKER_HOST` variable set on the agent template in section 3.
-
-- **Kind**: Secret text
-- **ID**: `sqlserver-connstring`
-- **Secret**: Your SQL Server connection string, e.g.:
-  ```
-  Server=<db-host>;Database=IntegrationTests;User Id=sa;Password=<password>;TrustServerCertificate=true;Encrypt=false
-  ```
-
-### PostgreSQL Connection String
-
-Used by the Dashboard API stage only. The PostgreSQL and PostgreSQL Linq transport
-stages start a container per run and own it for the lifetime of the test process
-(issue #281), reaching the daemon through the `DOCKER_HOST` variable set on the agent
-template in section 3.
-
-- **Kind**: Secret text
-- **ID**: `postgresql-connstring`
-- **Secret**: Your PostgreSQL connection string, e.g.:
-  ```
-  Host=<db-host>;Database=integrationtests;Username=postgres;Password=<password>
-  ```
-
-### Redis Connection String
-
-Used by the Dashboard API stage only. The Redis and Redis Linq transport stages no
-longer read a connection string - they start a Redis container per run and own it
-for the lifetime of the test process (issue #281), reaching the daemon through the
-`DOCKER_HOST` variable set on the agent template in section 3.
-
-- **Kind**: Secret text
-- **ID**: `redis-connstring`
-- **Secret**: Your Redis connection string, e.g.:
-  ```
-  <redis-host>,defaultDatabase=1,syncTimeout=15000
-  ```
+Create one Secret Text credential. The SQL Server, PostgreSQL and Redis connection
+strings that used to live here are gone: every integration stage now starts its own
+service containers (issue #281), so no stage reads a connection string.
 
 ### Codecov Token
 
@@ -225,7 +183,8 @@ Note: These services may not respond to curl properly, but the connection attemp
 | "No nodes with label docker" | Docker cloud not configured or hosts unreachable | Check cloud config, verify Docker TCP is open |
 | "docker: not found" in pipeline | Using `docker { image }` agent syntax | Use `agent { label 'docker' }`; the cloud provisions the container |
 | Java version error in agent | JRE in Docker image older than Jenkins master | Match the JRE version in the [dotnetworkqueue-ci](https://github.com/blehnen/dotnetworkqueue-ci) image to your Jenkins master |
-| Connection string errors | Credentials not created or wrong ID | Verify credential IDs match Jenkinsfile: `sqlserver-connstring`, `postgresql-connstring`, `redis-connstring`, `codecov-token` |
+| A stage fails with `DOCKER_HOST is not set on this agent` | The agent template has no `DOCKER_HOST` | Add it to that Docker Cloud template's environment (section 3). Each template points at its own host. |
+| A stage cannot reach its service container | `DOCKER_HOST` names a daemon the agent cannot reach, or the daemon is out of resources | Check the URI is the host's own daemon and that it has room; a SQL Server container needs roughly 2 GB |
 | `connectionstring.txt` not found | File written to wrong path | Connection strings must be in `bin/Debug/net10.0/` (written after build) |
 | SQLite `libdl.so` errors | Missing native library symlink | Pull the latest [dotnetworkqueue-ci](https://github.com/blehnen/dotnetworkqueue-ci) image; it includes the fix |
 | Test host crash (ObjectDisposedException) | Timer callback race on Linux | Fixed in `BaseMonitor.cs`; ensure you have the latest code |

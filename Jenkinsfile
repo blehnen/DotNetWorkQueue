@@ -28,7 +28,7 @@
 // report it as an ordinary connection error.
 //
 // The stale file matters just as much. Agents keep their workspace between builds, so a
-// connectionstring.txt written into the output directory by an earlier build - including
+// connectionstring file written into the output directory by an earlier build - including
 // one from before these stages owned their services - survives, and the suites give an
 // existing file precedence over starting a container. Left alone it would silently send
 // CI back to the shared servers while the build still looked correct.
@@ -36,7 +36,7 @@ def withOwnServiceContainers(String projectDir, Closure body) {
     withEnv(["TEST_PROJECT_DIR=${projectDir}"]) {
         sh '''
             set -eu
-            rm -f "Source/$TEST_PROJECT_DIR/bin/Debug/net10.0/connectionstring.txt"
+            rm -f "Source/$TEST_PROJECT_DIR/bin/Debug/net10.0/"connectionstring*.txt
 
             if [ -z "${DOCKER_HOST:-}" ]; then
                 echo "DOCKER_HOST is not set on this agent." >&2
@@ -502,23 +502,18 @@ pipeline {
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" -c Debug'
-                            withCredentials([
-                                string(credentialsId: 'sqlserver-connstring', variable: 'SQLSERVER_CONN'),
-                                string(credentialsId: 'postgresql-connstring', variable: 'POSTGRESQL_CONN'),
-                                string(credentialsId: 'redis-connstring', variable: 'REDIS_CONN')
-                            ]) {
+                            // No connectionstring files are written here: with none present the
+                            // suite starts its own SQL Server, PostgreSQL and Redis and owns them
+                            // for the run (issue #281). They start on first use, so a filtered run
+                            // covering only the in-process transports starts none of them.
+                            withOwnServiceContainers('DotNetWorkQueue.Dashboard.Api.Integration.Tests') {
                                 sh '''
-                                    echo "$SQLSERVER_CONN" > "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/bin/Debug/net10.0/connectionstring.txt"
-                                    echo "$POSTGRESQL_CONN" > "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/bin/Debug/net10.0/connectionstring-postgresql.txt"
-                                    echo "$REDIS_CONN" > "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/bin/Debug/net10.0/connectionstring-redis.txt"
+                                    dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" \
+                                        -f net10.0 -c Debug \
+                                        /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-dashboard/ \
+                                        --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
                                 '''
                             }
-                            sh '''
-                                dotnet test "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" \
-                                    -f net10.0 -c Debug \
-                                    /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/int-dashboard/ \
-                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
-                            '''
                         }
                         stash includes: 'coverage/**/*.xml', name: 'cov-dashboard', allowEmpty: true
                         stash includes: 'junit-results/**/*.xml', name: 'junit-dashboard', allowEmpty: true

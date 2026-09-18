@@ -42,6 +42,9 @@
     <PackageReference Include="coverlet.msbuild" PrivateAssets="all" />
     <PackageReference Include="MSTest.TestFramework" />
     <PackageReference Include="MSTest.TestAdapter" />
+    <PackageReference Include="Testcontainers.MsSql" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.Redis" />
 </ItemGroup>
 
   <ItemGroup>

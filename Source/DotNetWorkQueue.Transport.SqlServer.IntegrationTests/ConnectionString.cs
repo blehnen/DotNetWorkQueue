@@ -28,7 +28,12 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests
         private const string SqlServerImage = "mcr.microsoft.com/mssql/server:2019-latest";
 
         private const string Database = "IntegrationTests";
-        private const string Password = "IntegrationTests!Pass1";
+        /// <summary>
+        /// Generated per run. A container publishes a port on the docker host for the life of
+        /// the test process, so a password committed to a public repository is one anyone who
+        /// can reach that host could use while a build is running.
+        /// </summary>
+        private static readonly string Password = $"Tc{Guid.NewGuid():N}!aA1";
         private const string ConnectionStringFile = "connectionstring.txt";
 
         /// <summary>

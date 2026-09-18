@@ -73,16 +73,16 @@ dotnet test "Source\DotNetWorkQueue.Transport.Memory.Tests\DotNetWorkQueue.Trans
 dotnet test "Source\DotNetWorkQueue.Transport.Memory.Integration.Tests\DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj"
 dotnet test "Source\DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests\DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj"
 
-# Dashboard API integration tests (Memory/SQLite/LiteDb only, no external services):
+# Dashboard API integration tests (Memory/SQLite/LiteDb only - starts no containers):
 dotnet test "Source\DotNetWorkQueue.Dashboard.Api.Integration.Tests\DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" --filter "FullyQualifiedName~Memory|FullyQualifiedName~Sqlite|FullyQualifiedName~LiteDb"
 
-# Dashboard API integration tests (all transports, requires running services):
+# Dashboard API integration tests (all transports - starts SQL Server, PostgreSQL and Redis containers):
 dotnet test "Source\DotNetWorkQueue.Dashboard.Api.Integration.Tests\DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj"
 ```
 
-Integration tests for SQLite and LiteDb require running instances of those services and connection strings configured in `connectionstring.txt` files within each integration test project. The Dashboard API integration tests read their own `connectionstring-*.txt` files and still use external services too.
+SQLite and LiteDb are file based and need nothing running.
 
-**The Redis, PostgreSQL and SQL Server transport suites do not.** With no `connectionstring.txt` in the output directory, each starts its own container and owns it for the run (issue #281) - both the plain and Linq suites of all three. SQL Server additionally creates its database and the non-default `test1`/`test2` schemas, so it needs nothing prepared by hand. That needs a reachable Docker daemon. Prefer a local one. `DOCKER_HOST=tcp://<host>:2375` reaches a remote daemon, but 2375 is Docker's plaintext, unauthenticated API - anything that can reach it is effectively root on that host - so use it only on a private network limited to trusted machines, and mutual TLS (2376) or an SSH transport otherwise. `docs/jenkins-setup.md` covers the CI side of this. Dropping a `connectionstring.txt` into the output directory still wins, which is how you point a suite at a server you already have.
+**Every suite that needs a server starts its own container** (issue #281): Redis, PostgreSQL and SQL Server, both the plain and Linq suites of each, plus the Dashboard API tests. With no `connectionstring.txt` in the output directory each starts a container and owns it for the run. SQL Server additionally creates its database and the non-default `test1`/`test2` schemas, so nothing has to be prepared by hand. The Dashboard API assembly covers several transports, so it starts each service only on first use - a run filtered to Memory, SQLite and LiteDb starts nothing. That needs a reachable Docker daemon. Prefer a local one. `DOCKER_HOST=tcp://<host>:2375` reaches a remote daemon, but 2375 is Docker's plaintext, unauthenticated API - anything that can reach it is effectively root on that host - so use it only on a private network limited to trusted machines, and mutual TLS (2376) or an SSH transport otherwise. `docs/jenkins-setup.md` covers the CI side of this. Dropping a `connectionstring.txt` into the output directory still wins, which is how you point a suite at a server you already have.
 
 ## Architecture
 
