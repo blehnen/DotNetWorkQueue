@@ -62,7 +62,11 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
                     ConfigurationName,
                     ErrorTrackingName,
                     MetaDataErrorsName,
-                    HistoryName
+                    HistoryName,
+                    //listed so RemoveQueue drops it with the rest. Queues created before schema
+                    //versioning have no such table, which is fine: the delete checks each table
+                    //exists before dropping it.
+                    SchemaVersionName
                 };
                 return tables;
             }
@@ -126,6 +130,9 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 
         /// <inheritdoc />
         public string HistoryName => !string.IsNullOrEmpty(QueueName) ? string.Concat(QueueName, "History") : NameNotSet;
+
+        /// <inheritdoc />
+        public string SchemaVersionName => !string.IsNullOrEmpty(QueueName) ? string.Concat(QueueName, "SchemaVersion") : NameNotSet;
 
         #endregion
     }

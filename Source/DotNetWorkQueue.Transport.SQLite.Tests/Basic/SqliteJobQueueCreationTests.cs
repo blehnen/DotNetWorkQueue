@@ -88,6 +88,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
                 Substitute.For<ICommandHandlerWithOutput<DeleteQueueTablesCommand, QueueRemoveResult>>();
             var scope = creationScope ?? Substitute.For<ICreationScope>();
 
+            //no versions in play here; the creation path only asks it for the target version
+            var schemaVersion = Substitute.For<IQueueSchemaVersion>();
+
             return new SqLiteMessageQueueCreation(
                 connectionInfo,
                 queryTableExists,
@@ -95,7 +98,8 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Basic
                 createSchema,
                 createCommand,
                 deleteCommand,
-                scope);
+                scope,
+                schemaVersion);
         }
     }
 }

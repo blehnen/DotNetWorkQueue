@@ -46,6 +46,8 @@ using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Transport.Shared.Message;
 using DotNetWorkQueue.Validation;
 using Npgsql;
+using DotNetWorkQueue.Transport.PostgreSQL.Basic.Schema;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema;
 using FindExpiredRecordsToDeleteQueryPrepareHandler = DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler.FindExpiredRecordsToDeleteQueryPrepareHandler;
 using FindErrorRecordsToDeleteQueryPrepareHandler = DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler.FindErrorRecordsToDeleteQueryPrepareHandler;
 using FindRecordsToResetByHeartBeatQueryPrepareHandler = DotNetWorkQueue.Transport.PostgreSQL.Basic.QueryPrepareHandler.FindRecordsToResetByHeartBeatQueryPrepareHandler;
@@ -116,6 +118,12 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             container.Register<IDbConnectionFactory, DbConnectionFactory>(LifeStyles.Singleton);
             container.Register<PostgreSqlMessageQueueSchema>(LifeStyles.Singleton);
             container.Register<IQueueCreation, PostgreSqlMessageQueueCreation>(LifeStyles.Singleton);
+            //schema upgrades. Registering IQueueSchemaVersion is what makes producers and
+            //consumers check the version at all; a transport that does not register it is never
+            //checked (GitHub #308).
+            container.Register<ISchemaUpgradeLock, PostgreSqlSchemaUpgradeLock>(LifeStyles.Singleton);
+            container.Register<IQueueSchemaVersion, PostgreSqlSchemaUpdater>(LifeStyles.Singleton);
+            container.Register<ISchemaVersionStamp, PostgreSqlSchemaUpdater>(LifeStyles.Singleton);
             container.Register<IJobSchedulerLastKnownEvent, PostgreSqlJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
             container.Register<IOptionsSerialization, OptionsSerialization>(LifeStyles.Singleton);
             container.Register<PostgreSqlJobSchema>(LifeStyles.Singleton);

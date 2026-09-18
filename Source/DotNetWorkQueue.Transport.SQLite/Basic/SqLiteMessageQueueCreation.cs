@@ -44,6 +44,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             _createCommand;
 
         private readonly ICommandHandlerWithOutput<DeleteQueueTablesCommand, QueueRemoveResult> _deleteCommand;
+        private readonly IQueueSchemaVersion _schemaVersion;
         private readonly Lazy<SqLiteMessageQueueTransportOptions> _options;
         private int _disposeCount;
 
@@ -61,19 +62,21 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <param name="createCommand">The create command.</param>
         /// <param name="deleteCommand">The delete command.</param>
         /// <param name="creationScope">The creation scope.</param>
+        /// <param name="schemaVersion">Reports whether an existing queue needs its schema upgraded.</param>
         public SqLiteMessageQueueCreation(IConnectionInformation connectionInfo, IQueryHandler<GetTableExistsQuery, bool> queryTableExists,
             ISqLiteMessageQueueTransportOptionsFactory options,
             SqLiteMessageQueueSchema createSchema,
             ICommandHandlerWithOutput<CreateQueueTablesAndSaveConfigurationCommand<ITable>, QueueCreationResult> createCommand,
             ICommandHandlerWithOutput<DeleteQueueTablesCommand, QueueRemoveResult> deleteCommand,
-            ICreationScope creationScope
-            )
+            ICreationScope creationScope,
+            IQueueSchemaVersion schemaVersion)
         {
             Guard.NotNull(options);
             Guard.NotNull(createSchema);
             Guard.NotNull(queryTableExists);
             Guard.NotNull(createCommand);
             Guard.NotNull(deleteCommand);
+            Guard.NotNull(schemaVersion);
             Guard.NotNull(creationScope);
 
             _options = new Lazy<SqLiteMessageQueueTransportOptions>(options.Create);
@@ -81,6 +84,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             _queryTableExists = queryTableExists;
             _createCommand = createCommand;
             _deleteCommand = deleteCommand;
+            _schemaVersion = schemaVersion;
             ConnectionInfo = connectionInfo;
             Scope = creationScope;
         }
@@ -127,7 +131,18 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         /// <returns></returns>
         public QueueCreationResult CreateQueue()
         {
-            return !QueueExists ? CreateQueueInternal() : new QueueCreationResult(QueueCreationStatus.AlreadyExists);
+            if (!QueueExists)
+                return CreateQueueInternal();
+
+            //an existing queue is reported, not upgraded and not refused. Upgrading mutates live
+            //data on a call people make routinely from several processes during a rolling deploy;
+            //throwing would break "create if it is not there" for a reason unrelated to creation
+            //(GitHub #308). Target first, so this costs no query until a version exists.
+            var target = _schemaVersion.TargetSchemaVersion;
+            if (target > 0 && _schemaVersion.CurrentSchemaVersion < target)
+                return new QueueCreationResult(QueueCreationStatus.AlreadyExistsSchemaOutOfDate);
+
+            return new QueueCreationResult(QueueCreationStatus.AlreadyExists);
         }
 
         /// <summary>

@@ -139,7 +139,22 @@ namespace DotNetWorkQueue
         /// The transport does not need the queue to be pre-created
         /// </summary>
         /// <remarks>Some transports create data structures as needed.</remarks>
-        NoOp = 5
+        NoOp = 5,
+
+        /// <summary>
+        /// The queue already exists, and its schema is older than this library expects.
+        /// </summary>
+        /// <remarks>
+        /// The queue was not created and was not changed. Creation reports this rather than
+        /// upgrading, because an upgrade mutates live data and this is a call people make
+        /// routinely, from several processes at once during a rolling deploy. It reports rather
+        /// than throwing so that "create if it is not there" keeps working - a caller asking
+        /// whether the queue exists should not get an exception about something else.
+        ///
+        /// Call <see cref="IQueueSchemaVersion.UpgradeSchema"/> to bring it forward. Producers
+        /// and consumers refuse to start until it is (GitHub #308).
+        /// </remarks>
+        AlreadyExistsSchemaOutOfDate = 6
     }
 
     /// <summary>
