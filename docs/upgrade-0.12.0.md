@@ -33,8 +33,17 @@ message could loop instead of reaching the error queue.**
 using the older path, so nothing breaks — the race simply remains.
 
 The script collapses duplicate rows before creating the index, because the index cannot be
-created while they exist. `RetryCount` is **summed**, not discarded: each row counted
-attempts that really happened, so a message keeps the attempts it has already used.
+created while they exist. The surviving row keeps the **largest** `RetryCount` of its group,
+not their sum. The column holds an absolute total of failures so far rather than an
+increment, and the queue's own write already reconciles two values for one pair by taking the
+greater. That write also matches on `(QueueID, ExceptionType)` alone, so it sets every
+duplicate row for the pair to the same value — summing them would roughly double the count and
+send the message to the error queue with attempts still owed to it.
+
+> Earlier copies of these scripts summed instead, on the reasoning that each row had counted
+> real attempts. That holds only for rows inserted and never updated since. If you have
+> already run one, the inflated counts cannot be recovered — the individual rows are gone —
+> and the effect is that affected messages retire earlier than configured (GitHub #374).
 
 ### Timestamps that read back as UTC — PostgreSQL only
 
@@ -111,7 +120,7 @@ The scripts are plain SQL with no client-specific directives, so any client will
 `UpgradeScript0120Tests` in the SQL Server, PostgreSQL and SQLite integration test projects
 builds a queue on the 0.11.0 schema, runs **the file in `docs/upgrade/0.12.0`** — not a copy
 of it — and then asserts the outcome: that the library's own index detection now reports the
-index, that collapsed retry counts were summed rather than lost, that a row which was never
+index, that a collapsed row keeps the largest count of its group, that a row which was never
 duplicated is untouched, and on PostgreSQL that history written before the upgrade reads
 back as the instant it was written at.
 

@@ -43,9 +43,23 @@
 -- this index; without it the code keeps using the old path.
 --
 -- Duplicates are collapsed first, because the index cannot be created while they
--- exist. RetryCount is summed rather than discarded: each row counted attempts
--- that really happened, so summing preserves the total and a message keeps the
--- attempts it has already used.
+-- exist.
+--
+-- The surviving row keeps the LARGEST RetryCount of its group rather than their
+-- sum. The column holds an absolute total of failures so far, not an increment:
+-- the queue's own write is
+--   set retrycount = case when retrycount > @RetryCount then retrycount else @RetryCount end
+-- so where two values exist for one pair the library already takes the greater.
+--
+-- That write also filters on (QueueID, ExceptionType) alone, with no row
+-- identity, so it updates EVERY duplicate row for the pair. Once a pair has been
+-- updated even once both rows hold the same value, and summing them would roughly
+-- double the count - sending the message to the error queue with attempts still
+-- owed to it, which is the very defect this is meant to prevent.
+--
+-- An earlier version of this script summed, on the reasoning that each row had
+-- counted real attempts. That holds only for rows inserted and never updated
+-- since (GitHub #374).
 --
 -- The index name has the table name appended because SQLite's index names are
 -- database-wide rather than scoped to a table, and one file can hold many
@@ -57,7 +71,7 @@ CREATE TEMP TABLE dnwq_upgrade_totals AS
 SELECT MIN(ErrorTrackingID) AS KeepId,
        QueueID,
        ExceptionType,
-       SUM(RetryCount)      AS TotalRetries
+       MAX(RetryCount)      AS KeptRetries
 FROM   YourQueueNameErrorTracking
 GROUP BY QueueID, ExceptionType
 HAVING COUNT(*) > 1;
@@ -72,7 +86,7 @@ WHERE ErrorTrackingID IN (
     WHERE  t.ErrorTrackingID <> d.KeepId);
 
 UPDATE YourQueueNameErrorTracking
-SET    RetryCount = (SELECT d.TotalRetries
+SET    RetryCount = (SELECT d.KeptRetries
                      FROM   dnwq_upgrade_totals d
                      WHERE  d.KeepId = YourQueueNameErrorTracking.ErrorTrackingID)
 WHERE  ErrorTrackingID IN (SELECT KeepId FROM dnwq_upgrade_totals);

@@ -91,9 +91,21 @@ END;
 -- was configured for, and a poison message could loop instead of reaching the
 -- error queue.
 --
--- RetryCount is summed rather than discarded. Each row counted attempts that
--- really happened, so summing preserves the total and a message keeps the
--- attempts it has already used.
+-- The surviving row keeps the LARGEST RetryCount of its group rather than their
+-- sum. The column holds an absolute total of failures so far, not an increment:
+-- the queue's own write is
+--   set retrycount = case when retrycount > @RetryCount then retrycount else @RetryCount end
+-- so where two values exist for one pair the library already takes the greater.
+--
+-- That write also filters on (QueueID, ExceptionType) alone, with no row
+-- identity, so it updates EVERY duplicate row for the pair. Once a pair has been
+-- updated even once both rows hold the same value, and summing them would roughly
+-- double the count - sending the message to the error queue with attempts still
+-- owed to it, which is the very defect this is meant to prevent.
+--
+-- An earlier version of this script summed, on the reasoning that each row had
+-- counted real attempts. That holds only for rows inserted and never updated
+-- since (GitHub #374).
 --
 -- Both statements run in one transaction so a failure cannot leave the rows
 -- collapsed but the totals unwritten.
@@ -105,7 +117,7 @@ BEGIN TRY
         SELECT MIN(ErrorTrackingID) AS KeepId,
                QueueID,
                ExceptionType,
-               SUM(RetryCount)      AS TotalRetries
+               MAX(RetryCount)      AS KeptRetries
         INTO   #totals
         FROM   ' + @Tracking + N' WITH (UPDLOCK, HOLDLOCK)
         GROUP BY QueueID, ExceptionType
@@ -121,7 +133,7 @@ BEGIN TRY
         WHERE  t.ErrorTrackingID <> d.KeepId;
 
         UPDATE t
-        SET    t.RetryCount = d.TotalRetries
+        SET    t.RetryCount = d.KeptRetries
         FROM   ' + @Tracking + N' t
         JOIN   #totals d
           ON   t.ErrorTrackingID = d.KeepId;
@@ -132,7 +144,7 @@ BEGIN TRY
 
     IF @Collapsed > 0
         PRINT N'Collapsed duplicates for ' + CAST(@Collapsed AS nvarchar(20))
-            + N' message/exception pairs, retry counts summed';
+            + N' message/exception pairs, retry counts kept at the highest of each group';
 
     SET @Sql = N'CREATE UNIQUE INDEX IX_QueueIDExceptionType ON '
              + @Tracking + N' (QueueID, ExceptionType)';
