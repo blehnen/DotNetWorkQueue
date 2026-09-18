@@ -96,5 +96,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// The name of the history table.
         /// </value>
         string HistoryName { get; }
+
+        /// <summary>
+        /// Gets the name of the schema version table.
+        /// </summary>
+        /// <remarks>
+        /// Holds one row: the schema version this queue is at. The table being absent means the queue
+        /// predates schema versioning and reads as version zero, which is how every queue created
+        /// before this feature reads (GitHub #308).
+        /// </remarks>
+        string SchemaVersionName { get; }
     }
 }

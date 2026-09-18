@@ -87,6 +87,7 @@ namespace DotNetWorkQueue
             var container = _createContainerInternal().Create(QueueContexts.ConsumerQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
             //guarded before the container is retained, so a refusal does not leave one behind
             GuardQueueExists(container, queueConnection);
+            GuardSchemaCurrent(container, queueConnection);
             Containers.Add(container);
             return container.GetInstance<IConsumerQueue>();
         }
@@ -104,6 +105,7 @@ namespace DotNetWorkQueue
             var container = _createContainerInternal().Create(QueueContexts.ConsumerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, registerServiceInternal, _setOptions);
             //guarded before the container is retained, so a refusal does not leave one behind
             GuardQueueExists(container, queueConnection);
+            GuardSchemaCurrent(container, queueConnection);
             Containers.Add(container);
             return container.GetInstance<IConsumerMethodQueue>();
         }
@@ -122,6 +124,7 @@ namespace DotNetWorkQueue
             var container = _createContainerInternal().Create(QueueContexts.ConsumerQueueAsync, _registerService, queueConnection, _transportInit, ConnectionTypes.Receive, x => { }, _setOptions);
             //guarded before the container is retained, so a refusal does not leave one behind
             GuardQueueExists(container, queueConnection);
+            GuardSchemaCurrent(container, queueConnection);
             Containers.Add(container);
             return container.GetInstance<IConsumerQueueAsync>();
         }
@@ -293,6 +296,7 @@ namespace DotNetWorkQueue
             }
             //guarded before the container is retained, so a refusal does not leave one behind
             GuardQueueExists(container, queueConnection);
+            GuardSchemaCurrent(container, queueConnection);
             Containers.Add(container);
             return container.GetInstance<IConsumerQueueScheduler>();
         }
@@ -358,6 +362,7 @@ namespace DotNetWorkQueue
             }
             //guarded before the container is retained, so a refusal does not leave one behind
             GuardQueueExists(container, queueConnection);
+            GuardSchemaCurrent(container, queueConnection);
             Containers.Add(container);
             return container.GetInstance<IConsumerMethodQueueScheduler>();
         }
@@ -382,6 +387,7 @@ namespace DotNetWorkQueue
             var container = _createContainerInternal().Create(QueueContexts.ProducerQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             //guarded before the container is retained, so a refusal does not leave one behind
             GuardQueueExists(container, queueConnection);
+            GuardSchemaCurrent(container, queueConnection);
             Containers.Add(container);
             return container.GetInstance<IProducerQueue<TMessage>>();
         }
@@ -401,6 +407,7 @@ namespace DotNetWorkQueue
             var container = _createContainerInternal().Create(QueueContexts.ProducerMethodQueue, _registerService, queueConnection, _transportInit, ConnectionTypes.Send, x => { }, _setOptions);
             //guarded before the container is retained, so a refusal does not leave one behind
             GuardQueueExists(container, queueConnection);
+            GuardSchemaCurrent(container, queueConnection);
             Containers.Add(container);
             return container.GetInstance<IProducerMethodQueue>();
         }
@@ -501,6 +508,38 @@ namespace DotNetWorkQueue
         /// per producer or consumer, not one per de-queue, which is what made the previous attempt at
         /// this unusable (GitHub #348).
         /// </remarks>
+        /// <summary>
+        /// Refuses to build a producer or consumer for a queue whose schema is older than this
+        /// library expects.
+        /// </summary>
+        /// <remarks>
+        /// Working against an older schema is the alternative, and it costs a compatibility branch
+        /// per fix, kept for as long as anyone might not have upgraded. Those branches are the least
+        /// exercised code in the transport, so refusing keeps the cost at zero (GitHub #308).
+        ///
+        /// Checked here for the same reason as the queue-exists guard directly below: this is the last
+        /// point the caller is still in control, and it costs one read per producer or consumer rather
+        /// than one per de-queue.
+        ///
+        /// A transport with no schema to drift does not publish IQueueSchemaVersion, and nothing is
+        /// checked for it.
+        /// </remarks>
+        private static void GuardSchemaCurrent(IContainer container, QueueConnection queueConnection)
+        {
+            var schema = container.TryGetInstance<IQueueSchemaVersion>();
+            if (schema == null)
+                return;
+
+            var current = schema.CurrentSchemaVersion;
+            var target = schema.TargetSchemaVersion;
+            if (current >= target)
+                return;
+
+            //the caller gets an exception rather than a queue, so nothing will ever dispose this
+            container.Dispose();
+            throw new QueueSchemaOutOfDateException(queueConnection.Queue, current, target);
+        }
+
         private static void GuardQueueExists(IContainer container, QueueConnection queueConnection)
         {
             //a transport is not obliged to publish one - nothing to check if it does not
