@@ -57,10 +57,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
                 Assert.IsTrue(creation.CreateQueue().Success);
 
                 Send(container, queueConnection);
-                var recovered = WaitFor(() => Volatile.Read(ref handled) >= 2);
+                var recovered = WaitFor(() => Volatile.Read(ref handled) >= 2, RecoveryTimeout);
                 Assert.IsTrue(recovered,
                     $"the consumer stopped handling messages once the queue was recreated; "
                     + $"handled={Volatile.Read(ref handled)}, receive errors={Volatile.Read(ref receiveErrors)}");
+
+                // Recovery is clean, not merely eventual: measured at zero over repeated runs.
+                // #356 is about what these transports report when the queue goes away, so the
+                // count is asserted rather than only mentioned when something else fails.
+                Assert.AreEqual(0, Volatile.Read(ref receiveErrors),
+                    "recovered, but the transport raised receive errors doing it");
             }
             finally
             {
@@ -76,9 +82,16 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
             Assert.IsFalse(result.HasError, result.SendingException?.ToString());
         }
 
-        private static bool WaitFor(Func<bool> condition)
+        /// <summary>
+        /// Recovery after the queue is recreated took 300 ms over repeated runs, so ten seconds is
+        /// wide enough not to flake on a loaded agent while still failing a consumer that never
+        /// comes back - which is the only thing this needs to tell apart.
+        /// </summary>
+        private static readonly TimeSpan RecoveryTimeout = TimeSpan.FromSeconds(10);
+
+        private static bool WaitFor(Func<bool> condition, TimeSpan? timeout = null)
         {
-            var deadline = DateTime.UtcNow.AddSeconds(30);
+            var deadline = DateTime.UtcNow.Add(timeout ?? TimeSpan.FromSeconds(30));
             while (DateTime.UtcNow < deadline)
             {
                 if (condition())
