@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.Transport.PostgreSQL.Basic;
@@ -32,24 +33,30 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
             var second = prefix + "bbb";
             Assert.AreEqual(first.Substring(0, 40), second.Substring(0, 40));
 
-            var creations = new[] { Create(first), Create(second) };
+            //built one at a time and recorded as they are built, so that a failure part way through
+            //still disposes what exists
+            var queues = new List<QueueUnderTest>();
             try
             {
-                foreach (var creation in creations)
+                foreach (var name in new[] { first, second })
                 {
-                    var result = creation.CreateQueue();
+                    queues.Add(new QueueUnderTest(name));
+
+                    var result = queues[queues.Count - 1].Creation.CreateQueue();
                     Assert.IsTrue(result.Success, result.ErrorMessage);
                     //Success is not enough on its own here: the old failure reported
                     //AttemptedToCreateAlreadyExists, which also carries Success, having created nothing
                     Assert.AreEqual(QueueCreationStatus.Success, result.Status);
-                    Assert.IsTrue(creation.QueueExists, "the queue reported as created is not there");
+                    Assert.IsTrue(queues[queues.Count - 1].Creation.QueueExists,
+                        "the queue reported as created is not there");
                 }
             }
             finally
             {
-                foreach (var creation in creations)
+                //each one independently: a failure removing the first must not strand the second
+                foreach (var queue in queues)
                 {
-                    try { creation.RemoveQueue(); } finally { creation.Dispose(); }
+                    queue.Dispose();
                 }
             }
         }
@@ -71,11 +78,49 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
             Assert.AreEqual("dnwq_probe", valid.QueueName);
         }
 
-        private static PostgreSqlMessageQueueCreation Create(string queueName)
+        /// <summary>
+        /// A queue and the container it came from, so that both are disposed and neither is left
+        /// behind on the server if the test fails part way through.
+        /// </summary>
+        private sealed class QueueUnderTest : IDisposable
         {
-            var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
-            var container = new QueueCreationContainer<PostgreSqlMessageQueueInit>();
-            return container.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
+            private readonly QueueCreationContainer<PostgreSqlMessageQueueInit> _container;
+
+            public QueueUnderTest(string queueName)
+            {
+                _container = new QueueCreationContainer<PostgreSqlMessageQueueInit>();
+                try
+                {
+                    Creation = _container.GetQueueCreation<PostgreSqlMessageQueueCreation>(
+                        new QueueConnection(queueName, ConnectionInfo.ConnectionString));
+                }
+                catch
+                {
+                    _container.Dispose();
+                    throw;
+                }
+            }
+
+            public PostgreSqlMessageQueueCreation Creation { get; }
+
+            public void Dispose()
+            {
+                try
+                {
+                    //the queue may not have been created, and removing one that is not there is not a
+                    //reason to leave the rest of this undisposed
+                    Creation.RemoveQueue();
+                }
+                catch (Exception)
+                {
+                    // ignored
+                }
+                finally
+                {
+                    Creation.Dispose();
+                    _container.Dispose();
+                }
+            }
         }
     }
 }

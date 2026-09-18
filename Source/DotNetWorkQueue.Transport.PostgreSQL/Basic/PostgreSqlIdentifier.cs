@@ -83,8 +83,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             //queue names are limited to alphanumerics and underscores, so this is one byte per
             //character in practice. It is done by byte anyway, because the limit is a byte limit and a
             //name that was not validated here would otherwise be cut in the wrong place.
+            //AsSpan rather than Substring: the loop is only counting bytes, and a substring per
+            //iteration allocates a string to throw away
             var length = Math.Min(value.Length, maxBytes);
-            while (length > 0 && Encoding.UTF8.GetByteCount(value.Substring(0, length)) > maxBytes)
+            while (length > 0 && Encoding.UTF8.GetByteCount(value.AsSpan(0, length)) > maxBytes)
             {
                 length--;
             }
