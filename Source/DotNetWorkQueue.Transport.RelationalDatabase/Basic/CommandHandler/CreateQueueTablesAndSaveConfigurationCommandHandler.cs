@@ -59,6 +59,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
             Guard.NotNull(connectionFactory);
             Guard.NotNull(prepareCommand);
             Guard.NotNull(transactionFactory);
+            Guard.NotNull(schemaVersionStamp);
             Guard.NotNull(prepareSaveConfigurationCommand);
 
             _options = options;

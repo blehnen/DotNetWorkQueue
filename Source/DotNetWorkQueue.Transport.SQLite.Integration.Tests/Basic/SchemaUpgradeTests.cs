@@ -6,9 +6,7 @@ using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IoC;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema;
-using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.SQLite.Basic;
 using DotNetWorkQueue.Transport.SQLite.Basic.Schema;
 using Microsoft.Extensions.Logging;
@@ -231,8 +229,20 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
                 return result == null || result == DBNull.Value ? 0 : Convert.ToInt64(result);
             }
 
-            public bool TableExists(string tableName) =>
-                ScalarLong($"select count(*) from sqlite_master where type='table' and name='{tableName}'") == 1;
+            public bool TableExists(string tableName)
+            {
+                //a table name is an identifier everywhere else here, but in this catalog query it is a
+                //value, so it binds rather than being pasted in
+                using var connection = new System.Data.SQLite.SQLiteConnection(ConnectionString);
+                connection.Open();
+                using var command = connection.CreateCommand();
+                command.CommandText = "select count(*) from sqlite_master where type='table' and name=@name";
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = "@name";
+                parameter.Value = tableName;
+                command.Parameters.Add(parameter);
+                return Convert.ToInt64(command.ExecuteScalar()) == 1;
+            }
 
             public void Dispose()
             {
@@ -260,12 +270,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
                 ITransactionFactory transactionFactory,
                 IConnectionInformation connectionInformation,
                 ITableNameHelper tableNameHelper,
-                IQueryHandler<GetTableExistsQuery, bool> tableExists,
-                IQueryHandler<GetTableExistsTransactionQuery, bool> tableExistsInTransaction,
+                ISchemaTableProbe tableProbe,
                 ISchemaUpgradeLock upgradeLock,
                 ILogger logger)
                 : base(connectionFactory, transactionFactory, connectionInformation, tableNameHelper,
-                    tableExists, tableExistsInTransaction, upgradeLock, logger)
+                    tableProbe, upgradeLock, logger)
             {
             }
 
@@ -278,11 +287,11 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
         /// <summary>
         /// A version that creates one table, so "did the script run" is a question with an answer.
         /// </summary>
-        private class MarkerVersion : ASchemaVersion
+        private class MarkerVersion : ISchemaVersion
         {
             public static string MarkerTable(string queueName) => string.Concat(queueName, "UpgradeMarker");
 
-            public override string Script(ITableNameHelper tableNames, DbConnection connection,
+            public string Script(ITableNameHelper tableNames, DbConnection connection,
                 DbTransaction transaction)
             {
                 return $"create table {MarkerTable(tableNames.QueueName)} (Id integer not null primary key);";

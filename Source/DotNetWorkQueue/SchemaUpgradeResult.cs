@@ -106,6 +106,16 @@ namespace DotNetWorkQueue
         /// The upgrade failed. See <see cref="SchemaUpgradeResult.ErrorMessage"/>.
         /// </summary>
         /// <remarks>The schema is unchanged: an upgrade applies completely or not at all.</remarks>
-        Failed = 4
+        Failed = 4,
+
+        /// <summary>
+        /// Another process is upgrading this queue and had not finished. Nothing was changed here.
+        /// </summary>
+        /// <remarks>
+        /// Distinct from <see cref="Failed"/> on purpose. The other process is most likely still
+        /// working rather than broken, so this is a reason to run the upgrade again shortly, not a
+        /// reason to conclude the upgrade cannot be done.
+        /// </remarks>
+        UpgradeInProgressElsewhere = 5
     }
 }

@@ -34,6 +34,7 @@ using DotNetWorkQueue.Transport.Shared.Basic.Command;
 using DotNetWorkQueue.Transport.Shared.Basic.Factory;
 using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using DotNetWorkQueue.Validation;
+using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema;
 
 namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
 {
@@ -59,6 +60,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
             container.Register<CreateJobMetaData>(LifeStyles.Singleton);
             container.Register<IReadColumn, ReadColumn>(LifeStyles.Singleton);
             container.Register<ITransactionFactory, TransactionFactory>(LifeStyles.Singleton);
+            container.Register<ISchemaTableProbe, SchemaTableProbe>(LifeStyles.Singleton);
             container.Register<ICreationScope, CreationScopeNoOp>(LifeStyles.Singleton);
             container.Register<ICorrelationIdFactory, CorrelationIdFactory<TCorrelationId>>(
                 LifeStyles.Singleton);

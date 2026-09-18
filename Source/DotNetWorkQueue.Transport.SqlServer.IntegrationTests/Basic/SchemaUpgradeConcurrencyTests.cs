@@ -5,15 +5,15 @@ using System.Threading.Tasks;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.IntegrationTests.Shared;
 using DotNetWorkQueue.IoC;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic;
-using DotNetWorkQueue.Transport.PostgreSQL.Basic.Schema;
+using DotNetWorkQueue.Transport.SqlServer.Basic;
+using DotNetWorkQueue.Transport.SqlServer.Basic.Schema;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
+namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Basic
 {
     /// <summary>
     /// Two processes upgrading the same queue at once.
@@ -21,9 +21,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
     /// <remarks>
     /// Here rather than in the SQLite suite because this is the test of the lock, and SQLite has no
     /// advisory lock to take - its updater returns true and relies on the database allowing a single
-    /// writer. PostgreSQL's pg_try_advisory_xact_lock is a real lock and is the part carrying risk,
-    /// along with the key being derived deterministically: a per-process hash would give the two
-    /// callers different keys and neither would exclude the other (GitHub #308).
+    /// writer. SQL Server's sp_getapplock is a real lock and is the part carrying risk,
+    /// and an owner of Transaction means it releases however the transaction ends, which is the
+    /// property that stops a process dying mid-upgrade from holding it forever (GitHub #308).
     /// </remarks>
     [TestClass]
     [Retry(1)]
@@ -35,8 +35,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
             var queueName = GenerateQueueName.Create();
             var queueConnection = new QueueConnection(queueName, ConnectionInfo.ConnectionString);
 
-            using var creationContainer = new QueueCreationContainer<PostgreSqlMessageQueueInit>();
-            var creation = creationContainer.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
+            using var creationContainer = new QueueCreationContainer<SqlServerMessageQueueInit>();
+            var creation = creationContainer.GetQueueCreation<SqlServerMessageQueueCreation>(queueConnection);
             try
             {
                 Assert.IsTrue(creation.CreateQueue().Success);
@@ -76,14 +76,14 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
             }
         }
 
-        private static QueueContainer<PostgreSqlMessageQueueInit> NewContainer() =>
-            new QueueContainer<PostgreSqlMessageQueueInit>(
+        private static QueueContainer<SqlServerMessageQueueInit> NewContainer() =>
+            new QueueContainer<SqlServerMessageQueueInit>(
                 c => c.Register<IQueueSchemaVersion, TestSchemaUpdater>(LifeStyles.Singleton));
 
         /// <summary>
         /// A PostgreSQL updater carrying exactly one version, for this test only.
         /// </summary>
-        private class TestSchemaUpdater : PostgreSqlSchemaUpdater
+        private class TestSchemaUpdater : SqlServerSchemaUpdater
         {
             public TestSchemaUpdater(IDbConnectionFactory connectionFactory,
                 ITransactionFactory transactionFactory,

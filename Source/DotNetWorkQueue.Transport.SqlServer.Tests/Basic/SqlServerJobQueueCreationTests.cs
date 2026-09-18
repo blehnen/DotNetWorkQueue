@@ -89,6 +89,9 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
                 Substitute.For<ICommandHandlerWithOutput<DeleteQueueTablesCommand, QueueRemoveResult>>();
             var scope = creationScope ?? Substitute.For<ICreationScope>();
 
+            //no versions in play here; the creation path only asks it for the target version
+            var schemaVersion = Substitute.For<IQueueSchemaVersion>();
+
             return new SqlServerMessageQueueCreation(
                 connectionInfo,
                 queryTableExists,
@@ -96,7 +99,8 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests.Basic
                 createSchema,
                 createCommand,
                 deleteCommand,
-                scope);
+                scope,
+                schemaVersion);
         }
     }
 }

@@ -18,9 +18,7 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema;
-using DotNetWorkQueue.Transport.Shared;
 using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic.Schema
@@ -42,12 +40,11 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Schema
             ITransactionFactory transactionFactory,
             IConnectionInformation connectionInformation,
             ITableNameHelper tableNameHelper,
-            IQueryHandler<GetTableExistsQuery, bool> tableExists,
-            IQueryHandler<GetTableExistsTransactionQuery, bool> tableExistsInTransaction,
+            ISchemaTableProbe tableProbe,
             ISchemaUpgradeLock upgradeLock,
             ILogger logger)
             : base(connectionFactory, transactionFactory, connectionInformation, tableNameHelper,
-                tableExists, tableExistsInTransaction, upgradeLock, logger)
+                tableProbe, upgradeLock, logger)
         {
         }
 
@@ -63,12 +60,18 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic.Schema
         }
 
         /// <inheritdoc />
+        /// <remarks>
+        /// The primary key is left unnamed on purpose. Table names here are schema qualified -
+        /// SqlServerTableNameHelper returns dbo.TheQueue - so a constraint named after the table
+        /// would contain a dot and the batch fails with "Incorrect syntax near '.'". Constraint
+        /// names are database scoped in SQL Server, so the generated name is unique regardless.
+        /// </remarks>
         protected override string CreateVersionTableScript(string tableName)
         {
             return $@"IF OBJECT_ID('{tableName}', 'U') IS NULL
                       CREATE TABLE {tableName}
                       (
-                          Id int NOT NULL CONSTRAINT PK_{tableName} PRIMARY KEY CHECK (Id = 1),
+                          Id int NOT NULL PRIMARY KEY CHECK (Id = 1),
                           Version bigint NOT NULL,
                           LastUpdated datetime2(7) NOT NULL
                       );";

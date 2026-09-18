@@ -20,8 +20,6 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
-using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
 
@@ -44,21 +42,29 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ITransactionFactory _transactionFactory;
         private readonly IConnectionInformation _connectionInformation;
-        private readonly IQueryHandler<GetTableExistsQuery, bool> _tableExists;
-        private readonly IQueryHandler<GetTableExistsTransactionQuery, bool> _tableExistsInTransaction;
+        private readonly ISchemaTableProbe _tableProbe;
         private readonly ISchemaUpgradeLock _upgradeLock;
         private readonly object _versionsLoaded = new object();
-        private bool _loaded;
+
+        //volatile: read outside the lock on the fast path of a double-checked load, so without it the
+        //dictionary could be seen before the writes that filled it
+        private volatile bool _loaded;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ASchemaUpdater"/> class.
         /// </summary>
+        /// <param name="connectionFactory">The connection factory.</param>
+        /// <param name="transactionFactory">The transaction factory.</param>
+        /// <param name="connectionInformation">The connection information.</param>
+        /// <param name="tableNameHelper">The table names for this queue.</param>
+        /// <param name="tableProbe">Answers whether a table exists.</param>
+        /// <param name="upgradeLock">Stops two processes upgrading at once.</param>
+        /// <param name="logger">The logger.</param>
         protected ASchemaUpdater(IDbConnectionFactory connectionFactory,
             ITransactionFactory transactionFactory,
             IConnectionInformation connectionInformation,
             ITableNameHelper tableNameHelper,
-            IQueryHandler<GetTableExistsQuery, bool> tableExists,
-            IQueryHandler<GetTableExistsTransactionQuery, bool> tableExistsInTransaction,
+            ISchemaTableProbe tableProbe,
             ISchemaUpgradeLock upgradeLock,
             ILogger logger)
         {
@@ -66,20 +72,18 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
             Guard.NotNull(transactionFactory);
             Guard.NotNull(connectionInformation);
             Guard.NotNull(tableNameHelper);
-            Guard.NotNull(tableExists);
-            Guard.NotNull(tableExistsInTransaction);
+            Guard.NotNull(tableProbe);
             Guard.NotNull(upgradeLock);
 
             _connectionFactory = connectionFactory;
             _transactionFactory = transactionFactory;
             _connectionInformation = connectionInformation;
-            _tableExists = tableExists;
-            _tableExistsInTransaction = tableExistsInTransaction;
+            _tableProbe = tableProbe;
             _upgradeLock = upgradeLock;
 
             TableNameHelper = tableNameHelper;
             Logger = logger;
-            Versions = new SortedDictionary<long, ASchemaVersion>();
+            Versions = new SortedDictionary<long, ISchemaVersion>();
         }
 
         /// <summary>
@@ -95,7 +99,12 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
         /// <summary>
         /// Every version, lowest first.
         /// </summary>
-        protected SortedDictionary<long, ASchemaVersion> Versions { get; }
+        /// <remarks>
+        /// Numbered from one and contiguous. A gap is treated as a fault rather than skipped, because
+        /// a queue sitting in the gap would be told it had reached the target without the missing
+        /// version ever running.
+        /// </remarks>
+        protected SortedDictionary<long, ISchemaVersion> Versions { get; }
 
         /// <summary>
         /// How long to wait for the upgrade lock before concluding another process has it.
@@ -118,11 +127,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
             get
             {
                 //a queue that is not there has no version, and saying 0 would read as "needs upgrading"
-                if (!_tableExists.Handle(new GetTableExistsQuery(_connectionInformation.ConnectionString,
-                        TableNameHelper.QueueName)))
-                {
+                if (!_tableProbe.Exists(_connectionInformation.ConnectionString, TableNameHelper.QueueName))
                     return TargetSchemaVersion;
-                }
 
                 using (var connection = _connectionFactory.Create())
                 {
@@ -137,15 +143,15 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
         {
             EnsureVersionsLoaded();
             var target = TargetSchemaVersion;
+            var queueName = TableNameHelper.QueueName;
 
-            if (!_tableExists.Handle(new GetTableExistsQuery(_connectionInformation.ConnectionString,
-                    TableNameHelper.QueueName)))
+            if (!_tableProbe.Exists(_connectionInformation.ConnectionString, queueName))
             {
                 return new SchemaUpgradeResult(SchemaUpgradeStatus.QueueDoesNotExist, 0, 0,
-                    $"The queue {TableNameHelper.QueueName} does not exist.");
+                    $"The queue {queueName} does not exist.");
             }
 
-            long startingVersion;
+            var startingVersion = 0L;
             try
             {
                 using (var connection = _connectionFactory.Create())
@@ -160,13 +166,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
 
                     using (var transaction = _transactionFactory.Create(connection).BeginTransaction())
                     {
-
-                        if (!_upgradeLock.TryAcquire(connection, transaction,
-                                TableNameHelper.QueueName, LockTimeout))
+                        if (!_upgradeLock.TryAcquire(connection, transaction, queueName, LockTimeout))
                         {
-                            //someone else is upgrading. Not a failure of ours - report what they left.
                             transaction.Rollback();
-                            return VersionAfterAnotherProcess(startingVersion, target);
+                            return AfterLosingTheLock(startingVersion, target);
                         }
 
                         //re-read under the lock: the process we queued behind may have done the work
@@ -174,19 +177,27 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
                         if (current >= target)
                         {
                             transaction.Rollback();
-                            return new SchemaUpgradeResult(SchemaUpgradeStatus.AlreadyCurrent,
-                                current, current);
+                            return new SchemaUpgradeResult(SchemaUpgradeStatus.AlreadyCurrent, current, current);
+                        }
+
+                        var missing = FirstMissingVersionAfter(current);
+                        if (missing.HasValue)
+                        {
+                            transaction.Rollback();
+                            return new SchemaUpgradeResult(SchemaUpgradeStatus.Failed, current, current,
+                                $"Version {missing.Value} is missing, so the queue cannot be taken from " +
+                                $"{current} to {target} without skipping it.");
                         }
 
                         Logger?.LogInformation(
                             "Upgrading the schema for {Queue} from version {Current} to {Target}",
-                            TableNameHelper.QueueName, current, target);
+                            queueName, current, target);
 
                         CreateVersionTableIfMissing(connection, transaction);
 
                         foreach (var version in Versions.Where(x => x.Key > current).OrderBy(x => x.Key))
                         {
-                            Apply(version.Key, version.Value, connection, transaction);
+                            Apply(version.Key, version.Value, queueName, connection, transaction);
                             WriteVersion(version.Key, connection, transaction);
                         }
 
@@ -202,17 +213,18 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
 
                         transaction.Commit();
                         Logger?.LogInformation("Upgraded the schema for {Queue} to version {Target}",
-                            TableNameHelper.QueueName, target);
+                            queueName, target);
                         return new SchemaUpgradeResult(SchemaUpgradeStatus.Upgraded, startingVersion, target);
                     }
                 }
             }
             catch (Exception error)
             {
-                //the transaction is gone, so the schema is whatever it was before this ran
-                Logger?.LogError(error, "Failed to upgrade the schema for {Queue}",
-                    TableNameHelper.QueueName);
-                return new SchemaUpgradeResult(SchemaUpgradeStatus.Failed, 0, 0, error.Message);
+                //the transaction is gone, so the schema is whatever it was before this ran - report that
+                //version rather than zero, which would read as "this queue has never been upgraded"
+                Logger?.LogError(error, "Failed to upgrade the schema for {Queue}", queueName);
+                return new SchemaUpgradeResult(SchemaUpgradeStatus.Failed, startingVersion, startingVersion,
+                    error.Message);
             }
         }
 
@@ -248,6 +260,27 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
         /// <param name="versionParameterName">The parameter holding the version, including its prefix.</param>
         protected abstract string WriteVersionScript(string tableName, string versionParameterName);
 
+        /// <summary>
+        /// The first version between <paramref name="current"/> and the target that is not registered.
+        /// </summary>
+        /// <remarks>
+        /// Applying "everything above the current version" silently tolerates a gap: with versions 1
+        /// and 3 registered, a queue at 1 would run 3, be stamped 3 and be reported as fully upgraded,
+        /// having never run 2. Whatever 2 was supposed to do is then missing forever, and nothing says
+        /// so. Refusing before touching anything is the only honest answer.
+        /// </remarks>
+        private long? FirstMissingVersionAfter(long current)
+        {
+            var target = TargetSchemaVersion;
+            for (var expected = current + 1; expected <= target; expected++)
+            {
+                if (!Versions.ContainsKey(expected))
+                    return expected;
+            }
+
+            return null;
+        }
+
         private void EnsureVersionsLoaded()
         {
             if (_loaded)
@@ -263,17 +296,24 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
             }
         }
 
-        private SchemaUpgradeResult VersionAfterAnotherProcess(long startingVersion, long target)
+        /// <summary>
+        /// What to report when another process holds the lock.
+        /// </summary>
+        private SchemaUpgradeResult AfterLosingTheLock(long startingVersion, long target)
         {
             using (var connection = _connectionFactory.Create())
             {
                 connection.Open();
                 var current = ReadVersion(connection, null);
-                return current >= target
-                    ? new SchemaUpgradeResult(SchemaUpgradeStatus.AlreadyCurrent, startingVersion, current)
-                    : new SchemaUpgradeResult(SchemaUpgradeStatus.Failed, startingVersion, current,
-                        "Another process holds the upgrade lock and the schema is still out of date. " +
-                        "Wait for it to finish and try again.");
+                if (current >= target)
+                    return new SchemaUpgradeResult(SchemaUpgradeStatus.AlreadyCurrent, startingVersion, current);
+
+                //the holder may still be mid-upgrade rather than failed, so this is its own status:
+                //reporting Failed would invite a caller to treat a running upgrade as a dead one
+                return new SchemaUpgradeResult(SchemaUpgradeStatus.UpgradeInProgressElsewhere,
+                    startingVersion, current,
+                    "Another process holds the upgrade lock and has not finished. Nothing was changed " +
+                    "here; run the upgrade again once it has.");
             }
         }
 
@@ -281,10 +321,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
         {
             //no table means the queue predates versioning, which reads as zero rather than as an error
             var exists = transaction == null
-                ? _tableExists.Handle(new GetTableExistsQuery(_connectionInformation.ConnectionString,
-                    TableNameHelper.SchemaVersionName))
-                : _tableExistsInTransaction.Handle(new GetTableExistsTransactionQuery(connection, transaction,
-                    TableNameHelper.SchemaVersionName));
+                ? _tableProbe.Exists(_connectionInformation.ConnectionString, TableNameHelper.SchemaVersionName)
+                : _tableProbe.Exists(connection, transaction, TableNameHelper.SchemaVersionName);
 
             if (!exists)
                 return 0;
@@ -294,6 +332,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
                 if (transaction != null)
                     command.Transaction = transaction;
 
+                //the table name is an identifier, which no provider here will bind as a parameter, and
+                //it comes from ITableNameHelper rather than from a caller at this point
                 command.CommandText = $"select Version from {TableNameHelper.SchemaVersionName}";
                 var result = command.ExecuteScalar();
                 return result == null || result == DBNull.Value ? 0 : Convert.ToInt64(result);
@@ -328,8 +368,8 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
             }
         }
 
-        private void Apply(long versionNumber, ASchemaVersion version, DbConnection connection,
-            DbTransaction transaction)
+        private void Apply(long versionNumber, ISchemaVersion version, string queueName,
+            DbConnection connection, DbTransaction transaction)
         {
             var script = version.Script(TableNameHelper, connection, transaction);
             if (string.IsNullOrWhiteSpace(script))
@@ -338,8 +378,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
                     $"Schema version {versionNumber} ({version.GetType().Name}) produced an empty script.");
             }
 
-            Logger?.LogInformation("Applying schema version {Version} to {Queue}", versionNumber,
-                TableNameHelper.QueueName);
+            Logger?.LogInformation("Applying schema version {Version} to {Queue}", versionNumber, queueName);
 
             using (var command = connection.CreateCommand())
             {

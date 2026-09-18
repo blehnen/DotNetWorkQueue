@@ -32,7 +32,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
     /// believes about itself, and nothing will ever tell you - a new version is the only safe way to
     /// correct a released one.
     /// </remarks>
-    public abstract class ASchemaVersion
+    public interface ISchemaVersion
     {
         /// <summary>
         /// The script that moves the schema to this version.
@@ -50,7 +50,6 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
         /// here because it runs against data nobody has looked at.
         /// </remarks>
         /// <returns>The script. Never null or empty.</returns>
-        public abstract string Script(ITableNameHelper tableNames, DbConnection connection,
-            DbTransaction transaction);
+        string Script(ITableNameHelper tableNames, DbConnection connection, DbTransaction transaction);
     }
 }

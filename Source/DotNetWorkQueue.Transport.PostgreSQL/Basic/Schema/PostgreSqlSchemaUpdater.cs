@@ -18,9 +18,7 @@
 // ---------------------------------------------------------------------
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema;
-using DotNetWorkQueue.Transport.Shared;
 using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Schema
@@ -42,12 +40,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Schema
             ITransactionFactory transactionFactory,
             IConnectionInformation connectionInformation,
             ITableNameHelper tableNameHelper,
-            IQueryHandler<GetTableExistsQuery, bool> tableExists,
-            IQueryHandler<GetTableExistsTransactionQuery, bool> tableExistsInTransaction,
+            ISchemaTableProbe tableProbe,
             ISchemaUpgradeLock upgradeLock,
             ILogger logger)
             : base(connectionFactory, transactionFactory, connectionInformation, tableNameHelper,
-                tableExists, tableExistsInTransaction, upgradeLock, logger)
+                tableProbe, upgradeLock, logger)
         {
         }
 
