@@ -123,6 +123,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic
             //checked (GitHub #308).
             container.Register<ISchemaUpgradeLock, PostgreSqlSchemaUpgradeLock>(LifeStyles.Singleton);
             container.Register<IQueueSchemaVersion, PostgreSqlSchemaUpdater>(LifeStyles.Singleton);
+            container.Register<ISchemaVersionStamp, PostgreSqlSchemaUpdater>(LifeStyles.Singleton);
             container.Register<IJobSchedulerLastKnownEvent, PostgreSqlJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
             container.Register<IOptionsSerialization, OptionsSerialization>(LifeStyles.Singleton);
             container.Register<PostgreSqlJobSchema>(LifeStyles.Singleton);

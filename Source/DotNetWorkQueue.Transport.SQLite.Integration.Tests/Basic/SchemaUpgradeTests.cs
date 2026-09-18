@@ -146,6 +146,44 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
             }
         }
 
+        [TestMethod]
+        public void ANewQueueIsCreatedAtTheCurrentVersion_AndIsNotRefused()
+        {
+            using var connectionInfo = new IntegrationConnectionInfo(false);
+            var queueName = GenerateQueueName.Create();
+            var queueConnection = new QueueConnection(queueName, connectionInfo.ConnectionString);
+
+            //the stamp is overridden for creation, so the queue is built as though version 1 shipped
+            using var creationContainer = new QueueCreationContainer<SqLiteMessageQueueInit>(
+                c => c.Register<ISchemaVersionStamp, TestSchemaUpdater>(LifeStyles.Singleton));
+            var creation = creationContainer.GetQueueCreation<SqLiteMessageQueueCreation>(queueConnection);
+            try
+            {
+                Assert.IsTrue(creation.CreateQueue().Success);
+
+                using var container = new QueueContainer<SqLiteMessageQueueInit>(
+                    c => c.Register<IQueueSchemaVersion, TestSchemaUpdater>(LifeStyles.Singleton));
+                using var admin = container.CreateAdminContainer(queueConnection);
+                var updater = admin.GetInstance<IQueueSchemaVersion>();
+
+                //without the stamp this reads 0, and everything below is refused for a queue that was
+                //built at the latest shape and needs nothing doing to it
+                Assert.AreEqual(1, updater.CurrentSchemaVersion,
+                    "a newly created queue was not recorded at the current version");
+                Assert.AreEqual(SchemaUpgradeStatus.AlreadyCurrent, updater.UpgradeSchema().Status);
+
+                using var consumer = container.CreateConsumer(queueConnection);
+                using var producer = container.CreateProducer<FakeMessage>(queueConnection);
+                Assert.IsNotNull(consumer);
+                Assert.IsNotNull(producer);
+            }
+            finally
+            {
+                creation.RemoveQueue();
+                creation.Dispose();
+            }
+        }
+
         /// <summary>
         /// Creates a queue, and an updater carrying one version, against a temporary SQLite file.
         /// </summary>

@@ -39,7 +39,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
     /// nothing else attached to it. That is what makes a plain locking CREATE INDEX acceptable here and
     /// removes the need for PostgreSQL's CONCURRENTLY, which cannot run inside a transaction anyway.
     /// </remarks>
-    public abstract class ASchemaUpdater : IQueueSchemaVersion
+    public abstract class ASchemaUpdater : IQueueSchemaVersion, ISchemaVersionStamp
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly ITransactionFactory _transactionFactory;
@@ -214,6 +214,20 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
                     TableNameHelper.QueueName);
                 return new SchemaUpgradeResult(SchemaUpgradeStatus.Failed, 0, 0, error.Message);
             }
+        }
+
+        /// <inheritdoc />
+        public void MarkCurrent(DbConnection connection, DbTransaction transaction)
+        {
+            EnsureVersionsLoaded();
+            var target = TargetSchemaVersion;
+
+            //nothing to record until this transport has a version, so a new queue pays nothing
+            if (target == 0)
+                return;
+
+            CreateVersionTableIfMissing(connection, transaction);
+            WriteVersion(target, connection, transaction);
         }
 
         /// <summary>

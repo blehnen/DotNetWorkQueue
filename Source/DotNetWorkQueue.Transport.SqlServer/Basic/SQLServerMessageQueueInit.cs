@@ -125,6 +125,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             //checked (GitHub #308).
             container.Register<ISchemaUpgradeLock, SqlServerSchemaUpgradeLock>(LifeStyles.Singleton);
             container.Register<IQueueSchemaVersion, SqlServerSchemaUpdater>(LifeStyles.Singleton);
+            container.Register<ISchemaVersionStamp, SqlServerSchemaUpdater>(LifeStyles.Singleton);
             container.Register<IJobSchedulerLastKnownEvent, SqlServerJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
             container.Register<SqlServerJobSchema>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, SqlServerSendJobToQueue>(LifeStyles.Singleton);

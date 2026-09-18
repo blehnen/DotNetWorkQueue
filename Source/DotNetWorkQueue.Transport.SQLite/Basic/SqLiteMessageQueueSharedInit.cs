@@ -91,6 +91,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             //checked (GitHub #308).
             container.Register<ISchemaUpgradeLock, SqLiteSchemaUpgradeLock>(LifeStyles.Singleton);
             container.Register<IQueueSchemaVersion, SqLiteSchemaUpdater>(LifeStyles.Singleton);
+            container.Register<ISchemaVersionStamp, SqLiteSchemaUpdater>(LifeStyles.Singleton);
             container.Register<IJobSchedulerLastKnownEvent, SqliteJobSchedulerLastKnownEvent>(LifeStyles.Singleton);
             container.Register<ISendJobToQueue, SqliteSendToJobQueue>(LifeStyles.Singleton);
             container.Register<IDbConnectionFactory, DbConnectionFactory>(LifeStyles.Singleton);
