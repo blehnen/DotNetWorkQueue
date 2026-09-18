@@ -1,4 +1,6 @@
 ﻿### Unreleased
+- ⚠️ PostgreSQL queue names can no longer contain a dot. One never worked - the name goes into the DDL unquoted, so the create failed with a syntax error and was then reported as the queue already existing. It is now refused up front (GitHub #375)
+- Fix: two PostgreSQL queues whose names share a long prefix can both be created. Index names longer than 63 bytes were truncated by the server into one name, so the second queue failed to create and was reported as already existing (GitHub #375)
 - ⚠️ A producer or consumer refuses to start against a SQL Server, PostgreSQL or SQLite queue created before this release, throwing `QueueSchemaOutOfDateException`. Call `IQueueSchemaVersion.UpgradeSchema()` once per queue to bring it up to date (GitHub #308)
 - ⚠️ `SqlServerSchemaUpdater`, `PostgreSqlSchemaUpdater` and `SqLiteSchemaUpdater` take a `CommandStringCache`. Only affects code that constructs or subclasses these directly; queues built through the container are unaffected (GitHub #308)
 - ⚠️ The error count write is one statement with no fallback, so it requires the unique index that every queue now has. `GetErrorRecordExistsQuery`, `GetErrorTrackingUniqueIndexExistsQuery` and their handlers are removed; only affects custom relational transports (GitHub #308)

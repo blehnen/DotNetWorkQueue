@@ -48,10 +48,27 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
         }
 
         [TestMethod]
-        public void QueueName_Valid_WithUnderscoreAndDot()
+        public void QueueName_Valid_WithUnderscore()
         {
-            var test = new SqlConnectionInformation(new QueueConnection("my_queue.v2", GoodConnection));
+            var test = new SqlConnectionInformation(new QueueConnection("my_queue_v2", GoodConnection));
             Assert.IsNotNull(test);
+        }
+
+        /// <summary>
+        /// A dot was accepted here and could never be created: the name is written into the DDL
+        /// unquoted, so PostgreSQL reads it as a schema separator and CREATE TABLE fails with a syntax
+        /// error - which was then reported as the queue already existing, with Success (GitHub #375).
+        /// </summary>
+        [TestMethod]
+        public void QueueName_Invalid_WithDot()
+        {
+            var error = Assert.ThrowsExactly<ArgumentException>(
+                delegate
+                {
+                    var test = new SqlConnectionInformation(new QueueConnection("my_queue.v2", GoodConnection));
+                });
+
+            Assert.Contains("underscores", error.Message, "the message does not say what is allowed");
         }
 
         [TestMethod]
