@@ -47,6 +47,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler
         /// <param name="prepareCommand">The prepare command.</param>
         /// <param name="transactionFactory">The transaction factory.</param>
         /// <param name="prepareSaveConfigurationCommand">The prepare save configuration command.</param>
+        /// <param name="schemaVersionStamp">Records the new queue at the current schema version.</param>
         public CreateQueueTablesAndSaveConfigurationCommandHandler(IOptionsSerialization options,
             IDbConnectionFactory connectionFactory,
             IPrepareCommandHandler<CreateQueueTablesAndSaveConfigurationCommand<ITable>> prepareCommand,
