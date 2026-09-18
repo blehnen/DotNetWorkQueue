@@ -68,12 +68,13 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Basic
                     Assert.AreEqual(1, RowCount(connectionString, errorTable, 1, "System.Exception"));
                     Assert.AreEqual(1, RowCount(connectionString, errorTable, 3, "System.Exception"));
 
-                    //summed, not discarded - each row counted attempts that really happened, and a
-                    //message that loses them silently gets more retries than it is configured for
-                    Assert.AreEqual(5, RetryCount(connectionString, errorTable, 1, "System.Exception"),
-                        "the retry counts of the collapsed rows were not preserved");
-                    Assert.AreEqual(7, RetryCount(connectionString, errorTable, 3, "System.Exception"),
-                        "the retry counts of the collapsed rows were not preserved");
+                    //the largest of the group, not their sum. RetryCount is an absolute total, and
+                    //the queue's own write already takes the greater of the stored and supplied value,
+                    //so summing would roughly double it and retire the message early (GitHub #374)
+                    Assert.AreEqual(3, RetryCount(connectionString, errorTable, 1, "System.Exception"),
+                        "the surviving row does not carry the largest count of its group");
+                    Assert.AreEqual(4, RetryCount(connectionString, errorTable, 3, "System.Exception"),
+                        "the surviving row does not carry the largest count of its group");
 
                     //a row that was never duplicated has to come through untouched
                     Assert.AreEqual(1, RetryCount(connectionString, errorTable, 2, "System.InvalidOperationException"),
@@ -115,7 +116,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Basic
 
                     Assert.AreEqual(1, RowCount(connectionString, errorTable, 1, "System.Exception"));
                     //the second run must not sum an already-summed value again
-                    Assert.AreEqual(5, RetryCount(connectionString, errorTable, 1, "System.Exception"),
+                    Assert.AreEqual(3, RetryCount(connectionString, errorTable, 1, "System.Exception"),
                         "running the script twice changed the retry count");
                 }
                 finally

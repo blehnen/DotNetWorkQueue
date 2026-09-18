@@ -39,9 +39,23 @@
 -- this index; without it the code keeps using the old path.
 --
 -- Duplicate rows are collapsed first, because the index cannot be created while
--- they exist. Their RetryCount values are summed rather than discarded: each row
--- counted attempts that really happened, so summing preserves the total and a
--- message keeps the attempts it has already used.
+-- they exist.
+--
+-- The surviving row keeps the LARGEST RetryCount of its group rather than their
+-- sum. The column holds an absolute total of failures so far, not an increment:
+-- the queue's own write is
+--   set retrycount = case when retrycount > @RetryCount then retrycount else @RetryCount end
+-- so where two values exist for one pair the library already takes the greater.
+--
+-- That write also filters on (QueueID, ExceptionType) alone, with no row
+-- identity, so it updates EVERY duplicate row for the pair. Once a pair has been
+-- updated even once both rows hold the same value, and summing them would roughly
+-- double the count - sending the message to the error queue with attempts still
+-- owed to it, which is the very defect this is meant to prevent.
+--
+-- An earlier version of this script summed, on the reasoning that each row had
+-- counted real attempts. That holds only for rows inserted and never updated
+-- since (GitHub #374).
 --
 -- CONCURRENCY. A live consumer can insert a duplicate between the collapse and
 -- the index creation, and the creation then fails. Nothing is left half-done -
@@ -101,7 +115,7 @@ BEGIN
              SELECT min(ErrorTrackingID) AS keep_id,
                     QueueID,
                     ExceptionType,
-                    sum(RetryCount)      AS total_retries
+                    max(RetryCount)      AS kept_retries
              FROM %s
              GROUP BY QueueID, ExceptionType
              HAVING count(*) > 1', tracking::text);
@@ -118,11 +132,11 @@ BEGIN
 
         EXECUTE format(
             'UPDATE %s t
-             SET RetryCount = d.total_retries
+             SET RetryCount = d.kept_retries
              FROM dnwq_upgrade_totals d
              WHERE t.ErrorTrackingID = d.keep_id', tracking::text);
 
-        RAISE NOTICE 'Step 1: collapsed duplicates for % message/exception pairs on %, retry counts summed', collapsed, tracking::text;
+        RAISE NOTICE 'Step 1: collapsed duplicates for % message/exception pairs on %, retry counts kept at the highest of each group', collapsed, tracking::text;
     END IF;
 
     --the name the transport would have used; PostgreSQL truncates it the same way it truncated the
