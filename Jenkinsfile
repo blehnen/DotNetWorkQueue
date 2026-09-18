@@ -94,16 +94,29 @@ XML
 pipeline {
     agent none
 
-    // Serialize all Jenkinsfile runs across the entire repository — only one
-    // pipeline (PR, master, or any branch) executes at a time. The 14-stage
-    // parallel matrix consumes a large slice of the agent pool per run; without
-    // this lock, two concurrent PRs can saturate it. Queued runs wait their
-    // turn rather than starve agents from each other. Lockable Resources plugin
-    // provides this — the named resource doesn't need to be pre-defined; it's
-    // created on first use.
-    options {
-        lock(resource: 'dotnetworkqueue-ci')
-    }
+    // No build-level lock. There was one - lock(resource: 'dotnetworkqueue-ci') - which let a
+    // single pipeline run at a time across the whole repository. It was added when the seven
+    // service-using suites shared long-lived PostgreSQL, SQL Server and Redis instances, which
+    // timed out when several runners hit them at once. #281 removed the sharing: SqlServer,
+    // SqlServer Linq, PostgreSQL, PostgreSQL Linq, Redis, Redis Linq and Dashboard each start
+    // their own containers now. The other nine stages need no server at all - SQLite and LiteDB
+    // are file based, Memory is in process - so that cause is gone.
+    //
+    // What it cost: a build that had to wait ran to roughly twice the usual wall clock. Measured
+    // over 70 master builds, an uncontended one takes a median 11.7 minutes, while builds starting
+    // in the same minute as another came in at 22 to 31 (GitHub #368).
+    //
+    // What removing it does NOT bound is service-container load. The agent pool caps concurrent
+    // STAGES at 16, and that holds however many builds they belong to, but the mix can get
+    // heavier: one build schedules exactly seven container-starting stages, while two builds
+    // sharing those same slots could schedule up to fourteen. Per host the ceiling is that host's
+    // slot count rather than its share of one build's matrix, so a Docker host can be asked for
+    // more containers at once than it ever was under the lock.
+    //
+    // That is the open risk, and it is empirical - it has not happened since #281. If it bites,
+    // the targeted fix is to bound the scarce thing rather than whole builds: a lockable resource
+    // with a quantity, held only by the seven stages that start containers, which would let the
+    // other nine interleave freely. Reinstating the blunt lock is one line if that is preferred.
 
     environment {
         DOTNET_CLI_TELEMETRY_OPTOUT = '1'
