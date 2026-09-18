@@ -43,7 +43,8 @@ namespace DotNetWorkQueue.Policies.Decorator
         /// <inheritdoc />
         public IReceivedMessageInternal ReceiveMessage(IMessageContext context)
         {
-            if (_policies.Registry.TryGetPipeline(_policies.Definition.ReceiveMessageFromTransport, out var pipeline))
+            var pipeline = PolicyLookup.PipelineOrNull(_policies, _policies.Definition.ReceiveMessageFromTransport);
+            if (pipeline != null)
             {
                 return pipeline.Execute(_ => _handler.ReceiveMessage(context));
             }
@@ -53,7 +54,8 @@ namespace DotNetWorkQueue.Policies.Decorator
         /// <inheritdoc />
         public async ValueTask<IReceivedMessageInternal> ReceiveMessageAsync(IMessageContext context, CancellationToken cancellation)
         {
-            if (_policies.Registry.TryGetPipeline(_policies.Definition.ReceiveMessageFromTransportAsync, out var pipeline))
+            var pipeline = PolicyLookup.PipelineOrNull(_policies, _policies.Definition.ReceiveMessageFromTransportAsync);
+            if (pipeline != null)
             {
                 //The token goes to the pipeline as well as to the handler. Without it a retry or
                 //timeout strategy keeps waiting out its delay after the queue has been told to stop,
