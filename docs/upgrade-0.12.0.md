@@ -45,6 +45,18 @@ send the message to the error queue with attempts still owed to it.
 > already run one, the inflated counts cannot be recovered — the individual rows are gone —
 > and the effect is that affected messages retire earlier than configured (GitHub #374).
 
+> **These scripts are no longer the only way.** Since the schema-upgrade framework landed,
+> `IQueueSchemaVersion.UpgradeSchema()` applies the same changes to an existing queue, per
+> transport, without editing a file per queue:
+>
+> - the unique error-tracking index — schema version 1, on SQL Server, PostgreSQL and SQLite
+> - the `timestamptz` conversion — schema version 2, PostgreSQL only
+>
+> The conversion still needs the zone the old queue wrote in, for the reason below; supply it
+> with `SetUpgradeSourceTimeZone` on the connection's additional settings and the upgrade
+> refuses rather than guessing if you do not. These scripts remain for anyone who cannot take
+> the newer package (GitHub #308, #374).
+
 ### Timestamps that read back as UTC — PostgreSQL only
 
 Npgsql maps a `DateTime` to `timestamp with time zone`. Writing a UTC value into a naive
