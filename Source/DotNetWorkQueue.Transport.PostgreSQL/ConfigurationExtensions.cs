@@ -264,4 +264,41 @@ namespace DotNetWorkQueue.Transport.PostgreSQL
             }
         }
     }
+    /// <summary>
+    /// Extension methods for the settings a schema upgrade needs.
+    /// </summary>
+    public static class QueueConnectionUpgradeExtensions
+    {
+        private const string UpgradeSourceTimeZoneName = "UpgradeSourceTimeZone";
+
+        /// <summary>
+        /// Declares the time zone that a queue created before 0.12.0 wrote its timestamps in.
+        /// </summary>
+        /// <param name="settings">The connection's additional settings.</param>
+        /// <param name="timeZone">A PostgreSQL time zone name, for example "UTC" or "America/Chicago".</param>
+        /// <remarks>
+        /// Schema version 2 converts those columns from timestamp to timestamptz, and that conversion
+        /// reads each naive value as being in the session's time zone. Before 0.12.0 the value stored
+        /// was the local representation on the machine that wrote it, so the zone has to come from
+        /// whoever knows what that machine was - nothing in the database records it.
+        ///
+        /// Set it to "UTC" if the application ran in UTC. Getting it wrong shifts every timestamp by
+        /// the difference, which is the defect #311 fixed, so the upgrade refuses to guess (GitHub
+        /// #374).
+        /// </remarks>
+        public static void SetUpgradeSourceTimeZone(this IDictionary<string, string> settings, string timeZone)
+        {
+            //the indexer adds or replaces, so the check the older SetSchema does is not needed here
+            settings[UpgradeSourceTimeZoneName] = timeZone;
+        }
+
+        /// <summary>
+        /// The declared source time zone, or null when none was set.
+        /// </summary>
+        /// <param name="settings">The connection's additional settings.</param>
+        public static string GetUpgradeSourceTimeZone(this IReadOnlyDictionary<string, string> settings)
+        {
+            return settings.ContainsKey(UpgradeSourceTimeZoneName) ? settings[UpgradeSourceTimeZoneName] : null;
+        }
+    }
 }

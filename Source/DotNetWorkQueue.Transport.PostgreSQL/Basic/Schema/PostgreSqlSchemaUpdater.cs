@@ -30,10 +30,18 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Schema
     /// <remarks>
     /// Version 1 is the unique index on the error tracking table's (QueueID, ExceptionType), which
     /// queues created before #299 do not have. See <see cref="AErrorTrackingUniqueIndexVersion"/>.
+    ///
+    /// Version 2 converts the history and metadata timestamps to timestamptz, which queues created
+    /// before #311 still hold as a naive timestamp. See <see cref="PostgreSqlTimestampTzVersion"/>.
+    /// This transport therefore runs ahead of the others, which have only version 1 - version numbers
+    /// are per transport, because the schemas are.
     /// </remarks>
     public class PostgreSqlSchemaUpdater : ASchemaUpdater
     {
         private readonly CommandStringCache _commandCache;
+        //kept here as well as in the base: version 2 needs the declared source time zone,
+        //and the base exposes the connection information to nothing
+        private readonly IConnectionInformation _connectionInformation;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PostgreSqlSchemaUpdater"/> class.
@@ -58,7 +66,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Schema
                 tableProbe, upgradeLock, logger)
         {
             Guard.NotNull(commandCache);
+            Guard.NotNull(connectionInformation);
             _commandCache = commandCache;
+            _connectionInformation = connectionInformation;
         }
 
         /// <inheritdoc />
@@ -70,6 +80,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Schema
         protected override void LoadVersions()
         {
             Versions.Add(1, new PostgreSqlErrorTrackingUniqueIndexVersion(_commandCache));
+            Versions.Add(2, new PostgreSqlTimestampTzVersion(_connectionInformation));
         }
 
         /// <inheritdoc />
