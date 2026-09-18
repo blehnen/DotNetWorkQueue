@@ -88,6 +88,44 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
                 () => harness.InsertErrorRow(1, "System.TimeoutException", 2));
         }
 
+        [TestMethod]
+        public void TwoQueuesWhoseIndexNamesWouldTruncateAlike_BothUpgrade()
+        {
+            //PostgreSQL truncates identifiers at 63 bytes and index names are unique per schema, so
+            //"IX_QueueIDExceptionType" + table runs out of room: two queue names matching for their
+            //first 40 characters produce one identifier. Both queues are already here - they predate
+            //the index, which is why there is anything to upgrade - so the second cannot be renamed
+            //out of the way, and without a shorter name its upgrade fails with 42P07 and leaves it
+            //refusing producers for good.
+            var shared = "u" + Guid.NewGuid().ToString("N").Substring(0, 8);
+            var prefix = (shared + new string('x', 40)).Substring(0, 40);
+            Assert.AreEqual(40, prefix.Length);
+
+            //the second queue has to be created after the first one's index is out of the way. Today
+            //creating both is impossible: the second collides on the index and the failure is reported
+            //as "already exists", which carries Success - so the caller is told it has a queue that was
+            //rolled back. That is the creation path's own bug and is not what this test is about; the
+            //pair being upgraded here is one that only a pre-index version of the library could leave
+            //behind, which is exactly the population an upgrade has to cope with.
+            using var first = new Harness(prefix + "aaa");
+            first.MakeLookLikeAPreIndexQueue();
+
+            using var second = new Harness(prefix + "bbb");
+            second.MakeLookLikeAPreIndexQueue();
+
+            //the names differ, but not within the 40 characters that survive truncation
+            Assert.AreNotEqual(first.QueueName, second.QueueName);
+            Assert.AreEqual(first.QueueName.Substring(0, 40), second.QueueName.Substring(0, 40));
+
+            var firstResult = first.Updater.UpgradeSchema();
+            var secondResult = second.Updater.UpgradeSchema();
+
+            Assert.AreEqual(SchemaUpgradeStatus.Upgraded, firstResult.Status, firstResult.ErrorMessage);
+            Assert.AreEqual(SchemaUpgradeStatus.Upgraded, secondResult.Status, secondResult.ErrorMessage);
+            Assert.IsTrue(first.UniqueIndexExists());
+            Assert.IsTrue(second.UniqueIndexExists());
+        }
+
         /// <summary>
         /// A queue on the PostgreSQL test server, with the shipped updater.
         /// </summary>
@@ -99,9 +137,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
             private readonly IContainer _admin;
             private readonly string _errorTrackingTable;
 
-            public Harness()
+            public Harness(string queueName = null)
             {
-                QueueName = GenerateQueueName.Create();
+                QueueName = queueName ?? GenerateQueueName.Create();
                 var queueConnection = new QueueConnection(QueueName, ConnectionInfo.ConnectionString);
 
                 _creationContainer = new QueueCreationContainer<PostgreSqlMessageQueueInit>();

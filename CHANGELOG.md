@@ -1,5 +1,6 @@
 ﻿### Unreleased
 - ⚠️ A producer or consumer refuses to start against a SQL Server, PostgreSQL or SQLite queue created before this release, throwing `QueueSchemaOutOfDateException`. Call `IQueueSchemaVersion.UpgradeSchema()` once per queue to bring it up to date (GitHub #308)
+- ⚠️ `SqlServerSchemaUpdater`, `PostgreSqlSchemaUpdater` and `SqLiteSchemaUpdater` take a `CommandStringCache`. Only affects code that constructs or subclasses these directly; queues built through the container are unaffected (GitHub #308)
 - Fix: an existing queue can be upgraded in place to get the error-tracking unique index that only newly created queues had, so a failing message no longer gets more attempts than configured when two failures arrive at once. Duplicate rows already written collapse to their highest count (GitHub #299, #308)
 
 ### 0.13.0 — 2026-09-17
