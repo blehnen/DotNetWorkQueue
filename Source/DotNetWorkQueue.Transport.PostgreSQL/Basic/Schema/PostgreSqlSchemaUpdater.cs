@@ -19,6 +19,7 @@
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema;
+using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Schema
@@ -27,25 +28,37 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Schema
     /// Applies schema upgrades to a PostgreSQL queue.
     /// </summary>
     /// <remarks>
-    /// <see cref="LoadVersions"/> is empty, so the target version is zero and every queue is already
-    /// current. The framework is in place and does nothing until the first version is added here
-    /// (GitHub #308).
+    /// Version 1 is the unique index on the error tracking table's (QueueID, ExceptionType), which
+    /// queues created before #299 do not have. See <see cref="AErrorTrackingUniqueIndexVersion"/>.
     /// </remarks>
     public class PostgreSqlSchemaUpdater : ASchemaUpdater
     {
+        private readonly CommandStringCache _commandCache;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PostgreSqlSchemaUpdater"/> class.
         /// </summary>
+        /// <param name="connectionFactory">The connection factory.</param>
+        /// <param name="transactionFactory">The transaction factory.</param>
+        /// <param name="connectionInformation">The connection information.</param>
+        /// <param name="tableNameHelper">The table names for this queue.</param>
+        /// <param name="tableProbe">Answers whether a table exists.</param>
+        /// <param name="upgradeLock">Stops two processes upgrading at once.</param>
+        /// <param name="commandCache">The command cache, which a version uses to ask what the schema already looks like.</param>
+        /// <param name="logger">The logger.</param>
         public PostgreSqlSchemaUpdater(IDbConnectionFactory connectionFactory,
             ITransactionFactory transactionFactory,
             IConnectionInformation connectionInformation,
             ITableNameHelper tableNameHelper,
             ISchemaTableProbe tableProbe,
             ISchemaUpgradeLock upgradeLock,
+            CommandStringCache commandCache,
             ILogger logger)
             : base(connectionFactory, transactionFactory, connectionInformation, tableNameHelper,
                 tableProbe, upgradeLock, logger)
         {
+            Guard.NotNull(commandCache);
+            _commandCache = commandCache;
         }
 
         /// <inheritdoc />
@@ -56,7 +69,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Basic.Schema
         /// </remarks>
         protected override void LoadVersions()
         {
-            //no versions yet - see the class remarks
+            Versions.Add(1, new PostgreSqlErrorTrackingUniqueIndexVersion(_commandCache));
         }
 
         /// <inheritdoc />

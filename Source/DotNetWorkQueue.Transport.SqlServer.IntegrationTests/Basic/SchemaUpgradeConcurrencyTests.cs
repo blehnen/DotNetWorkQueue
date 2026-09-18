@@ -10,6 +10,7 @@ using DotNetWorkQueue.Transport.SqlServer.Basic.Schema;
 using DotNetWorkQueue.Transport.RelationalDatabase;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -40,6 +41,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Basic
             try
             {
                 Assert.IsTrue(creation.CreateQueue().Success);
+
+                //CreateQueue stamps the queue at the shipped target version, so without this both
+                //upgrades would find nothing to do and the race under test would not happen
+                DropSchemaVersionTable(queueName);
 
                 //two containers, so two updaters that share nothing but the database
                 using var containerOne = NewContainer();
@@ -76,6 +81,18 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Basic
             }
         }
 
+        /// <summary>
+        /// Leaves the queue looking like one created before schema versioning existed.
+        /// </summary>
+        private static void DropSchemaVersionTable(string queueName)
+        {
+            using var connection = new SqlConnection(ConnectionInfo.ConnectionString);
+            connection.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = $"drop table if exists {queueName}SchemaVersion";
+            command.ExecuteNonQuery();
+        }
+
         private static QueueContainer<SqlServerMessageQueueInit> NewContainer() =>
             new QueueContainer<SqlServerMessageQueueInit>(
                 c => c.Register<IQueueSchemaVersion, TestSchemaUpdater>(LifeStyles.Singleton));
@@ -91,9 +108,10 @@ namespace DotNetWorkQueue.Transport.SqlServer.IntegrationTests.Basic
                 ITableNameHelper tableNameHelper,
                 ISchemaTableProbe tableProbe,
                 ISchemaUpgradeLock upgradeLock,
+                CommandStringCache commandCache,
                 ILogger logger)
                 : base(connectionFactory, transactionFactory, connectionInformation, tableNameHelper,
-                    tableProbe, upgradeLock, logger)
+                    tableProbe, upgradeLock, commandCache, logger)
             {
             }
 
