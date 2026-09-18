@@ -73,12 +73,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
             CommandCache.Add(CommandStringTypes.InsertMessageBody,
                 $"Insert into {TableNameHelper.QueueName} (Body, Headers) VALUES (@Body, @Headers) select SCOPE_IDENTITY() ");
 
-            CommandCache.Add(CommandStringTypes.UpdateErrorCount,
-                $"update {TableNameHelper.ErrorTrackingName} set retrycount = case when retrycount > @RetryCount then retrycount else @RetryCount end where queueid = @queueid and ExceptionType = @ExceptionType");
-
-            CommandCache.Add(CommandStringTypes.InsertErrorCount,
-                $"Insert into {TableNameHelper.ErrorTrackingName} (QueueID,ExceptionType, RetryCount) VALUES (@QueueID,@ExceptionType,@RetryCount)");
-
             //One transaction on purpose. Without it each statement commits on its own, the range lock
             //the update took is released before the insert runs, and two first failures can both find no
             //row - after which the unique index rejects one of them and that error count is lost.
@@ -116,9 +110,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             CommandCache.Add(CommandStringTypes.GetColumnNamesFromTable,
                 "SELECT c.name FROM sys.columns c WHERE c.object_id = OBJECT_ID(@TableName)");
-
-            CommandCache.Add(CommandStringTypes.GetErrorRecordExists,
-                $"Select 1 from {TableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
 
             CommandCache.Add(CommandStringTypes.GetErrorRetryCount,
                 $"Select RetryCount from {TableNameHelper.ErrorTrackingName} where queueid = @queueid and ExceptionType = @ExceptionType");
@@ -204,7 +195,6 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
 
             CommandCache.Add(CommandStringTypes.GetDashboardErrorMessages,
                 $"SELECT ID, QueueID, LastException, LastExceptionDate FROM {TableNameHelper.MetaDataErrorsName} WITH (NOLOCK) ORDER BY LastExceptionDate DESC OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY");
-
 
 
             CommandCache.Add(CommandStringTypes.GetDashboardMessages,

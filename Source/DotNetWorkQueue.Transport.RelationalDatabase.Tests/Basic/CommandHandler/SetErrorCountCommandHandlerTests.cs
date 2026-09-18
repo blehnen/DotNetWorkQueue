@@ -16,14 +16,12 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic;
 using DotNetWorkQueue.Transport.RelationalDatabase.Basic.CommandHandler;
-using DotNetWorkQueue.Transport.RelationalDatabase.Basic.Query;
 using DotNetWorkQueue.Transport.RelationalDatabase.Tests.TestHelpers;
 using DotNetWorkQueue.Transport.Shared;
 using DotNetWorkQueue.Transport.Shared.Basic.Command;
-using DotNetWorkQueue.Transport.Shared.Basic.Query;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
@@ -32,123 +30,72 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Tests.Basic.CommandHandle
     /// <summary>
     /// Counting how many times a message has failed with a given exception type.
     ///
-    /// This was a check-then-write across two connections with nothing enforcing one row per
-    /// (QueueID, ExceptionType), so two failures of the same message arriving together could each see no
-    /// row and each insert one. The retry count then reads lower than reality and the message gets more
-    /// attempts than configured - a poison message can loop instead of reaching the error queue.
+    /// This was once a check-then-write across two connections with nothing enforcing one row per
+    /// (QueueID, ExceptionType), so two failures of the same message arriving together could each see
+    /// no row and each insert one. The retry count then read lower than reality and the message got
+    /// more attempts than configured - a poison message could loop instead of reaching the error queue.
     ///
-    /// New queues get a unique index and a single atomic statement. Queues created before that index
-    /// existed do not have it, and the library does not upgrade schemas, so the old path has to keep
-    /// working - which is what these cover.
+    /// Every queue now carries the unique index that makes one statement enough: new queues are
+    /// created with it, and an older one gains it at schema version 1, which a producer or consumer
+    /// refuses to start without. The fallback, and the schema look-up that chose between the two, are
+    /// gone (GitHub #308) - so what is left to hold is that both paths issue the one statement and
+    /// nothing else.
     /// </summary>
     [TestClass]
     public class SetErrorCountCommandHandlerTests
     {
         [TestMethod]
-        public void Handle_WithTheUniqueIndex_UsesTheSingleStatement()
+        public void Handle_UsesTheSingleStatement()
         {
-            var h = new Harness(indexExists: true);
+            var h = new Harness();
 
             h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42, 1));
 
-            h.PrepareCommand.Received(1).Handle(Arg.Any<SetErrorCountCommand<long>>(), Arg.Any<System.Data.Common.DbCommand>(),
-                CommandStringTypes.UpsertErrorCount);
-            h.ExistsQuery.DidNotReceiveWithAnyArgs().Handle(null);
+            h.PrepareCommand.Received(1).Handle(Arg.Any<SetErrorCountCommand<long>>(),
+                Arg.Any<System.Data.Common.DbCommand>(), CommandStringTypes.UpsertErrorCount);
         }
 
         [TestMethod]
-        public void Handle_WithoutTheUniqueIndex_FallsBackToCheckThenWrite()
+        public async Task HandleAsync_UsesTheSingleStatement()
         {
-            //a queue created before the index existed; the old path has to still count errors
-            var h = new Harness(indexExists: false, recordExists: false);
+            //the async twin has gone wrong on its own before, so it is asserted rather than assumed
+            var h = new Harness();
 
-            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42, 1));
+            await h.Handler.HandleAsync(new SetErrorCountCommand<long>("System.Exception", 42, 1));
 
-            h.PrepareCommand.Received(1).Handle(Arg.Any<SetErrorCountCommand<long>>(), Arg.Any<System.Data.Common.DbCommand>(),
-                CommandStringTypes.InsertErrorCount);
+            h.PrepareCommand.Received(1).Handle(Arg.Any<SetErrorCountCommand<long>>(),
+                Arg.Any<System.Data.Common.DbCommand>(), CommandStringTypes.UpsertErrorCount);
         }
 
         [TestMethod]
-        public void Handle_WithoutTheUniqueIndex_UpdatesAnExistingRow()
+        public void Handle_TakesOneConnectionAndOneCommand()
         {
-            var h = new Harness(indexExists: false, recordExists: true);
+            //it used to take a second connection to ask what the schema looked like, on the failure
+            //path, where every concurrent first failure held one connection while waiting for another
+            var h = new Harness();
 
             h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42, 1));
 
-            h.PrepareCommand.Received(1).Handle(Arg.Any<SetErrorCountCommand<long>>(), Arg.Any<System.Data.Common.DbCommand>(),
-                CommandStringTypes.UpdateErrorCount);
-        }
-
-        [TestMethod]
-        public void TheSchemaIsOnlyAskedAboutOnce()
-        {
-            //the schema does not change underneath a running consumer, and this is on the failure path
-            var h = new Harness(indexExists: true);
-
-            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42, 1));
-            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42, 1));
-            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 43, 1));
-
-            h.IndexQuery.Received(1).Handle(Arg.Any<GetErrorTrackingUniqueIndexExistsQuery>());
-        }
-
-        [TestMethod]
-        public void TheSchemaLookUpFailing_StillRecordsTheError()
-        {
-            //the look-up needs the database too; failing to answer is not a reason to stop counting
-            var h = new Harness(indexAnswer: () => throw new TimeoutException());
-
-            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42, 1));
-
-            h.PrepareCommand.Received(1).Handle(Arg.Any<SetErrorCountCommand<long>>(), Arg.Any<System.Data.Common.DbCommand>(),
-                CommandStringTypes.InsertErrorCount);
-        }
-
-        [TestMethod]
-        public void TheSchemaLookUpFailing_IsAskedAgainOnTheNextFailure()
-        {
-            //one blip must not pin the queue to the racy path for the rest of its life
-            var attempts = 0;
-            var h = new Harness(indexAnswer: () => attempts++ == 0 ? throw new TimeoutException() : true);
-
-            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42, 1));
-            h.Handler.Handle(new SetErrorCountCommand<long>("System.Exception", 42, 1));
-
-            Assert.AreEqual(2, attempts, "the look-up was not attempted again after it failed");
-            h.PrepareCommand.Received(1).Handle(Arg.Any<SetErrorCountCommand<long>>(), Arg.Any<System.Data.Common.DbCommand>(),
-                CommandStringTypes.UpsertErrorCount);
+            h.ConnectionFactory.Received(1).Create();
+            h.Connection.Received(1).Open();
         }
 
         private sealed class Harness
         {
             public SetErrorCountCommandHandler<long> Handler { get; }
             public IPrepareCommandHandler<SetErrorCountCommand<long>> PrepareCommand { get; }
-            public IQueryHandler<GetErrorRecordExistsQuery<long>, bool> ExistsQuery { get; }
-            public IQueryHandler<GetErrorTrackingUniqueIndexExistsQuery, bool> IndexQuery { get; }
+            public IDbConnectionFactory ConnectionFactory { get; }
+            public System.Data.Common.DbConnection Connection { get; }
 
-            public Harness(bool indexExists = false, bool recordExists = false, Func<bool> indexAnswer = null)
+            public Harness()
             {
                 var fixture = AdoNetMockFixture.Create();
-
-                ExistsQuery = Substitute.For<IQueryHandler<GetErrorRecordExistsQuery<long>, bool>>();
-                ExistsQuery.Handle(Arg.Any<GetErrorRecordExistsQuery<long>>()).Returns(recordExists);
-
-                indexAnswer ??= () => indexExists;
-                IndexQuery = Substitute.For<IQueryHandler<GetErrorTrackingUniqueIndexExistsQuery, bool>>();
-                IndexQuery.Handle(Arg.Any<GetErrorTrackingUniqueIndexExistsQuery>()).Returns(_ => indexAnswer());
+                ConnectionFactory = fixture.ConnectionFactory;
+                Connection = fixture.Connection;
 
                 PrepareCommand = Substitute.For<IPrepareCommandHandler<SetErrorCountCommand<long>>>();
 
-                var tableNames = Substitute.For<ITableNameHelper>();
-                tableNames.ErrorTrackingName.Returns("ErrorTracking");
-
-                Handler = new SetErrorCountCommandHandler<long>(
-                    ExistsQuery,
-                    Substitute.For<IQueryHandlerAsync<GetErrorRecordExistsQuery<long>, bool>>(),
-                    fixture.ConnectionFactory,
-                    PrepareCommand,
-                    IndexQuery,
-                    tableNames);
+                Handler = new SetErrorCountCommandHandler<long>(fixture.ConnectionFactory, PrepareCommand);
             }
         }
     }
