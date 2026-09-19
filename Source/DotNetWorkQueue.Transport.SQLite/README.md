@@ -10,7 +10,8 @@ SQLite transport for [DotNetWorkQueue](https://github.com/blehnen/DotNetWorkQueu
 - Heartbeat monitoring for long-running messages
 - Job scheduling with deduplication
 - Ideal for single-process scenarios or development/testing
-- Targets .NET 10.0, .NET 8.0, .NET Framework 4.8, .NET Standard 2.0
+- Targets .NET 10.0, .NET 8.0 and .NET Standard 2.0. The netstandard2.0 build is how .NET
+  Framework uses this package; Microsoft supports it from 4.6.1 but recommends 4.7.2 or later
 
 ## Installation
 
