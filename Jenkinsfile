@@ -106,17 +106,22 @@ pipeline {
     // over 70 master builds, an uncontended one takes a median 11.7 minutes, while builds starting
     // in the same minute as another came in at 22 to 31 (GitHub #368).
     //
-    // What removing it does NOT bound is service-container load. The agent pool caps concurrent
-    // STAGES at 16, and that holds however many builds they belong to, but the mix can get
-    // heavier: one build schedules exactly seven container-starting stages, while two builds
-    // sharing those same slots could schedule up to fourteen. Per host the ceiling is that host's
-    // slot count rather than its share of one build's matrix, so a Docker host can be asked for
-    // more containers at once than it ever was under the lock.
+    // What removing it does not bound is service-container load. The agent pool caps concurrent
+    // STAGES at its slot count, and that holds however many builds they belong to, but the mix can
+    // get heavier: one build schedules exactly seven container-starting stages, while two builds
+    // sharing the pool could schedule more than that. Per host the ceiling is that host's slot
+    // count rather than its share of one build's matrix, so a Docker host can be asked for more
+    // containers at once than it ever was under the lock.
     //
-    // That is the open risk, and it is empirical - it has not happened since #281. If it bites,
-    // the targeted fix is to bound the scarce thing rather than whole builds: a lockable resource
-    // with a quantity, held only by the seven stages that start containers, which would let the
-    // other nine interleave freely. Reinstating the blunt lock is one line if that is preferred.
+    // That was recorded here as an open risk, because it had not happened since #281 removed the
+    // shared servers. It has now: two builds have run concurrently with no trouble. The hosts also
+    // grew once they no longer had to run shared PostgreSQL, SQL Server and Redis instances - 8, 6
+    // and 4 slots, so 18 against the matrix's 16 stages, which leaves room for a second build to
+    // start rather than wait for the first to finish.
+    //
+    // If it ever does bite, the targeted fix is to bound the scarce thing rather than whole builds:
+    // a lockable resource with a quantity, held only by the seven stages that start containers,
+    // which would let the other nine interleave freely. Reinstating the blunt lock is one line.
 
     environment {
         DOTNET_CLI_TELEMETRY_OPTOUT = '1'
