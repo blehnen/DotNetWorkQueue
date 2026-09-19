@@ -72,7 +72,7 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic
         /// points to a different database than the queue's configured container.</exception>
         public void Validate(DbTransaction transaction)
         {
-            ArgumentNullException.ThrowIfNull(transaction);
+            Guard.NotNull(transaction);
 
             var connection = transaction.Connection;
             if (connection == null)

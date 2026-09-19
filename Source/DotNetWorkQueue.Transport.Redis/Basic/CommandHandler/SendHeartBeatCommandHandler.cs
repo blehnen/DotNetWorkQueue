@@ -25,6 +25,7 @@ using StackExchange.Redis;
 
 using System;
 using DotNetWorkQueue.Transport.Redis.Basic.Lua;
+using DotNetWorkQueue.Transport.Redis.Basic.Time;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 {
@@ -94,7 +95,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.CommandHandler
 
         //the same epoch BaseUnixTime converts against, so a value that came from the working set
         //converts back to exactly the score it was written as
-        private static readonly DateTime UnixEpoch = DateTime.UnixEpoch;
+        private static readonly DateTime UnixEpoch = Epoch.Unix;
 
         /// <summary>
         /// The database to beat against. Virtual so a test can supply one - <see cref="IRedisConnection"/>

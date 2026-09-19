@@ -26,6 +26,7 @@ using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using DotNetWorkQueue.Transport.Redis.Basic.Time;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
 {
@@ -199,7 +200,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.QueryHandler
         private void RecordClaim(ReceiveMessageQuery query, long unixTimestampMilliseconds)
         {
             query.MessageContext.Set(_messageClaim.ClaimedAt,
-                new ValueTypeWrapper<DateTime>(DateTime.UnixEpoch.AddMilliseconds(unixTimestampMilliseconds)));
+                new ValueTypeWrapper<DateTime>(Epoch.Unix.AddMilliseconds(unixTimestampMilliseconds)));
         }
 
     }

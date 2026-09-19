@@ -163,7 +163,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
             var tokens = _cancelWork.Tokens.ToList();
             if (cancellation.CanBeCanceled) tokens.Add(cancellation);
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(tokens.ToArray());
+#if NETSTANDARD2_0
+            //CancellationTokenRegistration only became IAsyncDisposable in .NET Core 3.0. Disposing
+            //it synchronously waits for a callback that is already running, which is what the
+            //asynchronous form avoids; the callback here only completes a TaskCompletionSource.
+            using var registration = cts.Token.Register(CancelAsyncWait);
+#else
             await using var registration = cts.Token.Register(CancelAsyncWait).ConfigureAwait(false);
+#endif
 
             //Same bound as the synchronous path.
             //
@@ -227,7 +234,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic
         /// <exception cref="System.ObjectDisposedException"></exception>
         protected void ThrowIfDisposed()
         {
-            ObjectDisposedException.ThrowIf(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
+            Guard.NotDisposed(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
         }
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.

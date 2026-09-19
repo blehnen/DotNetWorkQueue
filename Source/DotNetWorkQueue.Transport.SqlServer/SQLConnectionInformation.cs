@@ -30,8 +30,18 @@ namespace DotNetWorkQueue.Transport.SqlServer
     /// </summary>
     public partial class SqlConnectionInformation : BaseConnectionInformation
     {
+        #if NETSTANDARD2_0
+        //the [GeneratedRegex] source generator needs .NET 7 or later, so the old target compiles
+        //the pattern once into a static instead. Same pattern, built at first use rather than
+        //at compile time.
+        private static readonly Regex ValidQueueName =
+            new Regex(@"^[a-zA-Z0-9_.]+$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+        private static Regex ValidQueueNamePattern() => ValidQueueName;
+        #else
         [GeneratedRegex(@"^[a-zA-Z0-9_.]+$")]
         private static partial Regex ValidQueueNamePattern();
+        #endif
 
         private string _server;
         private string _catalog;

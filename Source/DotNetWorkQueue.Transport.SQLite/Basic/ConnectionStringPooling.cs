@@ -151,7 +151,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         private static string Append(string connectionString, string keyword, string value)
         {
             var trimmed = connectionString.TrimEnd();
-            var separator = trimmed.EndsWith(';') ? string.Empty : ";";
+            var separator = trimmed.EndsWith(";", StringComparison.Ordinal) ? string.Empty : ";";
             return trimmed + separator + keyword + "=" + value + ";";
         }
     }
