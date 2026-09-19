@@ -31,12 +31,6 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         public GZipInterceptorOptions GZip { get; set; }
 
         /// <summary>
-        /// Gets or sets TripleDES encryption interceptor options.
-        /// Set to null (or omit from JSON) to disable.
-        /// </summary>
-        public TripleDesInterceptorOptions TripleDes { get; set; }
-
-        /// <summary>
         /// Gets or sets AES-256-GCM encryption interceptor options.
         /// Set to null (or omit from JSON) to disable.
         /// </summary>
@@ -57,27 +51,6 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
         /// Gets or sets the minimum message size in bytes before compression is applied. Default is 150.
         /// </summary>
         public int MinimumSize { get; set; } = 150;
-    }
-
-    /// <summary>
-    /// JSON-bindable options for the TripleDES encryption interceptor.
-    /// </summary>
-    public class TripleDesInterceptorOptions
-    {
-        /// <summary>
-        /// Gets or sets whether TripleDES encryption is enabled. Default is true.
-        /// </summary>
-        public bool Enabled { get; set; } = true;
-
-        /// <summary>
-        /// Gets or sets the encryption key as a Base64-encoded string.
-        /// </summary>
-        public string Key { get; set; }
-
-        /// <summary>
-        /// Gets or sets the initialization vector as a Base64-encoded string.
-        /// </summary>
-        public string IV { get; set; }
     }
 
     /// <summary>

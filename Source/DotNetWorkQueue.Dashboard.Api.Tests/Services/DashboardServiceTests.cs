@@ -560,9 +560,9 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             }));
             container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>().Returns(handler);
 
-            // Build a graph that includes TripleDES and GZip interceptor types
+            // Build a graph that includes AES and GZip interceptor types
             var graph = new MessageInterceptorsGraph();
-            graph.Add(typeof(TripleDesMessageInterceptor));
+            graph.Add(typeof(AesMessageInterceptor));
             graph.Add(typeof(GZipMessageInterceptor));
             var headers = new Dictionary<string, object> { { "Queue-MessageInterceptorGraph", graph } };
 
@@ -590,13 +590,13 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
 
             Assert.IsNotNull(result);
             Assert.IsNull(result.Body);
-            StringAssert.Contains(result.DecodingError, "TripleDesMessageInterceptor");
+            StringAssert.Contains(result.DecodingError, "AesMessageInterceptor");
             StringAssert.Contains(result.DecodingError, "GZipMessageInterceptor");
             StringAssert.Contains(result.DecodingError, "Padding is invalid and cannot be removed");
             StringAssert.Contains(result.DecodingError, "Verify that the dashboard has the same interceptors configured");
             Assert.IsTrue(result.WasIntercepted);
             Assert.HasCount(2, result.InterceptorChain);
-            Assert.Contains("TripleDesMessageInterceptor", result.InterceptorChain);
+            Assert.Contains("AesMessageInterceptor", result.InterceptorChain);
             Assert.Contains("GZipMessageInterceptor", result.InterceptorChain);
         }
 
@@ -723,7 +723,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             container.GetInstance<IQueryHandlerAsync<GetDashboardMessageBodyQuery, DashboardMessageBody>>().Returns(handler);
 
             var graph = new MessageInterceptorsGraph();
-            graph.Add(typeof(TripleDesMessageInterceptor));
+            graph.Add(typeof(AesMessageInterceptor));
             graph.Add(typeof(GZipMessageInterceptor));
             var headers = new Dictionary<string, object> { { "Queue-MessageInterceptorGraph", graph } };
 
@@ -755,7 +755,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Services
             Assert.IsNull(result.DecodingError);
             Assert.IsTrue(result.WasIntercepted);
             Assert.HasCount(2, result.InterceptorChain);
-            Assert.Contains("TripleDesMessageInterceptor", result.InterceptorChain);
+            Assert.Contains("AesMessageInterceptor", result.InterceptorChain);
             Assert.Contains("GZipMessageInterceptor", result.InterceptorChain);
         }
 

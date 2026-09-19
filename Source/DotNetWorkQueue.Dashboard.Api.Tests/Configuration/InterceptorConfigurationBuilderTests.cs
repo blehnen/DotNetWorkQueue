@@ -127,7 +127,7 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
                 Interceptors = new DashboardInterceptorOptions
                 {
                     GZip = new GZipInterceptorOptions { Enabled = false },
-                    TripleDes = new TripleDesInterceptorOptions { Enabled = false }
+                    Aes = new AesInterceptorOptions { Enabled = false }
                 }
             };
             var result = InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
@@ -147,60 +147,6 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
             };
             var result = InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
             Assert.IsNotNull(result);
-        }
-
-        [TestMethod]
-        public void Returns_Action_When_TripleDes_Enabled()
-        {
-            var queueOptions = new DashboardQueueOptions
-            {
-                QueueName = "test",
-                Interceptors = new DashboardInterceptorOptions
-                {
-                    TripleDes = new TripleDesInterceptorOptions
-                    {
-                        Key = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                        IV = "aaaaaaaaaaa="
-                    }
-                }
-            };
-            var result = InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
-            Assert.IsNotNull(result);
-        }
-
-        [TestMethod]
-        public void Throws_When_TripleDes_Missing_Key()
-        {
-            var queueOptions = new DashboardQueueOptions
-            {
-                QueueName = "test",
-                Interceptors = new DashboardInterceptorOptions
-                {
-                    TripleDes = new TripleDesInterceptorOptions { IV = "aaaaaaaaaaa=" }
-                }
-            };
-            Action act = () => InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
-            var ex = Assert.Throws<InvalidOperationException>(act);
-            Assert.IsTrue(ex.Message.Contains("Key", StringComparison.OrdinalIgnoreCase));
-        }
-
-        [TestMethod]
-        public void Throws_When_TripleDes_Missing_IV()
-        {
-            var queueOptions = new DashboardQueueOptions
-            {
-                QueueName = "test",
-                Interceptors = new DashboardInterceptorOptions
-                {
-                    TripleDes = new TripleDesInterceptorOptions
-                    {
-                        Key = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-                    }
-                }
-            };
-            Action act = () => InterceptorConfigurationBuilder.Resolve(queueOptions, EmptyProfiles);
-            var ex = Assert.Throws<InvalidOperationException>(act);
-            Assert.IsTrue(ex.Message.Contains("IV", StringComparison.OrdinalIgnoreCase));
         }
 
         [TestMethod]
