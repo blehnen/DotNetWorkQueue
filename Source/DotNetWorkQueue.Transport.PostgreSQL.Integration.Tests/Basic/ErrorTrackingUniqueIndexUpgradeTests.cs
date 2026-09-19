@@ -27,19 +27,19 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
         [TestMethod]
         public void AQueueFromBeforeTheIndex_GetsItAndCollapsesTheDuplicatesItAllowed()
         {
-            using var harness = new Harness();
-            harness.MakeLookLikeAPreIndexQueue();
+            using var harness = new PostgreSqlQueueHarness();
+            MakeLookLikeAPreIndexQueue(harness);
 
-            Assert.IsFalse(harness.UniqueIndexExists(), "setup did not remove the index");
+            Assert.IsFalse(UniqueIndexExists(harness), "setup did not remove the index");
             Assert.AreEqual(0, harness.Updater.CurrentSchemaVersion);
 
             //two rows for one pair is what the check-then-write path leaves behind under a race. Each
             //count is an absolute total, so the pair collapses to the larger rather than to their sum.
-            harness.InsertErrorRow(1, "System.TimeoutException", 3);
-            harness.InsertErrorRow(1, "System.TimeoutException", 4);
+            InsertErrorRow(harness, 1, "System.TimeoutException", 3);
+            InsertErrorRow(harness, 1, "System.TimeoutException", 4);
             //and rows that are not duplicates have to survive untouched
-            harness.InsertErrorRow(1, "System.InvalidOperationException", 2);
-            harness.InsertErrorRow(2, "System.TimeoutException", 7);
+            InsertErrorRow(harness, 1, "System.InvalidOperationException", 2);
+            InsertErrorRow(harness, 2, "System.TimeoutException", 7);
 
             var result = harness.Updater.UpgradeSchema();
 
@@ -47,15 +47,15 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
             //the target rather than a literal: PostgreSQL has a version 2 as well, and this test is
             //about version 1 having run, not about how many there are
             Assert.AreEqual(harness.Updater.TargetSchemaVersion, result.EndingVersion);
-            Assert.IsTrue(harness.UniqueIndexExists(), "the upgrade did not create the index");
+            Assert.IsTrue(UniqueIndexExists(harness), "the upgrade did not create the index");
             Assert.AreEqual(harness.Updater.TargetSchemaVersion, harness.Updater.CurrentSchemaVersion);
 
-            var rows = harness.ReadErrorRows();
+            var rows = ReadErrorRows(harness);
             Assert.HasCount(3, rows, "de-duplication removed rows that were not duplicates");
-            Assert.AreEqual(4, harness.RetryCountFor(rows, 1, "System.TimeoutException"),
+            Assert.AreEqual(4, RetryCountFor(rows, 1, "System.TimeoutException"),
                 "the surviving row must carry the largest count rather than the sum");
-            Assert.AreEqual(2, harness.RetryCountFor(rows, 1, "System.InvalidOperationException"));
-            Assert.AreEqual(7, harness.RetryCountFor(rows, 2, "System.TimeoutException"));
+            Assert.AreEqual(2, RetryCountFor(rows, 1, "System.InvalidOperationException"));
+            Assert.AreEqual(7, RetryCountFor(rows, 2, "System.TimeoutException"));
         }
 
         [TestMethod]
@@ -63,31 +63,31 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
         {
             //a queue created after #299 but before schema versioning: the index is there, the version
             //table is not. Creating the index again would fail and take the whole upgrade with it.
-            using var harness = new Harness();
+            using var harness = new PostgreSqlQueueHarness();
             harness.DropSchemaVersionTable();
 
-            Assert.IsTrue(harness.UniqueIndexExists(), "expected a newly created queue to carry the index");
+            Assert.IsTrue(UniqueIndexExists(harness), "expected a newly created queue to carry the index");
 
             var result = harness.Updater.UpgradeSchema();
 
             Assert.AreEqual(SchemaUpgradeStatus.Upgraded, result.Status, result.ErrorMessage);
             Assert.AreEqual(harness.Updater.TargetSchemaVersion, harness.Updater.CurrentSchemaVersion);
-            Assert.IsTrue(harness.UniqueIndexExists());
+            Assert.IsTrue(UniqueIndexExists(harness));
         }
 
         [TestMethod]
         public void AfterTheUpgrade_ASecondRowForTheSamePairIsRefused()
         {
-            using var harness = new Harness();
-            harness.MakeLookLikeAPreIndexQueue();
-            harness.InsertErrorRow(1, "System.TimeoutException", 1);
+            using var harness = new PostgreSqlQueueHarness();
+            MakeLookLikeAPreIndexQueue(harness);
+            InsertErrorRow(harness, 1, "System.TimeoutException", 1);
 
             Assert.AreEqual(SchemaUpgradeStatus.Upgraded, harness.Updater.UpgradeSchema().Status);
 
             //without the index this insert succeeds, the retry count reads low, and the message gets
             //more attempts than it was configured for
             Assert.ThrowsExactly<PostgresException>(
-                () => harness.InsertErrorRow(1, "System.TimeoutException", 2));
+                () => InsertErrorRow(harness, 1, "System.TimeoutException", 2));
         }
 
         [TestMethod]
@@ -109,11 +109,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
             //rolled back. That is the creation path's own bug and is not what this test is about; the
             //pair being upgraded here is one that only a pre-index version of the library could leave
             //behind, which is exactly the population an upgrade has to cope with.
-            using var first = new Harness(prefix + "aaa");
-            first.MakeLookLikeAPreIndexQueue();
+            using var first = new PostgreSqlQueueHarness(prefix + "aaa");
+            MakeLookLikeAPreIndexQueue(first);
 
-            using var second = new Harness(prefix + "bbb");
-            second.MakeLookLikeAPreIndexQueue();
+            using var second = new PostgreSqlQueueHarness(prefix + "bbb");
+            MakeLookLikeAPreIndexQueue(second);
 
             //the names differ, but not within the 40 characters that survive truncation
             Assert.AreNotEqual(first.QueueName, second.QueueName);
@@ -124,165 +124,86 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
 
             Assert.AreEqual(SchemaUpgradeStatus.Upgraded, firstResult.Status, firstResult.ErrorMessage);
             Assert.AreEqual(SchemaUpgradeStatus.Upgraded, secondResult.Status, secondResult.ErrorMessage);
-            Assert.IsTrue(first.UniqueIndexExists());
-            Assert.IsTrue(second.UniqueIndexExists());
+            Assert.IsTrue(UniqueIndexExists(first));
+            Assert.IsTrue(UniqueIndexExists(second));
         }
 
+        /// <summary>The error tracking table, named as this queue's connection addresses it.</summary>
+        /// <remarks>
+        /// From the helper rather than built here, so the name carries whatever schema the
+        /// connection is configured for.
+        /// </remarks>
+        private static string ErrorTrackingTable(PostgreSqlQueueHarness harness) =>
+            harness.Resolve<ITableNameHelper>().ErrorTrackingName;
+
         /// <summary>
-        /// A queue on the PostgreSQL test server, with the shipped updater.
+        /// Leaves the queue as one created before #299: no unique index, no version table.
         /// </summary>
-        private sealed class Harness : IDisposable
+        private static void MakeLookLikeAPreIndexQueue(PostgreSqlQueueHarness harness)
         {
-            private readonly QueueCreationContainer<PostgreSqlMessageQueueInit> _creationContainer;
-            private readonly PostgreSqlMessageQueueCreation _creation;
-            private readonly QueueContainer<PostgreSqlMessageQueueInit> _container;
-            private readonly IContainer _admin;
-            private readonly string _errorTrackingTable;
+            harness.DropSchemaVersionTable();
+            var name = UniqueIndexName(harness);
+            Assert.IsNotNull(name, "a newly created queue should have carried the index");
+            harness.Execute($"drop index {name}");
+        }
 
-            public Harness(string queueName = null)
+        private static bool UniqueIndexExists(PostgreSqlQueueHarness harness) =>
+            UniqueIndexName(harness) != null;
+
+        /// <summary>
+        /// The unique index over (QueueID, ExceptionType), found by its shape rather than its name -
+        /// which is how the library looks for it, and the only way to tell an index that carries the
+        /// constraint from one that merely includes the columns.
+        /// </summary>
+        private static string UniqueIndexName(PostgreSqlQueueHarness harness) =>
+            harness.Text(@"SELECT ic.relname FROM pg_index ix
+                  JOIN pg_class ic ON ic.oid = ix.indexrelid
+                  WHERE ix.indrelid = to_regclass(@Table)
+                  AND ix.indisunique AND ix.indpred IS NULL
+                  AND ix.indnkeyatts = 2
+                  AND EXISTS (SELECT 1 FROM pg_attribute a
+                              WHERE a.attrelid = ix.indrelid AND a.attnum IN (ix.indkey[0], ix.indkey[1]) AND lower(a.attname) = 'queueid')
+                  AND EXISTS (SELECT 1 FROM pg_attribute a
+                              WHERE a.attrelid = ix.indrelid AND a.attnum IN (ix.indkey[0], ix.indkey[1]) AND lower(a.attname) = 'exceptiontype')",
+                ("@Table", ErrorTrackingTable(harness)));
+
+        private static void InsertErrorRow(PostgreSqlQueueHarness harness, long queueId,
+            string exceptionType, int retryCount) =>
+            harness.Execute(
+                $"insert into {ErrorTrackingTable(harness)} (QueueID, ExceptionType, RetryCount) " +
+                "values (@QueueID, @ExceptionType, @RetryCount)",
+                ("@QueueID", queueId), ("@ExceptionType", exceptionType), ("@RetryCount", retryCount));
+
+        private static List<(long QueueId, string ExceptionType, int RetryCount)> ReadErrorRows(
+            PostgreSqlQueueHarness harness)
+        {
+            var rows = new List<(long, string, int)>();
+            using var connection = harness.OpenConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText =
+                $"select QueueID, ExceptionType, RetryCount from {ErrorTrackingTable(harness)} " +
+                "order by QueueID, ExceptionType";
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
             {
-                QueueName = queueName ?? GenerateQueueName.Create();
-                var queueConnection = new QueueConnection(QueueName, ConnectionInfo.ConnectionString);
-
-                _creationContainer = new QueueCreationContainer<PostgreSqlMessageQueueInit>();
-                _creation = _creationContainer.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
-                var created = _creation.CreateQueue();
-                Assert.IsTrue(created.Success, created.ErrorMessage);
-
-                _container = new QueueContainer<PostgreSqlMessageQueueInit>();
-                _admin = _container.CreateAdminContainer(queueConnection);
-                Updater = _admin.GetInstance<IQueueSchemaVersion>();
-
-                //from the helper rather than built here, so the name carries whatever schema the
-                //connection is configured for
-                _errorTrackingTable = _admin.GetInstance<ITableNameHelper>().ErrorTrackingName;
+                rows.Add((Convert.ToInt64(reader.GetValue(0)), reader.GetString(1),
+                    Convert.ToInt32(reader.GetValue(2))));
             }
 
-            public string QueueName { get; }
-            public IQueueSchemaVersion Updater { get; }
+            return rows;
+        }
 
-            /// <summary>
-            /// Leaves the queue as one created before #299: no unique index, no version table.
-            /// </summary>
-            public void MakeLookLikeAPreIndexQueue()
+        private static int RetryCountFor(List<(long QueueId, string ExceptionType, int RetryCount)> rows,
+            long queueId, string exceptionType)
+        {
+            foreach (var row in rows)
             {
-                DropSchemaVersionTable();
-                var name = UniqueIndexName();
-                Assert.IsNotNull(name, "a newly created queue should have carried the index");
-                Execute($"drop index {name}");
+                if (row.QueueId == queueId && row.ExceptionType == exceptionType)
+                    return row.RetryCount;
             }
 
-            public void DropSchemaVersionTable()
-            {
-                Execute($"drop table if exists {QueueName}SchemaVersion");
-            }
-
-            public bool UniqueIndexExists() => UniqueIndexName() != null;
-
-            /// <summary>
-            /// The unique index over (QueueID, ExceptionType), found by its shape rather than its name
-            /// - which is how the library looks for it, and the only way to tell an index that carries
-            /// the constraint from one that merely includes the columns.
-            /// </summary>
-            private string UniqueIndexName()
-            {
-                using var connection = new NpgsqlConnection(ConnectionInfo.ConnectionString);
-                connection.Open();
-                using var command = connection.CreateCommand();
-                command.CommandText = @"SELECT ic.relname FROM pg_index ix
-                      JOIN pg_class ic ON ic.oid = ix.indexrelid
-                      WHERE ix.indrelid = to_regclass(@Table)
-                      AND ix.indisunique AND ix.indpred IS NULL
-                      AND ix.indnkeyatts = 2
-                      AND EXISTS (SELECT 1 FROM pg_attribute a
-                                  WHERE a.attrelid = ix.indrelid AND a.attnum IN (ix.indkey[0], ix.indkey[1]) AND lower(a.attname) = 'queueid')
-                      AND EXISTS (SELECT 1 FROM pg_attribute a
-                                  WHERE a.attrelid = ix.indrelid AND a.attnum IN (ix.indkey[0], ix.indkey[1]) AND lower(a.attname) = 'exceptiontype')";
-                var table = command.CreateParameter();
-                table.ParameterName = "@Table";
-                table.Value = _errorTrackingTable;
-                command.Parameters.Add(table);
-                var result = command.ExecuteScalar();
-                return result == null || result == DBNull.Value ? null : Convert.ToString(result);
-            }
-
-            public void InsertErrorRow(long queueId, string exceptionType, int retryCount)
-            {
-                using var connection = new NpgsqlConnection(ConnectionInfo.ConnectionString);
-                connection.Open();
-                using var command = connection.CreateCommand();
-                command.CommandText =
-                    $"insert into {_errorTrackingTable} (QueueID, ExceptionType, RetryCount) " +
-                    "values (@QueueID, @ExceptionType, @RetryCount)";
-                Add(command, "@QueueID", queueId);
-                Add(command, "@ExceptionType", exceptionType);
-                Add(command, "@RetryCount", retryCount);
-                command.ExecuteNonQuery();
-            }
-
-            public List<(long QueueId, string ExceptionType, int RetryCount)> ReadErrorRows()
-            {
-                var rows = new List<(long, string, int)>();
-                using var connection = new NpgsqlConnection(ConnectionInfo.ConnectionString);
-                connection.Open();
-                using var command = connection.CreateCommand();
-                command.CommandText =
-                    $"select QueueID, ExceptionType, RetryCount from {_errorTrackingTable} " +
-                    "order by QueueID, ExceptionType";
-                using var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    rows.Add((Convert.ToInt64(reader.GetValue(0)), reader.GetString(1),
-                        Convert.ToInt32(reader.GetValue(2))));
-                }
-
-                return rows;
-            }
-
-            public int RetryCountFor(List<(long QueueId, string ExceptionType, int RetryCount)> rows,
-                long queueId, string exceptionType)
-            {
-                foreach (var row in rows)
-                {
-                    if (row.QueueId == queueId && row.ExceptionType == exceptionType)
-                        return row.RetryCount;
-                }
-
-                Assert.Fail($"no row for ({queueId}, {exceptionType})");
-                return 0;
-            }
-
-            private static void Add(System.Data.Common.DbCommand command, string name, object value)
-            {
-                var parameter = command.CreateParameter();
-                parameter.ParameterName = name;
-                parameter.Value = value;
-                command.Parameters.Add(parameter);
-            }
-
-            private void Execute(string sql)
-            {
-                using var connection = new NpgsqlConnection(ConnectionInfo.ConnectionString);
-                connection.Open();
-                using var command = connection.CreateCommand();
-                command.CommandText = sql;
-                command.ExecuteNonQuery();
-            }
-
-            public void Dispose()
-            {
-                _admin?.Dispose();
-                _container?.Dispose();
-                try
-                {
-                    _creation.RemoveQueue();
-                }
-                finally
-                {
-                    _creation?.Dispose();
-                    _creationContainer?.Dispose();
-                }
-            }
+            Assert.Fail($"no row for ({queueId}, {exceptionType})");
+            return 0;
         }
     }
 }
