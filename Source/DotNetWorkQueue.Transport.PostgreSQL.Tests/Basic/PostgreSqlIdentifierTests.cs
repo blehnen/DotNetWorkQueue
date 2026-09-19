@@ -32,8 +32,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             var name = "IX_QueueIDExceptionType" + new string('a', 60) + "ErrorTracking";
             var shortened = PostgreSqlIdentifier.Shorten(name);
 
-            Assert.IsTrue(Encoding.UTF8.GetByteCount(shortened) <= PostgreSqlIdentifier.MaxLengthInBytes,
-                $"still {Encoding.UTF8.GetByteCount(shortened)} bytes");
+            Assert.IsLessThanOrEqualTo(PostgreSqlIdentifier.MaxLengthInBytes,
+                Encoding.UTF8.GetByteCount(shortened));
         }
 
         [TestMethod]
@@ -86,8 +86,9 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests.Basic
             foreach (var identifier in identifiers)
             {
                 var shortened = PostgreSqlIdentifier.Shorten(identifier);
-                Assert.IsTrue(Encoding.UTF8.GetByteCount(shortened) <= PostgreSqlIdentifier.MaxLengthInBytes,
-                    $"{identifier} shortened to {shortened}, which is still too long");
+                Assert.IsLessThanOrEqualTo(PostgreSqlIdentifier.MaxLengthInBytes,
+                    Encoding.UTF8.GetByteCount(shortened),
+                    $"{identifier} shortened to {shortened}");
             }
         }
 

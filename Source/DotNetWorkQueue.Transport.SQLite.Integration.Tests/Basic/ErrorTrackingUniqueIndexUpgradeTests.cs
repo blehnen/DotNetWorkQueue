@@ -75,7 +75,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Integration.Tests.Basic
             Assert.AreEqual(SchemaUpgradeStatus.Upgraded, harness.Updater.UpgradeSchema().Status);
 
             var rows = harness.ReadErrorRows();
-            Assert.AreEqual(3, rows.Count, "de-duplication removed rows that were not duplicates");
+            Assert.HasCount(3, rows, "de-duplication removed rows that were not duplicates");
             Assert.AreEqual(4, harness.RetryCountFor(rows, 1, "System.TimeoutException"));
             Assert.AreEqual(2, harness.RetryCountFor(rows, 1, "System.InvalidOperationException"));
             Assert.AreEqual(7, harness.RetryCountFor(rows, 2, "System.TimeoutException"));

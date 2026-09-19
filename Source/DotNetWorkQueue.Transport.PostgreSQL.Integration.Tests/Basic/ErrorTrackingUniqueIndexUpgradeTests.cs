@@ -51,7 +51,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
             Assert.AreEqual(harness.Updater.TargetSchemaVersion, harness.Updater.CurrentSchemaVersion);
 
             var rows = harness.ReadErrorRows();
-            Assert.AreEqual(3, rows.Count, "de-duplication removed rows that were not duplicates");
+            Assert.HasCount(3, rows, "de-duplication removed rows that were not duplicates");
             Assert.AreEqual(4, harness.RetryCountFor(rows, 1, "System.TimeoutException"),
                 "the surviving row must carry the largest count rather than the sum");
             Assert.AreEqual(2, harness.RetryCountFor(rows, 1, "System.InvalidOperationException"));
