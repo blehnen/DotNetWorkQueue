@@ -79,11 +79,14 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <PackageReference Include="System.Text.Json" />
     <!-- 'dynamic' needs the runtime binder, which ships in the box everywhere except here -->
     <PackageReference Include="Microsoft.CSharp" />
-    <!-- AES-GCM arrived in .NET Core 3.0 and was never backported, so there is no AesGcm to build
-         against here and no way to produce the same envelope bytes without one. Encrypting with a
-         different algorithm on this target would be worse than omitting it: the two builds could no
-         longer read each other's messages, which is the whole point of shipping this target. -->
-    <Compile Remove="Interceptors\AesMessageInterceptor.cs" />
+    <!-- supplies the AES-GCM this framework has no implementation of; see BouncyCastleAesGcm -->
+    <PackageReference Include="BouncyCastle.Cryptography" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
+    <!-- every other target has AesGcm in the box, so neither the file nor the package it needs is
+         imposed on those consumers -->
+    <Compile Remove="Interceptors\BouncyCastleAesGcm.cs" />
   </ItemGroup>
 
 

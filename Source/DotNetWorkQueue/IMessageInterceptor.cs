@@ -25,14 +25,9 @@ namespace DotNetWorkQueue
     /// <summary>
     /// Defines a message interceptor. The interceptor can perform transformations on the raw message serialization both when serializing 
     /// and de-serializing a message.
-    /// <remarks>
-    /// For instance, this can be used to compress or encrypt the message in the transport.
-    /// The built in encrypting interceptor is <c>AesMessageInterceptor</c>, which is not part of the
-    /// netstandard2.0 build: AES-GCM arrived in .NET Core 3.0 and was never backported, and
-    /// encrypting with something else there would leave the two builds unable to read each other's
-    /// messages.
-    /// </remarks>
+    /// <remarks>For instance, this can be used to compress or encrypt the message in the transport</remarks>
     /// <seealso cref="GZipMessageInterceptor"/>
+    /// <seealso cref="AesMessageInterceptor"/>
     /// <seealso cref="TripleDesMessageInterceptor"/>
     /// </summary>
     public interface IMessageInterceptor

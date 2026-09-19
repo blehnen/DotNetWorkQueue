@@ -37,6 +37,11 @@ namespace DotNetWorkQueue.Interceptors
         private const int TagSizeBytes = 16;
         private const int HeaderSize = 1 + NonceSizeBytes + TagSizeBytes;
 
+        //RandomNumberGenerator.Fill would say this more directly but needs netstandard2.1. The
+        //implementations Create returns are thread safe for GetBytes on every target, and one
+        //shared instance avoids building a generator per message.
+        private static readonly RandomNumberGenerator Random = RandomNumberGenerator.Create();
+
         private readonly AesMessageInterceptorConfiguration _configuration;
 
         /// <summary>
@@ -58,16 +63,13 @@ namespace DotNetWorkQueue.Interceptors
             Guard.NotNull(input);
 
             var nonce = new byte[NonceSizeBytes];
-            RandomNumberGenerator.Fill(nonce); // CSPRNG, not System.Random
+            Random.GetBytes(nonce); // CSPRNG, not System.Random
 
             var tag = new byte[TagSizeBytes];
             var ciphertext = new byte[input.Length];
             var associatedData = new[] { Version };
 
-            using (var aes = new AesGcm(_configuration.Key, TagSizeBytes))
-            {
-                aes.Encrypt(nonce, input, ciphertext, tag, associatedData);
-            }
+            AesGcmCipher.Encrypt(_configuration.Key, nonce, input, ciphertext, tag, associatedData);
 
             var output = new byte[HeaderSize + ciphertext.Length];
             output[0] = Version;
@@ -98,10 +100,7 @@ namespace DotNetWorkQueue.Interceptors
 
             var plaintext = new byte[ciphertext.Length];
             var associatedData = new[] { Version };
-            using (var aes = new AesGcm(_configuration.Key, TagSizeBytes))
-            {
-                aes.Decrypt(nonce, ciphertext, tag, plaintext, associatedData);
-            }
+            AesGcmCipher.Decrypt(_configuration.Key, nonce, ciphertext, tag, plaintext, associatedData);
             return plaintext;
         }
 
