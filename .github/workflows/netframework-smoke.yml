@@ -12,8 +12,11 @@ name: .NET Framework smoke
 on:
   push:
     branches: [ master, '*.*.x' ]
+  # Every pull request, not only those onto master. This is the one job that exercises the
+  # packaged netstandard2.0 output at all, and a branch stacked on another would otherwise
+  # never run it - which is exactly the case it was first needed for.
   pull_request:
-    branches: [ master ]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
