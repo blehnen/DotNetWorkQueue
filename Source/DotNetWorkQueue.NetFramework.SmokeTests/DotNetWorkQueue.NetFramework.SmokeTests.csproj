@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Runs the shipped netstandard2.0 packages on .NET Framework (GitHub #392).
+
+    Two things are deliberate and easy to undo by accident:
+
+    1. It references the PACKAGES, not the projects. A ProjectReference would build the net10.0
+       assemblies and prove nothing about what consumers receive. 0.6.6.1 shipped broken because
+       the package dropped three bundled DLLs and every consumer died at Container.Verify(), which
+       is exactly the fault a project-referenced suite cannot see (GitHub #216).
+
+    2. It is in neither solution. A net48 test host only runs on Windows, so adding it to
+       DotNetWorkQueue.sln would break the Linux CI build and the Jenkins agents. The workflow
+       builds this csproj directly, after packing into a local feed.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <!-- the version under test is whatever this repository is about to publish -->
+    <PackageUnderTest>$(Version)</PackageUnderTest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- VersionOverride rather than a central pin: the version tracks $(Version), so a release
+         bump does not have to be remembered in two places -->
+    <PackageReference Include="DotNetWorkQueue" VersionOverride="$(PackageUnderTest)" />
+    <PackageReference Include="DotNetWorkQueue.Transport.Memory" VersionOverride="$(PackageUnderTest)" />
+    <PackageReference Include="DotNetWorkQueue.Transport.SQLite" VersionOverride="$(PackageUnderTest)" />
+    <PackageReference Include="DotNetWorkQueue.Transport.LiteDb" VersionOverride="$(PackageUnderTest)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="MSTest.TestFramework" />
+    <PackageReference Include="MSTest.TestAdapter" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,68 @@
+name: .NET Framework smoke
+
+# The netstandard2.0 packages are the only output nothing else runs. Every other suite targets
+# net10.0, where the framework supplies what that build has to polyfill, so none of the polyfilled
+# code is ever executed - the queue-name expressions built at run time, the ADO.NET asynchronous
+# transaction shims, the interval timer standing in for PeriodicTimer, and the AES-GCM
+# implementation that framework has no equivalent of.
+#
+# It runs on Windows because a .NET Framework test host cannot run anywhere else, which is why
+# neither Jenkins (Linux Docker agents) nor ci.yml (ubuntu-latest) can cover it. See GitHub #392.
+
+on:
+  push:
+    branches: [ master, '*.*.x' ]
+  # Every pull request, not only those onto master. This is the one job that exercises the
+  # packaged netstandard2.0 output at all, and a branch stacked on another would otherwise
+  # never run it - which is exactly the case it was first needed for.
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Packing is delegated rather than repeated, so the smoke test runs against exactly what the
+  # release publishes - including that workflow's assertion that all twelve packages were built.
+  pack:
+    uses: ./.github/workflows/build-pack.yml
+    with:
+      upload_artifacts: true
+
+  smoke:
+    needs: pack
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Fetch the packages the release would publish
+        uses: actions/download-artifact@v7
+        with:
+          name: nuget-packages
+          path: ${{ runner.temp }}/feed
+
+      # Restoring from the packed output rather than the projects is the point of the job. A
+      # ProjectReference would build the net10.0 assemblies and prove nothing about what a
+      # consumer receives; 0.6.6.1 shipped broken because the package dropped DLLs the projects
+      # still had (GitHub #216).
+      - name: Restore against the packed output
+        run: >
+          dotnet restore "Source/DotNetWorkQueue.NetFramework.SmokeTests/DotNetWorkQueue.NetFramework.SmokeTests.csproj"
+          -p:RestoreAdditionalProjectSources="${{ runner.temp }}/feed"
+
+      - name: Build
+        run: >
+          dotnet build "Source/DotNetWorkQueue.NetFramework.SmokeTests/DotNetWorkQueue.NetFramework.SmokeTests.csproj"
+          -c Release --no-restore
+
+      - name: Test
+        run: >
+          dotnet test "Source/DotNetWorkQueue.NetFramework.SmokeTests/DotNetWorkQueue.NetFramework.SmokeTests.csproj"
+          -c Release --no-build --logger "console;verbosity=normal"
