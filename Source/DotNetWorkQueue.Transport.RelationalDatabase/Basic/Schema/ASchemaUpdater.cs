@@ -343,8 +343,14 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase.Basic.Schema
                 if (transaction != null)
                     command.Transaction = transaction;
 
-                //the table name is an identifier, which no provider here will bind as a parameter, and
-                //it comes from ITableNameHelper rather than from a caller at this point
+                //A table name is an identifier, and no provider here binds an identifier as a
+                //parameter, so this cannot be the parameterised query S2077 asks for.
+                //
+                //What makes it safe is that the name is not free text. It comes from
+                //ITableNameHelper, built from the queue name, and every transport validates that
+                //name against [a-zA-Z0-9_.] in its IConnectionInformation constructor before any of
+                //this runs. No quote, semicolon, whitespace or comment marker can reach here, so
+                //there is nothing to break out of.
                 command.CommandText = $"select Version from {TableNameHelper.SchemaVersionName}";
                 var result = command.ExecuteScalar();
                 return result == null || result == DBNull.Value ? 0 : Convert.ToInt64(result);
