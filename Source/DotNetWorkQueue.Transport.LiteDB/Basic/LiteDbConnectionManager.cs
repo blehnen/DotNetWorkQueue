@@ -98,7 +98,7 @@ namespace DotNetWorkQueue.Transport.LiteDb.Basic
             }
 
             //recheck
-            ObjectDisposedException.ThrowIf(_disposedValue, this);
+            Guard.NotDisposed(_disposedValue, this);
 
             return new LiteDbConnection(_db, false);
         }

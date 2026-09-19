@@ -98,6 +98,32 @@ namespace DotNetWorkQueue.Validation
         }
 
         /// <summary>
+        /// Ensures an object that has been disposed is not used.
+        /// </summary>
+        /// <param name="disposed">Whether <paramref name="instance"/> has been disposed.</param>
+        /// <param name="instance">The object being used.</param>
+        /// <exception cref="ObjectDisposedException"><paramref name="disposed"/> is true.</exception>
+        /// <remarks>
+        /// Stands in for <c>ObjectDisposedException.ThrowIf</c>, which needs .NET 7 and so is not
+        /// available on every target this library builds for. Written once rather than forwarded
+        /// per target, so the behaviour the tests cover is the behaviour every target gets
+        /// (GitHub #252).
+        /// </remarks>
+        public static void NotDisposed(bool disposed, object instance)
+        {
+            if (disposed)
+                ThrowDisposed(instance);
+        }
+
+        /// <summary>
+        /// Out of line for the same reason as <see cref="ThrowNull"/>: the throw is the cold path.
+        /// </summary>
+        [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowDisposed(object instance) =>
+            throw new ObjectDisposedException(instance?.GetType().FullName);
+
+        /// <summary>
         /// Kept out of line so the calling method stays small enough for the JIT to inline it; the
         /// throw is the cold path and does not belong in the caller's body.
         /// </summary>

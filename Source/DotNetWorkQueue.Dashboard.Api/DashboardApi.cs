@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
+using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
 
 namespace DotNetWorkQueue.Dashboard.Api
@@ -200,7 +201,7 @@ namespace DotNetWorkQueue.Dashboard.Api
 
         private void ThrowIfDisposed()
         {
-            ObjectDisposedException.ThrowIf(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
+            Guard.NotDisposed(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
         }
 
         /// <inheritdoc />
