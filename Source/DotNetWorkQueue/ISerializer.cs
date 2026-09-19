@@ -60,6 +60,6 @@ namespace DotNetWorkQueue
         /// working without change and still get a usable identity.
         /// </para>
         /// </remarks>
-        string SerializerId => GetType().FullName;
+        string SerializerId { get; }
     }
 }

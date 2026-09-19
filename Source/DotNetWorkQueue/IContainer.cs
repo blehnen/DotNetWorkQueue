@@ -65,7 +65,7 @@ namespace DotNetWorkQueue
         /// "do not know", and every caller treats that as "nothing registered", so an
         /// <see cref="IContainer"/> implemented elsewhere keeps compiling and keeps its old behaviour.
         /// </remarks>
-        TService TryGetInstance<TService>() where TService : class => null;
+        TService TryGetInstance<TService>() where TService : class;
 
         /// <summary>
         /// The concrete type this container will produce for <typeparamref name="TService"/>, or
@@ -84,7 +84,7 @@ namespace DotNetWorkQueue
         /// which fails the same safe way.
         /// </para>
         /// </remarks>
-        Type GetImplementationType<TService>() where TService : class => null;
+        Type GetImplementationType<TService>() where TService : class;
 
         /// <summary>
         /// Registers the service with the specified life style.

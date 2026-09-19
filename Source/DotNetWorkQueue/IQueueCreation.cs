@@ -49,7 +49,7 @@ namespace DotNetWorkQueue
         /// Defaulted rather than required, so a transport written before this existed keeps compiling
         /// and keeps its old behaviour - it simply is not checked until it says otherwise.
         /// </remarks>
-        bool RequiresCreation => false;
+        bool RequiresCreation { get; }
 
         /// <summary>
         /// Returns true if the queue exists in the transport
