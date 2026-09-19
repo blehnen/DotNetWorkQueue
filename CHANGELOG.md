@@ -1,4 +1,7 @@
-﻿### 0.14.0 — 2026-09-18
+﻿### Unreleased
+- ⚠️ `IContainer.TryGetInstance`, `IContainer.GetImplementationType`, `IQueueCreation.RequiresCreation` and `ISerializer.SerializerId` no longer have default implementations. A container, queue creation or serializer written outside this library must now declare them; every implementation shipped here already did. Needed for the older framework target, whose runtime cannot support defaulted interface members (GitHub #252)
+
+### 0.14.0 — 2026-09-18
 - ⚠️ A producer or consumer refuses to start against a SQL Server, PostgreSQL or SQLite queue made before this release, throwing `QueueSchemaOutOfDateException`. Call `UpgradeSchema()` once per queue (GitHub #308)
 - An existing queue can be upgraded in place rather than re-created. Version 1 adds the error-tracking index that only new queues had, so two workers failing the same message at once no longer cost it an attempt (GitHub #299, #308)
 - PostgreSQL version 2 converts history and metadata timestamps to `timestamptz` in place. That used to mean editing and running a script per queue (GitHub #311, #374)

@@ -108,6 +108,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
     public class SerializerThatWillCrashOnDeSerialization : ISerializer
     {
+        //ISerializer no longer defaults this, so a serializer says who it is or does not compile
+        public string SerializerId => GetType().FullName;
+
         private readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings
         {
             TypeNameHandling = TypeNameHandling.All,
