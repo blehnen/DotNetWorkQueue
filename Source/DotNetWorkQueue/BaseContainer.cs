@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue
 {
@@ -51,7 +52,7 @@ namespace DotNetWorkQueue
         /// <exception cref="System.ObjectDisposedException"></exception>
         protected void ThrowIfDisposed()
         {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            Guard.NotDisposed(IsDisposed, this);
         }
 
         /// <summary>

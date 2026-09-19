@@ -46,9 +46,10 @@ namespace DotNetWorkQueue.Transport.RelationalDatabase
         /// <remarks>
         /// On SQL Server and PostgreSQL beginning a transaction is a round trip, so the asynchronous
         /// consumer needs this rather than the synchronous member; the send path already awaits
-        /// <see cref="DbConnection.BeginTransactionAsync(System.Threading.CancellationToken)"/> directly.
-        /// A provider that does not override it runs the synchronous version on the calling thread,
-        /// which is what SQLite does.
+        /// <c>DbConnection.BeginTransactionAsync</c> directly. A provider that does not override it
+        /// runs the synchronous version on the calling thread, which is what SQLite does, and what
+        /// the whole netstandard2.0 build does - that framework has no asynchronous member to
+        /// override.
         /// </remarks>
         Task<DbTransaction> BeginTransactionAsync();
     }

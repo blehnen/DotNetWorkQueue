@@ -1,4 +1,7 @@
 ﻿### Unreleased
+- The library now ships a netstandard2.0 build, so .NET Framework applications can use it again. Microsoft recommends .NET Framework 4.7.2 or later for netstandard2.0 (GitHub #252)
+- The netstandard2.0 build has no PostgreSQL transport; Npgsql's last netstandard2.0 line goes out of support in November 2026. It also pulls in BouncyCastle, which supplies the AES-GCM that framework lacks (GitHub #252)
+- ⚠️ `IDbFactory.CreateCommand(DbConnection, string)` no longer has a default implementation. A custom SQLite `IDbFactory` must implement it: create a command, set its text, return it. The one shipped here already did (GitHub #252)
 - ⚠️ `IContainer.TryGetInstance`, `IContainer.GetImplementationType`, `IQueueCreation.RequiresCreation` and `ISerializer.SerializerId` no longer have default implementations. A container, queue creation or serializer written outside this library must now declare them; every implementation shipped here already did. Needed for the older framework target, whose runtime cannot support defaulted interface members (GitHub #252)
 
 ### 0.14.0 — 2026-09-18

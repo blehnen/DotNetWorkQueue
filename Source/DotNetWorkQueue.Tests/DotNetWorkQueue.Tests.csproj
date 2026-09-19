@@ -18,4 +18,16 @@
     <ProjectReference Include="..\DotNetWorkQueue.Transport.Shared\DotNetWorkQueue.Transport.Shared.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
   </ItemGroup>
+
+  <!-- The netstandard2.0 build gets its AES-GCM from BouncyCastle because that framework has none.
+       Compiling the very same file here, against the same package, lets BouncyCastleAesGcmTests
+       check it byte for byte against System.Security.Cryptography.AesGcm - the code that ships is
+       then the code under test, rather than a restatement of it. The reference is test-only; the
+       library imposes it on netstandard2.0 consumers alone (GitHub #252). -->
+  <ItemGroup>
+    <Compile Include="..\DotNetWorkQueue\Interceptors\BouncyCastleAesGcm.cs"
+             Link="Interceptors\BouncyCastleAesGcm.cs" />
+    <PackageReference Include="BouncyCastle.Cryptography" />
+  </ItemGroup>
+
 </Project>

@@ -23,6 +23,7 @@ using System.Data.Common;
 using System.Data.SQLite;
 using System.Threading;
 using DotNetWorkQueue.Transport.SQLite;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SQLite.Basic
 {
@@ -179,7 +180,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
 
         private void ThrowIfDisposed()
         {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            Guard.NotDisposed(IsDisposed, this);
         }
 
         private void DrainAll()

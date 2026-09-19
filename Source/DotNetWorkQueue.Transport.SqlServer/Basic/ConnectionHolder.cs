@@ -22,6 +22,7 @@ using Microsoft.Data.SqlClient;
 using System.Threading;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.RelationalDatabase;
+using DotNetWorkQueue.Validation;
 
 namespace DotNetWorkQueue.Transport.SqlServer.Basic
 {
@@ -164,7 +165,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Basic
         /// <exception cref="System.ObjectDisposedException"></exception>
         private void ThrowIfDisposed()
         {
-            ObjectDisposedException.ThrowIf(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
+            Guard.NotDisposed(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
         }
 
         #endregion

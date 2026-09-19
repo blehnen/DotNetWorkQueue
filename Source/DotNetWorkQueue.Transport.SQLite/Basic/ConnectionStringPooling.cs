@@ -151,7 +151,12 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
         private static string Append(string connectionString, string keyword, string value)
         {
             var trimmed = connectionString.TrimEnd();
-            var separator = trimmed.EndsWith(';') ? string.Empty : ";";
+            //CA1865 wants EndsWith(char) here, which netstandard2.0 does not have. Ordinal on the
+            //string overload is what the char overload does, so this is the one form that is both
+            //correct and available everywhere.
+#pragma warning disable CA1865
+            var separator = trimmed.EndsWith(";", StringComparison.Ordinal) ? string.Empty : ";";
+#pragma warning restore CA1865
             return trimmed + separator + keyword + "=" + value + ";";
         }
     }

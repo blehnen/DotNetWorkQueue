@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0;net8.0;</TargetFrameworks>
+    <TargetFrameworks>net10.0;net8.0;netstandard2.0;</TargetFrameworks>
     <Authors>Brian Lehnen</Authors>
     <Company />
-	  <Description>Work queue for dot net 8.0 and 10.0. Supports scheduling, delayed processing, prioritized queues, message expiration, retries with configurable back-off and more.</Description>
+	  <Description>Work queue for dot net 8.0 and 10.0, and for .NET Framework and other netstandard2.0 runtimes. Supports scheduling, delayed processing, prioritized queues, message expiration, retries with configurable back-off and more.</Description>
     <Copyright>Copyright © Brian Lehnen 2015-2026</Copyright>
     <PackageProjectUrl>https://github.com/blehnen/DotNetWorkQueue</PackageProjectUrl>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
@@ -45,6 +45,14 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 	</PropertyGroup>
 
 
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
+		<DefineConstants>LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<WarningsAsErrors />
+	</PropertyGroup>
+
+
   <ItemGroup>
     <PackageReference Include="DotNetWorkQueue.Aq.ExpressionJsonSerializer" />
     <PackageReference Include="GuerrillaNtp" />
@@ -57,6 +65,28 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
     <PackageReference Include="System.Diagnostics.DiagnosticSource" />
     <PackageReference Include="Cronos" />
     <PackageReference Include="CronExpressionDescriptor" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <!-- the SDK defaults this target to C# 7.3. The language version is a compiler setting, not a
+         runtime one, so raising it costs nothing on a target that only lacks the newer runtime
+         types; anything that does need runtime support is polyfilled under Compatibility. -->
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <!-- part of the framework from net8.0 on; packages only for the old target -->
+    <PackageReference Include="System.Text.Json" />
+    <!-- 'dynamic' needs the runtime binder, which ships in the box everywhere except here -->
+    <PackageReference Include="Microsoft.CSharp" />
+    <!-- supplies the AES-GCM this framework has no implementation of; see BouncyCastleAesGcm -->
+    <PackageReference Include="BouncyCastle.Cryptography" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
+    <!-- every other target has AesGcm in the box, so neither the file nor the package it needs is
+         imposed on those consumers -->
+    <Compile Remove="Interceptors\BouncyCastleAesGcm.cs" />
   </ItemGroup>
 
 

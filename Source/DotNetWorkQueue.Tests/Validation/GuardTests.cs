@@ -108,5 +108,44 @@ namespace DotNetWorkQueue.Tests.Validation
         {
             Guard.IsValid(1, i => i > 0, "must be greater than 0");
         }
+
+        [TestMethod]
+        public void NotDisposed_Names_The_Type_That_Was_Disposed()
+        {
+            //the same message ObjectDisposedException.ThrowIf produces, which is what this replaces
+            //on the targets that do not have it
+            var instance = new Disposable();
+
+            var ex = Assert.ThrowsExactly<ObjectDisposedException>(
+                () => Guard.NotDisposed(true, instance));
+
+            Assert.AreEqual(typeof(Disposable).FullName, ex.ObjectName);
+        }
+
+        [TestMethod]
+        public void NotDisposed_Passes_An_Object_That_Is_Still_Alive()
+        {
+            Guard.NotDisposed(false, new Disposable());
+        }
+
+        [TestMethod]
+        public void NotDisposed_Does_Not_Read_The_Instance_When_It_Is_Not_Throwing()
+        {
+            //the check is on the hot path of nearly every public call, so it must not touch the
+            //instance unless it is about to throw
+            Guard.NotDisposed(false, null);
+        }
+
+        [TestMethod]
+        public void NotDisposed_Still_Throws_The_Right_Exception_Without_An_Instance()
+        {
+            //reading the type off a null instance would turn a disposal bug into a
+            //NullReferenceException, which says nothing about what went wrong
+            var ex = Assert.ThrowsExactly<ObjectDisposedException>(() => Guard.NotDisposed(true, null));
+
+            Assert.AreEqual(string.Empty, ex.ObjectName);
+        }
+
+        private sealed class Disposable;
     }
 }

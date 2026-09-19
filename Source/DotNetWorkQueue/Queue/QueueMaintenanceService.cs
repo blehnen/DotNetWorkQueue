@@ -88,7 +88,7 @@ namespace DotNetWorkQueue.Queue
         /// <exception cref="System.ObjectDisposedException"></exception>
         private void ThrowIfDisposed()
         {
-            ObjectDisposedException.ThrowIf(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
+            Guard.NotDisposed(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
         }
 
         /// <inheritdoc />

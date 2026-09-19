@@ -8,6 +8,12 @@
     <PackageVersion Include="OpenTelemetry" Version="1.16.0" />
     <PackageVersion Include="Polly.Core" Version="8.7.0" />
     <PackageVersion Include="SimpleInjector" Version="5.5.2" />
+    <!-- netstandard2.0 only: net8.0 and later get System.Text.Json from the framework.
+         10.0.12 still ships a netstandard2.0 asset, so the old target needs no older pin. -->
+    <PackageVersion Include="System.Text.Json" Version="10.0.12" />
+    <!-- netstandard2.0 only: AES-GCM arrived in .NET Core 3.0 and was never backported, so the
+         old target needs an implementation. MIT, no dependencies of its own. -->
+    <PackageVersion Include="BouncyCastle.Cryptography" Version="2.7.0" />
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="10.0.9" />
     <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.9" />
     <PackageVersion Include="Cronos" Version="0.13.0" />

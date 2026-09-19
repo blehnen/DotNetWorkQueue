@@ -266,7 +266,7 @@ namespace DotNetWorkQueue.Queue
         /// <exception cref="System.ObjectDisposedException"></exception>
         protected void ThrowIfDisposed()
         {
-            ObjectDisposedException.ThrowIf(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
+            Guard.NotDisposed(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
         }
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.

@@ -50,18 +50,13 @@ namespace DotNetWorkQueue.Transport.SQLite
         /// the command object, so a command created per operation recompiles every time. On the
         /// dequeue script, whose text is long and has several statements, that measured 27,389 ns
         /// and 22,144 B per dequeue against 4,458 ns and 552 B when the command is reused.
-        /// Implementations that cannot reuse anything simply return a new command, which is what
-        /// the default below does.
+        /// An implementation that cannot reuse anything should create a command, set its text, and
+        /// return it.
         /// </remarks>
         /// <param name="connection">The connection.</param>
         /// <param name="commandText">The command text.</param>
         /// <returns></returns>
-        DbCommand CreateCommand(DbConnection connection, string commandText)
-        {
-            var command = CreateCommand(connection);
-            command.CommandText = commandText;
-            return command;
-        }
+        DbCommand CreateCommand(DbConnection connection, string commandText);
 
         /// <summary>
         /// Creates a new instance of <seealso cref="ISQLiteTransactionWrapper"/>
