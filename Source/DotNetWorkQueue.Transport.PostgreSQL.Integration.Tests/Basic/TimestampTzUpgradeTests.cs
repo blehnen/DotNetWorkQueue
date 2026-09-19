@@ -35,10 +35,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
         [TestMethod]
         public void AQueueWithNaiveTimestamps_IsConvertedKeepingTheInstant()
         {
-            using var harness = new Harness(declareTimeZone: true);
-            harness.MakeLookLikeAPre0120Queue();
+            using var harness = NewQueue(declareTimeZone: true);
+            MakeLookLikeAPre0120Queue(harness);
 
-            Assert.AreEqual("timestamp without time zone", harness.ColumnType("History", "enqueuedutc"),
+            Assert.AreEqual("timestamp without time zone", ColumnType(harness, "History", "enqueuedutc"),
                 "setup did not put the column back, so there is nothing to convert");
             Assert.AreEqual(StoredByOldVersions, harness.Text($"SELECT EnqueuedUtc::text FROM {harness.QueueName}History"),
                 "the stored value is not what 0.11.0 would have written");
@@ -48,8 +48,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
             Assert.AreEqual(SchemaUpgradeStatus.Upgraded, result.Status, result.ErrorMessage);
             Assert.AreEqual(2, result.EndingVersion);
 
-            Assert.AreEqual("timestamp with time zone", harness.ColumnType("History", "enqueuedutc"));
-            Assert.AreEqual("timestamp with time zone", harness.ColumnType("MetaData", "queueddatetime"));
+            Assert.AreEqual("timestamp with time zone", ColumnType(harness, "History", "enqueuedutc"));
+            Assert.AreEqual("timestamp with time zone", ColumnType(harness, "MetaData", "queueddatetime"));
 
             //the point of the whole thing: the same instant, not the same digits
             Assert.AreEqual(EnqueuedInstant,
@@ -62,8 +62,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
         {
             //nothing in the database records the zone the old values were written in. Assuming UTC
             //would silently shift every timestamp on any deployment that was not in UTC.
-            using var harness = new Harness(declareTimeZone: false);
-            harness.MakeLookLikeAPre0120Queue();
+            using var harness = NewQueue(declareTimeZone: false);
+            MakeLookLikeAPre0120Queue(harness);
 
             var result = harness.Updater.UpgradeSchema();
 
@@ -71,7 +71,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
             Assert.Contains("SetUpgradeSourceTimeZone", result.ErrorMessage);
 
             //and it changed nothing on the way out
-            Assert.AreEqual("timestamp without time zone", harness.ColumnType("History", "enqueuedutc"));
+            Assert.AreEqual("timestamp without time zone", ColumnType(harness, "History", "enqueuedutc"));
             Assert.AreEqual(StoredByOldVersions, harness.Text($"SELECT EnqueuedUtc::text FROM {harness.QueueName}History"));
         }
 
@@ -80,10 +80,10 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
         {
             //a queue created after 0.12.0 but before schema versioning: the columns are right, only
             //the version table is missing. It must not be made to declare a zone it does not need.
-            using var harness = new Harness(declareTimeZone: false);
+            using var harness = NewQueue(declareTimeZone: false);
             harness.DropSchemaVersionTable();
 
-            Assert.AreEqual("timestamp with time zone", harness.ColumnType("History", "enqueuedutc"));
+            Assert.AreEqual("timestamp with time zone", ColumnType(harness, "History", "enqueuedutc"));
 
             var result = harness.Updater.UpgradeSchema();
 
@@ -94,8 +94,8 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
         [TestMethod]
         public void UpgradingTwice_ConvertsOnceAndThenReportsCurrent()
         {
-            using var harness = new Harness(declareTimeZone: true);
-            harness.MakeLookLikeAPre0120Queue();
+            using var harness = NewQueue(declareTimeZone: true);
+            MakeLookLikeAPre0120Queue(harness);
 
             Assert.AreEqual(SchemaUpgradeStatus.Upgraded, harness.Updater.UpgradeSchema().Status);
 
@@ -105,123 +105,60 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
         }
 
         /// <summary>
-        /// A queue with history on, and the shipped updater.
+        /// A queue with history on, and the schema version the conversion needs declared or not.
         /// </summary>
-        private sealed class Harness : IDisposable
+        /// <remarks>
+        /// History is off by default and is the table this matters most on - it keeps values long
+        /// enough for a shifted timestamp to be noticed.
+        /// </remarks>
+        private static PostgreSqlQueueHarness NewQueue(bool declareTimeZone)
         {
-            private readonly QueueCreationContainer<PostgreSqlMessageQueueInit> _creationContainer;
-            private readonly PostgreSqlMessageQueueCreation _creation;
-            private readonly QueueContainer<PostgreSqlMessageQueueInit> _container;
-            private readonly IContainer _admin;
-
-            public Harness(bool declareTimeZone)
+            var settings = new Dictionary<string, string>();
+            if (declareTimeZone)
             {
-                QueueName = GenerateQueueName.Create();
-
-                var settings = new Dictionary<string, string>();
-                if (declareTimeZone)
-                {
-                    settings.SetUpgradeSourceTimeZone(WriterZone);
-                }
-
-                var queueConnection = new QueueConnection(QueueName, ConnectionInfo.ConnectionString, settings);
-
-                _creationContainer = new QueueCreationContainer<PostgreSqlMessageQueueInit>();
-                _creation = _creationContainer.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
-
-                //History is off by default and is the table this matters most on - it keeps values
-                //long enough for a shifted timestamp to be noticed
-                _creation.Options.EnableHistory = true;
-                var created = _creation.CreateQueue();
-                Assert.IsTrue(created.Success, created.ErrorMessage);
-
-                _container = new QueueContainer<PostgreSqlMessageQueueInit>();
-                _admin = _container.CreateAdminContainer(queueConnection);
-                Updater = _admin.GetInstance<IQueueSchemaVersion>();
+                settings.SetUpgradeSourceTimeZone(WriterZone);
             }
 
-            public string QueueName { get; }
-            public IQueueSchemaVersion Updater { get; }
-
-            /// <summary>
-            /// Leaves the queue as 0.11.0 left it: naive timestamp columns holding local time, and no
-            /// version table. The unique index stays, so version 1 has nothing to do and this is a
-            /// test of version 2 rather than of both.
-            /// </summary>
-            public void MakeLookLikeAPre0120Queue()
-            {
-                DropSchemaVersionTable();
-
-                Execute($@"INSERT INTO {QueueName}History (QueueID, Status, EnqueuedUtc, RetryCount)
-                           VALUES ('a-message', 0, timestamptz '{EnqueuedInstant}', 0)");
-
-                //converted with the session in the writer's zone, which is how the value became local
-                Execute($@"
-                    SET TIME ZONE '{WriterZone}';
-                    ALTER TABLE {QueueName}History ALTER COLUMN EnqueuedUtc  TYPE timestamp;
-                    ALTER TABLE {QueueName}History ALTER COLUMN StartedUtc   TYPE timestamp;
-                    ALTER TABLE {QueueName}History ALTER COLUMN CompletedUtc TYPE timestamp;
-                    ALTER TABLE {QueueName}MetaData ALTER COLUMN QueuedDateTime TYPE timestamp;
-                    ALTER TABLE {QueueName}MetaDataErrors ALTER COLUMN QueuedDateTime TYPE timestamp;
-                    ALTER TABLE {QueueName}MetaDataErrors ALTER COLUMN LastExceptionDate TYPE timestamp;");
-            }
-
-            public void DropSchemaVersionTable() => Execute($"drop table if exists {QueueName}SchemaVersion");
-
-            /// <summary>
-            /// The declared type of a column, read from the catalog.
-            /// </summary>
-            /// <remarks>
-            /// The table and column are bound rather than pasted in. They are values here, not
-            /// identifiers - to_regclass takes a name as a string - so binding them is available and
-            /// is what the rest of the library does with a catalog look-up.
-            /// </remarks>
-            public string ColumnType(string tableSuffix, string column) =>
-                Text(@"SELECT format_type(a.atttypid, a.atttypmod) FROM pg_attribute a
-                       WHERE a.attrelid = to_regclass(@Table)
-                         AND lower(a.attname) = lower(@Column) AND a.attnum > 0 AND NOT a.attisdropped",
-                    ("@Table", QueueName + tableSuffix), ("@Column", column));
-
-            public string Text(string sql, params (string Name, string Value)[] parameters)
-            {
-                using var connection = new NpgsqlConnection(ConnectionInfo.ConnectionString);
-                connection.Open();
-                using var command = connection.CreateCommand();
-                command.CommandText = sql;
-                foreach (var (name, value) in parameters)
-                {
-                    var parameter = command.CreateParameter();
-                    parameter.ParameterName = name;
-                    parameter.Value = value;
-                    command.Parameters.Add(parameter);
-                }
-
-                return command.ExecuteScalar() as string;
-            }
-
-            private void Execute(string sql)
-            {
-                using var connection = new NpgsqlConnection(ConnectionInfo.ConnectionString);
-                connection.Open();
-                using var command = connection.CreateCommand();
-                command.CommandText = sql;
-                command.ExecuteNonQuery();
-            }
-
-            public void Dispose()
-            {
-                _admin?.Dispose();
-                _container?.Dispose();
-                try
-                {
-                    _creation.RemoveQueue();
-                }
-                finally
-                {
-                    _creation?.Dispose();
-                    _creationContainer?.Dispose();
-                }
-            }
+            return new PostgreSqlQueueHarness(
+                connectionSettings: settings,
+                beforeCreate: creation => creation.Options.EnableHistory = true);
         }
+
+        /// <summary>
+        /// Leaves the queue as 0.11.0 left it: naive timestamp columns holding local time, and no
+        /// version table. The unique index stays, so version 1 has nothing to do and this is a test
+        /// of version 2 rather than of both.
+        /// </summary>
+        private static void MakeLookLikeAPre0120Queue(PostgreSqlQueueHarness harness)
+        {
+            harness.DropSchemaVersionTable();
+
+            harness.Execute($@"INSERT INTO {harness.QueueName}History (QueueID, Status, EnqueuedUtc, RetryCount)
+                               VALUES ('a-message', 0, timestamptz '{EnqueuedInstant}', 0)");
+
+            //converted with the session in the writer's zone, which is how the value became local
+            harness.Execute($@"
+                SET TIME ZONE '{WriterZone}';
+                ALTER TABLE {harness.QueueName}History ALTER COLUMN EnqueuedUtc  TYPE timestamp;
+                ALTER TABLE {harness.QueueName}History ALTER COLUMN StartedUtc   TYPE timestamp;
+                ALTER TABLE {harness.QueueName}History ALTER COLUMN CompletedUtc TYPE timestamp;
+                ALTER TABLE {harness.QueueName}MetaData ALTER COLUMN QueuedDateTime TYPE timestamp;
+                ALTER TABLE {harness.QueueName}MetaDataErrors ALTER COLUMN QueuedDateTime TYPE timestamp;
+                ALTER TABLE {harness.QueueName}MetaDataErrors ALTER COLUMN LastExceptionDate TYPE timestamp;");
+        }
+
+        /// <summary>
+        /// The declared type of a column, read from the catalog.
+        /// </summary>
+        /// <remarks>
+        /// The table and column are bound rather than pasted in. They are values here, not
+        /// identifiers - to_regclass takes a name as a string - so binding them is available and is
+        /// what the rest of the library does with a catalog look-up.
+        /// </remarks>
+        private static string ColumnType(PostgreSqlQueueHarness harness, string tableSuffix, string column) =>
+            harness.Text(@"SELECT format_type(a.atttypid, a.atttypmod) FROM pg_attribute a
+                           WHERE a.attrelid = to_regclass(@Table)
+                             AND lower(a.attname) = lower(@Column) AND a.attnum > 0 AND NOT a.attisdropped",
+                ("@Table", harness.QueueName + tableSuffix), ("@Column", column));
     }
 }
