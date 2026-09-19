@@ -1,5 +1,5 @@
 ﻿### 0.16.0 - 2026-09-19
-- ⚠️ `TripleDesMessageInterceptor` and `TripleDesMessageInterceptorConfiguration` are gone. They were deprecated in 0.9.43. Drain or re-encrypt any 3DES messages before upgrading, because nothing can read them afterwards. 0.15.0 is the last release that can: see the [migration guide](https://github.com/blehnen/DotNetWorkQueue/wiki/MigrationGuide#0160----3des-removal) (GitHub #183)
+- ⚠️ `TripleDesMessageInterceptor` and `TripleDesMessageInterceptorConfiguration` are gone. Drain or re-encrypt any 3DES messages before upgrading: 0.15.0 is the last release that can read them. See the [migration guide](https://github.com/blehnen/DotNetWorkQueue/wiki/MigrationGuide#0160----3des-removal) (GitHub #183)
 - ⚠️ The dashboard's `Interceptors:TripleDes` setting is gone with it. A configuration that still carries one is refused at startup. Ignoring it would have left the dashboard running without the decryption it used to have (GitHub #183)
 - Method queues rebuild an expression from the message and compile it on the consumer, on every target. The security guide said that risk was .NET Framework only. The guidance changed, not the code (GitHub #397)
 
