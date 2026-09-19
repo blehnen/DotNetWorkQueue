@@ -143,6 +143,36 @@ namespace DotNetWorkQueue.Tests.Compatibility
         }
 
         [TestMethod]
+        public async Task Disposing_While_A_Wait_Is_Starting_Still_Reports_False()
+        {
+            //the consumer's loop is `while (await WaitForNextTickAsync(...))`, so a wait that
+            //throws on the way out faults shutdown rather than ending it. The window is between
+            //the disposal check and the read of the token the wait links to, which cannot be
+            //stepped through - it has to be raced.
+            for (var attempt = 0; attempt < 500; attempt++)
+            {
+                var timer = new IntervalTimer(TimeSpan.FromMilliseconds(50));
+                using var start = new ManualResetEventSlim(false);
+
+                var waiting = Task.Run(async () =>
+                {
+                    start.Wait();
+                    return await timer.WaitForNextTickAsync(CancellationToken.None);
+                });
+                var disposing = Task.Run(() =>
+                {
+                    start.Wait();
+                    timer.Dispose();
+                });
+
+                start.Set();
+
+                //a tick may win the race, so the result is not the assertion; not throwing is
+                await Task.WhenAll(waiting, disposing);
+            }
+        }
+
+        [TestMethod]
         public void Disposing_Twice_Is_Allowed()
         {
             var timer = new IntervalTimer(Period);

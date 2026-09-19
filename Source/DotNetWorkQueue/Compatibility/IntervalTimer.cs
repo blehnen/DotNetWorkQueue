@@ -80,7 +80,20 @@ namespace DotNetWorkQueue.Compatibility
             if (Volatile.Read(ref _disposeCount) != 0)
                 return false;
 
-            using (var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellation, _disposed.Token))
+            CancellationTokenSource linked;
+            try
+            {
+                linked = CancellationTokenSource.CreateLinkedTokenSource(cancellation, _disposed.Token);
+            }
+            catch (ObjectDisposedException)
+            {
+                //Dispose ran between the check above and this line, so reading its token threw.
+                //The contract is that disposal ends the wait with false; throwing here would
+                //instead fault the caller's loop at exactly the moment it is shutting down.
+                return false;
+            }
+
+            using (linked)
             {
                 while (true)
                 {
