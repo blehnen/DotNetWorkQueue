@@ -56,8 +56,10 @@ namespace DotNetWorkQueue
         /// short constant over anything derived from the type, since renaming or moving the class
         /// would then strand every message already in a queue.
         /// <para>
-        /// The default is the implementing type's full name, so existing implementations keep
-        /// working without change and still get a usable identity.
+        /// Required of every serializer. This defaulted to the implementing type's full name; the
+        /// default is gone because netstandard2.0 cannot run default interface members (GitHub #252).
+        /// <c>GetType().FullName</c> remains a reasonable value for an implementation that has not
+        /// written messages under another one, subject to the renaming caveat above.
         /// </para>
         /// </remarks>
         string SerializerId { get; }

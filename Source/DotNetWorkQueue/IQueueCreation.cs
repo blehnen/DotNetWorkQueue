@@ -46,8 +46,9 @@ namespace DotNetWorkQueue
         /// True for a transport that builds tables or collections, where using a queue that is not
         /// there cannot work and the caller has to be told (GitHub #348).
         ///
-        /// Defaulted rather than required, so a transport written before this existed keeps compiling
-        /// and keeps its old behaviour - it simply is not checked until it says otherwise.
+        /// Required of every transport. This defaulted to false when it was introduced, so a transport
+        /// written before #348 kept compiling; the default is gone because netstandard2.0 cannot run
+        /// default interface members, and each transport now answers for itself (GitHub #252).
         /// </remarks>
         bool RequiresCreation { get; }
 

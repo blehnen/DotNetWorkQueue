@@ -84,6 +84,5 @@ namespace DotNetWorkQueue.Tests.IoC
         public interface IThing;
 
         public sealed class Thing : IThing;
-
     }
 }

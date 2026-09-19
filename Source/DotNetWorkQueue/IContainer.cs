@@ -61,9 +61,9 @@ namespace DotNetWorkQueue
         /// service failing to build - and the caller here wants to carry on in the first case and not
         /// in the second.
         ///
-        /// Defaulted for the same reason as <see cref="GetImplementationType{TService}"/>: null means
-        /// "do not know", and every caller treats that as "nothing registered", so an
-        /// <see cref="IContainer"/> implemented elsewhere keeps compiling and keeps its old behaviour.
+        /// Return null for the same reason as <see cref="GetImplementationType{TService}"/> when there
+        /// is nothing registered: null means "do not know", and every caller treats that as "nothing
+        /// registered". An implementation with no way to answer can return null unconditionally.
         /// </remarks>
         TService TryGetInstance<TService>() where TService : class;
 
@@ -78,8 +78,8 @@ namespace DotNetWorkQueue
         /// - a resolve costs about twenty times what constructing the object does, and the receive
         /// path makes two of them per message.
         /// <para>
-        /// The default returns null, which means "do not know" and always defers to the container,
-        /// so an <see cref="IContainer"/> implemented elsewhere is unaffected. A decorated or
+        /// Returning null means "do not know" and always defers to the container, so an
+        /// implementation with no way to answer can return null unconditionally. A decorated or
         /// conditional registration also reports the outer type rather than the implementation,
         /// which fails the same safe way.
         /// </para>
