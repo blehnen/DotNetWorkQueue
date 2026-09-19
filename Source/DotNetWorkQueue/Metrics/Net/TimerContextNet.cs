@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using DotNetWorkQueue.Compatibility;
 
 namespace DotNetWorkQueue.Metrics.Net
 {
@@ -42,11 +43,11 @@ namespace DotNetWorkQueue.Metrics.Net
             _start = Stopwatch.GetTimestamp();
         }
 
-        public TimeSpan Elapsed => Stopwatch.GetElapsedTime(_start);
+        public TimeSpan Elapsed => MonotonicTime.ElapsedSince(_start);
 
         public void Dispose()
         {
-            _histogram.Record(Stopwatch.GetElapsedTime(_start).TotalMilliseconds, _tags);
+            _histogram.Record(MonotonicTime.ElapsedSince(_start).TotalMilliseconds, _tags);
         }
     }
 }

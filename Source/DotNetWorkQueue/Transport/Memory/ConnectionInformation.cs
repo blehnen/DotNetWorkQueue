@@ -29,8 +29,18 @@ namespace DotNetWorkQueue.Transport.Memory
     /// </summary>
     public partial class ConnectionInformation : BaseConnectionInformation
     {
+#if NETSTANDARD2_0
+        //The [GeneratedRegex] source generator needs .NET 7 or later, so the old target compiles the
+        //pattern once into a static instead. Same pattern, same behaviour; it is built at first use
+        //rather than at compile time.
+        private static readonly Regex ValidQueueName =
+            new Regex(@"^[a-zA-Z0-9_.]+$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+        private static Regex ValidQueueNamePattern() => ValidQueueName;
+#else
         [GeneratedRegex(@"^[a-zA-Z0-9_.]+$")]
         private static partial Regex ValidQueueNamePattern();
+#endif
 
         #region Constructor
         /// <summary>

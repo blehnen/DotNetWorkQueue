@@ -24,6 +24,12 @@ using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
 
+#if NETSTANDARD2_0
+//netstandard2.0 has no PeriodicTimer. IntervalTimer keeps the cadence measured from a fixed point,
+//which is the property #315 depended on; see its remarks (GitHub #252).
+using PeriodicTimer = DotNetWorkQueue.Compatibility.IntervalTimer;
+#endif
+
 namespace DotNetWorkQueue.Queue
 {
     /// <inheritdoc />
@@ -206,7 +212,7 @@ namespace DotNetWorkQueue.Queue
         /// <exception cref="System.ObjectDisposedException"></exception>
         protected void ThrowIfDisposed()
         {
-            ObjectDisposedException.ThrowIf(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
+            Guard.NotDisposed(Interlocked.CompareExchange(ref _disposeCount, 0, 0) != 0, this);
         }
 
         /// <inheritdoc />
@@ -286,7 +292,7 @@ namespace DotNetWorkQueue.Queue
             {
                 //a beat that has not come back inside the drain window is abandoned rather than holding
                 //up the consumer's shutdown; the transport call will finish or fault on its own
-                if (!loop.Wait(Remaining(deadline), CancellationToken.None))
+                if (!loop.Wait((int)Remaining(deadline).TotalMilliseconds, CancellationToken.None))
                     _logger.LogWarning("A heartbeat was still running after {Timeout}; it was not waited for", DrainWindow());
             }
             catch (AggregateException error)

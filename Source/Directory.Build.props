@@ -36,4 +36,20 @@
          project in future is NOT silently dropped from coverage. See docs/code-coverage.md. -->
     <ExcludeByFile>**/DotNetWorkQueue.Dashboard.Ui/Program.cs</ExcludeByFile>
   </PropertyGroup>
+
+  <!-- Source/Compatibility holds what only the netstandard2.0 build needs, linked into every
+       project because the compiler wants these types present per assembly rather than referenced.
+       Types that are real code and run on every target live in DotNetWorkQueue/Compatibility
+       instead, so the test suite exercises them (GitHub #252). -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <Compile Include="$(MSBuildThisFileDirectory)Compatibility\IsExternalInit.cs"
+             Link="Compatibility\IsExternalInit.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Compatibility\NetstandardAttributes.cs"
+             Link="Compatibility\NetstandardAttributes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Compatibility\NetstandardPolyfills.cs"
+             Link="Compatibility\NetstandardPolyfills.cs" />
+    <!-- in scope everywhere on this target so the call sites read the same as on the others -->
+    <Using Include="DotNetWorkQueue.Compatibility" />
+  </ItemGroup>
+
 </Project>

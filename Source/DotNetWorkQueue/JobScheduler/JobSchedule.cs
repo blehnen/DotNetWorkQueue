@@ -38,7 +38,7 @@ namespace DotNetWorkQueue.JobScheduler
             _getCurrentOffset = getCurrentOffset;
             _previousLookbackWindow = previousLookbackWindow > TimeSpan.Zero ? previousLookbackWindow : DefaultLookbackWindow;
 
-            var fieldCount = schedule.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+            var fieldCount = schedule.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length;
             var format = fieldCount switch
             {
                 5 => CronFormat.Standard,
