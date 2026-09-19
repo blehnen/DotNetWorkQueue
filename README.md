@@ -9,7 +9,15 @@
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=blehnen_DotNetWorkQueue&metric=bugs)](https://sonarcloud.io/summary/new_code?id=blehnen_DotNetWorkQueue)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=blehnen_DotNetWorkQueue&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=blehnen_DotNetWorkQueue)
 
-A producer / distributed consumer library for .NET applications. Targets .NET 8.0 and .NET 10.0.
+A producer / distributed consumer library for .NET applications. Targets .NET 8.0, .NET 10.0 and
+netstandard2.0. That last one is what .NET Framework consumers use; Microsoft supports
+netstandard2.0 on .NET Framework from 4.6.1 but recommends 4.7.2 or later, and so do we.
+
+Two things are not in the netstandard2.0 build. The PostgreSQL transport is absent, because the
+last Npgsql release supporting netstandard2.0 goes out of support on 10 November 2026 alongside
+.NET 8. `AesMessageInterceptor` is absent, because AES-GCM arrived in .NET Core 3.0 and was never
+backported; encrypting with a different algorithm there would leave the two builds unable to read
+each other's messages. Everything else is the same library on every target.
 
 **High-level features:**
 - Queue / de-queue POCOs for distributed processing
