@@ -154,28 +154,24 @@ pipeline {
 
         stage('Tests') {
             parallel {
-                // About the sleeps below. They pace nuget.org, not git.
+                // No stagger before the restores. Fifteen of these stages used to sleep, 5
+                // seconds apart up to 75, to space out `dotnet restore` so that sixteen of
+                // them did not hit nuget.org at once and get rate-limited.
                 //
-                // A stage-level agent does an implicit checkout before its steps run, and
-                // nothing here sets skipDefaultCheckout, so every sleep lands *after* that
-                // stage has already cloned and *before* its `dotnet build`, which is where
-                // the restore happens. Sixteen restores arriving together is what
-                // nuget.org rate-limits, and that is what the spacing prevents.
+                // They no longer reach nuget.org. Restores go to the internal mirror that
+                // useInternalNugetMirror() points them at, and the agents keep their package
+                // caches between builds - 146 packages restore in about six seconds, which is
+                // a warm cache rather than a download. The reason the sleeps existed is gone
+                // (GitHub #384).
                 //
-                // So the clones do all go out at once, and always have. That has never
-                // been the thing that fails, which is why this is left as it is. If clone
-                // pacing is ever wanted, it needs options { skipDefaultCheckout() } plus
-                // an explicit checkout scm after the sleep, in all sixteen stages.
-                //
-                // Slots run longest-work-first so the critical-path stage starts at zero.
-                // Only the slot the longest stage occupies affects wall clock.
-                //
-                // This branch is ~3 minutes of work against a 9m25s critical path, so its
-                // late slot costs nothing.
+                // What to watch, since this has not been measured: all sixteen stages now
+                // start together, so the mirror sees sixteen restores at once rather than
+                // spread over 75 seconds, and roughly twice that when two builds overlap. If
+                // restores start failing or crawling, a stagger is one `sleep` per stage to
+                // put back - but put it back against the mirror's limits, not nuget.org's.
                 stage('Unit Tests') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 65, unit: 'SECONDS')
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet restore "Source/DotNetWorkQueue.sln"'
@@ -247,7 +243,6 @@ pipeline {
                 stage('SqlServer') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 25, unit: 'SECONDS')
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.SqlServer.IntegrationTests/DotNetWorkQueue.Transport.SqlServer.Integration.Tests.csproj" -c Debug'
@@ -271,7 +266,6 @@ pipeline {
                 stage('SqlServer Linq') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 15, unit: 'SECONDS')
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests/DotNetWorkQueue.Transport.SqlServer.Linq.Integration.Tests.csproj" -c Debug'
@@ -295,7 +289,6 @@ pipeline {
                 stage('PostgreSQL') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 5, unit: 'SECONDS')
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.csproj" -c Debug'
@@ -320,7 +313,6 @@ pipeline {
                 stage('PostgreSQL Linq') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 20, unit: 'SECONDS')
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests/DotNetWorkQueue.Transport.PostgreSQL.Linq.Integration.Tests.csproj" -c Debug'
@@ -345,7 +337,6 @@ pipeline {
                 stage('Redis') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 50, unit: 'SECONDS')
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.Redis.IntegrationTests/DotNetWorkQueue.Transport.Redis.Integration.Tests.csproj" -c Debug'
@@ -371,7 +362,6 @@ pipeline {
                 stage('Redis Linq') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 30, unit: 'SECONDS')
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests/DotNetWorkQueue.Transport.Redis.Linq.Integration.Tests.csproj" -c Debug'
@@ -397,7 +387,6 @@ pipeline {
                 stage('SQLite') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 10, unit: 'SECONDS')
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.SQLite.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Integration.Tests.csproj" -c Debug'
@@ -416,7 +405,6 @@ pipeline {
                 stage('SQLite Linq') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 0, unit: 'SECONDS')
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests/DotNetWorkQueue.Transport.SQLite.Linq.Integration.Tests.csproj" -c Debug'
@@ -435,7 +423,6 @@ pipeline {
                 stage('LiteDB') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 55, unit: 'SECONDS')
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.LiteDB.IntegrationTests/DotNetWorkQueue.Transport.LiteDb.IntegrationTests.csproj" -c Debug'
@@ -454,7 +441,6 @@ pipeline {
                 stage('LiteDB Linq') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 40, unit: 'SECONDS')
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.LiteDB.Linq.Integration.Tests/DotNetWorkQueue.Transport.LiteDb.Linq.Integration.Tests.csproj" -c Debug'
@@ -473,7 +459,6 @@ pipeline {
                 stage('Memory') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 60, unit: 'SECONDS')
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.Memory.Integration.Tests/DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj" -c Debug'
@@ -492,7 +477,6 @@ pipeline {
                 stage('Memory Linq') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 45, unit: 'SECONDS')
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests/DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests.csproj" -c Debug'
@@ -511,7 +495,6 @@ pipeline {
                 stage('Dashboard') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 35, unit: 'SECONDS')
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.Dashboard.Api.Integration.Tests/DotNetWorkQueue.Dashboard.Api.Integration.Tests.csproj" -c Debug'
@@ -536,7 +519,6 @@ pipeline {
                 stage('TaskScheduler Distributed') {
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 70, unit: 'SECONDS')
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh 'dotnet build "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" -c Debug'
@@ -566,7 +548,6 @@ pipeline {
                     // package and its browser builds ship as a pair.
                     agent { label 'docker' }
                     steps {
-                        sleep(time: 75, unit: 'SECONDS')
                         useInternalNugetMirror()
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                             sh '''
