@@ -168,18 +168,11 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
                 ("@Table", ErrorTrackingTable(harness)));
 
         private static void InsertErrorRow(PostgreSqlQueueHarness harness, long queueId,
-            string exceptionType, int retryCount)
-        {
-            using var connection = harness.OpenConnection();
-            using var command = connection.CreateCommand();
-            command.CommandText =
+            string exceptionType, int retryCount) =>
+            harness.Execute(
                 $"insert into {ErrorTrackingTable(harness)} (QueueID, ExceptionType, RetryCount) " +
-                "values (@QueueID, @ExceptionType, @RetryCount)";
-            Add(command, "@QueueID", queueId);
-            Add(command, "@ExceptionType", exceptionType);
-            Add(command, "@RetryCount", retryCount);
-            command.ExecuteNonQuery();
-        }
+                "values (@QueueID, @ExceptionType, @RetryCount)",
+                ("@QueueID", queueId), ("@ExceptionType", exceptionType), ("@RetryCount", retryCount));
 
         private static List<(long QueueId, string ExceptionType, int RetryCount)> ReadErrorRows(
             PostgreSqlQueueHarness harness)
@@ -211,14 +204,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
 
             Assert.Fail($"no row for ({queueId}, {exceptionType})");
             return 0;
-        }
-
-        private static void Add(System.Data.Common.DbCommand command, string name, object value)
-        {
-            var parameter = command.CreateParameter();
-            parameter.ParameterName = name;
-            parameter.Value = value;
-            command.Parameters.Add(parameter);
         }
     }
 }

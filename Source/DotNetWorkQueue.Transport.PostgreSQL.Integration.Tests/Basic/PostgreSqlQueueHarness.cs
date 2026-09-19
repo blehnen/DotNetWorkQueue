@@ -31,6 +31,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
         private readonly PostgreSqlMessageQueueCreation _creation;
         private readonly QueueContainer<PostgreSqlMessageQueueInit> _container;
         private readonly IContainer _admin;
+        private bool _queueExists;
 
         /// <summary>
         /// Creates the queue and everything needed to inspect it.
@@ -48,16 +49,29 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
                 : new QueueConnection(QueueName, ConnectionInfo.ConnectionString, connectionSettings);
 
             _creationContainer = new QueueCreationContainer<PostgreSqlMessageQueueInit>();
-            _creation = _creationContainer.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
+            try
+            {
+                _creation = _creationContainer.GetQueueCreation<PostgreSqlMessageQueueCreation>(queueConnection);
 
-            beforeCreate?.Invoke(_creation);
+                beforeCreate?.Invoke(_creation);
 
-            var created = _creation.CreateQueue();
-            Assert.IsTrue(created.Success, created.ErrorMessage);
+                var created = _creation.CreateQueue();
+                Assert.IsTrue(created.Success, created.ErrorMessage);
+                _queueExists = true;
 
-            _container = new QueueContainer<PostgreSqlMessageQueueInit>();
-            _admin = _container.CreateAdminContainer(queueConnection);
-            Updater = _admin.GetInstance<IQueueSchemaVersion>();
+                _container = new QueueContainer<PostgreSqlMessageQueueInit>();
+                _admin = _container.CreateAdminContainer(queueConnection);
+                Updater = _admin.GetInstance<IQueueSchemaVersion>();
+            }
+            catch
+            {
+                //A throw here means no instance reaches the caller, so their `using` never runs and
+                //nothing else will clean up - not the containers, and not the queue if it was
+                //already created. Failing to resolve the updater would otherwise leave a real queue
+                //behind on the server.
+                Cleanup();
+                throw;
+            }
         }
 
         /// <summary>The queue's name.</summary>
@@ -87,24 +101,30 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
         /// Table names are interpolated by callers because an identifier cannot be a parameter in
         /// PostgreSQL. Values are bound - see <see cref="Text"/>.
         /// </remarks>
-        public void Execute(string sql)
+        public void Execute(string sql, params (string Name, object Value)[] parameters)
         {
-            using var connection = new NpgsqlConnection(ConnectionInfo.ConnectionString);
-            connection.Open();
+            using var connection = OpenConnection();
             using var command = connection.CreateCommand();
             command.CommandText = sql;
+            Bind(command, parameters);
             command.ExecuteNonQuery();
         }
 
         /// <summary>
         /// Reads a single string, binding any parameters given.
         /// </summary>
-        public string Text(string sql, params (string Name, string Value)[] parameters)
+        public string Text(string sql, params (string Name, object Value)[] parameters)
         {
-            using var connection = new NpgsqlConnection(ConnectionInfo.ConnectionString);
-            connection.Open();
+            using var connection = OpenConnection();
             using var command = connection.CreateCommand();
             command.CommandText = sql;
+            Bind(command, parameters);
+            return command.ExecuteScalar() as string;
+        }
+
+        private static void Bind(System.Data.Common.DbCommand command,
+            (string Name, object Value)[] parameters)
+        {
             foreach (var (name, value) in parameters)
             {
                 var parameter = command.CreateParameter();
@@ -112,8 +132,6 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
                 parameter.Value = value;
                 command.Parameters.Add(parameter);
             }
-
-            return command.ExecuteScalar() as string;
         }
 
         /// <summary>
@@ -126,13 +144,24 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Integration.Tests.Basic
             return connection;
         }
 
-        public void Dispose()
+        public void Dispose() => Cleanup();
+
+        /// <summary>
+        /// Disposes whatever was acquired, and removes the queue if it got as far as existing.
+        /// </summary>
+        /// <remarks>
+        /// Shared with the constructor's failure path, so a half-built harness is cleaned up the
+        /// same way a used one is. Every field is null-checked because this runs at any point in
+        /// construction.
+        /// </remarks>
+        private void Cleanup()
         {
             _admin?.Dispose();
             _container?.Dispose();
             try
             {
-                _creation.RemoveQueue();
+                if (_queueExists)
+                    _creation.RemoveQueue();
             }
             finally
             {
