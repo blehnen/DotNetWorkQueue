@@ -1,10 +1,10 @@
-﻿### Unreleased
+﻿### 0.15.0 - 2026-09-19
 - The library now ships a netstandard2.0 build, so .NET Framework applications can use it again. Microsoft recommends .NET Framework 4.7.2 or later for netstandard2.0 (GitHub #252)
 - The netstandard2.0 build has no PostgreSQL transport; Npgsql's last netstandard2.0 line goes out of support in November 2026. It also pulls in BouncyCastle, which supplies the AES-GCM that framework lacks (GitHub #252)
 - ⚠️ `IDbFactory.CreateCommand(DbConnection, string)` no longer has a default implementation. A custom SQLite `IDbFactory` must implement it: create a command, set its text, return it. The one shipped here already did (GitHub #252)
 - ⚠️ `IContainer.TryGetInstance`, `IContainer.GetImplementationType`, `IQueueCreation.RequiresCreation` and `ISerializer.SerializerId` no longer have default implementations. A container, queue creation or serializer written outside this library must now declare them; every implementation shipped here already did. Needed for the older framework target, whose runtime cannot support defaulted interface members (GitHub #252)
 
-### 0.14.0 — 2026-09-18
+### 0.14.0 - 2026-09-18
 - ⚠️ A producer or consumer refuses to start against a SQL Server, PostgreSQL or SQLite queue made before this release, throwing `QueueSchemaOutOfDateException`. Call `UpgradeSchema()` once per queue (GitHub #308)
 - An existing queue can be upgraded in place rather than re-created. Version 1 adds the error-tracking index that only new queues had, so two workers failing the same message at once no longer cost it an attempt (GitHub #299, #308)
 - PostgreSQL version 2 converts history and metadata timestamps to `timestamptz` in place. That used to mean editing and running a script per queue (GitHub #311, #374)
@@ -16,7 +16,7 @@
 - Fix: disposing a queue while work is still in flight no longer throws `ObjectDisposedException` from the receive, heartbeat or send path (GitHub #135)
 - ⚠️ Fix: the `docs/upgrade/0.12.0` scripts keep the largest retry count when collapsing duplicate error rows, not their sum. If you already ran one, affected messages retire early and the original counts are gone (GitHub #374)
 
-### 0.13.0 — 2026-09-17
+### 0.13.0 - 2026-09-17
 - ⚠️ Creating a producer or consumer now throws `QueueDoesNotExistException` if its queue has not been created. Starting one early used to fail every de-queue on SQL Server and PostgreSQL, and never recover at all on SQLite or LiteDb. Create the queue first. Redis has nothing to create (GitHub #348)
 - `IQueueCreation` has a new `RequiresCreation` member and `IContainer` a new `TryGetInstance`. Both have defaults, so existing custom transports and containers keep working (GitHub #348)
 - Fix: LiteDb reports that a queue exists once you have created one. It used to answer no until the first message was sent, so creating the same queue twice never said it already existed, and removing it said there was nothing to remove (GitHub #348)
@@ -27,16 +27,16 @@
 - Fix: a message rolled back before its first heartbeat no longer resets a claim that has since gone to another worker, which could let the same message be processed twice (GitHub #336)
 - ⚠️ PostgreSQL queue names are limited to 51 characters rather than 63. A longer name could never create a queue: creation failed on a truncated identifier and then reported the queue as already existing, having created nothing. It is now rejected with an error that says why (GitHub #339)
 
-### 0.12.0 — 2026-09-15
+### 0.12.0 - 2026-09-15
 - Existing SQL Server, PostgreSQL and SQLite queues can gain 0.12.0's schema fixes in place, with no drain and no re-create. One script per transport in `docs/upgrade/0.12.0`; costs and the PostgreSQL time-zone requirement are in `docs/upgrade-0.12.0.md` (GitHub #321)
 - Fix: a Redis consumer no longer stops delivering when a work notification is lost. Redis pub/sub does not replay notifications published while a subscriber is briefly disconnected, so an idle reader now re-checks the queue every 30 seconds rather than waiting indefinitely (GitHub #331)
 - ⚠️ SQLite job databases are created in WAL journal mode, as queues already were. A job producer that reaches a database before anything else converts it on start, leaving `-wal` and `-shm` files beside it (GitHub #325)
 - Fix: message history timestamps read back as the UTC values they were written as on PostgreSQL and SQLite. They were shifted by the machine's UTC offset, so `EnqueuedUtc` held local time and purging by date removed the wrong window (GitHub #311)
 - ⚠️ PostgreSQL stores history and metadata timestamps as `timestamptz` rather than `timestamp`. Existing queues keep their columns and their stored values untouched until the 0.12.0 upgrade script converts them in place (GitHub #311)
 - ⚠️ History timestamps come back with `DateTimeKind.Utc` on the relational transports, where they were `Unspecified`. Code that corrected them with `ToUniversalTime()` must stop doing so (GitHub #311)
-- ⚠️ SQLite connections are opened with `DateTimeKind=Utc` unless the connection string already sets it. Existing data is unaffected — it was already stored as UTC and only the read was converting (GitHub #311)
+- ⚠️ SQLite connections are opened with `DateTimeKind=Utc` unless the connection string already sets it. Existing data is unaffected: it was already stored as UTC and only the read was converting (GitHub #311)
 - Fix: a heartbeat no longer misses its interval under load, so a message still being processed is not reset and handed to a second worker (GitHub #303)
-- ⚠️ `HeartBeat.UpdateTime` is a `TimeSpan` rather than a cron string — `"*/10 * * * * *"` becomes `TimeSpan.FromSeconds(10)` (GitHub #303)
+- ⚠️ `HeartBeat.UpdateTime` is a `TimeSpan` rather than a cron string. `"*/10 * * * * *"` becomes `TimeSpan.FromSeconds(10)` (GitHub #303)
 - ⚠️ A consumer refuses to start when `HeartBeat.Time` is less than three times `HeartBeat.UpdateTime`, since one late beat would then cost the message its claim. The error names both values and how to fix them (GitHub #303)
 - ⚠️ `HeartBeat.ThreadPoolConfiguration.ThreadsMax` caps concurrent heartbeat updates rather than threads, and allows one per worker when left unset (GitHub #303)
 - ⚠️ `IHeartBeatScheduler` is removed; heartbeats no longer run through the job scheduler (GitHub #303)
@@ -71,77 +71,77 @@
 - ⚠️ `IMessageContext` gains `CommitAsync` and `RollbackAsync` events with `RaiseCommitAsync` and `RaiseRollbackAsync`. Only affects code implementing that interface directly; the existing `Commit` and `Rollback` events are unchanged and still used by the synchronous consumer (GitHub #284)
 - ⚠️ Custom relational transports: `IDbConnectionFactory`, `ITransactionFactory` and `ITransactionWrapper` now use `System.Data.Common` types (`DbConnection`, `DbTransaction`) rather than the `System.Data` interfaces, which have no async members. Built-in transports are unaffected (GitHub #286)
 
-### 0.11.0 — 2026-09-06
-- SQL Server and PostgreSQL: an ordinary send is one round trip instead of four, on `Send` and `SendAsync`. A SQL Server send allocates 16% less — 29,298 B down to 24,648 B — and the time saved grows with distance to the server (GitHub #231, #232)
+### 0.11.0 - 2026-09-06
+- SQL Server and PostgreSQL: an ordinary send is one round trip instead of four, on `Send` and `SendAsync`. A SQL Server send allocates 16% less, 29,298 B down to 24,648 B, and the time saved grows with distance to the server (GitHub #231, #232)
 - SQL Server and PostgreSQL: queues using `EnableDelayedProcessing` or `EnableMessageExpiration` no longer pay a per-send penalty, and SQL Server no longer fills its plan cache with one plan per delay value (GitHub #255)
-- SQL Server and PostgreSQL: a routed consumer no longer rebuilds its de-queue statement on every poll — 5,368 B down to 80 B a poll on SQL Server, 2,648 B down to 80 B on PostgreSQL (GitHub #231, #232)
-- LiteDb: finding the next message no longer scans the queue, so a de-queue costs the same at any depth — 31 ms against ten thousand waiting messages down to 55 us. No schema change (GitHub #234)
-- LiteDb: `Send(List<T>)` is a real batch — a batch of 100 goes from 21,057 us to 2,450 us (GitHub #234)
-- LiteDb: an ordinary send no longer takes a process-wide lock, so separate queues stop waiting on each other — 200 sends across four threads, 40.3 ms down to 21.9 ms (GitHub #234)
+- SQL Server and PostgreSQL: a routed consumer no longer rebuilds its de-queue statement on every poll: 5,368 B down to 80 B a poll on SQL Server, 2,648 B down to 80 B on PostgreSQL (GitHub #231, #232)
+- LiteDb: finding the next message no longer scans the queue, so a de-queue costs the same at any depth: 31 ms against ten thousand waiting messages down to 55 us. No schema change (GitHub #234)
+- LiteDb: `Send(List<T>)` is a real batch: a batch of 100 goes from 21,057 us to 2,450 us (GitHub #234)
+- LiteDb: an ordinary send no longer takes a process-wide lock, so separate queues stop waiting on each other: 200 sends across four threads, 40.3 ms down to 21.9 ms (GitHub #234)
 - LiteDb fix: a scheduled job could be queued twice when the same job went through `Send` and `SendAsync` at the same time (GitHub #234)
 - Memory transport fix: `Send(List<T>)` and `SendAsync(List<T>)` return results in caller order. They did not, so a caller matching a generated id back to its message by position got the wrong message (GitHub #235)
-- Core: a send allocates less than half of what it did, on every transport — 3.02 KB down to 1.15 KB per message (GitHub #235)
-- Core: consuming a message no longer spends a third of its time in the DI container — a de-queue through the full chain 2,964 ns down to 2,365 ns (GitHub #235)
+- Core: a send allocates less than half of what it did, on every transport: 3.02 KB down to 1.15 KB per message (GitHub #235)
+- Core: consuming a message no longer spends a third of its time in the DI container: a de-queue through the full chain 2,964 ns down to 2,365 ns (GitHub #235)
 - `System.Text.Json` is available as an opt-in message serializer, roughly 7 KB less garbage per message round trip. Newtonsoft remains the default. See [docs/serializers.md](docs/serializers.md) (GitHub #236)
-- ⚠️ If you switch serializers on a queue that already holds messages, set `ISerializerResolver.Fallback` to whatever wrote them or they cannot be read — messages written before this release carry no serializer header (GitHub #236)
-- ⚠️ LiteDb: the batch send path is now whole-batch atomic, matching the other transports. A failure rolls back the whole batch where one bad message used to fail alone. Call `Send(message)` in a loop if you need per-message isolation, and send scheduled jobs individually — the batch path rejects them (GitHub #234)
+- ⚠️ If you switch serializers on a queue that already holds messages, set `ISerializerResolver.Fallback` to whatever wrote them or they cannot be read. Messages written before this release carry no serializer header (GitHub #236)
+- ⚠️ LiteDb: the batch send path is now whole-batch atomic, matching the other transports. A failure rolls back the whole batch where one bad message used to fail alone. Call `Send(message)` in a loop if you need per-message isolation, and send scheduled jobs individually, because the batch path rejects them (GitHub #234)
 - ⚠️ LiteDb: where a dashboard requeue inserts a new meta record, the message now goes to the back of the queue rather than to the position its original enqueue time gave it. The original time is still stored and still shown (GitHub #234)
-- Additive API: `ISerializer.SerializerId` and `IStandardHeaders.SerializerId`. `AddStandardMessageHeaders` takes an extra `ISerializer` argument — source-breaking only for code that constructs it directly rather than resolving it (GitHub #236)
-- Deprecated the `Guard` overloads taking `Expression<Func<T>>` (`[Obsolete]`; they still work). Use the overloads taking the value alone — the reported `ParamName` is unchanged
+- Additive API: `ISerializer.SerializerId` and `IStandardHeaders.SerializerId`. `AddStandardMessageHeaders` takes an extra `ISerializer` argument, source-breaking only for code that constructs it directly rather than resolving it (GitHub #236)
+- Deprecated the `Guard` overloads taking `Expression<Func<T>>` (`[Obsolete]`; they still work). Use the overloads taking the value alone. The reported `ParamName` is unchanged
 
-### 0.10.0 — 2026-08-27
-- **SQLite transport is substantially faster.** A single send goes from ~8.5 ms to ~80 us
+### 0.10.0 - 2026-08-27
+- The SQLite transport is substantially faster. A single send goes from ~8.5 ms to ~80 us
 - SQLite: an empty-queue de-queue goes from 29.9 us and 22.1 KB to 5.8 us and 648 B
-- ⚠️ **Breaking for callers that delete SQLite database files.** Connection pooling is on by default now, so the file handle stays open for the lifetime of the queue and `File.Delete` fails where it used to succeed. Dispose the producer or consumer first and delete the `-wal` and `-shm` files alongside it — `SqLiteMessageQueueCreation.RemoveQueue()` does both. `SQLiteConnection.ClearAllPools()` is not sufficient. Opt out with `Pooling=False` in the connection string
-- SQLite: in-memory databases are never pooled — pooling one with `cache=shared` would keep a database alive past the point the caller disposed of it
+- ⚠️ Deleting a SQLite database file needs a step it did not before. Connection pooling is on by default now, so the file handle stays open for the lifetime of the queue and `File.Delete` fails where it used to succeed. Dispose the producer or consumer first and delete the `-wal` and `-shm` files alongside it. `SqLiteMessageQueueCreation.RemoveQueue()` does both. `SQLiteConnection.ClearAllPools()` is not sufficient. Opt out with `Pooling=False` in the connection string
+- SQLite: in-memory databases are never pooled: pooling one with `cache=shared` would keep a database alive past the point the caller disposed of it
 - SQLite: `IDbFactory` gains `CreateCommand(IDbConnection, string)` as a default interface method, so existing implementations keep working unchanged
-- SQLite: `DbFactory` now implements `IDisposable` — disposing it is what closes the pooled connections
+- SQLite: `DbFactory` now implements `IDisposable`; disposing it is what closes the pooled connections
 
-### 0.9.43 — 2026-07-06
+### 0.9.43 - 2026-07-06
 - Added `AesMessageInterceptor` (AES-256-GCM authenticated encryption) as the recommended built-in message encryption, with a per-message nonce and tamper detection
-- Deprecated `TripleDesMessageInterceptor` (`[Obsolete]`; retired by NIST SP 800-131A). It still decrypts existing messages — register AES on producers and AES + 3DES on consumers until the 3DES backlog drains
+- Deprecated `TripleDesMessageInterceptor` (`[Obsolete]`; retired by NIST SP 800-131A). It still decrypts existing messages. Register AES on producers and AES + 3DES on consumers until the 3DES backlog drains
 - Dashboard: new `Aes` interceptor option, so the dashboard can decrypt AES-encrypted message bodies for display
 
-### 0.9.42 — 2026-06-30
+### 0.9.42 - 2026-06-30
 - SQL Server and PostgreSQL: the held-transaction batch send (`Send(List<...>, DbTransaction)` with `EnableHoldTransactionUntilMessageCommitted`) is a true multi-row insert inside the caller's transaction instead of a loop of single inserts. The caller still owns commit and rollback (GitHub #167)
 - ⚠️ Held-transaction batch path only: a failure now throws so the caller can roll back, instead of being reported in per-message results. The standalone batch path is unchanged, and SQLite is excluded by design (GitHub #167)
 - No public API surface changes
 
-### 0.9.41 — 2026-06-30
-- SQL Server, SQLite and PostgreSQL: `Send(List<...>)` is a true bulk insert rather than a loop of single sends — about 21x for a 500-message batch on SQL Server (6,402 ms to 305 ms). See [ADR 0001](docs/adr/0001-true-bulk-insert-batch-send.md) (GitHub #162)
-- ⚠️ The batch send path is now whole-batch atomic. Any failure rolls back every message in the batch where one bad message used to fail alone. Call `Send(message)` in a loop if you need per-message isolation, and send scheduled jobs individually — the batch path rejects them (GitHub #162)
+### 0.9.41 - 2026-06-30
+- SQL Server, SQLite and PostgreSQL: `Send(List<...>)` is a true bulk insert rather than a loop of single sends: about 21x for a 500-message batch on SQL Server (6,402 ms to 305 ms). See [ADR 0001](docs/adr/0001-true-bulk-insert-batch-send.md) (GitHub #162)
+- ⚠️ The batch send path is now whole-batch atomic. Any failure rolls back every message in the batch where one bad message used to fail alone. Call `Send(message)` in a loop if you need per-message isolation, and send scheduled jobs individually, because the batch path rejects them (GitHub #162)
 - `Send(List<...>)` now returns generated ids in caller input order, on every transport (GitHub #162)
-- New `BatchSize` option on the SQL Server, SQLite and PostgreSQL transports — an optional ceiling on the chunk size, clamped to a safe maximum (0 = use the maximum) (GitHub #162)
+- New `BatchSize` option on the SQL Server, SQLite and PostgreSQL transports: an optional ceiling on the chunk size, clamped to a safe maximum (0 = use the maximum) (GitHub #162)
 - Memory and LiteDb fall back to the previous per-message loop and Redis keeps its existing batch path, so all three relational transports now have a true bulk-insert path (GitHub #162)
 - No public API surface changes
 
-### 0.9.40 — 2026-06-25
+### 0.9.40 - 2026-06-25
 - Redis transport: migrated `StackExchange.Redis` 2.13.17 → 3.0.7 (the latest stable 3.x release). The 3.0 bump was previously reverted (0.9.39) due to intermittent `Timeout performing SCRIPT/EVAL` under load; root-caused to .NET thread-pool / reply-completion pressure on synchronous Redis paths after SE.Redis 3.0 removed its dedicated socket/completion pool
 - Behavior: Redis connections now pin `Protocol = RESP2` (matches the 2.x wire protocol; SE.Redis 3.x would otherwise negotiate RESP3, a behavioral change). RESP3 remains a possible future opt-in
 - Diagnostics: Redis connections set a queue-aware `ClientName` (`dnwq-{QueueName}`), surfaced in SE.Redis timeout messages and Redis `CLIENT LIST`
-- Known limitation (SE.Redis 3.x): high-concurrency **synchronous** producers may time out under load — the 2.x dedicated reply-completion pool is gone, so many concurrent sync `EVAL`s contend on completion. Prefer the **async** API (`SendAsync`) for concurrent/high-volume producers
+- Known limitation (SE.Redis 3.x): high-concurrency **synchronous** producers may time out under load: the 2.x dedicated reply-completion pool is gone, so many concurrent sync `EVAL`s contend on completion. Prefer the **async** API (`SendAsync`) for concurrent/high-volume producers
 - Tests: raised the worker thread-pool floor in the Redis integration-test bootstrap (defensive against pool-injection-lag starvation) and reclassified the deterministic thread-pool-starvation test as a permanent diagnostic (excluded from the default CI run)
 - Follow-ups tracked separately: an async receive path (`IReceiveMessagesAsync` across core + transports) and deprecation of the synchronous API both remain future work
 - No public API surface changes
 
-### 0.9.39 — 2026-06-23
+### 0.9.39 - 2026-06-23
 - Dependency refresh across `Directory.Packages.props` (OpenTelemetry, Polly.Core, Swashbuckle.AspNetCore, Microsoft.Extensions.*, test tooling). `StackExchange.Redis` held at 2.13.17 and `FluentAssertions` at 6.12.2 (last MIT-licensed release). No API surface changes
 
-### 0.9.38 — 2026-06-03
-- Fix: `IAdminApi.Count(connId, QueueStatusAdmin.*)` on the PostgreSQL transport threw `InvalidCastException` under Npgsql 10.x — the shared relational `GetQueueCountQueryPrepareHandler` bound the raw `QueueStatusAdmin` enum to an `Int32` parameter, which Npgsql 10.x's stricter writer rejects (pre-10.x silently coerced it). Now casts the enum to `int` (GitHub #155)
-- Fix: the same status-filtered admin `Count` path threw `SQLiteException: unknown error — Insufficient parameters supplied to the command` on the SQLite transport — the parameter was bound as `@Status` while the SQL placeholder is lowercase `@status`, and System.Data.SQLite binds parameter names case-sensitively (Npgsql and Microsoft.Data.SqlClient fold case, so PG and SQL Server were unaffected). Parameter name now matches the SQL casing (GitHub #155)
+### 0.9.38 - 2026-06-03
+- Fix: `IAdminApi.Count(connId, QueueStatusAdmin.*)` on the PostgreSQL transport threw `InvalidCastException` under Npgsql 10.x. The shared relational `GetQueueCountQueryPrepareHandler` bound the raw `QueueStatusAdmin` enum to an `Int32` parameter, which Npgsql 10.x's stricter writer rejects (pre-10.x silently coerced it). Now casts the enum to `int` (GitHub #155)
+- Fix: the same status-filtered admin `Count` path threw `SQLiteException: unknown error — Insufficient parameters supplied to the command` on the SQLite transport. The parameter was bound as `@Status` while the SQL placeholder is lowercase `@status`, and System.Data.SQLite binds parameter names case-sensitively (Npgsql and Microsoft.Data.SqlClient fold case, so PG and SQL Server were unaffected). Parameter name now matches the SQL casing (GitHub #155)
 - Test: deterministic status-filtered `Count` coverage across PostgreSQL, SQL Server, and SQLite (the path was previously dead behind a `runTime > 10` guard that never ran, which is why both bugs shipped) plus a unit guard on `GetQueueCountQueryPrepareHandler`
 - No API surface changes
 
-### 0.9.37 — 2026-05-28
-- CVE fix: `OpenTelemetry` 1.15.2 → 1.15.3 — clears the transitive `OpenTelemetry.Api` advisory CVE-2026-40894 / GHSA-g94r-2vxg-569j (NU1902, moderate: excessive memory allocation when parsing OpenTelemetry propagation headers)
+### 0.9.37 - 2026-05-28
+- CVE fix: `OpenTelemetry` 1.15.2 → 1.15.3, clearing the transitive `OpenTelemetry.Api` advisory CVE-2026-40894 / GHSA-g94r-2vxg-569j (NU1902, moderate: excessive memory allocation when parsing OpenTelemetry propagation headers)
 - Removed the now-obsolete `<WarningsNotAsErrors>NU1902</WarningsNotAsErrors>` from `Transport.SQLite.csproj` (added in 0.9.36 / ISSUE-032 solely to keep that advisory visible without failing the Release build)
-- Dependency refresh across `Directory.Packages.props` — shipping: `Microsoft.Data.SqlClient` 7.0.1, `Npgsql` 10.0.3, `SimpleInjector` 5.5.2, `StackExchange.Redis` 2.13.17, `MudBlazor` 9.5.0, `CronExpressionDescriptor` 2.48.0, `Cronos` 0.13.0, `Microsoft.SourceLink.GitHub` 10.0.300, and `Microsoft.Extensions.Caching.Memory` / `Microsoft.Extensions.Configuration.Binder` / `Microsoft.Extensions.Http` / `System.Diagnostics.DiagnosticSource` / `System.Security.Cryptography.Xml` → 10.0.8
+- Dependency refresh across `Directory.Packages.props`. Shipping: `Microsoft.Data.SqlClient` 7.0.1, `Npgsql` 10.0.3, `SimpleInjector` 5.5.2, `StackExchange.Redis` 2.13.17, `MudBlazor` 9.5.0, `CronExpressionDescriptor` 2.48.0, `Cronos` 0.13.0, `Microsoft.SourceLink.GitHub` 10.0.300, and `Microsoft.Extensions.Caching.Memory` / `Microsoft.Extensions.Configuration.Binder` / `Microsoft.Extensions.Http` / `System.Diagnostics.DiagnosticSource` / `System.Security.Cryptography.Xml` → 10.0.8
 - Test tooling: `coverlet.collector` 8.0.1 → 10.0.1 (2-major), `MSTest.TestAdapter` / `MSTest.TestFramework` 4.2.3, `Microsoft.NET.Test.Sdk` 18.6.0, `Microsoft.Testing.Extensions.Retry` 2.2.3, `bunit` 2.7.2, `Microsoft.Playwright` / `Microsoft.Playwright.MSTest` 1.60.0, `Microsoft.AspNetCore.TestHost` (net10) 10.0.8
 - `FluentAssertions` intentionally held at 6.12.2 (last MIT-licensed release); `Microsoft.AspNetCore.TestHost` net8 target held on the 8.0.x line
 - No API surface changes
 
-### 0.9.36 — 2026-05-16
+### 0.9.36 - 2026-05-16
 - Feature: transactional outbox pattern on SqlServer and PostgreSQL transports via opt-in `IRelationalProducerQueue<T>` capability cast; the caller supplies a `DbTransaction` and the queue INSERT joins the caller's business transaction (GitHub #138)
 - Memory, Redis, LiteDb, and SQLite are unchanged; callers that don't reach for the new interface see the same `IProducerQueue<T>` they always have
 - Retry decorators are skipped on the external-transaction send path so the caller keeps control of both transaction lifecycle and retry policy
@@ -152,18 +152,18 @@
 - CI: close the net8.0 XML-doc gate on `Transport.RelationalDatabase.csproj`
 - Docs: new `docs/outbox-pattern.md` tutorial + reference page and a README pointer under "High-level features" (GitHub #138 + doc polish in #139)
 
-### 0.9.35 — 2026-04-23
-- Fix: retry decorators across all transports (SqlServer, PostgreSQL, SQLite, Redis, LiteDb) tolerate a disposed Polly registry during queue shutdown — previously threw `ObjectDisposedException` when a background operation raced the dispose path (GitHub #121)
+### 0.9.35 - 2026-04-23
+- Fix: retry decorators across all transports (SqlServer, PostgreSQL, SQLite, Redis, LiteDb) tolerate a disposed Polly registry during queue shutdown. It previously threw `ObjectDisposedException` when a background operation raced the dispose path (GitHub #121)
 - CI: auto-publish dashboard docker image on `v*` tag via GitHub Actions (GitHub #122)
 - CI: bump GitHub Actions from v4 to v5 for Node.js 24 compatibility (GitHub #128)
-- CI: re-enable JobScheduler integration tests in Jenkins — previously excluded via stale `FullyQualifiedName!~JobScheduler` filter carried over from the TeamCity era (GitHub #127)
+- CI: re-enable JobScheduler integration tests in Jenkins, previously excluded via a stale `FullyQualifiedName!~JobScheduler` filter carried over from the TeamCity era (GitHub #127)
 - Cleanup: remove unused `ICachePolicy` / `CachePolicy` types (GitHub #124)
 - Test: add `SntpTime` base class unit tests (GitHub #125)
 - Test: add bUnit component tests for `Dashboard.Ui` (Phase 1 of GitHub #126)
 - Test: add `Dashboard.Ui` Playwright E2E test project + Jenkins stage 15 (Phase 2 of GitHub #126)
 - Docs: lessons learned on Playwright/bUnit, CI filter re-validation, release flow
 
-### 0.9.34 — 2026-04-20
+### 0.9.34 - 2026-04-20
 - Fix: dashboard history reads no longer short-circuit on `IBaseTransportOptions.EnableHistory`; fixes empty history when the dashboard container was started before its queue existed (GitHub #119)
 - Fix: Dashboard UI history exceptions now collapse by default with a per-row expand chevron; previously the full stack trace rendered inline and inflated row height on pages with errors
 - Relational (PostgreSQL / SQL Server / SQLite) read and purge handlers catch `DbException` when the history table does not exist and return empty rather than 500
@@ -172,7 +172,7 @@
 - Test: `DashboardStartupTimingTests` regressions the exact startup-before-queue timing bug on SQLite
 - Follow-up: GitHub #120 tracks the underlying options-factory caching defect that caused this and affects other transport options
 
-### 0.9.33 — 2026-04-18
+### 0.9.33 - 2026-04-18
 - Dependency refresh: 15 low-risk patch/minor bumps + 8 major-version bumps across `Directory.Packages.props` (GitHub #118)
 - `Microsoft.Data.SqlClient` 6.1.3 → 7.0.0
 - `Npgsql` 8.0.8 → 10.0.2 (2-major leap)
@@ -183,7 +183,7 @@
 - No API surface changes outside the mandatory Swashbuckle/OpenApi namespace migration
 - `FluentAssertions` remains pinned at 6.12.2 (MIT); net10.0 + net8.0 multi-targeting preserved
 
-### 0.9.32 — 2026-04-16
+### 0.9.32 - 2026-04-16
 - Fix: Redis `PurgeMessageHistoryHandler` eliminates redundant `CompletedUtc` round-trip in orphan cleanup path; `HashGet("CompletedUtc")` now executes only when the hash exists (ISSUE-016)
 - Fix: RelationalDatabase `WriteMessageHistoryHandler.RecordComplete` removes `StartedUtc IS NOT NULL` guard from WHERE clause so `DurationMs=0` is written for sub-millisecond completions (ISSUE-014)
 - Test: Redis `Purge_Handles_Missing_Hash_Gracefully` asserts `CompletedUtc` is never read in orphan path via `DidNotReceive()` (ISSUE-017)
@@ -191,8 +191,8 @@
 - Cleanup: delete 7 empty shell files left after NETFULL removal, remove dead `MakeTrackingParam` local function, remove no-op `dynamic=true` test cases from JobSchedulerTests (ISSUE-015, ISSUE-021, ISSUE-022, ISSUE-023)
 - Archive: create missing SUMMARY-1.1.md for LiteDb history test plan audit trail (ISSUE-019)
 
-### 0.9.31 — 2026-04-09
-- **Breaking:** Dashboard UI config changed: `DashboardApi:BaseUrl` / `ApiKey` replaced by `DashboardApi:Sources[]` array; old format throws `InvalidOperationException` with migration example at startup (GitHub #96)
+### 0.9.31 - 2026-04-09
+- ⚠️ Dashboard UI config changed: `DashboardApi:BaseUrl` / `ApiKey` replaced by `DashboardApi:Sources[]` array; old format throws `InvalidOperationException` with migration example at startup (GitHub #96)
 - Dashboard UI connects to multiple Dashboard API instances from one deployment; each source gets a `Name`, `BaseUrl`, and optional `ApiKey` in the config array
 - All page URLs now include `/source/{slug}` prefix; single-source deployments redirect automatically
 - Background health polling per source (30s interval, 5s timeout); cached state shown on Home page
@@ -200,16 +200,16 @@
 - Offline or failed sources show a warning without blocking other sources; per-source Retry button
 - In-process API auto-registers as "Local" source, resolves its own listen address via `IServer`
 
-### 0.9.30 — 2026-04-08
-- **Breaking:** Replace Schyntax schedule format with standard cron expressions via [Cronos](https://github.com/HangfireIO/Cronos); 5-field and 6-field (with seconds) both supported (GitHub #100)
-- **Breaking:** `IJobSchedule.Previous()` returns `DateTimeOffset?` instead of `DateTimeOffset`
-- **Breaking:** All heartbeat and job schedule strings now use cron format
+### 0.9.30 - 2026-04-08
+- ⚠️ Replace Schyntax schedule format with standard cron expressions via [Cronos](https://github.com/HangfireIO/Cronos); 5-field and 6-field (with seconds) both supported (GitHub #100)
+- ⚠️ `IJobSchedule.Previous()` returns `DateTimeOffset?` instead of `DateTimeOffset`
+- ⚠️ All heartbeat and job schedule strings now use cron format
 - Remove vendored `/Lib` directory (last Schyntax DLLs)
 - Add `IJobSchedule.Description` property, returns cron description text via [CronExpressionDescriptor](https://github.com/bradymholt/cron-expression-descriptor)
 - Log schedule descriptions when jobs are added to the scheduler
 
-### 0.9.19 — 2026-04-07
-- **Breaking:** Drop .NET Framework 4.8 and .NET Standard 2.0 targets; now targets .NET 10.0 and .NET 8.0 only (GitHub #101)
+### 0.9.19 - 2026-04-07
+- ⚠️ Drop .NET Framework 4.8 and .NET Standard 2.0 targets; now targets .NET 10.0 and .NET 8.0 only (GitHub #101)
 - Remove dynamic LINQ expression support (was net48-only via JpLabs.DynamicCode)
 - Remove vendored `Lib/JpLabs.DynamicCode` directory
 - Remove `#if NETFULL` / `#if NETSTANDARD2_0` conditional compilation from all source files
@@ -218,46 +218,46 @@
 - GitHub Actions CI: switch from `windows-latest` (net48) to `ubuntu-latest` (net10.0)
 - Update README and CLAUDE.md to remove net48/dynamic LINQ references
 
-### 0.9.18 — 2026-04-05
+### 0.9.18 - 2026-04-05
 - Deterministic builds, portable debug symbols, `.snupkg` symbol packages, Source Link via `Microsoft.SourceLink.GitHub` (GitHub #95)
 - Link sample Grafana dashboard (Prometheus data source) from README (GitHub #98)
 
-### 0.9.17 — 2026-04-05
+### 0.9.17 - 2026-04-05
 - Fix: message history `DurationMs` stores `0` (not `null`) when a message completes or errors before `StartedUtc` is persisted; fixes blank duration in Dashboard for sub-millisecond messages (Memory, RelationalDatabase, LiteDB, Redis) (GitHub #94)
 - Dashboard UI: history table shows `< 1 ms` for zero-duration completions
 - RelationalDatabase: drop `StartedUtc IS NOT NULL` guard from `RecordComplete` UPDATE; the guard made the UPDATE a no-op for sub-ms rows even though the C# computed `DurationMs = 0` correctly
 
-### 0.9.16 — 2026-04-03 (Dashboard.Api, Dashboard.Ui only)
+### 0.9.16 - 2026-04-03 (Dashboard.Api, Dashboard.Ui only)
 - Fix: pre-load plugin assemblies at startup; needed by Newtonsoft `TypeNameHandling` to resolve user POCO types
 - Diagnostic logging in `ResolveMessageBodyType` (debug per stage, warning on failure)
 
-### 0.9.15 — 2026-04-03 (Dashboard.Api, Dashboard.Ui only)
-- `DashboardOptions.AssemblyPaths` — directories for user POCO DLLs so the dashboard can deserialize message bodies in Docker without embedding assemblies
+### 0.9.15 - 2026-04-03 (Dashboard.Api, Dashboard.Ui only)
+- `DashboardOptions.AssemblyPaths`: directories for user POCO DLLs so the dashboard can deserialize message bodies in Docker without embedding assemblies
 - Docker: `/app/plugins` directory created by default; volume-mount or extend the image
 
-### 0.9.14 — 2026-04-03
+### 0.9.14 - 2026-04-03
 - Dashboard UI: replace connection/queue cards with compact tables; remove nav drawer, make title clickable
-- Dashboard UI: self-contained mode — UI and API in one process (for Docker)
+- Dashboard UI: self-contained mode, with the UI and API in one process (for Docker)
 - `IConfiguration` overload for JSON-based transport registration (`DashboardConnectionConfig` POCO)
 - Docker image: `blehnen74/dotnetworkqueue-dashboard` on Docker Hub
 
-### 0.9.13 — 2026-03-29
+### 0.9.13 - 2026-03-29
 - Fix: `QueueContainer.CreateAdminApi()` crash from missing `QueueConnection` parameter after queue name validation changes in 0.9.12
-- **Breaking:** Remove `Thread.Abort()` and `AbortWorkerThreadsWhenStopping` config; worker shutdown uses `CancellationToken` only
+- ⚠️ Remove `Thread.Abort()` and `AbortWorkerThreadsWhenStopping` config; worker shutdown uses `CancellationToken` only
 - Replace `new Thread(MainLoop)` with `Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning)` in PrimaryWorker and Worker
 - Replace `Thread.Sleep(20)` spin-wait in `BaseMonitor.Cancel()` with `ManualResetEventSlim`
 
-### 0.9.12 — 2026-03-29
+### 0.9.12 - 2026-03-29
 - Default `DenyListSerializationBinder` blocks 30 known Newtonsoft.Json deserialization gadget types (ObjectDataProvider, WindowsIdentity, Process, DataSet, etc.); registered as the default `ISerializationBinder` via DI
 - Optional `AllowListSerializationBinder` for strict type control; only explicitly registered types can be deserialized; register via DI to replace the default
-- **Breaking:** Queue name validation on all 6 transports; rejects SQL injection characters at construction time. Allowed: alphanumeric, underscores, dots (Redis also allows hyphens). Max lengths: SQL Server 128, PostgreSQL 63, Redis 512, LiteDB 256
+- ⚠️ Queue name validation on all 6 transports; rejects SQL injection characters at construction time. Allowed: alphanumeric, underscores, dots (Redis also allows hyphens). Max lengths: SQL Server 128, PostgreSQL 63, Redis 512, LiteDB 256
 - Fix: `DashboardConsumerClient` implements `IAsyncDisposable`; `DisposeAsync()` awaits HTTP DELETE unregistration; sync `Dispose()` no longer blocks with `.GetAwaiter().GetResult()`
 - Remove `DotNetWorkQueue.IntegrationTests.Metrics` project; metric tracking types moved to `IntegrationTests.Shared/Metrics/`
 - Add `SECURITY.md` (Dynamic LINQ risks, serialization binder usage, queue backend access, deployment recommendations)
 
-### 0.9.11 — 2026-03-26
-- **Breaking:** `IHistoryConfiguration` removed; history decorators and monitors use `IBaseTransportOptions.EnableHistory` and `IBaseTransportOptions.HistoryOptions` directly
-- **Breaking:** `IHistoryTransportOptions` added to `IBaseTransportOptions`; all transport options classes expose `HistoryOptions` (RetentionDays, MaxExceptionLength, StoreBody, Track* flags, MonitorTime)
+### 0.9.11 - 2026-03-26
+- ⚠️ `IHistoryConfiguration` removed; history decorators and monitors use `IBaseTransportOptions.EnableHistory` and `IBaseTransportOptions.HistoryOptions` directly
+- ⚠️ `IHistoryTransportOptions` added to `IBaseTransportOptions`; all transport options classes expose `HistoryOptions` (RetentionDays, MaxExceptionLength, StoreBody, Track* flags, MonitorTime)
 - History query pagination uses database-level `OFFSET/LIMIT` (PostgreSQL, SQLite) or `OFFSET...FETCH NEXT` (SQL Server) instead of in-memory skip/take
 - Redis history queries: unfiltered pages use `SortedSetRangeByRank` for server-side pagination; filtered pages use batched scanning
 - `IBaseTransportOptions` registered in DI for all 6 transports; decorators inject it directly
@@ -265,15 +265,15 @@
 - Fix: history table index names include queue name (e.g., `IX_{historyTable}_QueueID`) to prevent collision from leftover indexes in PostgreSQL and SQL Server
 - Redis and Memory transports: persistent history config via saved transport options (Redis Configuration key, Memory static DataStorage)
 
-### 0.9.10 — 2026-03-20
-- `EnableHistory` on transport options (SQLite, SQL Server, PostgreSQL, LiteDB) — set during queue creation like other options. Redis and Memory don't need this; they create history storage at runtime when `IHistoryConfiguration.Enabled` is true.
-- Dashboard API: read-only mode (`DashboardOptions.ReadOnly`) — blocks all write operations with 403
+### 0.9.10 - 2026-03-20
+- `EnableHistory` on transport options (SQLite, SQL Server, PostgreSQL, LiteDB): set during queue creation like other options. Redis and Memory don't need this; they create history storage at runtime when `IHistoryConfiguration.Enabled` is true.
+- Dashboard API: read-only mode (`DashboardOptions.ReadOnly`), which blocks all write operations with 403
 - Dashboard UI: write buttons hidden in read-only mode
 - Dashboard API: `GET /api/v1/dashboard/settings` endpoint
 
-### 0.9.9 — 2026-03-19
+### 0.9.9 - 2026-03-19
 - Per-message cancellation: `IMessageCancellation` on `IWorkerNotification` (never null, NoOp when inactive), `ICancelRunningMessage` / `MessageCancellationTracker`
-- Dashboard API: `POST .../messages/{messageId}/cancel` — cooperative cancel, in-process only
+- Dashboard API: `POST .../messages/{messageId}/cancel`: cooperative cancel, in-process only
 - Dashboard UI: Cancel button on Processing messages
 - Message history tracking (opt-in via `IHistoryConfiguration.Enabled`): records enqueue, processing, complete, error, rollback, delete, expire per message
 - History table per queue with configurable body storage (`StoreBody`) and 30-day retention purge
@@ -283,51 +283,51 @@
 - Dashboard UI: History tab with status filter, pagination, inline exceptions, purge
 - `MessageId` and `CorrelationId` pushed into `ILogger` scope during handler execution (zero config)
 
-### 0.9.8 — 2026-03-17
-- Fix: `InvokeMovedToErrorQueue` now increments the error counter — messages moved to the error queue were not being counted
+### 0.9.8 - 2026-03-17
+- Fix: `InvokeMovedToErrorQueue` now increments the error counter. Messages moved to the error queue were not being counted
 - Dashboard UI: consumer metrics columns (Processed, Errors, Rollbacks, Poison) added to the Consumers tab
 - Dashboard.Client: added README.md to NuGet package
 - Core library: fixed broken samples link in NuGet README
 
-### 0.9.7 — 2026-03-17
+### 0.9.7 - 2026-03-17
 - Dashboard API: consumer heartbeat now carries running totals for messages processed, errors, rollbacks, and poison messages
 - `DashboardConsumerClient`: thread-safe `IncrementProcessed()`, `IncrementErrored()`, `IncrementRolledBack()`, `IncrementPoisonMessage()` methods; counters sent automatically with each heartbeat
 - `ConsumerInfoResponse` and `ConsumerEntry`: new `MessagesProcessed`, `MessagesErrored`, `MessagesRolledBack`, `PoisonMessages` fields
 - Dashboard API: `GET /api/v1/dashboard/consumers` now returns per-consumer metric counters
-- Backwards compatible — heartbeat requests without metrics default to zero
+- Backwards compatible: heartbeat requests without metrics default to zero
 
-### 0.9.6 — 2026-03-16
+### 0.9.6 - 2026-03-16
 - Suppress metrics from internal heartbeat scheduler queue; no more GUID-prefixed metric names in metrics backends
 
-### 0.9.5 — 2026-03-16
-- `MaintenanceMode` on `QueueConsumerConfiguration` (`Consumer` / `External`) — set to `External` to skip maintenance monitors in the consumer
-- `IQueueMaintenanceService` / `QueueMaintenanceService` — runs the transport's `IQueueMonitor` outside the consumer
+### 0.9.5 - 2026-03-16
+- `MaintenanceMode` on `QueueConsumerConfiguration` (`Consumer` / `External`): set to `External` to skip maintenance monitors in the consumer
+- `IQueueMaintenanceService` / `QueueMaintenanceService`: runs the transport's `IQueueMonitor` outside the consumer
 - Dashboard API: `HostMaintenance` per-queue option starts maintenance monitors at dashboard startup; status at `GET /api/dashboard/queues/{id}/maintenance`
-- SQLite transport: `EnableWalMode` option (default `true`) — sets WAL journal mode on new file-based queues
-- Metrics now prefixed with `dotnetworkqueue.` — in Prometheus, search for `dotnetworkqueue_` to find all queue metrics
+- SQLite transport: `EnableWalMode` option (default `true`): sets WAL journal mode on new file-based queues
+- Metrics now prefixed with `dotnetworkqueue.`. In Prometheus, search for `dotnetworkqueue_` to find all queue metrics
 
-### 0.9.4 — 2026-03-11
+### 0.9.4 - 2026-03-11
 - Switch from forked GuerrillaNtp DLLs to official [GuerrillaNtp 3.1.0](https://www.nuget.org/packages/GuerrillaNtp/) NuGet package
 - Move SNTP time provider (`SntpTime`) into the core library; any transport can now use NTP time, not just Redis
 - Reuse a single `NtpClient` instance per provider (per official docs)
 - Delete `Lib/GuerrillaNtp/` (no longer needed)
 - Dashboard API: GZip and TripleDES interceptors can be configured from `appsettings.json`
-- Dashboard API: Named interceptor profiles (`AddInterceptorProfile`) — register once, reference per-queue
+- Dashboard API: Named interceptor profiles (`AddInterceptorProfile`): register once, reference per-queue
 - Dashboard API: Interceptor misconfiguration and missing message type assemblies now return specific error messages instead of 500
 
-### 0.9.3 — 2026-03-10
-- Dashboard API consumer tracking — consumers register via HTTP, send heartbeats, get pruned when stale
-- `DotNetWorkQueue.Dashboard.Client` — standalone client library (no core dependency):
-  - `DashboardApiClient` — typed C# wrapper for all Dashboard API endpoints
-  - `DashboardConsumerClient` — auto-register, heartbeat timer, best-effort unregister on dispose
+### 0.9.3 - 2026-03-10
+- Dashboard API consumer tracking: consumers register via HTTP, send heartbeats, get pruned when stale
+- `DotNetWorkQueue.Dashboard.Client`: standalone client library (no core dependency):
+  - `DashboardApiClient`: typed C# wrapper for all Dashboard API endpoints
+  - `DashboardConsumerClient`: auto-register, heartbeat timer, best-effort unregister on dispose
 - Dashboard UI: Consumers tab showing connected consumers per queue (name, machine, PID, uptime)
 - Dashboard UI: Consumer count badges on queue cards
 - `DashboardOptions.EnableConsumerTracking`, `ConsumerHeartbeatIntervalSeconds`, `ConsumerStaleThresholdSeconds`
 
-### 0.9.1 — 2026-03-09
-- **Breaking Change** — Replace `App.Metrics` with built-in `System.Diagnostics.Metrics`; `DotNetWorkQueue.AppMetrics` package removed. Use OpenTelemetry.Metrics exporters instead.
-- **Breaking Change** — Remove `SamplingTypes` enum from `IMetrics.Histogram()` and `IMetrics.Timer()`
-- **Breaking Change** — Replace `dynamic CollectedMetrics` with typed `MetricsSnapshot GetCollectedMetrics()` on `IMetrics`
+### 0.9.1 - 2026-03-09
+- ⚠️ Replace `App.Metrics` with built-in `System.Diagnostics.Metrics`; `DotNetWorkQueue.AppMetrics` package removed. Use OpenTelemetry.Metrics exporters instead.
+- ⚠️ Remove `SamplingTypes` enum from `IMetrics.Histogram()` and `IMetrics.Timer()`
+- ⚠️ Replace `dynamic CollectedMetrics` with typed `MetricsSnapshot GetCollectedMetrics()` on `IMetrics`
 - Migrate tests from xUnit to MSTest
 - Fix 10 missing `.ConfigureAwait(false)` calls in Trace Decorator classes
 - Blazor Server dashboard UI (MudBlazor) for monitoring and managing queues
@@ -348,181 +348,181 @@
   - Two-click delete confirmation for single-record deletes
   - Edit body for messages in Error status
 
-### 0.9.0 — 2026-03-04
+### 0.9.0 - 2026-03-04
 - Dashboard API for viewing and modifying messages in transports
 - Polly V7 to V8
 
-### 0.8.1 — 2026-02-22
+### 0.8.1 - 2026-02-22
 - Fix various long-standing race conditions
 - Fix multiple heartbeat schedulers sharing state in the same process
 
-### 0.8.0 — 2026-01-05
+### 0.8.0 - 2026-01-05
 - .NET 10 target
 - Remove out-of-support frameworks
-- **Breaking Change** — SQL client changed from `System.Data.SqlClient` to `Microsoft.Data.SqlClient`; may affect SQL Server connection strings
+- ⚠️ SQL client changed from `System.Data.SqlClient` to `Microsoft.Data.SqlClient`; may affect SQL Server connection strings
 
-### 0.7.6 — 2024-02-02
+### 0.7.6 - 2024-02-02
 - Remove connection objects from DataStore when queue is complete
 
-### 0.7.5 — 2024-01-09
+### 0.7.5 - 2024-01-09
 - Only verify internal container setup in debug mode, as it pins the memory it uses
 
-### 0.7.4 — 2024-01-08
+### 0.7.4 - 2024-01-08
 - Add test for scheduler creation with memory queue
 - Move two logging messages from info to debug
 - .NET 8.0 target
 - Remove queue param for workgroups, as it was no longer being used
 
-### 0.7.3 — 2023-11-28
+### 0.7.3 - 2023-11-28
 - Error notification will not happen if a rollback notification is being performed
 
-### 0.7.2 — 2023-11-28
+### 0.7.2 - 2023-11-28
 - Add notification of queue events to ConsumerQueues
 
-### 0.7.1 — 2023-11-21
+### 0.7.1 - 2023-11-21
 - Add property to obtain creation script from `IQueueCreation`. Supported by SQL Server, SQLite, and PostgreSQL.
 
-### 0.7.0 — 2023-10-26
+### 0.7.0 - 2023-10-26
 - Fix retry logic for SQLite commands; changes in `System.Data.Sqlite` required changes in transport
 - Switch to `DecorrelatedJitterBackoffV2` for SQL Server, PostgreSQL, and SQLite retries
 
-### 0.6.9 — 2023-10-25
+### 0.6.9 - 2023-10-25
 - Update various packages to latest versions
 - Replace `OpenTelemetry.Exporter.Jaeger` with `OpenTelemetry.Exporter.OpenTelemetryProtocol`
 - Remove .NET 5.0 as a supported version
 
-### 0.6.8 — 2022-07-19
+### 0.6.8 - 2022-07-19
 - Update Npgsql
 - Add initial admin interface
 
-### 0.6.7 — 2022-06-30
+### 0.6.7 - 2022-06-30
 - Update various packages to latest versions
 
-### 0.6.6 — 2022-04-29
+### 0.6.6 - 2022-04-29
 - Fix issue with custom default constraints in SQL Server transport
 
-### 0.6.5 — 2022-02-06
+### 0.6.5 - 2022-02-06
 - Relational database transports now allow additional columns to be used as part of the dequeue
 
-### 0.6.4 — 2022-01-12
+### 0.6.4 - 2022-01-12
 - `ILogger` will now be created using the queue name for the category
 
-### 0.6.3 — 2022-01-11
+### 0.6.3 - 2022-01-11
 - Remove Polly Bulkhead; does not correctly work with our task-limited scheduler
 - Remove `MaxQueue` feature from async processing, as it depended on Polly Bulkheads
 - Switch to `ILogger` from `Microsoft.Extensions.Logging.Abstractions`
 
-### 0.6.2 — 2021-12-19
+### 0.6.2 - 2021-12-19
 - .NET 6.0 target
 
-### 0.6.1 — 2021-09-28
+### 0.6.1 - 2021-09-28
 - Producer will throw an exception on a non-public class used as a message due to internal delegate handling limitations
 
-### 0.6.0 — 2021-09-07
+### 0.6.0 - 2021-09-07
 - Switch from https://opentracing.io/ to https://opentelemetry.io/
-  **Breaking Change** — OpenTracing always added an entry to headers; OpenTelemetry only adds entries if enabled. Queues must be empty before updating.
+  ⚠️ OpenTracing always added an entry to headers; OpenTelemetry only adds entries if enabled. Queues must be empty before updating.
 
-### 0.5.4 — 2021-05-19
+### 0.5.4 - 2021-05-19
 - Fix error with adding items to a memory queue that has started shutdown
 - Asking for list of error messages should not throw if transport fails; added flag to indicate if errors are loaded
 
-### 0.5.3 — 2021-05-18
+### 0.5.3 - 2021-05-18
 - Fix performance issue with in-memory queues
 
-### 0.5.2 — 2021-04-18
+### 0.5.2 - 2021-04-18
 - LiteDB transport now supports direct and memory connections; all connections must be made in the same process
 
-### 0.5.1 — 2021-04-00
+### 0.5.1 - 2021-04-00
 - LiteDB transport
 - .NET 5 target; many references do not yet support 5.0
 
-### 0.5.0 — 2020-12-08
-- Change how connections are set up; **breaking change** to support generic connection settings not expressible in connection strings
+### 0.5.0 - 2020-12-08
+- ⚠️ Change how connections are set up, to support generic connection settings not expressible in connection strings
 - .NET 4.8 target
 - .NET Standard 2.0 target for SQLite transport; Microsoft SQLite transport deprecated
 - SQL Server transport now supports creating queues in schemas other than `dbo`
 
-### 0.4.6 — 2020-09-02
+### 0.4.6 - 2020-09-02
 - Redis transport: re-cache LUA scripts when no longer in cache; fixes issue with server restarts
 
-### 0.4.5 — 2020-02-28
+### 0.4.5 - 2020-02-28
 - Make previous error types and count available to message processing
 - Consumer queues now remove errors by default after 30 days; configurable
 
-### 0.4.4 — 2019-12-23
+### 0.4.4 - 2019-12-23
 - Fix issue with SQL Server transport and heartbeat reset
 
-### 0.4.3 — 2019-10-29
+### 0.4.3 - 2019-10-29
 - Fix issue with registration of message rollback
 
-### 0.4.2 — 2019-10-29
+### 0.4.2 - 2019-10-29
 - .NET 4.6.1 target
 - Upgrade packages to latest versions
 
-### 0.4.1 — 2019-06-08
+### 0.4.1 - 2019-06-08
 - Fix issue with retry policies using seconds instead of milliseconds
 
-### 0.4.0 — 2019-06-02
+### 0.4.0 - 2019-06-02
 - Remove RPC
 - Implement OpenTracing https://opentracing.io/
 - Fix message interception
 
-### 0.3.1 — 2019-04-26
+### 0.3.1 - 2019-04-26
 - Correct versioning for NuGet publish
 
-### 0.3.0 — 2019-04-26
+### 0.3.0 - 2019-04-26
 - All modules now target .NET 4.7.2 and .NET Standard 2.0
-- **Breaking Change** — changes to metrics interface to switch to AppMetrics
+- ⚠️ changes to metrics interface to switch to AppMetrics
 - Deprecated Metrics.NET
 - `DotNetWorkQueue.AppMetrics` replaces `DotNetWorkQueue.Metrics.Net`
 
-### 0.2.1 — 2017-09-30
+### 0.2.1 - 2017-09-30
 - Refactoring to better share logic between transports
-- **Breaking Change** — fixed various spelling mistakes affecting public signatures
-- **Breaking Change** — fixed typo with internal Redis property; queues should be drained before upgrading
-- **Breaking Change** — replaced SmartThreadPool with `Task.StartNew` and Polly Bulkheads; removed related configuration properties
+- ⚠️ fixed various spelling mistakes affecting public signatures
+- ⚠️ fixed typo with internal Redis property; queues should be drained before upgrading
+- ⚠️ replaced SmartThreadPool with `Task.StartNew` and Polly Bulkheads; removed related configuration properties
 - Heartbeat workers now use internal job scheduler backed by in-memory queue
-- **Breaking Change** — heartbeat configuration now uses Schyntax format instead of timespan
+- ⚠️ heartbeat configuration now uses Schyntax format instead of timespan
 - New SQLite transport using Microsoft driver
 
-### 0.1.10 — 2017-03-19
+### 0.1.10 - 2017-03-19
 - Route support for SQL Server, SQLite, Redis, and PostgreSQL transports
 
-### 0.1.9 — 2016-10-08
+### 0.1.9 - 2016-10-08
 - Fix issue with deleting messages with errors for SQL Server, SQLite, PostgreSQL transports
 
-### 0.1.8 — 2016-09-24
+### 0.1.8 - 2016-09-24
 - Refactor default task scheduler to allow easier extension
 
-### 0.1.7 — 2016-08-16
+### 0.1.7 - 2016-08-16
 - Fix issue with PostgreSQL transport returning wrong message body
 - Update to msgpack.cli 8.0 for Redis transport
 
-### 0.1.6 — 2016-08-12
+### 0.1.6 - 2016-08-12
 - PostgreSQL transport
 
-### 0.1.5 — 2016-08-04
+### 0.1.5 - 2016-08-04
 - Recurring job scheduler
 - Metrics for LINQ serialization, compiling, and execution
 
-### 0.1.4 — 2016-06-22
+### 0.1.4 - 2016-06-22
 - Minor refactor to poison message handling
 - Redis-on-Windows integration tests
 - Refactor `IConnectionInformation` to be immutable
 - Send LINQ expressions as queue items
 - Fix scope issue with scheduler and multiple consumer queues
 
-### 0.1.3 — 2016-02-18
+### 0.1.3 - 2016-02-18
 - Fix formatting issue with poison message exception
 - Fix formatting issue with user/system exception
 - Don't run monitor delegates if queue is shutting down
 - SQLite transport
 
-### 0.1.2 — 2015-11-22
+### 0.1.2 - 2015-11-22
 - Fix issue with removing SQL Server queues
 - Fix issue with message expiration module running even if transport doesn't support expiration
 
-### 0.1.0 — 2015-11-03
+### 0.1.0 - 2015-11-03
 - Initial release to GitHub
 
 
