@@ -310,7 +310,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             container.Register(
                     () =>
                         new AesMessageInterceptorConfiguration(
-                            System.Text.Encoding.ASCII.GetBytes("0123456789abcdef0123456789abcdef")), LifeStyles.Singleton);
+                            TestEncryptionKey.Aes256), LifeStyles.Singleton);
 
             container.Register(() => _logProvider, LifeStyles.Singleton);
             container.RegisterNonScopedSingleton(scope);

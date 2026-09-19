@@ -33,7 +33,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                             typeof (GZipMessageInterceptor), //gzip compression
                             typeof (AesMessageInterceptor) //encryption
                         }).Register(() => new AesMessageInterceptorConfiguration(
-                System.Text.Encoding.ASCII.GetBytes("0123456789abcdef0123456789abcdef")), LifeStyles.Singleton).RegisterNonScopedSingleton(scope),
+                TestEncryptionKey.Aes256), LifeStyles.Singleton).RegisterNonScopedSingleton(scope),
                     heartBeatTime, heartBeatMonitorTime, updateTime, route, enableChaos, scope);
             }
             else

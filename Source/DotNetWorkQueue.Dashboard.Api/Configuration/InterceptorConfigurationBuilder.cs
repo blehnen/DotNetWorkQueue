@@ -90,7 +90,6 @@ namespace DotNetWorkQueue.Dashboard.Api.Configuration
                         LifeStyles.Singleton);
                 }
 
-
                 if (enableAes)
                 {
                     types.Add(typeof(AesMessageInterceptor));
