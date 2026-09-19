@@ -9,7 +9,8 @@ PostgreSQL transport for [DotNetWorkQueue](https://github.com/blehnen/DotNetWork
 - Heartbeat monitoring for long-running messages
 - Automatic table creation and schema management
 - Job scheduling with deduplication
-- Targets .NET 10.0, .NET 8.0, .NET Framework 4.8, .NET Standard 2.0
+- Targets .NET 10.0 and .NET 8.0. There is no netstandard2.0 build: the last Npgsql release
+  supporting it goes out of support alongside .NET 8 in November 2026
 
 ## Installation
 
