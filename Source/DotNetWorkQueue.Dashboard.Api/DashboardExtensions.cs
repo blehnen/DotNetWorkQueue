@@ -152,8 +152,19 @@ namespace DotNetWorkQueue.Dashboard.Api
             this IServiceCollection services,
             Microsoft.Extensions.Configuration.IConfiguration dashboardSection)
         {
-            var interceptorOptions = dashboardSection.GetSection("Interceptors")
-                .Get<DashboardInterceptorOptions>();
+            var interceptors = dashboardSection.GetSection("Interceptors");
+
+            //The binder ignores keys it does not recognise, so a configuration left over from
+            //before 0.16.0 would bind to nothing and the dashboard would start without the
+            //decryption it used to have. Every 3DES message would then fail to deserialize, a long
+            //way from the setting that caused it. Say so here instead.
+            if (interceptors.GetSection("TripleDes").Exists())
+                throw new InvalidOperationException(
+                    "The Dashboard 'Interceptors:TripleDes' setting was removed in 0.16.0, along with " +
+                    "TripleDesMessageInterceptor. Drain or re-encrypt any 3DES messages before upgrading, " +
+                    "then remove the setting. Use 'Interceptors:Aes' instead.");
+
+            var interceptorOptions = interceptors.Get<DashboardInterceptorOptions>();
 
             return services.AddDotNetWorkQueueDashboard(options =>
             {

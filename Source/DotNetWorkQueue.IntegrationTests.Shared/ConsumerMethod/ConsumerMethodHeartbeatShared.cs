@@ -26,9 +26,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                     serviceRegister => serviceRegister.Register<IRollbackMessage, MessageProcessingFailRollBack>(LifeStyles.Singleton).Register<IMessageMethodHandling>(() => new MethodMessageProcessingCancel(id), LifeStyles.Singleton).RegisterCollection<IMessageInterceptor>(new[]
                         {
                             typeof (GZipMessageInterceptor), //gzip compression
-                            typeof (TripleDesMessageInterceptor) //encryption
-                        }).Register(() => new TripleDesMessageInterceptorConfiguration(Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton),
+                            typeof (AesMessageInterceptor) //encryption
+                        }).Register(() => new AesMessageInterceptorConfiguration(
+                TestEncryptionKey.Aes256), LifeStyles.Singleton),
                     heartBeatTime, heartBeatMonitorTime, updateTime, id, enableChaos, scope);
             }
             else

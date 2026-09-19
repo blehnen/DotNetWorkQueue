@@ -1,4 +1,8 @@
-﻿### 0.15.0 - 2026-09-19
+﻿### Unreleased
+- ⚠️ `TripleDesMessageInterceptor` and `TripleDesMessageInterceptorConfiguration` are gone, deprecated since 0.9.43. Drain or re-encrypt any 3DES messages before upgrading: nothing can read them afterwards. Use `AesMessageInterceptor` (GitHub #183)
+- ⚠️ The dashboard's `Interceptors:TripleDes` setting is gone with it. A configuration that still has one is refused at startup rather than ignored, which would have left the dashboard unable to decrypt (GitHub #183)
+
+### 0.15.0 - 2026-09-19
 - The library now ships a netstandard2.0 build, so .NET Framework applications can use it again. Microsoft recommends .NET Framework 4.7.2 or later for netstandard2.0 (GitHub #252)
 - The netstandard2.0 build has no PostgreSQL transport; Npgsql's last netstandard2.0 line goes out of support in November 2026. It also pulls in BouncyCastle, which supplies the AES-GCM that framework lacks (GitHub #252)
 - ⚠️ `IDbFactory.CreateCommand(DbConnection, string)` no longer has a default implementation. A custom SQLite `IDbFactory` must implement it: create a command, set its text, return it. The one shipped here already did (GitHub #252)

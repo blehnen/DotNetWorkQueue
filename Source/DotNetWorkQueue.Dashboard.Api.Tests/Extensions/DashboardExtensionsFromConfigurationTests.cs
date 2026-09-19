@@ -30,6 +30,40 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
     [TestClass]
     public class DashboardExtensionsFromConfigurationTests
     {
+        /// <summary>
+        /// A configuration written before 0.16.0 has to be refused rather than ignored.
+        /// </summary>
+        /// <remarks>
+        /// The options binder skips keys it does not recognise, so removing the TripleDes property
+        /// on its own would leave the dashboard starting happily without the decryption it used to
+        /// have. Every 3DES message would then fail to deserialize, with nothing pointing back at
+        /// the setting that caused it (GitHub #183).
+        /// </remarks>
+        [TestMethod]
+        public void AddDotNetWorkQueueDashboard_FromConfiguration_RefusesALeftoverTripleDesSection()
+        {
+            var config = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    ["Dashboard:Connections:0:Transport"] = "SQLite",
+                    ["Dashboard:Connections:0:ConnectionString"] = "Data Source=:memory:",
+                    ["Dashboard:Connections:0:Queues:0"] = "test-queue",
+                    ["Dashboard:Interceptors:TripleDes:Key"] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    ["Dashboard:Interceptors:TripleDes:IV"] = "aaaaaaaaaaa="
+                })
+                .Build();
+
+            var services = new ServiceCollection();
+
+            var error = Assert.Throws<InvalidOperationException>(
+                () => services.AddDotNetWorkQueueDashboard(config.GetSection("Dashboard")));
+
+            //the message has to name the setting and say what to do, or it is no better than the
+            //silence it replaces
+            StringAssert.Contains(error.Message, "Interceptors:TripleDes");
+            StringAssert.Contains(error.Message, "Aes");
+        }
+
         // Task 1: Happy-path test using SQLite :memory: connection string
         [TestMethod]
         public void AddDotNetWorkQueueDashboard_FromConfiguration_Memory_RegistersConnection()

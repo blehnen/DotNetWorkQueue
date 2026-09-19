@@ -11,7 +11,6 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
         {
             var opts = new DashboardInterceptorOptions();
             Assert.IsNull(opts.GZip);
-            Assert.IsNull(opts.TripleDes);
             Assert.IsNull(opts.Aes);
         }
 
@@ -28,27 +27,6 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Configuration
         {
             var opts = new GZipInterceptorOptions { MinimumSize = 500 };
             Assert.AreEqual(500, opts.MinimumSize);
-        }
-
-        [TestMethod]
-        public void TripleDes_Defaults()
-        {
-            var opts = new TripleDesInterceptorOptions();
-            Assert.IsTrue(opts.Enabled);
-            Assert.IsNull(opts.Key);
-            Assert.IsNull(opts.IV);
-        }
-
-        [TestMethod]
-        public void TripleDes_Can_Be_Set()
-        {
-            var opts = new TripleDesInterceptorOptions
-            {
-                Key = "dGVzdGtleQ==",
-                IV = "dGVzdGl2"
-            };
-            Assert.AreEqual("dGVzdGtleQ==", opts.Key);
-            Assert.AreEqual("dGVzdGl2", opts.IV);
         }
 
         [TestMethod]

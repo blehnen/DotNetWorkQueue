@@ -305,13 +305,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.JobScheduler
             container.RegisterCollection<IMessageInterceptor>(new[]
             {
                 typeof(GZipMessageInterceptor), //gzip compression
-                typeof(TripleDesMessageInterceptor) //encryption
+                typeof(AesMessageInterceptor) //encryption
             });
             container.Register(
                     () =>
-                        new TripleDesMessageInterceptorConfiguration(
-                            Convert.FromBase64String("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-                            Convert.FromBase64String("aaaaaaaaaaa=")), LifeStyles.Singleton);
+                        new AesMessageInterceptorConfiguration(
+                            TestEncryptionKey.Aes256), LifeStyles.Singleton);
 
             container.Register(() => _logProvider, LifeStyles.Singleton);
             container.RegisterNonScopedSingleton(scope);
