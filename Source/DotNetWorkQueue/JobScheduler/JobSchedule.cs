@@ -32,13 +32,17 @@ namespace DotNetWorkQueue.JobScheduler
         private readonly Lazy<string> _description;
         private readonly TimeSpan _previousLookbackWindow;
 
+        //Split(char, StringSplitOptions) would say this without an array, but that overload needs
+        //netstandard2.1; hoisted so the array is not rebuilt for every schedule parsed.
+        private static readonly char[] FieldSeparator = { ' ' };
+
         public JobSchedule(string schedule, Func<DateTimeOffset> getCurrentOffset, TimeSpan previousLookbackWindow = default)
         {
             _originalText = schedule;
             _getCurrentOffset = getCurrentOffset;
             _previousLookbackWindow = previousLookbackWindow > TimeSpan.Zero ? previousLookbackWindow : DefaultLookbackWindow;
 
-            var fieldCount = schedule.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length;
+            var fieldCount = schedule.Trim().Split(FieldSeparator, StringSplitOptions.RemoveEmptyEntries).Length;
             var format = fieldCount switch
             {
                 5 => CronFormat.Standard,

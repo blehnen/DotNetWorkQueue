@@ -83,11 +83,10 @@ namespace DotNetWorkQueue.Interceptors
             Buffer.BlockCopy(tag, 0, input, ciphertext.Length, tag.Length);
 
             var output = new byte[cipher.GetOutputSize(input.Length)];
-            int written;
             try
             {
-                written = cipher.ProcessBytes(input, 0, input.Length, output, 0);
-                written += cipher.DoFinal(output, written);
+                var written = cipher.ProcessBytes(input, 0, input.Length, output, 0);
+                cipher.DoFinal(output, written);
             }
             catch (InvalidCipherTextException error)
             {

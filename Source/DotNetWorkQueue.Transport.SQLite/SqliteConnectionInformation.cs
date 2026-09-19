@@ -27,18 +27,27 @@ namespace DotNetWorkQueue.Transport.SQLite
     /// <inheritdoc />
     public partial class SqliteConnectionInformation : BaseConnectionInformation
     {
-        #if NETSTANDARD2_0
+        //A queue name is short and the pattern is anchored with no nested quantifiers, so it cannot
+        //backtrack badly - but an unbounded match is still worth not offering, and both targets
+        //should give up at the same point rather than one of them running on.
+        private const int MatchTimeoutMilliseconds = 1000;
+
+#if NETSTANDARD2_0
         //the [GeneratedRegex] source generator needs .NET 7 or later, so the old target compiles
         //the pattern once into a static instead. Same pattern, built at first use rather than
         //at compile time.
+        private static readonly TimeSpan MatchTimeout =
+            TimeSpan.FromMilliseconds(MatchTimeoutMilliseconds);
+
         private static readonly Regex ValidQueueName =
-            new Regex(@"^[a-zA-Z0-9_.]+$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+            new Regex(@"^[a-zA-Z0-9_.]+$", RegexOptions.Compiled | RegexOptions.CultureInvariant,
+                MatchTimeout);
 
         private static Regex ValidQueueNamePattern() => ValidQueueName;
-        #else
-        [GeneratedRegex(@"^[a-zA-Z0-9_.]+$")]
+#else
+        [GeneratedRegex(@"^[a-zA-Z0-9_.]+$", RegexOptions.None, MatchTimeoutMilliseconds)]
         private static partial Regex ValidQueueNamePattern();
-        #endif
+#endif
 
         private readonly IDbDataSource _dataSource;
         private string _server;
