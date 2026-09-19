@@ -2,7 +2,7 @@
 
 ## Overview
 
-DotNetWorkQueue processes user-defined message payloads: POCOs, compiled LINQ expressions, and dynamic LINQ strings. Some of these features involve deserializing type-annotated JSON and compiling code at runtime. If you're deploying this in production, you need to understand these attack surfaces.
+DotNetWorkQueue processes user-defined message payloads: POCOs and LINQ expressions. Both involve deserializing type-annotated JSON, and the expressions are compiled and run on the consumer. If you're deploying this in production, you need to understand these attack surfaces.
 
 This document covers deserialization, dynamic code compilation, queue backend access control, the Dashboard API, and deployment recommendations.
 
@@ -80,40 +80,35 @@ var container = new QueueContainer<MyTransportInit>(container =>
 
 If neither the deny-list nor allow-list binder fits your needs, implement your own `ISerializationBinder` with whatever policy logic you require and register it the same way.
 
-## Dynamic LINQ compilation
+## Method queues and LINQ expressions
 
 ### How it works
 
-DotNetWorkQueue can enqueue LINQ expression strings that get compiled and executed on the consumer. Two internal classes handle this:
-
-- `DotNetWorkQueue.LinqCompile.LinqCompiler` implements `ILinqCompiler`. It manages a pool of `DynamicCodeCompiler` instances and compiles `LinqExpressionToRun` objects into executable delegates.
-- `DotNetWorkQueue.LinqCompile.DynamicCodeCompiler` wraps the vendored `JpLabs.DynamicCode.Compiler` to parse LINQ strings into `Action<object, object>` delegates at runtime.
-
-`DotNetWorkQueue.Messages.LinqExpressionToRun` contains the LINQ string along with:
-- `References` -- assembly DLL references (e.g., `"MyApp.dll"`) loaded by the compiler
-- `Usings` -- namespace imports (e.g., `"MyApp.Services"`) available to the expression
-
-Default references include `System.dll`, `System.Core.dll`, and `DotNetWorkQueue.dll`. Default usings include `System`, `System.Collections.Generic`, `System.Linq`, and `DotNetWorkQueue.Messages`.
-
-### Platform availability
-
-**.NET Framework 4.8 only.** Dynamic LINQ string compilation uses the vendored `JpLabs.DynamicCode.dll` (a 2019 binary in `/Lib`). This is the path where the security concern applies.
-
-**.NET 8+ and .NET 10** do not have the dynamic string compilation path. These targets use pre-compiled LINQ expressions (`Expression<Action<...>>`), which are type-safe and don't involve runtime string-to-code compilation.
+The method queues (`IProducerMethodQueue`, `IConsumerMethodQueue`) send a LINQ expression rather
+than a POCO. The producer serializes an `Expression<Action<...>>` to JSON, and the consumer
+reconstructs it, compiles it, and runs it.
 
 ### What this means
 
-If an attacker can enqueue a crafted `LinqExpressionToRun` message, they get arbitrary code execution on any .NET Framework 4.8 consumer that processes it. The `References` and `Usings` properties let them load arbitrary assemblies and namespaces.
+An expression tree is only as trustworthy as the message it was rebuilt from. The consumer compiles
+whatever the JSON describes, so anyone who can write to the queue backend can influence what runs
+on a consumer, the same trust boundary as the deserialization concern above, and with the same
+consequence.
+
+This applies on every target. There is no framework where a method queue consumer executes only
+what its own producers sent.
 
 ### Mitigations
 
-- If you don't need dynamic LINQ, don't use the method queue variants (`IProducerMethodQueue`, `IConsumerMethodQueue`). Stick to POCO queues (`IProducerQueue<T>`, `IConsumerQueue`).
-- If you do need method queues, lock down who can write to the queue backend (see next section).
-- On .NET 8+ and .NET 10, this attack vector doesn't apply.
+- If you do not need method queues, use the POCO queues (`IProducerQueue<T>`, `IConsumerQueue`).
+  They are still bound by the deserialization concern above, but nothing compiles and invokes a
+  caller-supplied expression.
+- If you do need them, control who can write to the queue backend. That is the boundary that
+  matters; see the next section.
 
 ## Queue backend access control
 
-The queue backend (SQL Server, PostgreSQL, SQLite, Redis, LiteDB, or Memory) is the trust boundary. Anyone who can write to it can inject malicious payloads for deserialization attacks, inject LINQ strings for code execution on .NET Framework 4.8, or corrupt queue metadata.
+The queue backend (SQL Server, PostgreSQL, SQLite, Redis, LiteDB, or Memory) is the trust boundary. Anyone who can write to it can inject malicious payloads for deserialization attacks, supply an expression for a method queue consumer to compile and run, or corrupt queue metadata.
 
 Recommendations:
 
@@ -165,7 +160,7 @@ Recommendations:
 
 2. **Restrict queue backend write access to trusted producers.** Database authentication plus network ACLs. This is the single most effective mitigation against payload injection.
 
-3. **Skip method queues if you don't need dynamic LINQ.** Use `IProducerQueue<T>` / `IConsumerQueue` for POCO messages. This eliminates the code compilation attack surface entirely.
+3. **Skip method queues if you do not need them.** Use `IProducerQueue<T>` / `IConsumerQueue` for POCO messages. Nothing then compiles and runs an expression that arrived in a message.
 
 4. **Monitor queue message patterns.** Unexpected message types, unfamiliar producers, or unusual payload sizes can indicate injection.
 
@@ -173,7 +168,7 @@ Recommendations:
 
 6. **Use TLS for all backend connections.** `Encrypt=true` (SQL Server), `SSL Mode=Require` (PostgreSQL), or TLS (Redis).
 
-7. **Run consumers with least-privilege OS accounts.** If an attacker gets code execution through dynamic LINQ, a restricted service account limits the damage.
+7. **Run consumers with least-privilege OS accounts.** If an attacker does get code execution, through a deserialization gadget or a method queue expression, a restricted service account limits the damage.
 
 ## Reporting security issues
 
