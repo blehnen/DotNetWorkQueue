@@ -1,5 +1,5 @@
-﻿### Unreleased
-- `DotNetWorkQueue.Dashboard.Client` ships a netstandard2.0 build, so a .NET Framework application can register consumers with the dashboard. It was the one package left on net8.0 and net10.0 only (GitHub #401)
+﻿### 0.17.0 - 2026-09-20
+- `DotNetWorkQueue.Dashboard.Client` adds a netstandard2.0 build. (GitHub #401)
 
 ### 0.16.0 - 2026-09-19
 - ⚠️ `TripleDesMessageInterceptor` and `TripleDesMessageInterceptorConfiguration` are gone. Drain or re-encrypt any 3DES messages before upgrading: 0.15.0 is the last release that can read them. See the [migration guide](https://github.com/blehnen/DotNetWorkQueue/wiki/MigrationGuide#0160----3des-removal) (GitHub #183)
