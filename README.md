@@ -10,14 +10,7 @@
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=blehnen_DotNetWorkQueue&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=blehnen_DotNetWorkQueue)
 
 A producer / distributed consumer library for .NET applications. Targets .NET 8.0, .NET 10.0 and
-netstandard2.0. That last one is what .NET Framework consumers use; Microsoft supports
-netstandard2.0 on .NET Framework from 4.6.1 but recommends 4.7.2 or later, and so do we.
-
-The PostgreSQL transport is the one thing not in the netstandard2.0 build: the last Npgsql release
-supporting netstandard2.0 goes out of support on 10 November 2026 alongside .NET 8. Everything else
-is the same library on every target, and messages written by one build are readable by the others.
-That build carries one extra dependency, BouncyCastle, which supplies the AES-GCM its framework
-does not have.
+netstandard2.0.
 
 **High-level features:**
 - Queue / de-queue POCOs for distributed processing
