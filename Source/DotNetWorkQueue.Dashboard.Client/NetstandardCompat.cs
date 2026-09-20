@@ -51,13 +51,35 @@ namespace DotNetWorkQueue.Dashboard.Client
         /// Stands in for <c>Timer.DisposeAsync</c>, added in .NET Core 3.0.
         /// </summary>
         /// <remarks>
-        /// The asynchronous form waits for a callback that is already running; this does not. The
-        /// caller has already stopped the timer and awaited its work before disposing it.
+        /// Waits for a callback that has already started to return, which is what the framework
+        /// method does and what plain <c>Dispose()</c> does not. Neither waits for an
+        /// <c>async void</c> callback to finish its asynchronous work, because such a callback
+        /// returns at its first await.
         /// </remarks>
         public static ValueTask DisposeAsync(this Timer timer)
         {
-            timer.Dispose();
-            return default;
+            var callbacksFinished = new ManualResetEvent(false);
+
+            //false means it was already disposed, so nothing will signal the handle
+            if (!timer.Dispose(callbacksFinished))
+            {
+                callbacksFinished.Dispose();
+                return default;
+            }
+
+            var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            ThreadPool.RegisterWaitForSingleObject(
+                callbacksFinished,
+                (_, _) =>
+                {
+                    callbacksFinished.Dispose();
+                    completion.SetResult(true);
+                },
+                null,
+                Timeout.Infinite,
+                executeOnlyOnce: true);
+
+            return new ValueTask(completion.Task);
         }
     }
 }
