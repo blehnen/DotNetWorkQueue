@@ -127,7 +127,7 @@ namespace DotNetWorkQueue.Dashboard.Client
         /// <param name="options">The client options including queue name.</param>
         public DashboardConsumerClient(IHttpClientFactory httpClientFactory, DashboardClientOptions options)
         {
-            ArgumentNullException.ThrowIfNull(httpClientFactory);
+            if (httpClientFactory == null) throw new ArgumentNullException(nameof(httpClientFactory));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             if (string.IsNullOrEmpty(options.DashboardApiUrl)) throw new ArgumentException("DashboardApiUrl is required.", nameof(options));
             if (string.IsNullOrEmpty(options.QueueName)) throw new ArgumentException("QueueName is required for consumer registration.", nameof(options));
@@ -159,7 +159,7 @@ namespace DotNetWorkQueue.Dashboard.Client
             {
                 QueueName = _options.QueueName,
                 MachineName = Environment.MachineName,
-                ProcessId = Environment.ProcessId,
+                ProcessId = CurrentProcessId,
                 FriendlyName = _options.FriendlyName
             };
 
@@ -236,6 +236,20 @@ namespace DotNetWorkQueue.Dashboard.Client
             {
                 // Heartbeat failures are non-fatal; the server will prune if enough are missed
             }
+        }
+
+        //Environment.ProcessId is .NET 5 and later. Read once: the netstandard2.0 route
+        //allocates a Process object, and the value cannot change while we are running.
+        private static readonly int CurrentProcessId = ReadProcessId();
+
+        private static int ReadProcessId()
+        {
+#if NETSTANDARD2_0
+            using (var process = System.Diagnostics.Process.GetCurrentProcess())
+                return process.Id;
+#else
+            return Environment.ProcessId;
+#endif
         }
 
         /// <summary>
