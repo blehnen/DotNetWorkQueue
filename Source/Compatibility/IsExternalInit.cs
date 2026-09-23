@@ -26,6 +26,8 @@ namespace System.Runtime.CompilerServices
     /// to exist in each assembly that uses <c>init</c> or a record, which is why this is linked into
     /// every project by <c>Directory.Build.props</c> rather than referenced from one (GitHub #252).
     /// </remarks>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S2094:Classes should not be empty",
+        Justification = "The compiler looks for this type by name and needs nothing inside it")]
     internal static class IsExternalInit
     {
     }

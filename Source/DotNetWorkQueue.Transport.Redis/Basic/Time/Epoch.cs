@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Time
 {
@@ -27,12 +28,14 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Time
     /// Scores written to the working set and the values read back out have to convert against the
     /// same instant or a message's time moves when it is read. Three copies of it used to be
     /// declared separately; this is the one they all now use. <c>DateTime.UnixEpoch</c> would say
-    /// it more directly but arrived in .NET 5, and this library still builds for netstandard2.0
-    /// (GitHub #252).
+    /// it more directly but arrived in netstandard2.1, and this library still builds for
+    /// netstandard2.0 (GitHub #252).
     /// </remarks>
     internal static class Epoch
     {
         /// <summary>1970-01-01T00:00:00Z.</summary>
+        [SuppressMessage("Minor Code Smell", "S6588:Use the \"UnixEpoch\" field instead of creating \"DateTime\" instances that point to the beginning of the Unix epoch",
+            Justification = "DateTime.UnixEpoch does not exist on netstandard2.0, which this library targets (GitHub #252)")]
         internal static readonly DateTime Unix = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
     }
 }

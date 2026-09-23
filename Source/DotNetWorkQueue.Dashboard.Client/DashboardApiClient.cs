@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Dashboard.Client
         /// <param name="options">The client options.</param>
         public DashboardApiClient(DashboardClientOptions options)
         {
-            if (options == null) throw new ArgumentNullException(nameof(options));
+            _ = options ?? throw new ArgumentNullException(nameof(options));
             if (string.IsNullOrEmpty(options.DashboardApiUrl)) throw new ArgumentException("DashboardApiUrl is required.", nameof(options));
 
             _httpClient = new HttpClient { BaseAddress = new Uri(options.DashboardApiUrl.TrimEnd('/') + "/") };
@@ -73,8 +73,8 @@ namespace DotNetWorkQueue.Dashboard.Client
         /// <param name="options">The client options.</param>
         public DashboardApiClient(IHttpClientFactory httpClientFactory, DashboardClientOptions options)
         {
-            if (httpClientFactory == null) throw new ArgumentNullException(nameof(httpClientFactory));
-            if (options == null) throw new ArgumentNullException(nameof(options));
+            _ = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+            _ = options ?? throw new ArgumentNullException(nameof(options));
             if (string.IsNullOrEmpty(options.DashboardApiUrl)) throw new ArgumentException("DashboardApiUrl is required.", nameof(options));
 
             _httpClient = httpClientFactory.CreateClient("DashboardApi");
