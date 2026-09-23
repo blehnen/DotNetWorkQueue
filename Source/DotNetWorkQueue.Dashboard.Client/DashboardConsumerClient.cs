@@ -127,7 +127,7 @@ namespace DotNetWorkQueue.Dashboard.Client
         /// <param name="options">The client options including queue name.</param>
         public DashboardConsumerClient(IHttpClientFactory httpClientFactory, DashboardClientOptions options)
         {
-            if (httpClientFactory == null) throw new ArgumentNullException(nameof(httpClientFactory));
+            _ = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             if (string.IsNullOrEmpty(options.DashboardApiUrl)) throw new ArgumentException("DashboardApiUrl is required.", nameof(options));
             if (string.IsNullOrEmpty(options.QueueName)) throw new ArgumentException("QueueName is required for consumer registration.", nameof(options));

@@ -60,7 +60,7 @@ namespace DotNetWorkQueue.Tests.Compatibility
             for (var i = 0; i < ticks; i++)
             {
                 Assert.IsTrue(await timer.WaitForNextTickAsync(CancellationToken.None));
-                Thread.Sleep(work);
+                await Task.Delay(work);
             }
 
             var elapsed = start.Elapsed.TotalMilliseconds;
@@ -76,7 +76,7 @@ namespace DotNetWorkQueue.Tests.Compatibility
             using var timer = new IntervalTimer(Period);
 
             Assert.IsTrue(await timer.WaitForNextTickAsync(CancellationToken.None));
-            Thread.Sleep(TimeSpan.FromMilliseconds(550));
+            await Task.Delay(TimeSpan.FromMilliseconds(550));
 
             //the tick that was already due arrives at once
             var catchUp = Stopwatch.StartNew();
@@ -100,7 +100,7 @@ namespace DotNetWorkQueue.Tests.Compatibility
             var start = Stopwatch.StartNew();
 
             Assert.IsTrue(await timer.WaitForNextTickAsync(CancellationToken.None));
-            Thread.Sleep(TimeSpan.FromMilliseconds(250));
+            await Task.Delay(TimeSpan.FromMilliseconds(250));
 
             var elapsed = new List<double>();
             for (var i = 0; i < 3; i++)

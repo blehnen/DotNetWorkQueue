@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading;
+using System.Threading.Tasks;
 using DotNetWorkQueue.Compatibility;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -14,12 +14,12 @@ namespace DotNetWorkQueue.Tests.Compatibility
     public class MonotonicTimeTests
     {
         [TestMethod]
-        public void It_Converts_Timestamps_To_The_Same_Span_The_Framework_Does()
+        public async Task It_Converts_Timestamps_To_The_Same_Span_The_Framework_Does()
         {
             //the arithmetic is the whole type, so it is checked against the implementation it
             //replaces rather than against a restatement of itself
             var start = Stopwatch.GetTimestamp();
-            Thread.Sleep(20);
+            await Task.Delay(20);
             var end = Stopwatch.GetTimestamp();
 
             Assert.AreEqual(Stopwatch.GetElapsedTime(start, end), MonotonicTime.Elapsed(start, end));
@@ -34,10 +34,10 @@ namespace DotNetWorkQueue.Tests.Compatibility
         }
 
         [TestMethod]
-        public void It_Measures_A_Real_Delay()
+        public async Task It_Measures_A_Real_Delay()
         {
             var start = Stopwatch.GetTimestamp();
-            Thread.Sleep(50);
+            await Task.Delay(50);
 
             var elapsed = MonotonicTime.ElapsedSince(start);
 
