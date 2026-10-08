@@ -95,6 +95,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             string message,
             Exception exception)
         {
+            // Below-threshold messages used to go to the console. MSTest captures that per
+            // test and ships it to the host inside the test result; on the busier transports
+            // it reached hundreds of MB and aborted the run once vstest moved to
+            // System.Text.Json, which rejects a single value that large.
+            if (logLevel < _level)
+                return;
+
             try
             {
                 if (exception != null)
@@ -102,14 +109,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                     message = message + "|" + exception;
                 }
 
-                if (logLevel >= _level)
-                {
-                    FileWriteLine($"{DateTime.UtcNow} | {logLevel} | {message}");
-                }
-                else
-                {
-                    WriteMessageConsole(logLevel, message, exception);
-                }
+                FileWriteLine($"{DateTime.UtcNow} | {logLevel} | {message}");
             }
             catch (Exception e)
             {
@@ -124,24 +124,6 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             {
                 File.AppendAllText(_fileName, message + Environment.NewLine + Environment.NewLine);
             }
-        }
-
-        /// <summary>
-        /// Writes the message.
-        /// </summary>
-        /// <param name="logLevel">The log level.</param>
-        /// <param name="message">The message function.</param>
-        /// <param name="exception">The exception.</param>
-        private static void WriteMessageConsole(
-            LogLevel logLevel,
-            string message,
-            Exception exception)
-        {
-            if (exception != null)
-            {
-                message = message + "|" + exception;
-            }
-            Console.WriteLine("{0} | {1} | {2}", DateTime.UtcNow, logLevel, message);
         }
 
         // ReSharper disable once UnusedMember.Local
@@ -173,7 +155,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
         public bool IsEnabled(LogLevel logLevel)
         {
-            return true;
+            return logLevel >= _level;
         }
 
         public IDisposable BeginScope<TState>(TState state)
