@@ -68,19 +68,7 @@ namespace DotNetWorkQueue.Messages
         private static void HandleRawAction(IReceivedMessage<MessageExpression> receivedMessage,
             IWorkerNotification workerNotification)
         {
-            try
-            {
-                HandleAction(receivedMessage.Body.Method.Compile(), receivedMessage, workerNotification);
-            }
-            catch (Exception error) //throw the real exception if needed
-            {
-                if (error.Message == "Exception has been thrown by the target of an invocation." &&
-                    error.InnerException != null)
-                {
-                    throw error.InnerException;
-                }
-                throw;
-            }
+            HandleAction(receivedMessage.Body.Method.Compile(), receivedMessage, workerNotification);
         }
         /// <summary>
         /// De-serializes and runs a compiled linq expression.
@@ -90,30 +78,23 @@ namespace DotNetWorkQueue.Messages
         private void HandleAction(IReceivedMessage<MessageExpression> receivedMessage, IWorkerNotification workerNotification)
         {
             var target = _serializer.ConvertBytesToMethod(receivedMessage.Body.SerializedExpression);
-            try
-            {
-                HandleAction(target.Compile(), receivedMessage, workerNotification);
-            }
-            catch (Exception error) //throw the real exception if needed
-            {
-                if (error.Message == "Exception has been thrown by the target of an invocation." &&
-                    error.InnerException != null)
-                {
-                    throw error.InnerException;
-                }
-                throw;
-            }
+            HandleAction(target.Compile(), receivedMessage, workerNotification);
         }
 
         /// <summary>
         /// Runs a compiled linq expression.
         /// </summary>
+        /// <remarks>
+        /// Invoked directly rather than through <see cref="Delegate.DynamicInvoke"/>, so an exception
+        /// from the queued method reaches the caller as itself, with its stack trace, instead of
+        /// wrapped in a <see cref="System.Reflection.TargetInvocationException"/>.
+        /// </remarks>
         /// <param name="action">The action.</param>
         /// <param name="receivedMessage">The received message.</param>
         /// <param name="workerNotification">The worker notification.</param>
         private static void HandleAction(Action<IReceivedMessage<MessageExpression>, IWorkerNotification> action, IReceivedMessage<MessageExpression> receivedMessage, IWorkerNotification workerNotification)
         {
-            action.DynamicInvoke(receivedMessage, workerNotification);
+            action(receivedMessage, workerNotification);
         }
 
         #region IDispose, IIsDisposed
