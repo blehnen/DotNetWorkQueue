@@ -17,6 +17,7 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
@@ -26,19 +27,19 @@ namespace DotNetWorkQueue.Validation
     /// Argument validation that costs nothing when the argument is valid.
     /// </summary>
     /// <remarks>
-    /// These replace the <c>Expression&lt;Func&lt;T&gt;&gt;</c> overloads in the vendored half of
-    /// this class. Those take the parameter name from an expression tree, which means the compiler
-    /// emits tree-building code at every call site and runs it on every call - including the call
-    /// where the argument is fine and nothing is thrown. Measured at 43 ns and 154 bytes per call,
-    /// against 14 calls for a single send and roughly 19 per message consumed, that was around
-    /// 2.7 KB of garbage per message for a parameter name that is a compile-time constant.
+    /// The parameter name comes from <see cref="CallerArgumentExpressionAttribute"/>, which the
+    /// compiler bakes in as a literal, so the valid path is a null comparison and nothing else.
     /// <para>
-    /// <see cref="CallerArgumentExpressionAttribute"/> gives the same name as a literal baked in by
-    /// the compiler, so the valid path is a null comparison and nothing else. Every converted call
-    /// site produces the identical <see cref="ArgumentException.ParamName"/> it did before.
+    /// Do not take the name from an <c>Expression&lt;Func&lt;T&gt;&gt;</c> instead. The overloads
+    /// that did were removed: the compiler emits tree-building code at every call site and runs it
+    /// on every call, including the call where the argument is fine. Measured at 43 ns and 154 bytes
+    /// per call, against 14 calls for a single send and roughly 19 per message consumed, that was
+    /// around 2.7 KB of garbage per message for a parameter name that is a compile-time constant.
     /// </para>
     /// </remarks>
-    public static partial class Guard
+    [DebuggerStepThrough]
+    [ExcludeFromCodeCoverage]
+    public static class Guard
     {
         /// <summary>
         /// Ensures the given <paramref name="value"/> is not null.
