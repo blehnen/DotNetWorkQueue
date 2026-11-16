@@ -80,6 +80,8 @@ namespace DotNetWorkQueue.Benchmarks
 
         private Fixture _a, _b;
 
+        //Deliberately an object monitor, not System.Threading.Lock: the raw rung is the control
+        //for ReceiveMessageQueryHandler's static object lock, so both must contend the same way.
         private static readonly object RawClaimLock = new object();
 
         /// <summary>
