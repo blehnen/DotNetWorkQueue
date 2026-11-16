@@ -237,6 +237,12 @@ pipeline {
                                     -f net10.0 -c Debug \
                                     /p:CollectCoverage=true /p:CoverletOutput=$WORKSPACE/coverage/unit-dashboard-ui/ \
                                     --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
+
+                                # No coverage: the library under test (Tests.Shared) is excluded from
+                                # Coverlet in Directory.Build.props and ignored by codecov.yml.
+                                dotnet test "Source/DotNetWorkQueue.Tests.Shared.Tests/DotNetWorkQueue.Tests.Shared.Tests.csproj" \
+                                    -f net10.0 -c Debug \
+                                    --logger "junit;LogFilePath=$WORKSPACE/junit-results/{assembly}.{framework}.xml"
                             '''
                         }
 

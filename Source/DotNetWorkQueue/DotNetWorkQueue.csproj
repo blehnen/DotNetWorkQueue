@@ -20,17 +20,16 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
-		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
+		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0|AnyCPU'">
-		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
+		<DefineConstants>TRACE;DEBUG;CODE_ANALYSIS</DefineConstants>
 	</PropertyGroup>
 
 
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
-		<DefineConstants>LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
@@ -38,7 +37,6 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0|AnyCPU'">
-		<DefineConstants>LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
@@ -46,7 +44,6 @@ https://github.com/blehnen/DotNetWorkQueue/blob/master/CHANGELOG.md</PackageRele
 
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
-		<DefineConstants>LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />

@@ -74,6 +74,9 @@ jobs:
       - name: Unit Tests - Memory
         run: dotnet test "Source/DotNetWorkQueue.Transport.Memory.Tests/DotNetWorkQueue.Transport.Memory.Tests.csproj" --no-build -c Debug
 
+      - name: Unit Tests - Tests.Shared
+        run: dotnet test "Source/DotNetWorkQueue.Tests.Shared.Tests/DotNetWorkQueue.Tests.Shared.Tests.csproj" --no-build -c Debug
+
       - name: Integration Tests - TaskScheduler Distributed
         run: dotnet test "Source/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests/DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler.Integration.Tests.csproj" --no-build -c Debug
 
