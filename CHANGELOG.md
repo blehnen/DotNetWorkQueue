@@ -1,5 +1,6 @@
 ﻿### Unreleased
 - ⚠️ The four `[Obsolete]` expression-tree `Guard` overloads are gone. Use the ones without the expression; for `IsValid` with format args, pass a `string.Format(...)` message (GitHub #418)
+- ⚠️ `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler` 0.5.0 calls one of them and fails with `MissingMethodException`. Upgrade it to 0.6.0 along with this release (GitHub #418)
 
 ### 0.17.0 - 2026-09-20
 - `DotNetWorkQueue.Dashboard.Client` adds a netstandard2.0 build. (GitHub #401)
