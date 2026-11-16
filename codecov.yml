@@ -4,7 +4,6 @@ codecov:
 ignore:
   # Unit test projects
   - "Source/DotNetWorkQueue.Tests/**"
-  - "Source/DotNetWorkQueue.AppMetrics.Tests/**"
   - "Source/DotNetWorkQueue.Transport.SqlServer.Tests/**"
   - "Source/DotNetWorkQueue.Transport.PostgreSQL.Tests/**"
   - "Source/DotNetWorkQueue.Transport.Redis.Tests/**"
