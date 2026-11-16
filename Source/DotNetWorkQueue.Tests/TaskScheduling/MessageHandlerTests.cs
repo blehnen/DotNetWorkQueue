@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
@@ -63,6 +64,30 @@ namespace DotNetWorkQueue.Tests.TaskScheduling
             Assert.ThrowsExactly<OperationCanceledException>(() =>
                 test.HandleAsync(Substitute.For<IWorkGroup>(), Substitute.For<IReceivedMessage<FakeMessage>>(),
                     notifications, Action, Substitute.For<ITaskFactory>()));
+        }
+
+        [TestMethod]
+        public async Task HandleAsync_When_The_Action_Throws_The_Task_Faults_With_That_Exception()
+        {
+            var factory = Substitute.For<ITaskFactory>();
+            factory.Scheduler.Returns(Substitute.For<ATaskScheduler>());
+            factory.TryStartNew(Arg.Any<Action<object>>(), Arg.Any<StateInformation>(), Arg.Any<Action<Task>>(), out Arg.Any<Task>())
+                .Returns(call =>
+                {
+                    // Run it the way SchedulerTaskFactory does: the action, then the continuation.
+                    call[3] = Task.Factory.StartNew(call.ArgAt<Action<object>>(0), call[1])
+                        .ContinueWith(call.ArgAt<Action<Task>>(2));
+                    return TryStartNewResult.Added;
+                });
+            var thrownByAction = new InvalidDataException("action failed", new IndexOutOfRangeException("cause"));
+
+            var test = Create();
+
+            var error = await Assert.ThrowsExactlyAsync<InvalidDataException>(() =>
+                test.HandleAsync(Substitute.For<IWorkGroup>(), Substitute.For<IReceivedMessage<FakeMessage>>(),
+                    Substitute.For<IWorkerNotification>(), (message, notification) => throw thrownByAction, factory));
+
+            Assert.AreSame(thrownByAction, error);
         }
 
         private SchedulerMessageHandler Create()
