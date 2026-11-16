@@ -1,13 +1,8 @@
 # Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
-# Install .NET 8 SDK (needed for projects targeting net8.0 during restore)
-# Pin to a specific version; update as needed
-RUN dotnet_version=8.0.408 \
-    && curl -fSL --output dotnet8.tar.gz \
-       "https://dotnetcli.azureedge.net/dotnet/Sdk/${dotnet_version}/dotnet-sdk-${dotnet_version}-linux-x64.tar.gz" \
-    && tar -oxzf dotnet8.tar.gz -C /usr/share/dotnet ./sdk ./shared \
-    && rm dotnet8.tar.gz
+# The .NET 10 SDK alone is enough: the projects also target net8.0, but restore fetches
+# the net8.0 reference packs from NuGet, and only net10.0 is published.
 
 WORKDIR /src
 
