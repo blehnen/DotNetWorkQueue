@@ -80,7 +80,7 @@ namespace DotNetWorkQueue.Benchmarks
             var dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pooltest-" + System.Guid.NewGuid().ToString("N"));
             System.IO.Directory.CreateDirectory(dir);
 
-            void Time(string label, string path, bool pooling, bool holdOne, int n)
+            static void Time(string label, string path, bool pooling, bool holdOne, int n)
             {
                 var cs = $"Data Source={path};Version=3;Synchronous=NORMAL;" + (pooling ? "Pooling=True;" : "");
                 using (var seed = new System.Data.SQLite.SQLiteConnection(cs))

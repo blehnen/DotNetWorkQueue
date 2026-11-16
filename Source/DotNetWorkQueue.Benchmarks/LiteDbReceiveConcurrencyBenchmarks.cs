@@ -80,7 +80,7 @@ namespace DotNetWorkQueue.Benchmarks
 
         private Fixture _a, _b;
 
-        private static readonly object RawClaimLock = new object();
+        private static readonly System.Threading.Lock RawClaimLock = new();
 
         /// <summary>
         /// Every message claimed during a rung, keyed by queue and id. The null guard in

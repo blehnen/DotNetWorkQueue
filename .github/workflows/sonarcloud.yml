@@ -69,6 +69,11 @@ jobs:
           # ~27-32% self-similar by design, which is ~76% of the repo's total duplication. That
           # intentional structure otherwise dominates the "Duplications on New Code" gate condition
           # and fails routine PRs. Core, Redis, RelationalDatabase, and LiteDB keep full CPD signal.
-          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"blehnen_DotNetWorkQueue" /o:"blehnen" /d:sonar.exclusions="**/*.png,**/*.ico,**/*.jpg,**/*.jpeg,**/*.gif,**/*.webp,**/*.woff,**/*.woff2,**/*.ttf,**/*.eot" /d:sonar.coverage.exclusions="**/*" /d:sonar.cpd.exclusions="**/DotNetWorkQueue.Transport.SqlServer/**/*,**/DotNetWorkQueue.Transport.PostgreSQL/**/*,**/DotNetWorkQueue.Transport.SQLite/**/*"
+          #
+          # sonar.exclusions also drops the Jenkinsfile. Sonar's Groovy rules (literal constants,
+          # nesting depth, catch-Exception) fire on ordinary declarative-pipeline idioms such as
+          # repeated catchError(buildResult: 'FAILURE') and try/catch around unstash, and an
+          # accepted issue reappears whenever its line is edited.
+          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"blehnen_DotNetWorkQueue" /o:"blehnen" /d:sonar.exclusions="**/*.png,**/*.ico,**/*.jpg,**/*.jpeg,**/*.gif,**/*.webp,**/*.woff,**/*.woff2,**/*.ttf,**/*.eot,**/Jenkinsfile" /d:sonar.coverage.exclusions="**/*" /d:sonar.cpd.exclusions="**/DotNetWorkQueue.Transport.SqlServer/**/*,**/DotNetWorkQueue.Transport.PostgreSQL/**/*,**/DotNetWorkQueue.Transport.SQLite/**/*"
           dotnet build "Source/DotNetWorkQueue.sln" -c Debug
           ${{ runner.temp }}\scanner\dotnet-sonarscanner end

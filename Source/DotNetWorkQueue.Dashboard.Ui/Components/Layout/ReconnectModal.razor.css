@@ -155,3 +155,27 @@
         opacity: 0;
     }
 }
+
+/* Honour the OS "reduce motion" setting: show the modal and the reconnect
+   indicator without the slide, fade or pulsing-ring animations. */
+@media (prefers-reduced-motion: reduce) {
+    #components-reconnect-modal,
+    #components-reconnect-modal[open],
+    #components-reconnect-modal::backdrop,
+    .components-rejoining-animation div {
+        animation: none;
+        transition: none;
+    }
+
+    #components-reconnect-modal[open] {
+        opacity: 1;
+    }
+
+    .components-rejoining-animation div {
+        top: 0;
+        left: 0;
+        width: 80px;
+        height: 80px;
+        opacity: 0.6;
+    }
+}

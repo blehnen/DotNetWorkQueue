@@ -485,9 +485,9 @@ namespace DotNetWorkQueue.Benchmarks
         {
             const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
 
-            object Field(object target, string name) =>
+            static object Field(object target, string name) =>
                 target?.GetType().GetField(name, flags)?.GetValue(target);
-            object Unwrap(object target) =>
+            static object Unwrap(object target) =>
                 Field(target, "_handler") ?? Field(target, "_decorated") ?? Field(target, "_inner");
 
             var node = Field(producer, "_sendMessages");
