@@ -2,6 +2,7 @@
 - ⚠️ The four `[Obsolete]` expression-tree `Guard` overloads are gone. Use the ones without the expression; for `IsValid` with format args, pass a `string.Format(...)` message (GitHub #418)
 - ⚠️ `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler` 0.5.0 calls one of them and fails with `MissingMethodException`. Upgrade it to 0.6.0 along with this release (GitHub #418)
 - Fix: a method or LINQ queue now raises the queued code's own exception with its stack trace. On a localized .NET Framework it used to arrive wrapped in `TargetInvocationException` (GitHub #409)
+- ⚠️ An `IConsumerQueueAsync` handler's exception now matches retry rules as itself, as on the sync consumer. One with an inner exception used to match on that inner exception's type (GitHub #426)
 
 ### 0.17.0 - 2026-09-20
 - `DotNetWorkQueue.Dashboard.Client` adds a netstandard2.0 build. (GitHub #401)

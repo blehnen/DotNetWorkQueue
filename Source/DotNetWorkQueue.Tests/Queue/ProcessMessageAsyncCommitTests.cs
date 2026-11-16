@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
@@ -78,6 +79,23 @@ namespace DotNetWorkQueue.Tests.Queue
                 () => harness.Processor.HandleAsync(harness.Context, harness.Message)).ConfigureAwait(false);
 
             await harness.CommitMessage.DidNotReceiveWithAnyArgs().CommitAsync(null).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task HandleAsync_WhenTheHandlerThrows_TheExceptionHandlerSeesThatException_NotItsInner()
+        {
+            // The sync path reports the handler's exception unchanged; the async path must report the
+            // same one. An inner exception is a detail of it, not a replacement for it.
+            var harness = new Harness();
+            var thrownByHandler = new InvalidDataException("handler failed", new IndexOutOfRangeException("cause"));
+            harness.Handler
+                .HandleAsync(Arg.Any<IReceivedMessageInternal>(), Arg.Any<IWorkerNotification>())
+                .Returns(Task.FromException(thrownByHandler));
+
+            var thrown = await Assert.ThrowsExactlyAsync<MessageException>(
+                () => harness.Processor.HandleAsync(harness.Context, harness.Message)).ConfigureAwait(false);
+
+            Assert.AreSame(thrownByHandler, thrown.InnerException);
         }
 
         private sealed class Harness

@@ -17,9 +17,9 @@
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
 using System;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
-using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Logging;
 using DotNetWorkQueue.Validation;
 using Microsoft.Extensions.Logging;
@@ -87,10 +87,12 @@ namespace DotNetWorkQueue.TaskScheduling
                         throw new OperationCanceledException("user canceled", task.Exception.InnerException); //explicitly throw this
                     }
 
-                    if (task.IsFaulted && task.Exception != null)
+                    if (task.IsFaulted && task.Exception?.InnerException != null)
                     {
-                        //need to throw it
-                        throw new DotNetWorkQueueException("Message processing exception", task.Exception.InnerException);
+                        //rethrow the action's own exception, with its stack trace. ProcessMessageAsync
+                        //reports what reaches it unchanged, as the sync path does, so a wrapper here
+                        //would hide the real type from retry rules and error handling.
+                        ExceptionDispatchInfo.Capture(task.Exception.InnerException).Throw();
                     }
                 }, out var start).Success())
                 {

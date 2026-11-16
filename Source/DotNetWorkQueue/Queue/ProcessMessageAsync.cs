@@ -88,7 +88,7 @@ namespace DotNetWorkQueue.Queue
                 catch (Exception exception)
                 {
                     await heartBeat.StopAsync().ConfigureAwait(false);
-                    await _messageExceptionHandler.HandleAsync(transportMessage, context, exception.InnerException ?? exception).ConfigureAwait(false);
+                    await _messageExceptionHandler.HandleAsync(transportMessage, context, exception).ConfigureAwait(false);
                 }
             }
         }
