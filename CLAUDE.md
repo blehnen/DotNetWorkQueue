@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-DotNetWorkQueue is a producer/distributed consumer library for .NET. It supports queueing POCOs, compiled LINQ expressions, and re-occurring job scheduling. Targets .NET 10.0 and .NET 8.0.
+DotNetWorkQueue is a producer/distributed consumer library for .NET. It supports queueing POCOs, compiled LINQ expressions, and re-occurring job scheduling. Targets .NET 10.0 and .NET 8.0; most packaged libraries also target .NET Standard 2.0 (see Multi-targeting).
 
 ## Project Instructions
 Always use Context7 MCP when I need library/API documentation or setup steps. Automatically resolve library IDs and retrieve docs without being asked.
@@ -34,11 +34,11 @@ dotnet pack "Source\DotNetWorkQueue.Dashboard.Ui\DotNetWorkQueue.Dashboard.Ui.cs
 
 ### Release publishing
 
-Real releases are published by the tag-triggered `.github/workflows/publish.yml` workflow — do NOT invoke `dotnet nuget push` locally. Push a `v<version>` tag (matching `Source/Directory.Build.props` `<Version>`) to trigger the three-job pipeline (`verify-gate` → `build-pack` → `publish`). The existing local `dotnet build -c Release -p:CI=true` and `dotnet pack` commands shown above are for inspection / dry-run only. Operational dry-run: Actions → Publish → Run workflow → `dry_run=true` exercises the gate + pack jobs without publishing.
+Real releases are published by the tag-triggered `.github/workflows/publish.yml` workflow — do NOT invoke `dotnet nuget push` locally. Push a `v<version>` tag (matching `Source/Directory.Build.props` `<Version>`) to trigger the pipeline `verify-gate` → `build-pack` → `publish` → `docker-publish`. The existing local `dotnet build -c Release -p:CI=true` and `dotnet pack` commands shown above are for inspection / dry-run only. Operational dry-run: Actions → Publish → Run workflow → `dry_run=true` runs `verify-gate`, `build-pack` and `verify-trusted-publishing` (which checks the NuGet OIDC exchange), and skips `publish` and `docker-publish`.
 
 ## Running Tests
 
-Tests use **MSTest 4.4.0**, NSubstitute for mocking, and AutoFixture for test data. Assertions are MSTest's own (`Assert.AreEqual`, `Assert.IsTrue`, `Assert.Contains`, `Assert.Throws<T>` / `Assert.ThrowsExactly<T>`).
+Tests use **MSTest** (pinned centrally in `Source/Directory.Packages.props`, at or above 4.4.0), NSubstitute for mocking, and AutoFixture for test data. Assertions are MSTest's own (`Assert.AreEqual`, `Assert.IsTrue`, `Assert.Contains`, `Assert.Throws<T>` / `Assert.ThrowsExactly<T>`).
 
 - **FluentAssertions is not used and must not be reintroduced** - it was deliberately removed in #159 on licensing grounds (version 8 changed to a paid licence for commercial use).
 - **The MSTest version is not per-project.** It is pinned centrally in `Source/Directory.Packages.props`, so a single test project cannot opt in or out of a different version.
@@ -65,9 +65,12 @@ dotnet test "Source\DotNetWorkQueue.Transport.SQLite.Tests\DotNetWorkQueue.Trans
 dotnet test "Source\DotNetWorkQueue.Transport.LiteDb.Tests\DotNetWorkQueue.Transport.LiteDb.Tests.csproj"
 dotnet test "Source\DotNetWorkQueue.Transport.RelationalDatabase.Tests\DotNetWorkQueue.Transport.RelationalDatabase.Tests.csproj"
 
-# Additional unit test projects:
+# Additional unit test projects (Dashboard.Ui.Tests uses bUnit):
 dotnet test "Source\DotNetWorkQueue.Dashboard.Api.Tests\DotNetWorkQueue.Dashboard.Api.Tests.csproj"
 dotnet test "Source\DotNetWorkQueue.Transport.Memory.Tests\DotNetWorkQueue.Transport.Memory.Tests.csproj"
+dotnet test "Source\DotNetWorkQueue.Dashboard.Client.Tests\DotNetWorkQueue.Dashboard.Client.Tests.csproj"
+dotnet test "Source\DotNetWorkQueue.Dashboard.Ui.Tests\DotNetWorkQueue.Dashboard.Ui.Tests.csproj"
+dotnet test "Source\DotNetWorkQueue.Tests.Shared.Tests\DotNetWorkQueue.Tests.Shared.Tests.csproj"
 
 # In-memory integration tests (no external services needed):
 dotnet test "Source\DotNetWorkQueue.Transport.Memory.Integration.Tests\DotNetWorkQueue.Transport.Memory.Integration.Tests.csproj"
@@ -81,6 +84,8 @@ dotnet test "Source\DotNetWorkQueue.Dashboard.Api.Integration.Tests\DotNetWorkQu
 ```
 
 SQLite and LiteDb are file based and need nothing running.
+
+The other suites: each transport has an integration suite and a Linq twin (`*.Integration.Tests` and `*.Linq.Integration.Tests`; the SqlServer, Redis and LiteDB integration folders are named `IntegrationTests`, with no dot), plus `Dashboard.Ui.E2E.Tests` (Playwright) and `TaskScheduling.Distributed.TaskScheduler.Integration.Tests`. `NetFramework.SmokeTests` targets net48, sits outside both solutions, and runs against the packed `.nupkg` files via `.github/workflows/netframework-smoke.yml`.
 
 **Every suite that needs a server starts its own container** (issue #281): Redis, PostgreSQL and SQL Server, both the plain and Linq suites of each, plus the Dashboard API tests. With no `connectionstring.txt` in the output directory each starts a container and owns it for the run. SQL Server additionally creates its database and the non-default `test1`/`test2` schemas, so nothing has to be prepared by hand. The Dashboard API assembly covers several transports, so it starts each service only on first use - a run filtered to Memory, SQLite and LiteDb starts nothing. That needs a reachable Docker daemon. Prefer a local one. `DOCKER_HOST=tcp://<host>:2375` reaches a remote daemon, but 2375 is Docker's plaintext, unauthenticated API - anything that can reach it is effectively root on that host - so use it only on a private network limited to trusted machines, and mutual TLS (2376) or an SSH transport otherwise. `docs/jenkins-setup.md` covers the CI side of this. Dropping a `connectionstring.txt` into the output directory still wins, which is how you point a suite at a server you already have.
 
@@ -99,7 +104,7 @@ The main library containing all abstractions, interfaces, and default implementa
 ### Transport Abstraction (layered)
 1. **`Transport.Shared`** - Base interfaces and Command/Query pattern (`ICommandHandler<T>`, `IQueryHandler<T,TR>`, `IQueryHandlerAsync<T,TR>`) for transport-independent data access
 2. **`Transport.RelationalDatabase`** - SQL-specific abstractions built on Transport.Shared
-3. **Transport implementations** - Each transport (SqlServer, PostgreSQL, SQLite, Redis, LiteDb) implements `ITransportInit` (with `Send`/`Receive`/`Duplex` variants) and registers its DI bindings via `RegisterImplementations()`
+3. **Transport implementations** - Each transport (SqlServer, PostgreSQL, SQLite, Redis, LiteDb, Memory) implements `ITransportInit` (with `Send`/`Receive`/`Duplex` variants) and registers its DI bindings via `RegisterImplementations()`. Memory's runtime (`MemoryMessageQueueInit`, `DataStorage`) lives in the core assembly under `Source/DotNetWorkQueue/Transport/Memory/`; the `Transport.Memory` project adds only the dashboard handlers.
 
 ### Producer/Consumer Pattern
 - `IProducerQueue<T>` / `IConsumerQueue` - POCO message queues
@@ -111,18 +116,25 @@ The main library containing all abstractions, interfaces, and default implementa
 SimpleInjector is the IoC container. Each transport has an init class implementing `ITransportInit` that registers its services. `IContainerFactory` provides root-level container access to avoid circular dependencies.
 
 ### Multi-targeting
-Projects target net10.0 and net8.0. Legacy conditional compilation symbols (NETFULL, NETSTANDARD2_0) have been removed.
+Packaged libraries target net10.0 and net8.0, and also netstandard2.0, except Transport.PostgreSQL, Dashboard.Api and Dashboard.Ui. Most test projects target net10.0 only; `NetFramework.SmokeTests` targets net48.
+- netstandard2.0 shims (`NetstandardPolyfills.cs`, `NetstandardAttributes.cs`, `IsExternalInit.cs`) live in `Source/Compatibility/` and are linked in by `Source/Directory.Build.props` for the netstandard2.0 target only, together with a global using for `DotNetWorkQueue.Compatibility`. Compatibility types that are real code and compile on every target live separately in `Source/DotNetWorkQueue/Compatibility/`.
+- `#if NETSTANDARD2_0` is the conditional compilation symbol for target-specific code. `NETFULL` no longer exists.
+- Only `.github/workflows/netframework-smoke.yml` (Windows, net48, against the packed packages) exercises the netstandard2.0 output. Neither Jenkins nor `ci.yml` runs it.
 
 ## Key Dependencies
 
-- **SimpleInjector 5.5.0** - DI container
-- **Polly 8.6.5** - Resilience/retry
-- **Newtonsoft.Json 13.0.4** - Serialization
-- **Microsoft.Data.SqlClient 6.1.3** - SQL Server (replaced System.Data.SqlClient)
-- **OpenTelemetry 1.14.0** - Distributed tracing
+Versions are pinned centrally in `Source/Directory.Packages.props`; this list gives names and roles only.
+
+- **SimpleInjector** - DI container
+- **Polly.Core** - Resilience/retry
+- **Newtonsoft.Json** - Serialization
+- **System.Text.Json** - Alternative pluggable serializer (#236)
+- **Microsoft.Data.SqlClient** - SQL Server (replaced System.Data.SqlClient)
+- **OpenTelemetry** - Distributed tracing
 - **System.Diagnostics.Metrics** - Built-in metrics via `System.Diagnostics.DiagnosticSource` (users add OpenTelemetry.Metrics exporters to collect)
 - **Cronos** - Cron expression parsing (5-field and 6-field with seconds)
 - **CronExpressionDescriptor** - Human-readable cron schedule descriptions
+- **BouncyCastle.Cryptography** - AES-GCM on netstandard2.0, where `AesGcm` is unavailable (`Source/DotNetWorkQueue/Interceptors/BouncyCastleAesGcm.cs`, selected in `AesGcmCipher.cs`)
 
 ## Conventions
 
@@ -130,7 +142,7 @@ Projects target net10.0 and net8.0. Legacy conditional compilation symbols (NETF
 - Interface prefix: `I` (e.g., `IQueue`); Factory suffix: `Factory`; Config suffix: `Configuration`
 - Abstract base classes use prefix `A` or suffix `Base`
 - Thread-safe disposal via `Interlocked` operations throughout
-- **CI**: Jenkins is the local CI server (setup guide at `docs/jenkins-setup.md`). It runs 14 parallel integration test stages on Docker agents (net10.0 only) with Coverlet code coverage uploaded to Codecov.io. The 14th stage (`TaskScheduler Distributed`) runs without Coverlet by design — it tests an external NuGet and the core DLLs it uses are already covered by the other 13 stages. GitHub Actions (`.github/workflows/ci.yml`) runs net10.0 unit tests + the TaskScheduler Distributed integration tests on ubuntu-latest for CI validation. **Jenkins is PR-triggered, not branch-triggered** — any feature-branch CI validation MUST open a regular (non-draft) PR to trigger a build. The project does NOT use draft PRs because CodeRabbit's free plan cannot review drafts; opening as a regular PR is what triggers both Jenkins and CodeRabbit.
+- **CI**: Jenkins is the local CI server (setup guide at `docs/jenkins-setup.md`). Its `Tests` parallel block runs on Docker agents (net10.0 only): `Unit Tests`, a stage per transport plus its Linq variant (`SqlServer`, `PostgreSQL`, `Redis`, `SQLite`, `LiteDB`, `Memory`), `Dashboard`, `TaskScheduler Distributed` and `Dashboard UI E2E`. The `Jenkinsfile` is the source of truth for the stage list. Coverlet code coverage is collected on every stage and uploaded to Codecov.io, with two exceptions. `TaskScheduler Distributed` runs without Coverlet by design — it tests an external NuGet and the core DLLs it uses are already covered by the other stages. `Dashboard UI E2E` also runs without Coverlet. GitHub Actions workflows (`.github/workflows/`): `ci.yml` runs the unit-test projects it lists by name (`Tests.Shared.Tests` is not among them, and Jenkins does not run it either) + the TaskScheduler Distributed integration tests on ubuntu-latest for CI validation; `build-pack.yml` is the reusable Release build and pack, called by `ci.yml` (the build-release gate), `netframework-smoke.yml` and `publish.yml`; `netframework-smoke.yml` runs the net48 smoke tests against the packed packages; `sonarcloud.yml`; `publish.yml` (see Release publishing); `claude-review.yml`. **Jenkins is PR-triggered, not branch-triggered** — any feature-branch CI validation MUST open a regular (non-draft) PR to trigger a build. The project does NOT use draft PRs because CodeRabbit's free plan cannot review drafts; opening as a regular PR is what triggers both Jenkins and CodeRabbit.
 
 ## Lessons Learned
 
