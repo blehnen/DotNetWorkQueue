@@ -61,6 +61,59 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Middleware
             Assert.IsInstanceOfType<UnauthorizedObjectResult>(context.Result);
         }
 
+        [TestMethod]
+        [DataRow("secret-key-12")]
+        [DataRow("secret-key-1234")]
+        [DataRow("")]
+        public void OnAuthorization_When_ApiKey_Has_A_Different_Length_Returns_Unauthorized(string provided)
+        {
+            var options = new DashboardOptions { ApiKey = "secret-key-123" };
+            var filter = new ApiKeyAuthorizationFilter(options);
+            var context = CreateContext(provided);
+
+            filter.OnAuthorization(context);
+
+            Assert.IsInstanceOfType<UnauthorizedObjectResult>(context.Result);
+        }
+
+        [TestMethod]
+        [DataRow("Secret-key-123")]
+        [DataRow("secret-key-124")]
+        public void OnAuthorization_When_ApiKey_Differs_In_One_Character_Returns_Unauthorized(string provided)
+        {
+            var options = new DashboardOptions { ApiKey = "secret-key-123" };
+            var filter = new ApiKeyAuthorizationFilter(options);
+            var context = CreateContext(provided);
+
+            filter.OnAuthorization(context);
+
+            Assert.IsInstanceOfType<UnauthorizedObjectResult>(context.Result);
+        }
+
+        [TestMethod]
+        public void OnAuthorization_When_Valid_NonAscii_ApiKey_Allows_Request()
+        {
+            var options = new DashboardOptions { ApiKey = "clé-secrète-ü" };
+            var filter = new ApiKeyAuthorizationFilter(options);
+            var context = CreateContext("clé-secrète-ü");
+
+            filter.OnAuthorization(context);
+
+            Assert.IsNull(context.Result);
+        }
+
+        [TestMethod]
+        public void OnAuthorization_When_ApiKey_Differs_Only_In_A_NonAscii_Character_Returns_Unauthorized()
+        {
+            var options = new DashboardOptions { ApiKey = "clé-secrète" };
+            var filter = new ApiKeyAuthorizationFilter(options);
+            var context = CreateContext("clè-secrète");
+
+            filter.OnAuthorization(context);
+
+            Assert.IsInstanceOfType<UnauthorizedObjectResult>(context.Result);
+        }
+
         private static AuthorizationFilterContext CreateContext(string apiKeyHeaderValue = null)
         {
             var httpContext = new DefaultHttpContext();

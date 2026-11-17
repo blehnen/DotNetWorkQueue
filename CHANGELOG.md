@@ -4,6 +4,7 @@
 - Fix: a method or LINQ queue now raises the queued code's own exception with its stack trace. On a localized .NET Framework it used to arrive wrapped in `TargetInvocationException` (GitHub #409)
 - ⚠️ An `IConsumerQueueAsync` handler's exception now matches retry rules as itself, as on the sync consumer. One with an inner exception used to match on that inner exception's type (GitHub #426)
 - Fix: on SQLite, an async consumer whose database file was deleted now skips its delete, error-count and status commands, as the sync one does, instead of running them anyway (GitHub #411)
+- The Dashboard API compares the API key in constant time, and logs a startup warning when it has no API key, no authorization policy, and is not read-only (GitHub #410)
 
 ### 0.17.0 - 2026-09-20
 - `DotNetWorkQueue.Dashboard.Client` adds a netstandard2.0 build. (GitHub #401)

@@ -198,6 +198,10 @@ namespace DotNetWorkQueue.Dashboard.Api
         {
             var options = app.ApplicationServices.GetRequiredService<DashboardOptions>();
 
+            var loggerFactory = app.ApplicationServices.GetService<ILoggerFactory>();
+            if (loggerFactory != null)
+                WarnIfUnprotected(options, loggerFactory.CreateLogger(typeof(DashboardExtensions)));
+
             if (options.EnableCors && options.CorsOrigins.Length > 0)
             {
                 app.UseCors("DashboardCors");
@@ -215,6 +219,24 @@ namespace DotNetWorkQueue.Dashboard.Api
             app.UseHealthChecks("/api/v1/dashboard/health");
 
             return app;
+        }
+
+        /// <summary>
+        /// Logs a warning when nothing restricts the API: no API key, no authorization policy, and not
+        /// read-only. Every endpoint, including delete, requeue and edit, is then open to anyone who can
+        /// reach it. That is the documented default, so this warns rather than refusing to start.
+        /// </summary>
+        internal static void WarnIfUnprotected(DashboardOptions options, ILogger logger)
+        {
+            if (!string.IsNullOrEmpty(options.ApiKey)
+                || !string.IsNullOrEmpty(options.AuthorizationPolicy)
+                || options.ReadOnly)
+                return;
+
+            logger.LogWarning(
+                "The DotNetWorkQueue Dashboard API is unprotected: no ApiKey, no AuthorizationPolicy, and ReadOnly is false. " +
+                "Anyone who can reach it can delete, requeue and edit messages. " +
+                "Set DashboardOptions.ApiKey or AuthorizationPolicy, or ReadOnly = true.");
         }
 
         private static void AddConnectionByTransport(DashboardOptions options, string transport,

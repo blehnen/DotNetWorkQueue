@@ -16,7 +16,8 @@
 //License along with this library; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // ---------------------------------------------------------------------
-using System;
+using System.Security.Cryptography;
+using System.Text;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -44,10 +45,21 @@ namespace DotNetWorkQueue.Dashboard.Api.Middleware
                 return;
 
             if (!context.HttpContext.Request.Headers.TryGetValue(HeaderName, out var providedKey)
-                || !string.Equals(providedKey, _options.ApiKey, StringComparison.Ordinal))
+                || !KeysMatch(providedKey.ToString(), _options.ApiKey))
             {
                 context.Result = new UnauthorizedObjectResult(new { error = "Invalid or missing API key." });
             }
+        }
+
+        /// <summary>
+        /// Compares in time that depends only on the length, so the response time does not tell a caller
+        /// how many leading characters of a guess were right. The key's length can still be learned.
+        /// </summary>
+        private static bool KeysMatch(string provided, string expected)
+        {
+            return CryptographicOperations.FixedTimeEquals(
+                Encoding.UTF8.GetBytes(provided),
+                Encoding.UTF8.GetBytes(expected));
         }
     }
 }
