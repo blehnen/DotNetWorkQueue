@@ -197,11 +197,17 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.RegisterDecorator(
                 typeof(ICommandHandlerWithOutput<DeleteMessageCommand<long>, long>),
                 typeof(DeleteMessageCommandDecorator), LifeStyles.Singleton);
+            container.RegisterDecorator(
+                typeof(ICommandHandlerWithOutputAsync<DeleteMessageCommand<long>, long>),
+                typeof(DeleteMessageCommandDecoratorAsync), LifeStyles.Singleton);
 
             //register our decorator for setting the status
             container.RegisterDecorator(
                 typeof(ICommandHandler<DeleteStatusTableStatusCommand<long>>),
                 typeof(SetStatusTableStatusCommandDecorator), LifeStyles.Singleton);
+            container.RegisterDecorator(
+                typeof(ICommandHandlerAsync<DeleteStatusTableStatusCommand<long>>),
+                typeof(SetStatusTableStatusCommandDecoratorAsync), LifeStyles.Singleton);
 
             //register our decorator for resetting the heart beat
             container.RegisterDecorator(
@@ -243,6 +249,9 @@ namespace DotNetWorkQueue.Transport.SQLite.Basic
             container.RegisterDecorator(
                 typeof(ICommandHandler<SetErrorCountCommand<long>>),
                 typeof(SetErrorCountCommandDecorator), LifeStyles.Singleton);
+            container.RegisterDecorator(
+                typeof(ICommandHandlerAsync<SetErrorCountCommand<long>>),
+                typeof(SetErrorCountCommandDecoratorAsync), LifeStyles.Singleton);
 
             //trace fallback command
             container.RegisterDecorator(

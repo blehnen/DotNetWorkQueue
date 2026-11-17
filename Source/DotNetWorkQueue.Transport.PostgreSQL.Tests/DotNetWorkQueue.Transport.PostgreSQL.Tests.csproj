@@ -20,6 +20,7 @@
     <ProjectReference Include="..\DotNetWorkQueue.Transport.PostgreSQL\DotNetWorkQueue.Transport.PostgreSQL.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue.Transport.RelationalDatabase\DotNetWorkQueue.Transport.RelationalDatabase.csproj" />
     <ProjectReference Include="..\DotNetWorkQueue\DotNetWorkQueue.csproj" />
+    <ProjectReference Include="..\DotNetWorkQueue.Tests.Shared\DotNetWorkQueue.Tests.Shared.csproj" />
   </ItemGroup>
 
 </Project>
