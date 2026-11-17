@@ -40,7 +40,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
                 waitForFinish.Set();
             }
         }
-        public static void HandleFakeMessagesError<TMessage>(IncrementWrapper processedCount, ManualResetEventSlim waitForFinish, int messageCount, IReceivedMessage<TMessage> message)
+        public static void HandleFakeMessagesError<TMessage>(IncrementWrapper processedCount, ManualResetEventSlim waitForFinish, int messageCount, int attemptsPerMessage, IReceivedMessage<TMessage> message)
          where TMessage : class
         {
             var currentCount = processedCount.GetErrorCount(message.MessageId.Id.Value.ToString());
@@ -58,7 +58,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
             Interlocked.Increment(ref processedCount.ProcessedCount);
             processedCount.AddUpdateErrorCount(message.MessageId.Id.Value.ToString(), currentCount + 1);
-            if (Interlocked.Read(ref processedCount.ProcessedCount) == messageCount * 3)
+            if (Interlocked.Read(ref processedCount.ProcessedCount) == messageCount * attemptsPerMessage)
             {
                 waitForFinish.Set();
             }

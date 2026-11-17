@@ -97,7 +97,7 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
         public static Expression<Action<IReceivedMessage<MessageExpression>, IWorkerNotification>> CreateErrorCompiled(Guid id, int runTime)
         {
-            return (message, workerNotification) => StandardTesting.Error();
+            return (message, workerNotification) => StandardTesting.Error(id);
         }
 
         public static void ClearCancel(Guid id)
@@ -139,8 +139,12 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
 
         }
 
-        public static void Error()
+        /// <summary>
+        /// Counts the attempt, so the error tests can tell how many times each message ran, then throws.
+        /// </summary>
+        public static void Error(Guid queueId)
         {
+            MethodIncrementWrapper.IncreaseCounter(queueId);
             throw new IndexOutOfRangeException("The index is out of range");
         }
     }

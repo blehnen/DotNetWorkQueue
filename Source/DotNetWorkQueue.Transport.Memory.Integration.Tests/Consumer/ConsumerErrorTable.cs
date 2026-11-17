@@ -26,13 +26,12 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests.Consumer
                 consumer.Run<MemoryMessageQueueInit, FakeMessage, MessageQueueCreation>(new QueueConnection(queueName,
                         connectionInfo.ConnectionString),
                     messageCount, timeOut, workerCount, false, x => { },
-                    Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount, ValidateErrorCounts);
+                    Helpers.GenerateData, Helpers.Verify, Helpers.VerifyQueueCount,
+                    (_, _, scope) => new VerifyErrorCounts().Verify(scope, messageCount),
+                    //memory does not retry: a failed message goes straight to the error queue, which keeps
+                    //only a tally and so has nothing to purge
+                    attemptsPerMessage: 1, errorRecordsCanBePurged: false);
             }
-        }
-
-        private void ValidateErrorCounts(QueueConnection queueConnection, int arg3, ICreationScope arg4)
-        {
-            new VerifyErrorCounts().Verify(arg4, arg3, 2);
         }
     }
 }

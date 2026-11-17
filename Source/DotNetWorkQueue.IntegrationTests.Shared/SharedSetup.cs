@@ -112,11 +112,19 @@ namespace DotNetWorkQueue.IntegrationTests.Shared
             }
         }
 
+        private static readonly TimeSpan[] DefaultErrorRetryTimes = { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2) };
+
+        /// <summary>
+        /// How many times a transport that retries runs a message that always throws
+        /// <see cref="IndexOutOfRangeException"/> under <see cref="SetupDefaultErrorRetry"/>: the first
+        /// attempt plus one per retry.
+        /// </summary>
+        public static int AttemptsWithDefaultErrorRetry => DefaultErrorRetryTimes.Length + 1;
+
         public static void SetupDefaultErrorRetry(QueueConsumerConfiguration configuration)
         {
-            var times = new List<TimeSpan> { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2) };
             configuration.TransportConfiguration.RetryDelayBehavior.Add(typeof(IndexOutOfRangeException),
-                times);
+                new List<TimeSpan>(DefaultErrorRetryTimes));
         }
 
         public static void SetupDefaultConsumerQueue(QueueConsumerConfiguration configuration, int workerCount,

@@ -37,7 +37,7 @@ See the [Wiki](https://github.com/blehnen/DotNetWorkQueue/wiki) for in-depth doc
 | DotNetWorkQueue.Transport.Redis | Redis transport using StackExchange.Redis | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.Redis)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Redis/) |
 | DotNetWorkQueue.Transport.SQLite | SQLite transport using System.Data.SQLite | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.SQLite)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.SQLite/) |
 | DotNetWorkQueue.Transport.LiteDb | LiteDB embedded NoSQL transport | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.LiteDb)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.LiteDb/) |
-| DotNetWorkQueue.Transport.Memory | In-memory transport for testing and lightweight scenarios | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.Memory)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Memory/) |
+| DotNetWorkQueue.Transport.Memory | In-memory transport for testing and lightweight scenarios. No retries, rollback, delays, priority or expiration | [![NuGet](https://img.shields.io/nuget/v/DotNetWorkQueue.Transport.Memory)](https://www.nuget.org/packages/DotNetWorkQueue.Transport.Memory/) |
 
 **Dashboard**
 

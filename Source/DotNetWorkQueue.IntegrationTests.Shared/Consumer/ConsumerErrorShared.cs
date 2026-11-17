@@ -11,7 +11,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
         public void RunConsumer<TTransportInit>(QueueConnection queueConnection, bool addInterceptors,
             ILogger logProvider,
             int workerCount, int timeOut, int messageCount,
-            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, TimeSpan updateTime, string route, bool enableChaos, ICreationScope scope)
+            TimeSpan heartBeatTime, TimeSpan heartBeatMonitorTime, TimeSpan updateTime, string route, bool enableChaos, ICreationScope scope,
+            int attemptsPerMessage)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -53,13 +54,16 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer
                             queue.Start<TMessage>((message, notifications) =>
                             {
                                 MessageHandlingShared.HandleFakeMessagesError(processedCount, waitForFinish,
-                                    messageCount, message);
+                                    messageCount, attemptsPerMessage, message);
                             }, CreateNotifications.Create(logProvider));
 
-                            waitForFinish.Wait(timeOut * 1000);
+                            ErrorAttempts.AssertReached(waitForFinish, timeOut, processedCount, messageCount,
+                                attemptsPerMessage);
 
                             //wait 3 more seconds before starting to shutdown
                             Thread.Sleep(3000);
+
+                            ErrorAttempts.AssertNoMore(processedCount, messageCount, attemptsPerMessage);
 
                             //Checked while the queue is still running, on purpose.
                             //

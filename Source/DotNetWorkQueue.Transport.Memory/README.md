@@ -6,10 +6,18 @@ In-memory transport for [DotNetWorkQueue](https://github.com/blehnen/DotNetWorkQ
 
 - In-memory message storage with no external dependencies
 - Ideal for unit testing, integration testing, and lightweight scenarios
-- Supports delayed processing and priority queues
 - Dashboard support for monitoring
 - Targets .NET 10.0, .NET 8.0 and .NET Standard 2.0. The netstandard2.0 build is how .NET
   Framework uses this package; Microsoft supports it from 4.6.1 but recommends 4.7.2 or later
+
+## Limitations
+
+The memory transport is simpler than the others, so code tested against it can behave differently on them:
+
+- **No retries.** A message whose handler throws goes straight to the error queue. Retry rules (`RetryDelayBehavior`) are ignored.
+- **No stored errors.** The error queue is only a count of failed messages, so there is nothing in it to inspect, requeue or purge.
+- **No rollback, delayed processing, priority or message expiration.** Messages are delivered in the order they were sent.
+- **Nothing survives the process.** Every message is lost when it exits.
 
 ## Installation
 
