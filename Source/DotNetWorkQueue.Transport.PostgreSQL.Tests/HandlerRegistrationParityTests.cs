@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.PostgreSQL.Tests
         public void SyncAndAsyncHandlers_ComeFromTheSameAssembly_WithTheSameDecorators()
         {
             using var queueContainer = new QueueContainer<PostgreSqlMessageQueueInit>(c => c.Register<ITransportOptionsFactory>(() => new DefaultOptions(), LifeStyles.Singleton));
-            using var container = queueContainer.CreateAdminContainer(new QueueConnection("parity", "Host=127.0.0.1;Port=1;Database=parity;Username=parity;Password=parity;Timeout=1;"));
+            using var container = queueContainer.CreateAdminContainer(new QueueConnection("parity", "Host=127.0.0.1;Port=1;Database=parity;Timeout=1;"));
 
             HandlerRegistrationParity.AssertMatches(container, Pairs);
         }

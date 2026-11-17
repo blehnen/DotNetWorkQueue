@@ -11,6 +11,9 @@ namespace DotNetWorkQueue.Tests.Shared.Tests
     [TestClass]
     public class HandlerRegistrationParityTests
     {
+        private static readonly string[] FakePair = { "ICommandHandler<FakeCommand>" };
+        private static readonly string[] SameNamePair = { "ICommandHandler<SameName>" };
+
         [TestMethod]
         public void Check_MatchingDecorators_ReportsThePairWithNoProblems()
         {
@@ -24,7 +27,7 @@ namespace DotNetWorkQueue.Tests.Shared.Tests
             var report = HandlerRegistrationParity.Check(container);
 
             Assert.IsEmpty(report.Problems, string.Join(Environment.NewLine, report.Problems));
-            CollectionAssert.AreEqual(new[] { typeof(ICommandHandler<FakeCommand>) }, report.Pairs);
+            Assert.AreSequenceEqual(new[] { typeof(ICommandHandler<FakeCommand>) }, report.Pairs);
         }
 
         [TestMethod]
@@ -95,14 +98,14 @@ namespace DotNetWorkQueue.Tests.Shared.Tests
 
             Assert.IsEmpty(report.Pairs);
             Assert.IsEmpty(report.Problems);
-            CollectionAssert.AreEqual(new[] { typeof(ICommandHandler<FakeCommand>) }, report.SyncOnly);
-            CollectionAssert.AreEqual(new[] { typeof(ICommandHandlerAsync<OtherCommand>) }, report.AsyncOnly);
+            Assert.AreSequenceEqual(new[] { typeof(ICommandHandler<FakeCommand>) }, report.SyncOnly);
+            Assert.AreSequenceEqual(new[] { typeof(ICommandHandlerAsync<OtherCommand>) }, report.AsyncOnly);
         }
 
         [TestMethod]
         public void AssertMatches_PairsAsExpected_Passes()
         {
-            HandlerRegistrationParity.AssertMatches(Wrap(Container()), new[] { "ICommandHandler<FakeCommand>" });
+            HandlerRegistrationParity.AssertMatches(Wrap(Container()), FakePair);
         }
 
         [TestMethod]
@@ -112,7 +115,7 @@ namespace DotNetWorkQueue.Tests.Shared.Tests
             container.Register<ICommandHandler<FakeCommand>, FakeHandler>();
 
             var error = Assert.ThrowsExactly<AssertFailedException>(() =>
-                HandlerRegistrationParity.AssertMatches(Wrap(container), new[] { "ICommandHandler<FakeCommand>" }));
+                HandlerRegistrationParity.AssertMatches(Wrap(container), FakePair));
             Assert.Contains("no longer has an async twin", error.Message);
         }
 
@@ -122,6 +125,21 @@ namespace DotNetWorkQueue.Tests.Shared.Tests
             var error = Assert.ThrowsExactly<AssertFailedException>(() =>
                 HandlerRegistrationParity.AssertMatches(Wrap(Container()), Array.Empty<string>()));
             Assert.Contains("add it to the expected list", error.Message);
+        }
+
+        [TestMethod]
+        public void AssertMatches_TwoPairsWithTheSameShortName_Fails()
+        {
+            var container = new Container();
+            container.Register<ICommandHandler<First.SameName>, FirstHandler>();
+            container.Register<ICommandHandlerAsync<First.SameName>, FirstHandlerAsync>();
+            container.Register<ICommandHandler<Second.SameName>, SecondHandler>();
+            container.Register<ICommandHandlerAsync<Second.SameName>, SecondHandlerAsync>();
+
+            //one name in the list would otherwise stand for both pairs, so losing either would go unnoticed
+            var error = Assert.ThrowsExactly<AssertFailedException>(() =>
+                HandlerRegistrationParity.AssertMatches(Wrap(container), SameNamePair));
+            Assert.Contains("2 pairs share this name", error.Message);
         }
 
         [TestMethod]
@@ -140,6 +158,14 @@ namespace DotNetWorkQueue.Tests.Shared.Tests
         }
 
         private static IContainer Wrap(Container container) => new ContainerWrapper(container);
+
+        public static class First { public sealed class SameName { } }
+        public static class Second { public sealed class SameName { } }
+
+        public sealed class FirstHandler : ICommandHandler<First.SameName> { public void Handle(First.SameName command) { } }
+        public sealed class FirstHandlerAsync : ICommandHandlerAsync<First.SameName> { public Task HandleAsync(First.SameName command) => Task.CompletedTask; }
+        public sealed class SecondHandler : ICommandHandler<Second.SameName> { public void Handle(Second.SameName command) { } }
+        public sealed class SecondHandlerAsync : ICommandHandlerAsync<Second.SameName> { public Task HandleAsync(Second.SameName command) => Task.CompletedTask; }
 
         public sealed class FakeCommand { }
         public sealed class OtherCommand { }

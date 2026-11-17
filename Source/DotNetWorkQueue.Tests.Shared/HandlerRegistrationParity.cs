@@ -42,6 +42,9 @@ namespace DotNetWorkQueue.Tests.Shared
             var expected = new HashSet<string>(expectedPairs);
 
             var failures = new List<string>(report.Problems);
+            //the pinned list holds short names, so two pairs that differ only by namespace would count as one
+            failures.AddRange(report.Pairs.GroupBy(Name).Where(g => g.Count() > 1)
+                .Select(g => $"{g.Key}: {g.Count()} pairs share this name; the expected list cannot tell them apart"));
             failures.AddRange(expected.Where(e => !actual.Contains(e)).OrderBy(e => e)
                 .Select(e => $"{e}: no longer has an async twin, or is no longer registered"));
             failures.AddRange(actual.Where(a => !expected.Contains(a)).OrderBy(a => a)

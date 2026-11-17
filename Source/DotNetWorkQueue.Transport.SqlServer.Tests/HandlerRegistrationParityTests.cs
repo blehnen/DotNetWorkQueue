@@ -56,7 +56,7 @@ namespace DotNetWorkQueue.Transport.SqlServer.Tests
         public void SyncAndAsyncHandlers_ComeFromTheSameAssembly_WithTheSameDecorators()
         {
             using var queueContainer = new QueueContainer<SqlServerMessageQueueInit>(c => c.Register<ITransportOptionsFactory>(() => new DefaultOptions(), LifeStyles.Singleton));
-            using var container = queueContainer.CreateAdminContainer(new QueueConnection("parity", "Server=127.0.0.1,1;Database=parity;User Id=parity;Password=parity;Connect Timeout=1;"));
+            using var container = queueContainer.CreateAdminContainer(new QueueConnection("parity", "Server=127.0.0.1,1;Database=parity;Integrated Security=true;Connect Timeout=1;"));
 
             HandlerRegistrationParity.AssertMatches(container, Pairs);
         }

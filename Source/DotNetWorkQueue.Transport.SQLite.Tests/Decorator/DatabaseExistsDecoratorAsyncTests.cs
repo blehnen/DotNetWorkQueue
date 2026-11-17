@@ -45,7 +45,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Decorator
             var decorated = Substitute.For<ICommandHandlerWithOutputAsync<DeleteMessageCommand<long>, long>>();
             var sut = new DeleteMessageCommandDecoratorAsync(Connection(), decorated, Exists(MissingFile()));
 
-            Assert.AreEqual(0, await sut.HandleAsync(null).ConfigureAwait(false));
+            Assert.AreEqual(0, await sut.HandleAsync(new DeleteMessageCommand<long>(1)).ConfigureAwait(false));
             await decorated.DidNotReceiveWithAnyArgs().HandleAsync(null).ConfigureAwait(false);
         }
 
@@ -53,13 +53,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Decorator
         public async Task DeleteMessage_WhenTheDatabaseExists_ReturnsTheDecoratedResult()
         {
             var decorated = Substitute.For<ICommandHandlerWithOutputAsync<DeleteMessageCommand<long>, long>>();
-            decorated.HandleAsync(null).ReturnsForAnyArgs(Task.FromResult(3L));
+            var command = new DeleteMessageCommand<long>(1);
+            decorated.HandleAsync(command).Returns(Task.FromResult(3L));
 
             await WithExistingFile(async file =>
             {
                 var sut = new DeleteMessageCommandDecoratorAsync(Connection(), decorated, Exists(file));
 
-                Assert.AreEqual(3, await sut.HandleAsync(null).ConfigureAwait(false));
+                Assert.AreEqual(3, await sut.HandleAsync(command).ConfigureAwait(false));
+                await decorated.Received(1).HandleAsync(command).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
 
@@ -69,7 +71,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Decorator
             var decorated = Substitute.For<ICommandHandlerAsync<SetErrorCountCommand<long>>>();
             var sut = new SetErrorCountCommandDecoratorAsync(Connection(), decorated, Exists(MissingFile()));
 
-            await sut.HandleAsync(null).ConfigureAwait(false);
+            await sut.HandleAsync(new SetErrorCountCommand<long>("System.Exception", 1, 1)).ConfigureAwait(false);
 
             await decorated.DidNotReceiveWithAnyArgs().HandleAsync(null).ConfigureAwait(false);
         }
@@ -78,14 +80,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Decorator
         public async Task SetErrorCount_WhenTheDatabaseExists_PassesTheCommandThrough()
         {
             var decorated = Substitute.For<ICommandHandlerAsync<SetErrorCountCommand<long>>>();
+            var command = new SetErrorCountCommand<long>("System.Exception", 1, 1);
 
             await WithExistingFile(async file =>
             {
                 var sut = new SetErrorCountCommandDecoratorAsync(Connection(), decorated, Exists(file));
 
-                await sut.HandleAsync(null).ConfigureAwait(false);
+                await sut.HandleAsync(command).ConfigureAwait(false);
 
-                await decorated.Received(1).HandleAsync(null).ConfigureAwait(false);
+                await decorated.Received(1).HandleAsync(command).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
 
@@ -95,7 +98,7 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Decorator
             var decorated = Substitute.For<ICommandHandlerAsync<DeleteStatusTableStatusCommand<long>>>();
             var sut = new SetStatusTableStatusCommandDecoratorAsync(Connection(), decorated, Exists(MissingFile()));
 
-            await sut.HandleAsync(null).ConfigureAwait(false);
+            await sut.HandleAsync(new DeleteStatusTableStatusCommand<long>(1)).ConfigureAwait(false);
 
             await decorated.DidNotReceiveWithAnyArgs().HandleAsync(null).ConfigureAwait(false);
         }
@@ -104,14 +107,15 @@ namespace DotNetWorkQueue.Transport.SQLite.Tests.Decorator
         public async Task DeleteStatusTableStatus_WhenTheDatabaseExists_PassesTheCommandThrough()
         {
             var decorated = Substitute.For<ICommandHandlerAsync<DeleteStatusTableStatusCommand<long>>>();
+            var command = new DeleteStatusTableStatusCommand<long>(1);
 
             await WithExistingFile(async file =>
             {
                 var sut = new SetStatusTableStatusCommandDecoratorAsync(Connection(), decorated, Exists(file));
 
-                await sut.HandleAsync(null).ConfigureAwait(false);
+                await sut.HandleAsync(command).ConfigureAwait(false);
 
-                await decorated.Received(1).HandleAsync(null).ConfigureAwait(false);
+                await decorated.Received(1).HandleAsync(command).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
 
