@@ -15,7 +15,9 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation
             Func<QueueProducerConfiguration, AdditionalMessageData> generateData,
             Action<QueueConnection, QueueProducerConfiguration, long, ICreationScope> verify,
             Action<QueueConnection, IBaseTransportOptions, ICreationScope, int, bool, bool> verifyQueueCount,
-            Action<QueueConnection, int, ICreationScope> validateErrorCounts)
+            Action<QueueConnection, int, ICreationScope> validateErrorCounts,
+            int? attemptsPerMessage = null,
+            bool errorRecordsCanBePurged = true)
             where TTransportInit : ITransportInit, new()
             where TMessage : class
             where TTransportCreate : class, IQueueCreation
@@ -47,11 +49,15 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.Consumer.Implementation
                         false,
                         logProvider,
                         workerCount, timeOut, messageCount, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(35),
-                        TimeSpan.FromSeconds(10), null, enableChaos, scope);
+                        TimeSpan.FromSeconds(10), null, enableChaos, scope,
+                        attemptsPerMessage ?? SharedSetup.AttemptsWithDefaultErrorRetry);
 
                     validateErrorCounts(queueConnection, messageCount, scope);
                     verifyQueueCount(queueConnection, oCreation.BaseTransportOptions, scope,
                         messageCount, true, false);
+
+                    if (!errorRecordsCanBePurged)
+                        return;
 
                     consumer.PurgeErrorMessages<TTransportInit>(queueConnection,
                         false, logProvider, false, scope);

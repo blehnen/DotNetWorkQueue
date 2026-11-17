@@ -16,7 +16,8 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
             TimeSpan updateTime,
             string route,
             bool enableChaos,
-            ICreationScope scope)
+            ICreationScope scope,
+            int attemptsPerMessage)
             where TTransportInit : ITransportInit, new()
         {
 
@@ -73,13 +74,16 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerAsync
                                     queue.Start<TMessage>((message, notifications) =>
                                     {
                                         MessageHandlingShared.HandleFakeMessagesError(processedCount, waitForFinish,
-                                            messageCount, message);
+                                            messageCount, attemptsPerMessage, message);
                                     }, CreateNotifications.Create(logProvider));
 
-                                    waitForFinish.Wait(timeOut * 1000);
+                                    ErrorAttempts.AssertReached(waitForFinish, timeOut, processedCount, messageCount,
+                                        attemptsPerMessage);
 
                                     //wait for last error to be saved if needed.
                                     Thread.Sleep(3000);
+
+                                    ErrorAttempts.AssertNoMore(processedCount, messageCount, attemptsPerMessage);
                                 }
                             }
 

@@ -41,19 +41,17 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests
             }
         }
     }
+    /// <summary>
+    /// The memory transport keeps no error records, only a tally of the messages moved to the error queue.
+    /// Purging removes nothing, so the tally is the same before and after a purge.
+    /// </summary>
     public class VerifyErrorCounts
     {
-        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
-        public void Verify(ICreationScope scope, long messageCount, int errorCount)
+        public void Verify(ICreationScope scope, long movedToErrorQueue)
         {
             var realScope = (CreationScope)scope;
-            if (realScope.ContainedClears.TryPeek(out var dataStorage))
-            {
-                var data = (IDataStorage)dataStorage;
-                var errors = data.GetErrorCount();
-                if (messageCount > 0 && errors == 0) //memory queue doesn't really store errors
-                    Assert.AreEqual(messageCount, errors);
-            }
+            Assert.IsTrue(realScope.ContainedClears.TryPeek(out var dataStorage), "The queue's data storage was not found");
+            Assert.AreEqual(movedToErrorQueue, ((IDataStorage)dataStorage).GetErrorCount());
         }
     }
 }

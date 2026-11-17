@@ -41,18 +41,4 @@ namespace DotNetWorkQueue.Transport.Memory.Linq.Integration.Tests
             }
         }
     }
-    public class VerifyErrorCounts
-    {
-        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "Query OK")]
-        public void Verify(ICreationScope scope, long messageCount, int errorCount)
-        {
-            var realScope = (CreationScope)scope;
-            if (realScope.ContainedClears.TryPeek(out var dataStorage))
-            {
-                var data = (IDataStorage)dataStorage;
-                var errors = data.GetErrorCount();
-                Assert.AreEqual(messageCount, errors);
-            }
-        }
-    }
 }

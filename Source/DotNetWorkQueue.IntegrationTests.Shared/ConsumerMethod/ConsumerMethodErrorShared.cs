@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
 {
@@ -75,10 +76,11 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                             rollbacks = queue.Configuration.TransportConfiguration.MessageRollbackSupported;
                             queue.Start(CreateNotifications.Create(logProvider));
 
+                            var expectedAttempts = messageCount * SharedSetup.AttemptsWithDefaultErrorRetry;
                             var counter = 0;
                             while (counter < timeOut)
                             {
-                                if (MethodIncrementWrapper.Count(id) >= messageCount * 3)
+                                if (MethodIncrementWrapper.Count(id) >= expectedAttempts)
                                 {
                                     break;
                                 }
@@ -87,8 +89,13 @@ namespace DotNetWorkQueue.IntegrationTests.Shared.ConsumerMethod
                                 counter++;
                             }
 
+                            Assert.IsTrue(MethodIncrementWrapper.Count(id) >= expectedAttempts,
+                                $"Expected {expectedAttempts} attempts within {timeOut} seconds, but saw {MethodIncrementWrapper.Count(id)}");
+
                             //wait 3 more seconds before starting to shutdown
                             Thread.Sleep(3000);
+                            Assert.AreEqual(expectedAttempts, MethodIncrementWrapper.Count(id),
+                                $"Expected {SharedSetup.AttemptsWithDefaultErrorRetry} attempts per message");
                         }
 
                         if (rollbacks)
