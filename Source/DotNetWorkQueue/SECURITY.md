@@ -122,7 +122,9 @@ Recommendations:
 
 The optional Dashboard API (`DotNetWorkQueue.Dashboard.Api`) exposes queue status, consumer tracking, and maintenance endpoints over HTTP. It has two built-in security filters:
 
-**API key authentication.** `ApiKeyAuthorizationFilter` validates the `X-Api-Key` header against `DashboardOptions.ApiKey`. When configured, requests without a valid key get `401 Unauthorized`. When not configured, the filter is inactive.
+**API key authentication.** `ApiKeyAuthorizationFilter` validates the `X-Api-Key` header against `DashboardOptions.ApiKey`. When configured, requests without a valid key get `401 Unauthorized`. The key is compared in constant time. When not configured, the filter is inactive.
+
+**Startup warning.** With no `ApiKey`, no `AuthorizationPolicy` and `ReadOnly` left `false`, every endpoint is open, including delete, requeue and edit. `UseDotNetWorkQueueDashboard` logs a warning at startup in that case. The API still starts.
 
 **Read-only mode.** `ReadOnlyFilter` restricts the API to read-only operations when enabled.
 
