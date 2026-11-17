@@ -105,7 +105,8 @@ jobs:
             is a useful signal and padding is not.
 
           # Since v1.0.273 the action defaults to auto mode, which can run tools outside
-          # --allowedTools. Pin the earlier mode so the list stays a hard limit.
+          # --allowedTools. Default mode denies them instead: nobody is there to approve.
+          # Read-only tools are the exception, and run without approval in every mode.
           claude_args: |
             --permission-mode default
             --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
