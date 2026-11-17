@@ -16,6 +16,11 @@
 *.yml text eol=crlf
 *.yaml text eol=crlf
 
+# GitHub's own files stay LF. Dependabot checks the repo out on Linux, edits the CRLF
+# working-tree copy the rules above give it, and commits that through the API, which
+# skips normalisation - so without this every update rewrites whole workflow files.
+.github/** text eol=lf
+
 # Run on whatever platform the operator has, so keep them LF everywhere. A CRLF checkout
 # puts a carriage return inside the multi-line quoted literals these scripts use, and a
 # stray CR in a quoted literal is not something every client handles the same way.
