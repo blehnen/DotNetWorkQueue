@@ -174,12 +174,70 @@ namespace DotNetWorkQueue.Tests.Serialization
 
         [TestMethod]
         [DataRow("System.String", "System.String")]
-        [DataRow("A.B`1[[C.D, E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]", "A.B`1[[C.D]]")]
-        [DataRow("A.B`2[[C.D, E],[F.G`1[[H.I, J]], K]]", "A.B`2[[C.D],[F.G`1[[H.I]]]]")]
-        [DataRow("A.B`1[[C.D[,], E]][]", "A.B`1[[C.D[,]]][]")]
-        public void WithoutAssemblies_Removes_Only_The_Generic_Argument_Assemblies(string name, string expected)
+        [DataRow("A.B`1[[C.D, E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]", "A.B`1[[C.D, E]]")]
+        [DataRow("A.B`2[[C.D, E],[F.G`1[[H.I, J]], K]]", "A.B`2[[C.D, E],[F.G`1[[H.I, J]], K]]")]
+        [DataRow("A.B`1[[C.D[,], E]][]", "A.B`1[[C.D[,], E]][]")]
+        [DataRow("A.B`1[[System.String, mscorlib]]", "A.B`1[[System.String, System.Private.CoreLib]]")]
+        [DataRow("A.B`1[[System.String, netstandard, Version=2.0.0.0]]", "A.B`1[[System.String, System.Private.CoreLib]]")]
+        [DataRow("List`1[Tuple`2[String,Int32]]", "List`1[[Tuple`2[[String],[Int32]]]]")]
+        [DataRow(@"A.B`1[[C\,D, E]]", @"A.B`1[[C\,D, E]]")]
+        [DataRow("A.B`1[[C.D, E]", "A.B`1[[C.D, E]")]
+        public void CanonicalName_Keeps_Argument_Assemblies_Without_Their_Versions(string name, string expected)
         {
-            Assert.AreEqual(expected, AllowListSerializationBinder.WithoutAssemblies(name));
+            Assert.AreEqual(expected, AllowListSerializationBinder.CanonicalName(name));
+        }
+
+        [TestMethod]
+        public void A_Generic_Argument_From_Another_Assembly_Is_Rejected()
+        {
+            //the argument's assembly is part of the match; only its version is not
+            var binder = Create();
+            binder.AddAllowedType(typeof(List<Holder>));
+            var name = typeof(List<Holder>).FullName;
+            var otherAssembly = name.Replace(typeof(Holder).Assembly.GetName().Name + ",", "Other.Assembly,");
+            Assert.AreNotEqual(name, otherAssembly);
+
+            AssertNotAllowed(
+                delegate { binder.BindToType(typeof(List<Holder>).Assembly.GetName().Name, otherAssembly); });
+        }
+
+        [TestMethod]
+        public void A_Single_Bracket_Generic_Does_Not_Match_Other_Arguments()
+        {
+            //the comma between a nested generic's arguments is not an assembly separator
+            var binder = Create();
+            binder.AddAllowedType("System.Collections.Generic.List`1[System.Tuple`2[System.String,System.Int32]]");
+
+            AssertNotAllowed(
+                delegate { binder.BindToType(null, "System.Collections.Generic.List`1[System.Tuple`2[System.String,System.Boolean]]"); });
+            Assert.AreEqual(typeof(List<Tuple<string, int>>),
+                binder.BindToType(null, "System.Collections.Generic.List`1[System.Tuple`2[System.String,System.Int32]]"));
+        }
+
+        [TestMethod]
+        public void An_Escaped_Comma_Is_Part_Of_The_Name()
+        {
+            var binder = Create();
+            binder.AddAllowedType(@"A.B`1[[C\,D, E]]");
+            AssertNotAllowed(
+                delegate { binder.BindToType("A", @"A.B`1[[C\,X, E]]"); });
+            //read without the escape, both of these would be "C\" from assembly "D"
+            AssertNotAllowed(
+                delegate { binder.BindToType("A", @"A.B`1[[C\,D, X]]"); });
+        }
+
+        [TestMethod]
+        public void A_Null_Type_Name_Is_Rejected_As_A_Serialization_Error()
+        {
+            var binder = Create();
+            Assert.ThrowsExactly<JsonSerializationException>(delegate { binder.BindToType("A", null); });
+        }
+
+        //a rejection by the allow-list, not a later failure to load a type that does not exist
+        private static void AssertNotAllowed(Action bind)
+        {
+            var error = Assert.ThrowsExactly<JsonSerializationException>(bind);
+            StringAssert.Contains(error.Message, "is not allowed");
         }
 
         private class Holder
