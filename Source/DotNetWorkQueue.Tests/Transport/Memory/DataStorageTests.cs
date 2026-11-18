@@ -129,6 +129,23 @@ namespace DotNetWorkQueue.Tests.Transport.Memory
         }
 
         [TestMethod]
+        public void Deleting_A_Message_Does_Not_Remove_A_Newer_Message_For_The_Same_Job()
+        {
+            //DeleteMessage used to remove the job name's entry whichever message it pointed at
+            var firstRun = new DateTimeOffset(2001, 2, 3, 4, 0, 0, TimeSpan.Zero);
+            var nextRun = firstRun.AddMinutes(1);
+            using var test = Create(MessageFactory(), "job", firstRun, nextRun);
+            var old = test.SendMessage(Message(), MessageData());
+            Assert.IsNotNull(test.GetNextMessage(null, TimeSpan.FromMilliseconds(50)));
+            test.DeleteJob("job");
+            Assert.AreNotEqual(Guid.Empty, test.SendMessage(Message(), MessageData()));
+
+            Assert.IsTrue(test.DeleteMessage(old));
+
+            Assert.AreEqual(QueueStatuses.Waiting, test.DoesJobExist("job", nextRun));
+        }
+
+        [TestMethod]
         public void A_Job_Whose_Message_Was_Poison_Can_Be_Queued_Again()
         {
             //a poison message never reaches the working set, so its job name has to be dropped where

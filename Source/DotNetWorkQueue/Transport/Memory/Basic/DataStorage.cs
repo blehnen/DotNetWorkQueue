@@ -395,9 +395,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                         removed = valueQw.TryRemove(id, out item);
                     }
 
-                    if (item != null && Jobs.TryGetValue(_connectionInformation, out var valueJ))
+                    if (item != null)
                     {
-                        valueJ.TryRemove(item.JobName, out _);
+                        RemoveJobEntry(item.JobName, id);
                     }
                     return removed;
                 }
