@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.Memory.Basic;
@@ -168,10 +170,129 @@ namespace DotNetWorkQueue.Tests.Transport.Memory
             Assert.AreEqual(QueueStatuses.Waiting, test.DoesJobExist("job", nextRun));
         }
 
+        [TestMethod]
+        public void Concurrent_Sends_Of_One_Job_Occurrence_Queue_Exactly_One()
+        {
+            //The check and the registration were two steps. Every sender is held at the clock read, which
+            //comes after the check and before the registration, until all have passed the check: on the
+            //old code every one of them was queued.
+            var occurrence = new DateTimeOffset(2001, 2, 3, 4, 0, 0, TimeSpan.Zero);
+            const int senders = 8;
+            using var afterTheCheck = new Barrier(senders);
+            using var test = Create(MessageFactory(), "job", () =>
+            {
+                Assert.IsTrue(afterTheCheck.SignalAndWait(TimeSpan.FromSeconds(10)), "a sender never reached the clock");
+                return ProviderNow;
+            }, Enumerable.Repeat(occurrence, senders).ToArray());
+            var queued = 0;
+            var refused = 0;
+            var unexpected = new System.Collections.Concurrent.ConcurrentQueue<Exception>();
+
+            var threads = Enumerable.Range(0, senders).Select(_ => new Thread(() =>
+            {
+                try
+                {
+                    if (test.SendMessage(Message(), MessageData()) != Guid.Empty)
+                        Interlocked.Increment(ref queued);
+                }
+                catch (DotNetWorkQueueException error) when (error.Message.Contains(
+                             "Failed to insert record - the job has already been queued or processed"))
+                {
+                    Interlocked.Increment(ref refused);
+                }
+                catch (Exception error)
+                {
+                    unexpected.Enqueue(error);
+                }
+            })).ToList();
+            threads.ForEach(t => t.Start());
+            threads.ForEach(t => t.Join());
+
+            Assert.IsEmpty(unexpected, string.Join(Environment.NewLine, unexpected));
+            Assert.AreEqual(1, queued, "queued");
+            Assert.AreEqual(senders - 1, refused, "refused");
+            Assert.AreEqual(1, test.RecordCount);
+            Assert.AreEqual(QueueStatuses.Waiting, test.DoesJobExist("job", occurrence));
+        }
+
+        [TestMethod]
+        public void A_Send_During_The_De_Queue_Of_The_Same_Job_Is_Refused()
+        {
+            //the de-queue used to take the message out of the waiting set before putting it in the working
+            //set, so a send in between saw neither, took the live reservation for a stale one, and queued
+            //the same occurrence twice
+            var occurrence = new DateTimeOffset(2001, 2, 3, 4, 0, 0, TimeSpan.Zero);
+            using var inTransfer = new ManualResetEventSlim(false);
+            using var release = new ManualResetEventSlim(false);
+            var messageFactory = Substitute.For<IMessageFactory>();
+            messageFactory.Create(Arg.Any<object>(), Arg.Any<IDictionary<string, object>>()).Returns(_ =>
+            {
+                inTransfer.Set();
+                Assert.IsTrue(release.Wait(TimeSpan.FromSeconds(10)));
+                return Substitute.For<IMessage>();
+            });
+            using var test = Create(messageFactory, "job", occurrence, occurrence);
+            Assert.AreNotEqual(Guid.Empty, test.SendMessage(Message(), MessageData()));
+
+            var dequeue = new Thread(() => test.GetNextMessage(null, TimeSpan.FromSeconds(5)));
+            dequeue.Start();
+            try
+            {
+                Assert.IsTrue(inTransfer.Wait(TimeSpan.FromSeconds(10)), "the de-queue never started");
+
+                Assert.AreEqual(QueueStatuses.Processing, test.DoesJobExist("job", occurrence));
+                var error = Assert.ThrowsExactly<DotNetWorkQueueException>(() => test.SendMessage(Message(), MessageData()));
+                StringAssert.Contains(error.Message, "already been queued or processed");
+            }
+            finally
+            {
+                release.Set();
+                dequeue.Join();
+            }
+            Assert.AreEqual(1, test.WorkingRecordCount);
+            Assert.AreEqual(0, test.RecordCount);
+        }
+
+        [TestMethod]
+        public void A_Job_Entry_Whose_Message_Is_Gone_Does_Not_Block_The_Job()
+        {
+            //no public call leaves such an entry since #439 and #441, so plant one; it must be replaced,
+            //not treated as a duplicate, or the job could never be queued again
+            var occurrence = new DateTimeOffset(2001, 2, 3, 4, 0, 0, TimeSpan.Zero);
+            using var test = Create(MessageFactory(), "job", occurrence);
+            var jobsField = typeof(DataStorage).GetField("Jobs", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            var connectionField = typeof(DataStorage).GetField("_connectionInformation", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var allJobs = (System.Collections.Concurrent.ConcurrentDictionary<IConnectionInformation, System.Collections.Concurrent.ConcurrentDictionary<string, Guid>>)jobsField.GetValue(null);
+            allJobs[(IConnectionInformation)connectionField.GetValue(test)]["job"] = Guid.NewGuid();
+
+            var id = test.SendMessage(Message(), MessageData());
+
+            Assert.AreNotEqual(Guid.Empty, id);
+            Assert.AreEqual(QueueStatuses.Waiting, test.DoesJobExist("job", occurrence));
+        }
+
+        [TestMethod]
+        public void A_Message_Deleted_While_Waiting_Is_Not_De_Queued()
+        {
+            //its id is still in the queue, but its data is gone, so the de-queue skips it
+            using var test = Create(MessageFactory());
+            var id = test.SendMessage(Message(), MessageData());
+            Assert.IsTrue(test.DeleteMessage(id));
+
+            Assert.IsNull(test.GetNextMessage(null, TimeSpan.FromMilliseconds(50)));
+            Assert.AreEqual(0, test.WorkingRecordCount);
+        }
+
         /// <summary>A date far from any machine clock, so a timestamp from the wrong source cannot match.</summary>
         private static readonly DateTime ProviderNow = new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Utc);
 
         private static DataStorage Create(IMessageFactory messageFactory, string jobName = "",
+            params DateTimeOffset[] scheduledTimes)
+        {
+            return Create(messageFactory, jobName, null, scheduledTimes);
+        }
+
+        private static DataStorage Create(IMessageFactory messageFactory, string jobName, Func<DateTime> clock,
             params DateTimeOffset[] scheduledTimes)
         {
             var jobSchedulerMetaData = Substitute.For<IJobSchedulerMetaData>();
@@ -192,7 +313,10 @@ namespace DotNetWorkQueue.Tests.Transport.Memory
                 new QueueConnection("dataStorageTests" + Guid.NewGuid().ToString("N"), "memory"));
 
             var time = Substitute.For<IGetTime>();
-            time.GetCurrentUtcDate().Returns(ProviderNow);
+            if (clock == null)
+                time.GetCurrentUtcDate().Returns(ProviderNow);
+            else
+                time.GetCurrentUtcDate().Returns(_ => clock());
             var timeFactory = Substitute.For<IGetTimeFactory>();
             timeFactory.Create().Returns(time);
 
