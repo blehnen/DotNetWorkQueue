@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Text;
 using DotNetWorkQueue.Validation;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -57,7 +58,7 @@ namespace DotNetWorkQueue.Serialization
         public void AddAllowedType(string typeName)
         {
             Guard.NotNullOrEmpty(typeName);
-            _allowedTypes.Add(typeName);
+            _allowedTypes.Add(CanonicalName(typeName));
         }
 
         /// <summary>
@@ -100,7 +101,10 @@ namespace DotNetWorkQueue.Serialization
         /// <exception cref="JsonSerializationException">The type is not on the allow list.</exception>
         public Type BindToType(string assemblyName, string typeName)
         {
-            if (!_allowedTypes.Contains(typeName))
+            if (string.IsNullOrEmpty(typeName))
+                throw new JsonSerializationException("Deserialization requires a type name; none was given.");
+
+            if (!_allowedTypes.Contains(CanonicalName(typeName)))
             {
                 throw new JsonSerializationException(
                     $"Deserialization of type '{typeName}' is not allowed. " +
@@ -121,6 +125,169 @@ namespace DotNetWorkQueue.Serialization
         public void BindToName(Type serializedType, out string assemblyName, out string typeName)
         {
             _defaultBinder.BindToName(serializedType, out assemblyName, out typeName);
+        }
+
+        /// <summary>
+        /// The type name in a form that compares equal whichever serializer or runtime wrote it.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <see cref="Type.FullName"/> qualifies generic arguments with version, culture and key
+        /// (<c>List`1[[A.B, Asm, Version=1.0.0.0, ...]]</c>), while Json.NET writes simple names
+        /// (<c>List`1[[A.B, Asm]]</c>), and .NET Framework names <c>mscorlib</c> where .NET names
+        /// <c>System.Private.CoreLib</c>. Each generic argument keeps its simple assembly name, with the
+        /// core library's names treated as one; versions, culture and key are dropped.
+        /// </para>
+        /// <para>
+        /// The name is parsed, not scanned: a bracket after a type name is an argument list, either
+        /// qualified (<c>[[T, Asm],[U, Asm]]</c>) or not (<c>[T,U]</c>), or an array rank (<c>[]</c>,
+        /// <c>[,]</c>), and escaped characters (<c>\,</c>) are part of the name. A name that does not
+        /// parse is returned as written, so it only ever matches itself, as before.
+        /// </para>
+        /// </remarks>
+        internal static string CanonicalName(string typeName)
+        {
+            if (string.IsNullOrEmpty(typeName) || typeName.IndexOf('[') < 0)
+                return typeName;
+
+            try
+            {
+                var position = 0;
+                var result = new StringBuilder(typeName.Length);
+                ParseType(typeName, ref position, result, 0);
+                return position == typeName.Length ? result.ToString() : typeName;
+            }
+            catch (FormatException)
+            {
+                return typeName;
+            }
+        }
+
+        //deeper than any real type; the parser is recursive and the name is untrusted, so a deeply
+        //nested name is rejected here rather than run the stack out, which no catch can stop
+        private const int MaxNesting = 32;
+
+        private static readonly HashSet<string> CoreLibraryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "System.Private.CoreLib", "mscorlib", "netstandard", "System.Runtime"
+        };
+
+        //a type: its name, then any generic arguments, then any array ranks
+        private static void ParseType(string text, ref int position, StringBuilder result, int nesting)
+        {
+            if (nesting > MaxNesting)
+                throw new FormatException("The name is nested too deeply.");
+            var start = result.Length;
+            while (position < text.Length)
+            {
+                var c = text[position];
+                if (c == '\\')
+                {
+                    if (position + 1 >= text.Length)
+                        throw new FormatException("A name ends in an escape.");
+                    result.Append(c).Append(text[position + 1]);
+                    position += 2;
+                    continue;
+                }
+                if (c == '[' || c == ']' || c == ',')
+                    break;
+                result.Append(c);
+                position++;
+            }
+            if (result.Length == start)
+                throw new FormatException("A type name is missing.");
+
+            if (position + 1 < text.Length && text[position] == '[' && !IsArrayRank(text[position + 1]))
+                ParseArguments(text, ref position, result, nesting);
+
+            while (position < text.Length && text[position] == '[')
+            {
+                var close = position + 1;
+                while (close < text.Length && IsArrayRank(text[close]) && text[close] != ']')
+                    close++;
+                if (close >= text.Length || text[close] != ']')
+                    throw new FormatException("An array rank is not closed.");
+                result.Append(text, position, close - position + 1);
+                position = close + 1;
+            }
+        }
+
+        //[[T, Asm],[U, Asm]] or [T,U]; written as [[T, Asm],[U]]
+        private static void ParseArguments(string text, ref int position, StringBuilder result, int nesting)
+        {
+            position++;
+            result.Append('[');
+            for (var first = true; ; first = false)
+            {
+                if (!first)
+                    result.Append(',');
+                SkipSpaces(text, ref position);
+                result.Append('[');
+                if (position < text.Length && text[position] == '[')
+                {
+                    position++;
+                    ParseType(text, ref position, result, nesting + 1);
+                    SkipSpaces(text, ref position);
+                    if (position < text.Length && text[position] == ',')
+                    {
+                        position++;
+                        result.Append(", ").Append(AssemblyName(text, ref position));
+                    }
+                    Expect(text, ref position, ']');
+                }
+                else
+                {
+                    ParseType(text, ref position, result, nesting + 1);
+                }
+                result.Append(']');
+
+                SkipSpaces(text, ref position);
+                if (position < text.Length && text[position] == ',')
+                {
+                    position++;
+                    continue;
+                }
+                Expect(text, ref position, ']');
+                result.Append(']');
+                return;
+            }
+        }
+
+        //an argument's assembly, up to the bracket that closes the argument: its simple name only
+        private static string AssemblyName(string text, ref int position)
+        {
+            var start = position;
+            while (position < text.Length && text[position] != ']')
+            {
+                if (text[position] == '[')
+                    throw new FormatException("An assembly name contains '['.");
+                position++;
+            }
+            var full = text.Substring(start, position - start);
+            var comma = full.IndexOf(',');
+            var simple = (comma < 0 ? full : full.Substring(0, comma)).Trim();
+            if (simple.Length == 0)
+                throw new FormatException("An assembly name is empty.");
+            return CoreLibraryNames.Contains(simple) ? "System.Private.CoreLib" : simple;
+        }
+
+        private static bool IsArrayRank(char c)
+        {
+            return c == ']' || c == ',' || c == '*';
+        }
+
+        private static void SkipSpaces(string text, ref int position)
+        {
+            while (position < text.Length && text[position] == ' ')
+                position++;
+        }
+
+        private static void Expect(string text, ref int position, char expected)
+        {
+            SkipSpaces(text, ref position);
+            if (position >= text.Length || text[position] != expected)
+                throw new FormatException($"Expected '{expected}'.");
+            position++;
         }
     }
 }
