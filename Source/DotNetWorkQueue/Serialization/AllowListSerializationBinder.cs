@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Text;
 using DotNetWorkQueue.Validation;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -57,7 +58,7 @@ namespace DotNetWorkQueue.Serialization
         public void AddAllowedType(string typeName)
         {
             Guard.NotNullOrEmpty(typeName);
-            _allowedTypes.Add(typeName);
+            _allowedTypes.Add(WithoutAssemblies(typeName));
         }
 
         /// <summary>
@@ -100,7 +101,7 @@ namespace DotNetWorkQueue.Serialization
         /// <exception cref="JsonSerializationException">The type is not on the allow list.</exception>
         public Type BindToType(string assemblyName, string typeName)
         {
-            if (!_allowedTypes.Contains(typeName))
+            if (!_allowedTypes.Contains(WithoutAssemblies(typeName)))
             {
                 throw new JsonSerializationException(
                     $"Deserialization of type '{typeName}' is not allowed. " +
@@ -121,6 +122,60 @@ namespace DotNetWorkQueue.Serialization
         public void BindToName(Type serializedType, out string assemblyName, out string typeName)
         {
             _defaultBinder.BindToName(serializedType, out assemblyName, out typeName);
+        }
+
+        /// <summary>
+        /// The type name with the assembly removed from each generic argument.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Type.FullName"/> qualifies generic arguments with version, culture and key
+        /// (<c>List`1[[A.B, Asm, Version=1.0.0.0, ...]]</c>), while Json.NET writes simple names
+        /// (<c>List`1[[A.B, Asm]]</c>) and .NET Framework names <c>mscorlib</c> where .NET names
+        /// <c>System.Private.CoreLib</c>. Comparing without them lets an allowed generic type match.
+        /// A generic argument sits in a bracket at an even depth; a comma at that depth starts its
+        /// assembly, which runs to the bracket's close. A comma at an odd depth separates arguments,
+        /// or belongs to an array rank such as <c>[,]</c>, and is kept.
+        /// </remarks>
+        internal static string WithoutAssemblies(string typeName)
+        {
+            if (typeName.IndexOf('[') < 0)
+                return typeName;
+
+            var result = new StringBuilder(typeName.Length);
+            var depth = 0;
+            var skippingTo = -1;
+            foreach (var c in typeName)
+            {
+                if (skippingTo >= 0)
+                {
+                    if (c == '[')
+                    {
+                        depth++;
+                    }
+                    else if (c == ']')
+                    {
+                        if (depth == skippingTo)
+                        {
+                            skippingTo = -1;
+                            result.Append(c);
+                        }
+                        depth--;
+                    }
+                    continue;
+                }
+
+                if (c == '[')
+                    depth++;
+                else if (c == ']')
+                    depth--;
+                else if (c == ',' && depth >= 2 && depth % 2 == 0)
+                {
+                    skippingTo = depth;
+                    continue;
+                }
+                result.Append(c);
+            }
+            return result.ToString();
         }
     }
 }
