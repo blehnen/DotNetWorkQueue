@@ -230,14 +230,28 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 //was held for the life of the queue and reported as processing, and its job name kept
                 //answering Processing, so a job that failed once was never queued again (GitHub #439).
                 if (QueueWorking.TryGetValue(_connectionInformation, out var working) &&
-                    working.TryRemove(id, out var item) &&
-                    !string.IsNullOrEmpty(item.JobName) &&
-                    Jobs.TryGetValue(_connectionInformation, out var jobs))
+                    working.TryGetValue(id, out var item))
                 {
-                    //only the entry that still points at this message
-                    ((ICollection<KeyValuePair<string, Guid>>)jobs).Remove(
-                        new KeyValuePair<string, Guid>(item.JobName, id));
+                    //The job name goes first. A send for the job's next occurrence that runs between
+                    //the two steps then finds no entry and registers its own. The other way round, it
+                    //found an entry pointing at a message no longer working, queued anyway, failed to
+                    //register, and lost its entry when this one was removed.
+                    RemoveJobEntry(item.JobName, id);
+                    working.TryRemove(id, out _);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Removes the job name's entry, but only while it still points at this message, so a newer
+        /// message for the same job keeps its own.
+        /// </summary>
+        private void RemoveJobEntry(string jobName, Guid id)
+        {
+            if (!string.IsNullOrEmpty(jobName) && Jobs.TryGetValue(_connectionInformation, out var jobs))
+            {
+                ((ICollection<KeyValuePair<string, Guid>>)jobs).Remove(
+                    new KeyValuePair<string, Guid>(jobName, id));
             }
         }
         /// <inheritdoc />
@@ -319,6 +333,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 {
                     hasError = true;
                     //at this point, the record has been de-queued, but it can't be processed.
+                    //It never reaches the working set, so the error move that follows cannot find its
+                    //job name: drop that here, or the job stays registered to a message that is gone.
+                    RemoveJobEntry(item.JobName, id);
                     throw new PoisonMessageException(
                         "An error has occurred trying to re-assemble a message", error, new MessageQueueId(id),
                         new MessageCorrelationId(item.CorrelationId), new ReadOnlyDictionary<string, object>(item.Headers), null, null);

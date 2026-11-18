@@ -128,6 +128,29 @@ namespace DotNetWorkQueue.Tests.Transport.Memory
             Assert.AreEqual(QueueStatuses.Waiting, test.DoesJobExist("job", nextRun));
         }
 
+        [TestMethod]
+        public void A_Job_Whose_Message_Was_Poison_Can_Be_Queued_Again()
+        {
+            //a poison message never reaches the working set, so its job name has to be dropped where
+            //the poison is found; otherwise the next occurrence queued but could not register
+            var messageFactory = Substitute.For<IMessageFactory>();
+            messageFactory
+                .When(x => x.Create(Arg.Any<object>(), Arg.Any<IDictionary<string, object>>()))
+                .Do(_ => throw new InvalidOperationException("cannot re-assemble"));
+            var firstRun = new DateTimeOffset(2001, 2, 3, 4, 0, 0, TimeSpan.Zero);
+            var nextRun = firstRun.AddMinutes(1);
+            using var test = Create(messageFactory, "job", firstRun, nextRun);
+            var id = test.SendMessage(Message(), MessageData());
+            Assert.ThrowsExactly<PoisonMessageException>(
+                () => test.GetNextMessage(null, TimeSpan.FromMilliseconds(50)));
+            //what the poison handler does next
+            test.MoveToErrorQueue(new InvalidOperationException(), id, Substitute.For<IMessageContext>());
+
+            Assert.AreNotEqual(Guid.Empty, test.SendMessage(Message(), MessageData()));
+
+            Assert.AreEqual(QueueStatuses.Waiting, test.DoesJobExist("job", nextRun));
+        }
+
         /// <summary>A date far from any machine clock, so a timestamp from the wrong source cannot match.</summary>
         private static readonly DateTime ProviderNow = new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Utc);
 
@@ -138,11 +161,13 @@ namespace DotNetWorkQueue.Tests.Transport.Memory
             jobSchedulerMetaData.GetJobName(Arg.Any<IAdditionalMessageData>()).Returns(jobName);
             if (scheduledTimes.Length > 0)
             {
-                //one per send, and the event time is the scheduled time, as the scheduler sends them
+                //one per send. The event time is when the scheduler actually sent it, which is never
+                //exactly the scheduled time
+                var eventTimes = Array.ConvertAll(scheduledTimes, t => t.AddSeconds(5));
                 jobSchedulerMetaData.GetScheduledTime(Arg.Any<IAdditionalMessageData>())
                     .Returns(scheduledTimes[0], scheduledTimes[1..]);
                 jobSchedulerMetaData.GetEventTime(Arg.Any<IAdditionalMessageData>())
-                    .Returns(scheduledTimes[0], scheduledTimes[1..]);
+                    .Returns(eventTimes[0], eventTimes[1..]);
             }
 
             //a queue name of its own: the store is a process-wide static keyed by connection
