@@ -154,8 +154,13 @@ namespace DotNetWorkQueue.Queue
                 { //nothing else to do, but we want to avoid the general catch below
 
                 }
-                catch
+                catch (Exception error)
                 {
+                    //Anything not handled above lands here, including a failure inside the poison or
+                    //rollback handling itself. It used to be dropped without a word (GitHub #444).
+                    _log.LogError(error, "An unexpected error occurred while processing a message; processing will back off");
+                    _consumerQueueErrorNotification.InvokeError(new ErrorReceiveNotification(error));
+
                     //generic exceptions tend to indicate a serious problem - lets start delaying processing
                     //this counter will reset once a message has been processed by this thread
                     await _seriousExceptionProcessBackOffHelper.Value.WaitAsync().ConfigureAwait(false);
