@@ -74,13 +74,76 @@ namespace DotNetWorkQueue.Tests.Transport.Memory
             test.Dispose();
         }
 
+        [TestMethod]
+        public void A_Failed_Message_Leaves_The_Working_Set()
+        {
+            //the error path clears the message id after the move, so nothing deletes the message
+            //later; before #439 every failed message stayed in the working set for good
+            using var test = Create(MessageFactory());
+            var id = test.SendMessage(Message(), MessageData());
+            Assert.IsNotNull(test.GetNextMessage(null, TimeSpan.FromMilliseconds(50)));
+            Assert.AreEqual(1, test.WorkingRecordCount);
+
+            test.MoveToErrorQueue(new IndexOutOfRangeException(), id, Substitute.For<IMessageContext>());
+
+            Assert.AreEqual(0, test.WorkingRecordCount);
+            Assert.AreEqual(1, test.GetErrorCount());
+            Assert.IsNull(test.FindMessage(id, out _));
+        }
+
+        [TestMethod]
+        public void A_Job_Whose_Message_Failed_Can_Be_Queued_Again()
+        {
+            //the job name used to keep pointing at the failed message, so its next occurrence was
+            //reported as still processing and the scheduler never queued the job again
+            var firstRun = new DateTimeOffset(2001, 2, 3, 4, 0, 0, TimeSpan.Zero);
+            var nextRun = firstRun.AddMinutes(1);
+            using var test = Create(MessageFactory(), "job", firstRun, nextRun);
+            var id = test.SendMessage(Message(), MessageData());
+            Assert.IsNotNull(test.GetNextMessage(null, TimeSpan.FromMilliseconds(50)));
+            Assert.AreEqual(QueueStatuses.Processing, test.DoesJobExist("job", nextRun));
+
+            test.MoveToErrorQueue(new IndexOutOfRangeException(), id, Substitute.For<IMessageContext>());
+
+            Assert.AreEqual(QueueStatuses.NotQueued, test.DoesJobExist("job", nextRun));
+            Assert.AreNotEqual(Guid.Empty, test.SendMessage(Message(), MessageData()));
+            Assert.AreEqual(QueueStatuses.Waiting, test.DoesJobExist("job", nextRun));
+        }
+
+        [TestMethod]
+        public void A_Failed_Message_Does_Not_Remove_A_Newer_Message_For_The_Same_Job()
+        {
+            //the job entry is removed only while it still points at the failed message: once the job
+            //has been deleted and queued again, the name belongs to the new message
+            var firstRun = new DateTimeOffset(2001, 2, 3, 4, 0, 0, TimeSpan.Zero);
+            var nextRun = firstRun.AddMinutes(1);
+            using var test = Create(MessageFactory(), "job", firstRun, nextRun);
+            var failed = test.SendMessage(Message(), MessageData());
+            Assert.IsNotNull(test.GetNextMessage(null, TimeSpan.FromMilliseconds(50)));
+            test.DeleteJob("job");
+            Assert.AreNotEqual(Guid.Empty, test.SendMessage(Message(), MessageData()));
+
+            test.MoveToErrorQueue(new IndexOutOfRangeException(), failed, Substitute.For<IMessageContext>());
+
+            Assert.AreEqual(QueueStatuses.Waiting, test.DoesJobExist("job", nextRun));
+        }
+
         /// <summary>A date far from any machine clock, so a timestamp from the wrong source cannot match.</summary>
         private static readonly DateTime ProviderNow = new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Utc);
 
-        private static DataStorage Create(IMessageFactory messageFactory)
+        private static DataStorage Create(IMessageFactory messageFactory, string jobName = "",
+            params DateTimeOffset[] scheduledTimes)
         {
             var jobSchedulerMetaData = Substitute.For<IJobSchedulerMetaData>();
-            jobSchedulerMetaData.GetJobName(Arg.Any<IAdditionalMessageData>()).Returns(string.Empty);
+            jobSchedulerMetaData.GetJobName(Arg.Any<IAdditionalMessageData>()).Returns(jobName);
+            if (scheduledTimes.Length > 0)
+            {
+                //one per send, and the event time is the scheduled time, as the scheduler sends them
+                jobSchedulerMetaData.GetScheduledTime(Arg.Any<IAdditionalMessageData>())
+                    .Returns(scheduledTimes[0], scheduledTimes[1..]);
+                jobSchedulerMetaData.GetEventTime(Arg.Any<IAdditionalMessageData>())
+                    .Returns(scheduledTimes[0], scheduledTimes[1..]);
+            }
 
             //a queue name of its own: the store is a process-wide static keyed by connection
             var connection = new DotNetWorkQueue.Transport.Memory.ConnectionInformation(

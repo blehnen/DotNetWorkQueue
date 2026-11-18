@@ -222,14 +222,22 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 if (Complete)
                     return;
 
-                //we don't want to store all this in memory, so just keep track of the number
+                //failed messages are not stored, only counted
                 Interlocked.Increment(ref ErrorCounts[_connectionInformation].ProcessedCount);
 
-                //if we did want to store this, we would need to:
-
-                //1) Save the work item when de-queueing it
-                //2) Move the work item into an error queue on error
-                //3) Delete the work item when a delete message call is received
+                //The error path clears the message id from the context once this returns, so nothing
+                //will delete the message later: it has to leave the working set here. Left in place it
+                //was held for the life of the queue and reported as processing, and its job name kept
+                //answering Processing, so a job that failed once was never queued again (GitHub #439).
+                if (QueueWorking.TryGetValue(_connectionInformation, out var working) &&
+                    working.TryRemove(id, out var item) &&
+                    !string.IsNullOrEmpty(item.JobName) &&
+                    Jobs.TryGetValue(_connectionInformation, out var jobs))
+                {
+                    //only the entry that still points at this message
+                    ((ICollection<KeyValuePair<string, Guid>>)jobs).Remove(
+                        new KeyValuePair<string, Guid>(item.JobName, id));
+                }
             }
         }
         /// <inheritdoc />
