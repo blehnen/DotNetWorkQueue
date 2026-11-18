@@ -116,8 +116,8 @@ Every `DashboardOptions` setting can be set under `Dashboard`, by its property n
 | `EnableCors` | `false` | Enables CORS for the origins in `CorsOrigins`. |
 | `CorsOrigins` | empty | Allowed origins, such as `["https://dashboard.example.com"]`. |
 | `EnableConsumerTracking` | `true` | Lets consumers register with the dashboard and send heartbeats. |
-| `ConsumerHeartbeatIntervalSeconds` | `30` | Heartbeat interval given to consumers; also how often stale ones are pruned. |
-| `ConsumerStaleThresholdSeconds` | `90` | Seconds without a heartbeat before a consumer is pruned. |
+| `ConsumerHeartbeatIntervalSeconds` | `30` | Heartbeat interval given to consumers; also how often stale ones are pruned. At least 1. |
+| `ConsumerStaleThresholdSeconds` | `90` | Seconds without a heartbeat before a consumer is pruned. Must be greater than the heartbeat interval; the dashboard refuses to start otherwise. |
 | `AuthorizationPolicy` | none | Name of an ASP.NET Core authorization policy applied to every dashboard endpoint. The policy has to be registered in code, so this image cannot use it on its own. |
 
 With no `ApiKey`, no `AuthorizationPolicy` and `ReadOnly` left `false`, every endpoint is open, and the dashboard logs a warning at startup. Set `Dashboard:ApiKey`, or `Dashboard:ReadOnly` to `true`, for anything reachable beyond your own machine.

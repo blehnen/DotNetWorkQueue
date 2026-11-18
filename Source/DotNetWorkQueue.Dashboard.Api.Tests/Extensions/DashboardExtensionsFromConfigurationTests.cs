@@ -240,6 +240,39 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
             }
         }
 
+        [TestMethod]
+        [DataRow("0", "90", "ConsumerHeartbeatIntervalSeconds must be at least 1")]
+        [DataRow("-5", "90", "ConsumerHeartbeatIntervalSeconds must be at least 1")]
+        [DataRow("30", "30", "must be greater than")]
+        [DataRow("30", "10", "must be greater than")]
+        [DataRow("30", "-1", "must be greater than")]
+        public void AddDotNetWorkQueueDashboard_FromConfiguration_RefusesConsumerTimingsThePruningLoopCannotUse(
+            string interval, string staleThreshold, string expectedMessage)
+        {
+            var error = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => BuildFromConfiguration(
+                new Dictionary<string, string>
+                {
+                    ["Dashboard:ConsumerHeartbeatIntervalSeconds"] = interval,
+                    ["Dashboard:ConsumerStaleThresholdSeconds"] = staleThreshold
+                }));
+
+            StringAssert.Contains(error.Message, expectedMessage);
+        }
+
+        [TestMethod]
+        public void AddDotNetWorkQueueDashboard_FromConfiguration_IgnoresConsumerTimingsWhenTrackingIsOff()
+        {
+            //the timings are unused without consumer tracking, so they are not checked
+            var options = BuildFromConfiguration(new Dictionary<string, string>
+            {
+                ["Dashboard:EnableConsumerTracking"] = "false",
+                ["Dashboard:ConsumerHeartbeatIntervalSeconds"] = "0",
+                ["Dashboard:ConsumerStaleThresholdSeconds"] = "0"
+            });
+
+            Assert.IsFalse(options.EnableConsumerTracking);
+        }
+
         private static IEnumerable<PropertyInfo> SettableOptions()
         {
             return typeof(DashboardOptions).GetProperties(BindingFlags.Public | BindingFlags.Instance)

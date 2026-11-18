@@ -56,6 +56,7 @@ namespace DotNetWorkQueue.Dashboard.Api
         {
             var options = new DashboardOptions();
             configureOptions(options);
+            ValidateConsumerTracking(options);
 
             // Pre-load user assemblies so Newtonsoft's TypeNameHandling binder can resolve
             // message types during deserialization (before ResolveMessageBodyType runs).
@@ -220,6 +221,29 @@ namespace DotNetWorkQueue.Dashboard.Api
             app.UseHealthChecks("/api/v1/dashboard/health");
 
             return app;
+        }
+
+        /// <summary>
+        /// Refuses consumer-tracking timings the pruning loop cannot run with.
+        /// </summary>
+        /// <remarks>
+        /// An interval of 0 makes the pruning loop spin without waiting, and a negative one makes it
+        /// throw and log on every pass. A stale threshold at or below the interval prunes healthy
+        /// consumers between their heartbeats, and a negative one prunes every consumer on every pass.
+        /// </remarks>
+        internal static void ValidateConsumerTracking(DashboardOptions options)
+        {
+            if (!options.EnableConsumerTracking)
+                return;
+
+            if (options.ConsumerHeartbeatIntervalSeconds < 1)
+                throw new ArgumentOutOfRangeException(nameof(options),
+                    $"DashboardOptions.ConsumerHeartbeatIntervalSeconds must be at least 1, but is {options.ConsumerHeartbeatIntervalSeconds}.");
+
+            if (options.ConsumerStaleThresholdSeconds <= options.ConsumerHeartbeatIntervalSeconds)
+                throw new ArgumentOutOfRangeException(nameof(options),
+                    $"DashboardOptions.ConsumerStaleThresholdSeconds ({options.ConsumerStaleThresholdSeconds}) must be greater than " +
+                    $"ConsumerHeartbeatIntervalSeconds ({options.ConsumerHeartbeatIntervalSeconds}), or healthy consumers are pruned between heartbeats.");
         }
 
         /// <summary>
