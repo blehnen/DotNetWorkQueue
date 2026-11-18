@@ -51,7 +51,10 @@ namespace DotNetWorkQueue.Transport.Memory.Integration.Tests
         {
             var realScope = (CreationScope)scope;
             Assert.IsTrue(realScope.ContainedClears.TryPeek(out var dataStorage), "The queue's data storage was not found");
-            Assert.AreEqual(movedToErrorQueue, ((IDataStorage)dataStorage).GetErrorCount());
+            var data = (IDataStorage)dataStorage;
+            Assert.AreEqual(movedToErrorQueue, data.GetErrorCount());
+            //a failed message must also leave the working set (GitHub #439)
+            Assert.AreEqual(0L, data.WorkingRecordCount, "Failed messages are still in the working set");
         }
     }
 }
