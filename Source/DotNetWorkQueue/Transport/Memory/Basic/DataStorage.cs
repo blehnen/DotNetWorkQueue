@@ -178,6 +178,15 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                         return Guid.Empty;
                     }
 
+                    //The job name is reserved before the message can be de-queued. DoesJobExist and the
+                    //registration are separate steps, so senders racing on one occurrence can all pass
+                    //the check; the reservation is what admits exactly one (GitHub #442).
+                    if (!string.IsNullOrWhiteSpace(jobName) && !TryReserveJob(jobName, newItem.Id))
+                    {
+                        value.TryRemove(newItem.Id, out _);
+                        throw JobAlreadyQueued();
+                    }
+
                     if (Queues.TryGetValue(_connectionInformation, out var valueQ))
                     {
                         valueQ.TryAdd(newItem.Id);
@@ -186,23 +195,53 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     {
                         return Guid.Empty;
                     }
-
-                    if (!string.IsNullOrWhiteSpace(jobName))
-                    {
-                        if (Jobs.TryGetValue(_connectionInformation, out var valueJ))
-                        {
-                            valueJ.TryAdd(jobName, newItem.Id);
-                        }
-                        else
-                        {
-                            return Guid.Empty;
-                        }
-                    }
                     return newItem.Id;
                 }
-                throw new DotNetWorkQueueException(
-                    "Failed to insert record - the job has already been queued or processed");
+                throw JobAlreadyQueued();
             }
+        }
+
+        private static DotNetWorkQueueException JobAlreadyQueued()
+        {
+            //SendToJobQueue.JobAlreadyExistsError recognises this text
+            return new DotNetWorkQueueException(
+                "Failed to insert record - the job has already been queued or processed");
+        }
+
+        /// <summary>
+        /// Points the job name at this message, unless it already points at a message that still exists.
+        /// </summary>
+        /// <remarks>
+        /// The message is in <c>QueueData</c> before this runs, so a sender that loses the reservation
+        /// always finds the winner's message and refuses. An entry whose message is gone is replaced, but
+        /// only if no other sender replaced it first.
+        /// </remarks>
+        private bool TryReserveJob(string jobName, Guid id)
+        {
+            if (!Jobs.TryGetValue(_connectionInformation, out var jobs))
+                return false;
+
+            while (true)
+            {
+                if (jobs.TryAdd(jobName, id))
+                    return true;
+
+                if (!jobs.TryGetValue(jobName, out var existing))
+                    continue; //removed meanwhile; try to add again
+
+                if (MessageExists(existing))
+                    return false;
+
+                if (jobs.TryUpdate(jobName, id, existing))
+                    return true;
+                //another sender changed the entry first; look again
+            }
+        }
+
+        private bool MessageExists(Guid id)
+        {
+            return (QueueData.TryGetValue(_connectionInformation, out var waiting) && waiting.ContainsKey(id)) ||
+                   (QueueWorking.TryGetValue(_connectionInformation, out var working) && working.ContainsKey(id));
         }
 
         /// <inheritdoc />

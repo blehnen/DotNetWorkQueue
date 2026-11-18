@@ -18,6 +18,8 @@
 // ---------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using DotNetWorkQueue.Configuration;
 using DotNetWorkQueue.Exceptions;
 using DotNetWorkQueue.Transport.Memory.Basic;
@@ -166,6 +168,61 @@ namespace DotNetWorkQueue.Tests.Transport.Memory
             Assert.AreNotEqual(Guid.Empty, test.SendMessage(Message(), MessageData()));
 
             Assert.AreEqual(QueueStatuses.Waiting, test.DoesJobExist("job", nextRun));
+        }
+
+        [TestMethod]
+        public void Concurrent_Sends_Of_One_Job_Occurrence_Queue_Exactly_One()
+        {
+            //the check and the registration were two steps, so senders released together could all
+            //pass the check; every one was queued, and all but one were missing from the job index
+            var occurrence = new DateTimeOffset(2001, 2, 3, 4, 0, 0, TimeSpan.Zero);
+            const int senders = 8;
+            for (var round = 0; round < 50; round++)
+            {
+                using var test = Create(MessageFactory(), "job", Enumerable.Repeat(occurrence, senders).ToArray());
+                var queued = 0;
+                var refused = 0;
+                using var barrier = new Barrier(senders);
+                var threads = Enumerable.Range(0, senders).Select(_ => new Thread(() =>
+                {
+                    barrier.SignalAndWait();
+                    try
+                    {
+                        if (test.SendMessage(Message(), MessageData()) != Guid.Empty)
+                            Interlocked.Increment(ref queued);
+                    }
+                    catch (DotNetWorkQueueException error) when (error.Message.Contains(
+                                 "Failed to insert record - the job has already been queued or processed"))
+                    {
+                        Interlocked.Increment(ref refused);
+                    }
+                })).ToList();
+                threads.ForEach(t => t.Start());
+                threads.ForEach(t => t.Join());
+
+                Assert.AreEqual(1, queued, $"round {round}: queued");
+                Assert.AreEqual(senders - 1, refused, $"round {round}: refused");
+                Assert.AreEqual(1, test.RecordCount, $"round {round}: records");
+                Assert.AreEqual(QueueStatuses.Waiting, test.DoesJobExist("job", occurrence), $"round {round}: index");
+            }
+        }
+
+        [TestMethod]
+        public void A_Job_Entry_Whose_Message_Is_Gone_Does_Not_Block_The_Job()
+        {
+            //no public call leaves such an entry since #439 and #441, so plant one; it must be replaced,
+            //not treated as a duplicate, or the job could never be queued again
+            var occurrence = new DateTimeOffset(2001, 2, 3, 4, 0, 0, TimeSpan.Zero);
+            using var test = Create(MessageFactory(), "job", occurrence);
+            var jobsField = typeof(DataStorage).GetField("Jobs", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            var connectionField = typeof(DataStorage).GetField("_connectionInformation", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var allJobs = (System.Collections.Concurrent.ConcurrentDictionary<IConnectionInformation, System.Collections.Concurrent.ConcurrentDictionary<string, Guid>>)jobsField.GetValue(null);
+            allJobs[(IConnectionInformation)connectionField.GetValue(test)]["job"] = Guid.NewGuid();
+
+            var id = test.SendMessage(Message(), MessageData());
+
+            Assert.AreNotEqual(Guid.Empty, id);
+            Assert.AreEqual(QueueStatuses.Waiting, test.DoesJobExist("job", occurrence));
         }
 
         /// <summary>A date far from any machine clock, so a timestamp from the wrong source cannot match.</summary>
