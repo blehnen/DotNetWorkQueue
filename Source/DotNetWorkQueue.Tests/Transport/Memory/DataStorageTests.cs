@@ -271,6 +271,18 @@ namespace DotNetWorkQueue.Tests.Transport.Memory
             Assert.AreEqual(QueueStatuses.Waiting, test.DoesJobExist("job", occurrence));
         }
 
+        [TestMethod]
+        public void A_Message_Deleted_While_Waiting_Is_Not_De_Queued()
+        {
+            //its id is still in the queue, but its data is gone, so the de-queue skips it
+            using var test = Create(MessageFactory());
+            var id = test.SendMessage(Message(), MessageData());
+            Assert.IsTrue(test.DeleteMessage(id));
+
+            Assert.IsNull(test.GetNextMessage(null, TimeSpan.FromMilliseconds(50)));
+            Assert.AreEqual(0, test.WorkingRecordCount);
+        }
+
         /// <summary>A date far from any machine clock, so a timestamp from the wrong source cannot match.</summary>
         private static readonly DateTime ProviderNow = new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Utc);
 

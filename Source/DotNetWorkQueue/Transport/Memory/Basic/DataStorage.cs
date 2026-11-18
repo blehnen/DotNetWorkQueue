@@ -184,7 +184,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     //The job name is reserved before the message can be de-queued. DoesJobExist and the
                     //registration are separate steps, so senders racing on one occurrence can all pass
                     //the check; the reservation is what admits exactly one (GitHub #442).
-                    if (!string.IsNullOrWhiteSpace(jobName) && !TryReserveJob(jobName, newItem.Id))
+                    if (!string.IsNullOrWhiteSpace(jobName) && !TryReserveJob(jobName, newItem.Id, value))
                     {
                         value.TryRemove(newItem.Id, out _);
                         throw JobAlreadyQueued();
@@ -218,29 +218,43 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// Decided under a lock per queue. If the name points at a message that still exists, waiting or
         /// working, the send is refused; otherwise, including an entry whose message is gone, the name is
         /// pointed at this one. The message is in <c>QueueData</c> before this runs, and a de-queue moves it
-        /// into the working set before taking it out of <c>QueueData</c>, so a live message is always found.
+        /// to the working set under the same lock, so a live message is always found.
         /// </remarks>
-        private bool TryReserveJob(string jobName, Guid id)
+        private bool TryReserveJob(string jobName, Guid id, ConcurrentDictionary<Guid, QueueItem> waiting)
         {
-            if (!Jobs.TryGetValue(_connectionInformation, out var jobs))
-                return false;
-
-            //One sender decides at a time, across every DataStorage for this queue: _lock belongs to this
-            //instance, and is only ever taken for reading.
-            lock (JobLocks.GetOrAdd(_connectionInformation, _ => new object()))
+            lock (JobLock)
             {
-                if (jobs.TryGetValue(jobName, out var existing) && MessageExists(existing))
+                var jobs = Jobs[_connectionInformation];
+                if (jobs.TryGetValue(jobName, out var existing) &&
+                    (waiting.ContainsKey(existing) || QueueWorking[_connectionInformation].ContainsKey(existing)))
                     return false;
                 jobs[jobName] = id;
                 return true;
             }
         }
 
-        private bool MessageExists(Guid id)
+        /// <summary>
+        /// Moves a de-queued message from the waiting set to the working set.
+        /// </summary>
+        /// <remarks>
+        /// Under the reservation lock, so a send deciding whether a job's message still exists never sees it
+        /// between the two sets. Found in neither, a live message looked stale, and the send replaced its
+        /// reservation and queued the same occurrence again (GitHub #442).
+        /// </remarks>
+        private bool TakeIntoWorkingSet(ConcurrentDictionary<Guid, QueueItem> waiting, Guid id, out QueueItem item)
         {
-            return (QueueData.TryGetValue(_connectionInformation, out var waiting) && waiting.ContainsKey(id)) ||
-                   (QueueWorking.TryGetValue(_connectionInformation, out var working) && working.ContainsKey(id));
+            lock (JobLock)
+            {
+                if (!waiting.TryRemove(id, out item))
+                    return false;
+                QueueWorking[_connectionInformation].TryAdd(item.Id, item);
+                return true;
+            }
         }
+
+        //serializes job-name reservations and de-queue moves per queue, across every DataStorage for it;
+        //_lock belongs to each instance, and is only taken for reading here
+        private object JobLock => JobLocks.GetOrAdd(_connectionInformation, _ => new object());
 
         /// <inheritdoc />
         public Task<Guid> SendMessageAsync(IMessage messageToSend, IAdditionalMessageData data)
@@ -331,20 +345,16 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     return null;
                 }
 
-                if (!QueueData.TryGetValue(_connectionInformation, out var valueQd) ||
-                    !valueQd.TryGetValue(id, out var item))
+                QueueItem item;
+                if (QueueData.TryGetValue(_connectionInformation, out var valueQd))
                 {
-                    return null;
+                    if (!TakeIntoWorkingSet(valueQd, id, out item))
+                    {
+                        return null;
+                    }
                 }
-
-                //Into the working set before out of the waiting one, so the message is never in neither: a
-                //send for the same job looks in both to tell a live reservation from a stale one (GitHub #442).
-                var working = QueueWorking[_connectionInformation];
-                working.TryAdd(item.Id, item);
-                if (!valueQd.TryRemove(id, out _))
+                else
                 {
-                    //deleted meanwhile
-                    working.TryRemove(item.Id, out _);
                     return null;
                 }
 
@@ -374,7 +384,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     //at this point, the record has been de-queued, but it can't be processed. It leaves the
                     //working set here, and so does its job name, which the error move that follows cannot
                     //find; otherwise the job stays registered to a message that is gone.
-                    working.TryRemove(item.Id, out _);
+                    QueueWorking[_connectionInformation].TryRemove(item.Id, out _);
                     RemoveJobEntry(item.JobName, id);
                     throw new PoisonMessageException(
                         "An error has occurred trying to re-assemble a message", error, new MessageQueueId(id),
