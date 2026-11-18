@@ -7,6 +7,7 @@
 - The Dashboard API compares the API key in constant time, and logs a startup warning when it has no API key, no authorization policy, and is not read-only (GitHub #410)
 - The Memory transport README now lists what it lacks: no retries (a failed message goes straight to the error queue), no delayed processing, no priority. It used to claim the last two (GitHub #428)
 - Fix: on the Memory transport a failed message now leaves the working set. It stayed in memory, showed as processing, and a scheduled job that failed once was never queued again (GitHub #439)
+- Fix: a dashboard configured from `appsettings.json` now reads every `DashboardOptions` setting, including `ReadOnly`. All but `EnableSwagger`, `ApiKey` and `AssemblyPaths` were ignored (GitHub #438)
 
 ### 0.17.0 - 2026-09-20
 - `DotNetWorkQueue.Dashboard.Client` adds a netstandard2.0 build. (GitHub #401)

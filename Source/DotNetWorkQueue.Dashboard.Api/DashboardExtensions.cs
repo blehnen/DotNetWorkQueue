@@ -146,7 +146,7 @@ namespace DotNetWorkQueue.Dashboard.Api
         /// Reads Dashboard:Connections[] entries and resolves transport types by name.
         /// </summary>
         /// <param name="services">The service collection.</param>
-        /// <param name="dashboardSection">The "Dashboard" configuration section containing Connections, EnableSwagger, ApiKey, etc.</param>
+        /// <param name="dashboardSection">The "Dashboard" configuration section: Connections, Interceptors, and any <see cref="DashboardOptions"/> setting by its property name, such as ReadOnly or ApiKey.</param>
         /// <returns>The service collection for chaining.</returns>
         public static IServiceCollection AddDotNetWorkQueueDashboard(
             this IServiceCollection services,
@@ -168,9 +168,10 @@ namespace DotNetWorkQueue.Dashboard.Api
 
             return services.AddDotNetWorkQueueDashboard(options =>
             {
-                options.EnableSwagger = dashboardSection.GetValue("EnableSwagger", true);
-                options.ApiKey = dashboardSection.GetValue<string>("ApiKey") ?? string.Empty;
-                options.AssemblyPaths = dashboardSection.GetSection("AssemblyPaths").Get<string[]>() ?? Array.Empty<string>();
+                //every public DashboardOptions setting, so a new one cannot be left out the way ReadOnly
+                //was (GitHub #438); an absent key keeps its default. Connections and Interceptors have
+                //no matching property, so the binder skips them and they are handled below.
+                dashboardSection.Bind(options);
 
                 foreach (var conn in dashboardSection.GetSection("Connections").GetChildren())
                 {

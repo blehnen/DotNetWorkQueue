@@ -19,6 +19,8 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Reflection;
 using DotNetWorkQueue.Dashboard.Api;
 using DotNetWorkQueue.Dashboard.Api.Configuration;
 using Microsoft.Extensions.Configuration;
@@ -179,6 +181,94 @@ namespace DotNetWorkQueue.Dashboard.Api.Tests.Extensions
                 services.AddDotNetWorkQueueDashboard(config.GetSection("Dashboard")));
 
             StringAssert.Contains(ex.Message, "ConnectionString");
+        }
+
+        /// <summary>
+        /// Every public setting on <see cref="DashboardOptions"/> can be set from configuration.
+        /// </summary>
+        /// <remarks>
+        /// The overload used to copy three settings by hand, so ReadOnly and six others were ignored and
+        /// the Docker image could not run read-only (GitHub #438). This finds the settings by reflection,
+        /// so one added later is covered without editing the test.
+        /// </remarks>
+        [TestMethod]
+        public void AddDotNetWorkQueueDashboard_FromConfiguration_BindsEveryOption()
+        {
+            var defaults = new DashboardOptions();
+            var values = new Dictionary<string, string>();
+            var expected = new Dictionary<string, object>();
+            foreach (var property in SettableOptions())
+            {
+                var value = NonDefaultValue(property, property.GetValue(defaults));
+                expected[property.Name] = value;
+                if (value is string[] array)
+                {
+                    for (var i = 0; i < array.Length; i++)
+                        values[$"Dashboard:{property.Name}:{i}"] = array[i];
+                }
+                else
+                {
+                    values[$"Dashboard:{property.Name}"] = Convert.ToString(value, CultureInfo.InvariantCulture);
+                }
+            }
+
+            var options = BuildFromConfiguration(values);
+
+            var notBound = SettableOptions()
+                .Where(p => expected[p.Name] is string[] array
+                    ? !array.SequenceEqual((string[])p.GetValue(options))
+                    : !Equals(expected[p.Name], p.GetValue(options)))
+                .Select(p => p.Name)
+                .ToList();
+            Assert.IsEmpty(notBound, "Not bound from configuration: " + string.Join(", ", notBound));
+        }
+
+        [TestMethod]
+        public void AddDotNetWorkQueueDashboard_FromConfiguration_AbsentSettingsKeepTheirDefaults()
+        {
+            var defaults = new DashboardOptions();
+
+            var options = BuildFromConfiguration(new Dictionary<string, string>());
+
+            foreach (var property in SettableOptions())
+            {
+                var expected = property.GetValue(defaults);
+                if (expected is string[] array)
+                    Assert.AreSequenceEqual(array, (string[])property.GetValue(options), property.Name);
+                else
+                    Assert.AreEqual(expected, property.GetValue(options), property.Name);
+            }
+        }
+
+        private static IEnumerable<PropertyInfo> SettableOptions()
+        {
+            return typeof(DashboardOptions).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.CanWrite && p.SetMethod!.IsPublic);
+        }
+
+        private static object NonDefaultValue(PropertyInfo property, object current)
+        {
+            if (property.PropertyType == typeof(bool))
+                return !(bool)current;
+            if (property.PropertyType == typeof(int))
+                return (int)current + 7;
+            if (property.PropertyType == typeof(string))
+                return "configured-" + property.Name;
+            if (property.PropertyType == typeof(string[]))
+                return new[] { "first-" + property.Name, "second-" + property.Name };
+
+            Assert.Fail($"DashboardOptions.{property.Name} is a {property.PropertyType.Name}, which this test " +
+                        "cannot give a value yet. Add a case so the setting is checked.");
+            return null;
+        }
+
+        private static DashboardOptions BuildFromConfiguration(Dictionary<string, string> values)
+        {
+            var config = new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddDotNetWorkQueueDashboard(config.GetSection("Dashboard"));
+            return services.BuildServiceProvider().GetRequiredService<DashboardOptions>();
         }
     }
 }
