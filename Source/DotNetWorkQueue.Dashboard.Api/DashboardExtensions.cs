@@ -56,6 +56,7 @@ namespace DotNetWorkQueue.Dashboard.Api
         {
             var options = new DashboardOptions();
             configureOptions(options);
+            ValidateConsumerTracking(options);
 
             // Pre-load user assemblies so Newtonsoft's TypeNameHandling binder can resolve
             // message types during deserialization (before ResolveMessageBodyType runs).
@@ -146,7 +147,7 @@ namespace DotNetWorkQueue.Dashboard.Api
         /// Reads Dashboard:Connections[] entries and resolves transport types by name.
         /// </summary>
         /// <param name="services">The service collection.</param>
-        /// <param name="dashboardSection">The "Dashboard" configuration section containing Connections, EnableSwagger, ApiKey, etc.</param>
+        /// <param name="dashboardSection">The "Dashboard" configuration section: Connections, Interceptors, and any <see cref="DashboardOptions"/> setting by its property name, such as ReadOnly or ApiKey.</param>
         /// <returns>The service collection for chaining.</returns>
         public static IServiceCollection AddDotNetWorkQueueDashboard(
             this IServiceCollection services,
@@ -168,9 +169,10 @@ namespace DotNetWorkQueue.Dashboard.Api
 
             return services.AddDotNetWorkQueueDashboard(options =>
             {
-                options.EnableSwagger = dashboardSection.GetValue("EnableSwagger", true);
-                options.ApiKey = dashboardSection.GetValue<string>("ApiKey") ?? string.Empty;
-                options.AssemblyPaths = dashboardSection.GetSection("AssemblyPaths").Get<string[]>() ?? Array.Empty<string>();
+                //every public DashboardOptions setting, so a new one cannot be left out the way ReadOnly
+                //was (GitHub #438); an absent key keeps its default. Connections and Interceptors have
+                //no matching property, so the binder skips them and they are handled below.
+                dashboardSection.Bind(options);
 
                 foreach (var conn in dashboardSection.GetSection("Connections").GetChildren())
                 {
@@ -219,6 +221,29 @@ namespace DotNetWorkQueue.Dashboard.Api
             app.UseHealthChecks("/api/v1/dashboard/health");
 
             return app;
+        }
+
+        /// <summary>
+        /// Refuses consumer-tracking timings the pruning loop cannot run with.
+        /// </summary>
+        /// <remarks>
+        /// An interval of 0 makes the pruning loop spin without waiting, and a negative one makes it
+        /// throw and log on every pass. A stale threshold at or below the interval prunes healthy
+        /// consumers between their heartbeats, and a negative one prunes every consumer on every pass.
+        /// </remarks>
+        internal static void ValidateConsumerTracking(DashboardOptions options)
+        {
+            if (!options.EnableConsumerTracking)
+                return;
+
+            if (options.ConsumerHeartbeatIntervalSeconds < 1)
+                throw new ArgumentOutOfRangeException(nameof(options),
+                    $"DashboardOptions.ConsumerHeartbeatIntervalSeconds must be at least 1, but is {options.ConsumerHeartbeatIntervalSeconds}.");
+
+            if (options.ConsumerStaleThresholdSeconds <= options.ConsumerHeartbeatIntervalSeconds)
+                throw new ArgumentOutOfRangeException(nameof(options),
+                    $"DashboardOptions.ConsumerStaleThresholdSeconds ({options.ConsumerStaleThresholdSeconds}) must be greater than " +
+                    $"ConsumerHeartbeatIntervalSeconds ({options.ConsumerHeartbeatIntervalSeconds}), or healthy consumers are pruned between heartbeats.");
         }
 
         /// <summary>

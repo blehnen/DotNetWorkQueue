@@ -106,6 +106,22 @@ Set `Dashboard:ApiKey` to a non-empty string to require an `X-Api-Key` header on
 
 Swagger UI is available at `/swagger` when `Dashboard:EnableSwagger` is `true` (default).
 
+### Other settings
+
+Every `DashboardOptions` setting can be set under `Dashboard`, by its property name. A setting you leave out keeps its default.
+
+| Setting | Default | Description |
+|---|---|---|
+| `ReadOnly` | `false` | Disables every write operation: delete, requeue, reset, cancel, purge and edit body. Use it for monitoring-only deployments. |
+| `EnableCors` | `false` | Enables CORS for the origins in `CorsOrigins`. |
+| `CorsOrigins` | empty | Allowed origins, such as `["https://dashboard.example.com"]`. |
+| `EnableConsumerTracking` | `true` | Lets consumers register with the dashboard and send heartbeats. |
+| `ConsumerHeartbeatIntervalSeconds` | `30` | Heartbeat interval given to consumers; also how often stale ones are pruned. At least 1. |
+| `ConsumerStaleThresholdSeconds` | `90` | Seconds without a heartbeat before a consumer is pruned. Must be greater than the heartbeat interval; the dashboard refuses to start otherwise. |
+| `AuthorizationPolicy` | none | Name of an ASP.NET Core authorization policy applied to every dashboard endpoint. The policy has to be registered in code, so this image cannot use it on its own. |
+
+With no `ApiKey`, no `AuthorizationPolicy` and `ReadOnly` left `false`, every endpoint is open, and the dashboard logs a warning at startup. Set `Dashboard:ApiKey`, or `Dashboard:ReadOnly` to `true`, for anything reachable beyond your own machine.
+
 ## SQLite and LiteDB Volume Mounts
 
 SQLite and LiteDB queue databases are file-based. Mount a host directory so the container can read existing database files:
