@@ -173,38 +173,84 @@ namespace DotNetWorkQueue.Tests.Transport.Memory
         [TestMethod]
         public void Concurrent_Sends_Of_One_Job_Occurrence_Queue_Exactly_One()
         {
-            //the check and the registration were two steps, so senders released together could all
-            //pass the check; every one was queued, and all but one were missing from the job index
+            //The check and the registration were two steps. Every sender is held at the clock read, which
+            //comes after the check and before the registration, until all have passed the check: on the
+            //old code every one of them was queued.
             var occurrence = new DateTimeOffset(2001, 2, 3, 4, 0, 0, TimeSpan.Zero);
             const int senders = 8;
-            for (var round = 0; round < 50; round++)
+            using var afterTheCheck = new Barrier(senders);
+            using var test = Create(MessageFactory(), "job", () =>
             {
-                using var test = Create(MessageFactory(), "job", Enumerable.Repeat(occurrence, senders).ToArray());
-                var queued = 0;
-                var refused = 0;
-                using var barrier = new Barrier(senders);
-                var threads = Enumerable.Range(0, senders).Select(_ => new Thread(() =>
-                {
-                    barrier.SignalAndWait();
-                    try
-                    {
-                        if (test.SendMessage(Message(), MessageData()) != Guid.Empty)
-                            Interlocked.Increment(ref queued);
-                    }
-                    catch (DotNetWorkQueueException error) when (error.Message.Contains(
-                                 "Failed to insert record - the job has already been queued or processed"))
-                    {
-                        Interlocked.Increment(ref refused);
-                    }
-                })).ToList();
-                threads.ForEach(t => t.Start());
-                threads.ForEach(t => t.Join());
+                Assert.IsTrue(afterTheCheck.SignalAndWait(TimeSpan.FromSeconds(10)), "a sender never reached the clock");
+                return ProviderNow;
+            }, Enumerable.Repeat(occurrence, senders).ToArray());
+            var queued = 0;
+            var refused = 0;
+            var unexpected = new System.Collections.Concurrent.ConcurrentQueue<Exception>();
 
-                Assert.AreEqual(1, queued, $"round {round}: queued");
-                Assert.AreEqual(senders - 1, refused, $"round {round}: refused");
-                Assert.AreEqual(1, test.RecordCount, $"round {round}: records");
-                Assert.AreEqual(QueueStatuses.Waiting, test.DoesJobExist("job", occurrence), $"round {round}: index");
+            var threads = Enumerable.Range(0, senders).Select(_ => new Thread(() =>
+            {
+                try
+                {
+                    if (test.SendMessage(Message(), MessageData()) != Guid.Empty)
+                        Interlocked.Increment(ref queued);
+                }
+                catch (DotNetWorkQueueException error) when (error.Message.Contains(
+                             "Failed to insert record - the job has already been queued or processed"))
+                {
+                    Interlocked.Increment(ref refused);
+                }
+                catch (Exception error)
+                {
+                    unexpected.Enqueue(error);
+                }
+            })).ToList();
+            threads.ForEach(t => t.Start());
+            threads.ForEach(t => t.Join());
+
+            Assert.IsEmpty(unexpected, string.Join(Environment.NewLine, unexpected));
+            Assert.AreEqual(1, queued, "queued");
+            Assert.AreEqual(senders - 1, refused, "refused");
+            Assert.AreEqual(1, test.RecordCount);
+            Assert.AreEqual(QueueStatuses.Waiting, test.DoesJobExist("job", occurrence));
+        }
+
+        [TestMethod]
+        public void A_Send_During_The_De_Queue_Of_The_Same_Job_Is_Refused()
+        {
+            //the de-queue used to take the message out of the waiting set before putting it in the working
+            //set, so a send in between saw neither, took the live reservation for a stale one, and queued
+            //the same occurrence twice
+            var occurrence = new DateTimeOffset(2001, 2, 3, 4, 0, 0, TimeSpan.Zero);
+            using var inTransfer = new ManualResetEventSlim(false);
+            using var release = new ManualResetEventSlim(false);
+            var messageFactory = Substitute.For<IMessageFactory>();
+            messageFactory.Create(Arg.Any<object>(), Arg.Any<IDictionary<string, object>>()).Returns(_ =>
+            {
+                inTransfer.Set();
+                Assert.IsTrue(release.Wait(TimeSpan.FromSeconds(10)));
+                return Substitute.For<IMessage>();
+            });
+            using var test = Create(messageFactory, "job", occurrence, occurrence);
+            Assert.AreNotEqual(Guid.Empty, test.SendMessage(Message(), MessageData()));
+
+            var dequeue = new Thread(() => test.GetNextMessage(null, TimeSpan.FromSeconds(5)));
+            dequeue.Start();
+            try
+            {
+                Assert.IsTrue(inTransfer.Wait(TimeSpan.FromSeconds(10)), "the de-queue never started");
+
+                Assert.AreEqual(QueueStatuses.Processing, test.DoesJobExist("job", occurrence));
+                var error = Assert.ThrowsExactly<DotNetWorkQueueException>(() => test.SendMessage(Message(), MessageData()));
+                StringAssert.Contains(error.Message, "already been queued or processed");
             }
+            finally
+            {
+                release.Set();
+                dequeue.Join();
+            }
+            Assert.AreEqual(1, test.WorkingRecordCount);
+            Assert.AreEqual(0, test.RecordCount);
         }
 
         [TestMethod]
@@ -231,6 +277,12 @@ namespace DotNetWorkQueue.Tests.Transport.Memory
         private static DataStorage Create(IMessageFactory messageFactory, string jobName = "",
             params DateTimeOffset[] scheduledTimes)
         {
+            return Create(messageFactory, jobName, null, scheduledTimes);
+        }
+
+        private static DataStorage Create(IMessageFactory messageFactory, string jobName, Func<DateTime> clock,
+            params DateTimeOffset[] scheduledTimes)
+        {
             var jobSchedulerMetaData = Substitute.For<IJobSchedulerMetaData>();
             jobSchedulerMetaData.GetJobName(Arg.Any<IAdditionalMessageData>()).Returns(jobName);
             if (scheduledTimes.Length > 0)
@@ -249,7 +301,10 @@ namespace DotNetWorkQueue.Tests.Transport.Memory
                 new QueueConnection("dataStorageTests" + Guid.NewGuid().ToString("N"), "memory"));
 
             var time = Substitute.For<IGetTime>();
-            time.GetCurrentUtcDate().Returns(ProviderNow);
+            if (clock == null)
+                time.GetCurrentUtcDate().Returns(ProviderNow);
+            else
+                time.GetCurrentUtcDate().Returns(_ => clock());
             var timeFactory = Substitute.For<IGetTimeFactory>();
             timeFactory.Create().Returns(time);
 

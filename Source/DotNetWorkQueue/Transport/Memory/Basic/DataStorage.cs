@@ -46,6 +46,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         //jobs
         private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<string, Guid>> Jobs = new();
 
+        //serializes job-name reservations per queue, shared by every DataStorage for it
+        private static readonly ConcurrentDictionary<IConnectionInformation, object> JobLocks = new();
+
         //working set
         private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>> QueueWorking = new();
 
@@ -212,29 +215,24 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// Points the job name at this message, unless it already points at a message that still exists.
         /// </summary>
         /// <remarks>
-        /// The message is in <c>QueueData</c> before this runs, so a sender that loses the reservation
-        /// always finds the winner's message and refuses. An entry whose message is gone is replaced, but
-        /// only if no other sender replaced it first.
+        /// Decided under a lock per queue. If the name points at a message that still exists, waiting or
+        /// working, the send is refused; otherwise, including an entry whose message is gone, the name is
+        /// pointed at this one. The message is in <c>QueueData</c> before this runs, and a de-queue moves it
+        /// into the working set before taking it out of <c>QueueData</c>, so a live message is always found.
         /// </remarks>
         private bool TryReserveJob(string jobName, Guid id)
         {
             if (!Jobs.TryGetValue(_connectionInformation, out var jobs))
                 return false;
 
-            while (true)
+            //One sender decides at a time, across every DataStorage for this queue: _lock belongs to this
+            //instance, and is only ever taken for reading.
+            lock (JobLocks.GetOrAdd(_connectionInformation, _ => new object()))
             {
-                if (jobs.TryAdd(jobName, id))
-                    return true;
-
-                if (!jobs.TryGetValue(jobName, out var existing))
-                    continue; //removed meanwhile; try to add again
-
-                if (MessageExists(existing))
+                if (jobs.TryGetValue(jobName, out var existing) && MessageExists(existing))
                     return false;
-
-                if (jobs.TryUpdate(jobName, id, existing))
-                    return true;
-                //another sender changed the entry first; look again
+                jobs[jobName] = id;
+                return true;
             }
         }
 
@@ -333,20 +331,23 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     return null;
                 }
 
-                QueueItem item;
-                if (QueueData.TryGetValue(_connectionInformation, out var valueQd))
-                {
-                    if (!valueQd.TryRemove(id, out item))
-                    {
-                        return null;
-                    }
-                }
-                else
+                if (!QueueData.TryGetValue(_connectionInformation, out var valueQd) ||
+                    !valueQd.TryGetValue(id, out var item))
                 {
                     return null;
                 }
 
-                var hasError = false;
+                //Into the working set before out of the waiting one, so the message is never in neither: a
+                //send for the same job looks in both to tell a live reservation from a stale one (GitHub #442).
+                var working = QueueWorking[_connectionInformation];
+                working.TryAdd(item.Id, item);
+                if (!valueQd.TryRemove(id, out _))
+                {
+                    //deleted meanwhile
+                    working.TryRemove(item.Id, out _);
+                    return null;
+                }
+
                 try
                 {
                     var newMessage = _messageFactory.Create(item.Body, item.Headers);
@@ -370,20 +371,14 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 }
                 catch (Exception error)
                 {
-                    hasError = true;
-                    //at this point, the record has been de-queued, but it can't be processed.
-                    //It never reaches the working set, so the error move that follows cannot find its
-                    //job name: drop that here, or the job stays registered to a message that is gone.
+                    //at this point, the record has been de-queued, but it can't be processed. It leaves the
+                    //working set here, and so does its job name, which the error move that follows cannot
+                    //find; otherwise the job stays registered to a message that is gone.
+                    working.TryRemove(item.Id, out _);
                     RemoveJobEntry(item.JobName, id);
                     throw new PoisonMessageException(
                         "An error has occurred trying to re-assemble a message", error, new MessageQueueId(id),
                         new MessageCorrelationId(item.CorrelationId), new ReadOnlyDictionary<string, object>(item.Headers), null, null);
-
-                }
-                finally
-                {
-                    if (!hasError)
-                        QueueWorking[_connectionInformation].TryAdd(item.Id, item);
                 }
             }
         }
@@ -724,6 +719,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 Queues.TryRemove(_connectionInformation, out _);
                 QueueData.TryRemove(_connectionInformation, out _);
                 Jobs.TryRemove(_connectionInformation, out _);
+                JobLocks.TryRemove(_connectionInformation, out _);
                 QueueWorking.TryRemove(_connectionInformation, out _);
                 ErrorCounts.TryRemove(_connectionInformation, out _);
                 DequeueCounts.TryRemove(_connectionInformation, out _);
