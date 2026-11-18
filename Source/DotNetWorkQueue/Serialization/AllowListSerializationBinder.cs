@@ -154,7 +154,7 @@ namespace DotNetWorkQueue.Serialization
             {
                 var position = 0;
                 var result = new StringBuilder(typeName.Length);
-                ParseType(typeName, ref position, result);
+                ParseType(typeName, ref position, result, 0);
                 return position == typeName.Length ? result.ToString() : typeName;
             }
             catch (FormatException)
@@ -163,14 +163,20 @@ namespace DotNetWorkQueue.Serialization
             }
         }
 
+        //deeper than any real type; the parser is recursive and the name is untrusted, so a deeply
+        //nested name is rejected here rather than run the stack out, which no catch can stop
+        private const int MaxNesting = 32;
+
         private static readonly HashSet<string> CoreLibraryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "System.Private.CoreLib", "mscorlib", "netstandard", "System.Runtime"
         };
 
         //a type: its name, then any generic arguments, then any array ranks
-        private static void ParseType(string text, ref int position, StringBuilder result)
+        private static void ParseType(string text, ref int position, StringBuilder result, int nesting)
         {
+            if (nesting > MaxNesting)
+                throw new FormatException("The name is nested too deeply.");
             var start = result.Length;
             while (position < text.Length)
             {
@@ -192,7 +198,7 @@ namespace DotNetWorkQueue.Serialization
                 throw new FormatException("A type name is missing.");
 
             if (position + 1 < text.Length && text[position] == '[' && !IsArrayRank(text[position + 1]))
-                ParseArguments(text, ref position, result);
+                ParseArguments(text, ref position, result, nesting);
 
             while (position < text.Length && text[position] == '[')
             {
@@ -207,7 +213,7 @@ namespace DotNetWorkQueue.Serialization
         }
 
         //[[T, Asm],[U, Asm]] or [T,U]; written as [[T, Asm],[U]]
-        private static void ParseArguments(string text, ref int position, StringBuilder result)
+        private static void ParseArguments(string text, ref int position, StringBuilder result, int nesting)
         {
             position++;
             result.Append('[');
@@ -220,7 +226,7 @@ namespace DotNetWorkQueue.Serialization
                 if (position < text.Length && text[position] == '[')
                 {
                     position++;
-                    ParseType(text, ref position, result);
+                    ParseType(text, ref position, result, nesting + 1);
                     SkipSpaces(text, ref position);
                     if (position < text.Length && text[position] == ',')
                     {
@@ -231,7 +237,7 @@ namespace DotNetWorkQueue.Serialization
                 }
                 else
                 {
-                    ParseType(text, ref position, result);
+                    ParseType(text, ref position, result, nesting + 1);
                 }
                 result.Append(']');
 

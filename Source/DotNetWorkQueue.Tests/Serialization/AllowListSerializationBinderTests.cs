@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DotNetWorkQueue.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -163,11 +164,13 @@ namespace DotNetWorkQueue.Tests.Serialization
         public void A_Polymorphic_Generic_Member_Round_Trips_Once_Allowed()
         {
             var binder = Create();
+            binder.AddAllowedType(typeof(Holder));
             binder.AddAllowedType(typeof(List<string>));
-            var settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto, SerializationBinder = binder };
-            var json = JsonConvert.SerializeObject(new Holder { Value = new List<string> { "a" } }, settings);
+            var serializer = new DotNetWorkQueue.Serialization.JsonSerializer(binder);
+            var headers = new Dictionary<string, object>();
 
-            var back = JsonConvert.DeserializeObject<Holder>(json, settings);
+            var back = serializer.ConvertBytesToMessage<Holder>(
+                serializer.ConvertMessageToBytes(new Holder { Value = new List<string> { "a" } }, headers), headers);
 
             Assert.AreSequenceEqual(new[] { "a" }, (List<string>)back.Value);
         }
@@ -182,6 +185,13 @@ namespace DotNetWorkQueue.Tests.Serialization
         [DataRow("List`1[Tuple`2[String,Int32]]", "List`1[[Tuple`2[[String],[Int32]]]]")]
         [DataRow(@"A.B`1[[C\,D, E]]", @"A.B`1[[C\,D, E]]")]
         [DataRow("A.B`1[[C.D, E]", "A.B`1[[C.D, E]")]
+        [DataRow(@"A.B`1[[C.D\", @"A.B`1[[C.D\")]
+        [DataRow("A.B`1[[, E]]", "A.B`1[[, E]]")]
+        [DataRow("A.B[x", "A.B[x")]
+        [DataRow("A.B`1[[C.D, E[F]]]", "A.B`1[[C.D, E[F]]]")]
+        [DataRow("A.B`1[[C.D, ]]", "A.B`1[[C.D, ]]")]
+        [DataRow("A.B`1[[C.D, E] ", "A.B`1[[C.D, E] ")]
+        [DataRow("A.B`1[[C.D, E]]x", "A.B`1[[C.D, E]]x")]
         public void CanonicalName_Keeps_Argument_Assemblies_Without_Their_Versions(string name, string expected)
         {
             Assert.AreEqual(expected, AllowListSerializationBinder.CanonicalName(name));
@@ -224,6 +234,26 @@ namespace DotNetWorkQueue.Tests.Serialization
             //read without the escape, both of these would be "C\" from assembly "D"
             AssertNotAllowed(
                 delegate { binder.BindToType("A", @"A.B`1[[C\,D, X]]"); });
+        }
+
+        [TestMethod]
+        public void A_Deeply_Nested_Name_Is_Rejected_Without_Running_Out_Of_Stack()
+        {
+            //each level would be another recursive call; the parser stops at its limit instead
+            var name = string.Concat(Enumerable.Repeat("A`1[[", 20000)) + "B" + string.Concat(Enumerable.Repeat("]]", 20000));
+            Assert.AreEqual(name, AllowListSerializationBinder.CanonicalName(name));
+            AssertNotAllowed(delegate { Create().BindToType("A", name); });
+        }
+
+        [TestMethod]
+        public void Nesting_Within_The_Limit_Is_Still_Read()
+        {
+            var name = "B";
+            for (var level = 0; level < 30; level++)
+                name = $"A`1[[{name}, Asm, Version=1.0.0.0]]";
+
+            //read, not returned as written: the versions are gone
+            Assert.AreEqual(name.Replace(", Version=1.0.0.0", string.Empty), AllowListSerializationBinder.CanonicalName(name));
         }
 
         [TestMethod]
