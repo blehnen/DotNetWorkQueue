@@ -140,11 +140,17 @@ namespace DotNetWorkQueue.Queue
                 {
                     //Anything not handled above lands here, including a failure inside the poison or
                     //rollback handling itself. It used to be dropped without a word (GitHub #444).
-                    ReportUnhandled(error);
-
-                    //generic exceptions tend to indicate a serious problem - lets start delaying processing
-                    //this counter will reset once a message has been processed by this thread
-                    _seriousExceptionProcessBackOffHelper.Value.Wait();
+                    try
+                    {
+                        ReportUnhandled(error);
+                    }
+                    finally
+                    {
+                        //generic exceptions tend to indicate a serious problem - lets start delaying processing
+                        //this counter will reset once a message has been processed by this thread. In a
+                        //finally, so a logger that throws cannot skip it.
+                        _seriousExceptionProcessBackOffHelper.Value.Wait();
+                    }
                 }
             }
             catch (Exception ex) //not cool - one of the exception events threw an exception

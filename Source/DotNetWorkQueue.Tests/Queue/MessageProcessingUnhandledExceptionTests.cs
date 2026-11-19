@@ -102,6 +102,43 @@ namespace DotNetWorkQueue.Tests.Queue
             harness.AssertBothLogged(failure, subscriberError);
         }
 
+        [TestMethod]
+        public async Task Sync_A_Throwing_Logger_Does_Not_Skip_The_Backoff()
+        {
+            //Microsoft.Extensions.Logging rethrows a provider's exception from the Log call
+            var failure = new InvalidOperationException("the move to the error queue failed");
+            var harness = new Harness(failure);
+            harness.Receive.ReceiveMessage(Arg.Any<IMessageContext>()).Throws(new PoisonMessageException());
+            harness.PoisonHandler
+                .When(x => x.Handle(Arg.Any<IMessageContext>(), Arg.Any<PoisonMessageException>()))
+                .Do(_ => throw failure);
+            harness.LoggerThrowsOn("back off");
+
+            await harness.Fixture.Create<MessageProcessing>().HandleAsync().ConfigureAwait(false);
+
+            harness.FatalErrorDelay.Received(1).Wait();
+        }
+
+        [TestMethod]
+        public async Task Async_A_Throwing_Logger_Does_Not_Skip_The_Backoff()
+        {
+            var failure = new InvalidOperationException("the move to the error queue failed");
+            var harness = new Harness(failure);
+#pragma warning disable CA2012
+            harness.Receive.ReceiveMessageAsync(Arg.Any<IMessageContext>(), Arg.Any<CancellationToken>())
+                .Throws(new PoisonMessageException());
+#pragma warning restore CA2012
+            harness.PoisonHandler.HandleAsync(Arg.Any<IMessageContext>(), Arg.Any<PoisonMessageException>())
+                .Returns(Task.FromException(failure));
+            harness.LoggerThrowsOn("back off");
+
+            await harness.Fixture.Create<MessageProcessingAsync>().HandleAsync().ConfigureAwait(false);
+
+#pragma warning disable CA2012
+            await harness.FatalErrorDelay.Received(1).WaitAsync().ConfigureAwait(false);
+#pragma warning restore CA2012
+        }
+
         private sealed class Harness
         {
             private readonly CapturingLogger _log = new CapturingLogger();
@@ -130,6 +167,8 @@ namespace DotNetWorkQueue.Tests.Queue
             public IReceivePoisonMessage PoisonHandler { get; }
             public IConsumerQueueErrorNotification ErrorNotification { get; }
             public IQueueWait FatalErrorDelay { get; }
+
+            public void LoggerThrowsOn(string messagePart) => _log.ThrowOn = messagePart;
 
             public void SubscriberThrows(Exception subscriberError)
             {
@@ -164,10 +203,16 @@ namespace DotNetWorkQueue.Tests.Queue
 
             public bool IsEnabled(LogLevel logLevel) => true;
 
+            /// <summary>When set, logging a message containing this text throws, as a failing provider does.</summary>
+            public string ThrowOn { get; set; }
+
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception,
                 Func<TState, Exception, string> formatter)
             {
-                _entries.Enqueue((logLevel, exception, formatter(state, exception)));
+                var message = formatter(state, exception);
+                if (ThrowOn != null && message.Contains(ThrowOn))
+                    throw new InvalidOperationException("the log provider failed");
+                _entries.Enqueue((logLevel, exception, message));
             }
         }
     }
