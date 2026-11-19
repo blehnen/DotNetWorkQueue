@@ -11,6 +11,7 @@
 - ⚠️ With consumer tracking on, the dashboard won't start if `ConsumerHeartbeatIntervalSeconds` is under 1 or `ConsumerStaleThresholdSeconds` isn't above it (GitHub #438)
 - Fix: `AllowListSerializationBinder` now matches a generic type allowed with `AddAllowedType(Type)`. It compared versioned names with the simple names messages carry, so none ever matched (GitHub #417)
 - Fix: on the Memory transport, two schedulers sending the same job occurrence at once could both queue it, and one copy was missing from the job index. Only one is queued now (GitHub #442)
+- Fix: on the Memory transport a scheduled job occurrence that had already run could be queued and run again. It is now reported as already processed, as on the other transports (GitHub #447)
 - A consumer now logs, and reports through its error notification, an exception it cannot otherwise handle, such as a failure while moving a poison message. It used to back off silently (GitHub #444)
 
 ### 0.17.0 - 2026-09-20

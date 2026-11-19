@@ -49,6 +49,9 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         //serializes job-name reservations per queue, shared by every DataStorage for it
         private static readonly ConcurrentDictionary<IConnectionInformation, object> JobLocks = new();
 
+        //per job name, the scheduled time of its most recently de-queued occurrence; written under JobLock
+        private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<string, DateTimeOffset>> JobLastScheduled = new();
+
         //working set
         private static readonly ConcurrentDictionary<IConnectionInformation, ConcurrentDictionary<Guid, QueueItem>> QueueWorking = new();
 
@@ -115,6 +118,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
             ErrorCounts.GetOrAdd(_connectionInformation, _ => new IncrementWrapper());
             DequeueCounts.GetOrAdd(_connectionInformation, _ => new IncrementWrapper());
             Jobs.GetOrAdd(_connectionInformation, _ => new ConcurrentDictionary<string, Guid>());
+            JobLastScheduled.GetOrAdd(_connectionInformation, _ => new ConcurrentDictionary<string, DateTimeOffset>());
             QueueWorking.GetOrAdd(_connectionInformation, _ => new ConcurrentDictionary<Guid, QueueItem>());
         }
 
@@ -184,7 +188,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     //The job name is reserved before the message can be de-queued. DoesJobExist and the
                     //registration are separate steps, so senders racing on one occurrence can all pass
                     //the check; the reservation is what admits exactly one (GitHub #442).
-                    if (!string.IsNullOrWhiteSpace(jobName) && !TryReserveJob(jobName, newItem.Id, value))
+                    if (!string.IsNullOrWhiteSpace(jobName) && !TryReserveJob(jobName, scheduledTime, newItem.Id, value))
                     {
                         value.TryRemove(newItem.Id, out _);
                         throw JobAlreadyQueued();
@@ -212,18 +216,26 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         }
 
         /// <summary>
-        /// Points the job name at this message, unless it already points at a message that still exists.
+        /// Points the job name at this message, unless it already points at a message that still exists,
+        /// or this occurrence has already been de-queued.
         /// </summary>
         /// <remarks>
         /// Decided under a lock per queue. If the name points at a message that still exists, waiting or
         /// working, the send is refused; otherwise, including an entry whose message is gone, the name is
         /// pointed at this one. The message is in <c>QueueData</c> before this runs, and a de-queue moves it
         /// to the working set under the same lock, so a live message is always found.
+        /// The de-queue records the occurrence's scheduled time under that lock too, so a sender that
+        /// passed <see cref="DoesJobExist"/> before an earlier copy ran and finished is still refused here
+        /// (GitHub #447).
         /// </remarks>
-        private bool TryReserveJob(string jobName, Guid id, ConcurrentDictionary<Guid, QueueItem> waiting)
+        private bool TryReserveJob(string jobName, DateTimeOffset scheduledTime, Guid id,
+            ConcurrentDictionary<Guid, QueueItem> waiting)
         {
             lock (JobLock)
             {
+                if (JobLastScheduled[_connectionInformation].TryGetValue(jobName, out var processed) &&
+                    processed == scheduledTime)
+                    return false;
                 var jobs = Jobs[_connectionInformation];
                 if (jobs.TryGetValue(jobName, out var existing) &&
                     (waiting.ContainsKey(existing) || QueueWorking[_connectionInformation].ContainsKey(existing)))
@@ -240,6 +252,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
         /// Under the reservation lock, so a send deciding whether a job's message still exists never sees it
         /// between the two sets. Found in neither, a live message looked stale, and the send replaced its
         /// reservation and queued the same occurrence again (GitHub #442).
+        /// A job message's scheduled time is recorded here, before it can complete and release its name,
+        /// so the occurrence then reads as processed.
         /// </remarks>
         private bool TakeIntoWorkingSet(ConcurrentDictionary<Guid, QueueItem> waiting, Guid id, out QueueItem item)
         {
@@ -248,6 +262,8 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 if (!waiting.TryRemove(id, out item))
                     return false;
                 QueueWorking[_connectionInformation].TryAdd(item.Id, item);
+                if (!string.IsNullOrWhiteSpace(item.JobName))
+                    JobLastScheduled[_connectionInformation][item.JobName] = item.JobScheduledTime;
                 return true;
             }
         }
@@ -516,9 +532,12 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                     }
                 }
                 
-                var time = GetJobLastKnownEvent(jobName);
-                return time == scheduledTime ? QueueStatuses.Processed : QueueStatuses.NotQueued;
-                
+                //compared with the scheduled time of the last de-queued occurrence; the last event time,
+                //which this used to read, is when that occurrence was sent and almost never matches (#447)
+                return JobLastScheduled.TryGetValue(_connectionInformation, out var valueS) &&
+                       valueS.TryGetValue(jobName, out var processed) && processed == scheduledTime
+                    ? QueueStatuses.Processed
+                    : QueueStatuses.NotQueued;
             }
         }
 
@@ -730,6 +749,7 @@ namespace DotNetWorkQueue.Transport.Memory.Basic
                 QueueData.TryRemove(_connectionInformation, out _);
                 Jobs.TryRemove(_connectionInformation, out _);
                 JobLocks.TryRemove(_connectionInformation, out _);
+                JobLastScheduled.TryRemove(_connectionInformation, out _);
                 QueueWorking.TryRemove(_connectionInformation, out _);
                 ErrorCounts.TryRemove(_connectionInformation, out _);
                 DequeueCounts.TryRemove(_connectionInformation, out _);

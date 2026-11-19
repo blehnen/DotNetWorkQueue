@@ -254,6 +254,100 @@ namespace DotNetWorkQueue.Tests.Transport.Memory
         }
 
         [TestMethod]
+        public void A_Completed_Occurrence_Is_Not_Queued_Again()
+        {
+            //the processed check compared the last event time, which is when the occurrence was sent,
+            //with the scheduled time, so a completed occurrence read as never queued (GitHub #447)
+            var occurrence = new DateTimeOffset(2001, 2, 3, 4, 0, 0, TimeSpan.Zero);
+            using var test = Create(MessageFactory(), "job", occurrence, occurrence);
+            var id = test.SendMessage(Message(), MessageData());
+            Assert.IsNotNull(test.GetNextMessage(null, TimeSpan.FromMilliseconds(50)));
+            Assert.IsTrue(test.DeleteMessage(id));
+
+            Assert.AreEqual(QueueStatuses.Processed, test.DoesJobExist("job", occurrence));
+            AssertRefused(() => test.SendMessage(Message(), MessageData()));
+            Assert.AreEqual(0, test.RecordCount);
+            Assert.AreEqual(occurrence.AddSeconds(5), test.GetJobLastKnownEvent("job"),
+                "the last known event stays the event time");
+        }
+
+        [TestMethod]
+        public void The_Next_Occurrence_Of_A_Completed_Job_Is_Queued()
+        {
+            var firstRun = new DateTimeOffset(2001, 2, 3, 4, 0, 0, TimeSpan.Zero);
+            var nextRun = firstRun.AddMinutes(1);
+            using var test = Create(MessageFactory(), "job", firstRun, nextRun);
+            var id = test.SendMessage(Message(), MessageData());
+            Assert.IsNotNull(test.GetNextMessage(null, TimeSpan.FromMilliseconds(50)));
+            Assert.IsTrue(test.DeleteMessage(id));
+
+            Assert.AreEqual(QueueStatuses.NotQueued, test.DoesJobExist("job", nextRun));
+            Assert.AreNotEqual(Guid.Empty, test.SendMessage(Message(), MessageData()));
+            Assert.AreEqual(QueueStatuses.Waiting, test.DoesJobExist("job", nextRun));
+        }
+
+        [TestMethod]
+        public void A_Send_That_Passed_The_Check_Before_The_Occurrence_Completed_Is_Refused()
+        {
+            //Both senders pass the check, held at the clock read that follows it. One is let through, and
+            //its message is de-queued and completed, which releases the job name. The other is then let
+            //through: the name no longer points at a live message, so only the record of the completed
+            //occurrence, read under the reservation lock, can refuse it.
+            var occurrence = new DateTimeOffset(2001, 2, 3, 4, 0, 0, TimeSpan.Zero);
+            using var bothChecked = new Barrier(2);
+            using var releaseSecond = new ManualResetEventSlim(false);
+            using var firstSent = new ManualResetEventSlim(false);
+            var clockReads = 0;
+            using var test = Create(MessageFactory(), "job", () =>
+            {
+                var read = Interlocked.Increment(ref clockReads);
+                Assert.IsTrue(bothChecked.SignalAndWait(TimeSpan.FromSeconds(10)), "a sender never reached the clock");
+                if (read == 2)
+                    Assert.IsTrue(releaseSecond.Wait(TimeSpan.FromSeconds(10)), "the second sender was never released");
+                return ProviderNow;
+            }, occurrence, occurrence);
+            var sent = new System.Collections.Concurrent.ConcurrentQueue<Guid>();
+            var refused = 0;
+            var unexpected = new System.Collections.Concurrent.ConcurrentQueue<Exception>();
+
+            var threads = Enumerable.Range(0, 2).Select(_ => new Thread(() =>
+            {
+                try
+                {
+                    sent.Enqueue(test.SendMessage(Message(), MessageData()));
+                    firstSent.Set();
+                }
+                catch (DotNetWorkQueueException error) when (error.Message.Contains(
+                             "Failed to insert record - the job has already been queued or processed"))
+                {
+                    Interlocked.Increment(ref refused);
+                }
+                catch (Exception error)
+                {
+                    unexpected.Enqueue(error);
+                }
+            })).ToList();
+            threads.ForEach(t => t.Start());
+            try
+            {
+                Assert.IsTrue(firstSent.Wait(TimeSpan.FromSeconds(10)), "the first sender never queued");
+                Assert.IsTrue(sent.TryPeek(out var first));
+                Assert.IsNotNull(test.GetNextMessage(null, TimeSpan.FromMilliseconds(50)));
+                Assert.IsTrue(test.DeleteMessage(first));
+            }
+            finally
+            {
+                releaseSecond.Set();
+                threads.ForEach(t => t.Join());
+            }
+
+            Assert.IsEmpty(unexpected, string.Join(Environment.NewLine, unexpected));
+            Assert.HasCount(1, sent, "queued");
+            Assert.AreEqual(1, refused, "refused");
+            Assert.AreEqual(0, test.RecordCount);
+        }
+
+        [TestMethod]
         public void A_Job_Entry_Whose_Message_Is_Gone_Does_Not_Block_The_Job()
         {
             //no public call leaves such an entry since #439 and #441, so plant one; it must be replaced,
@@ -281,6 +375,12 @@ namespace DotNetWorkQueue.Tests.Transport.Memory
 
             Assert.IsNull(test.GetNextMessage(null, TimeSpan.FromMilliseconds(50)));
             Assert.AreEqual(0, test.WorkingRecordCount);
+        }
+
+        private static void AssertRefused(Func<Guid> send)
+        {
+            var error = Assert.ThrowsExactly<DotNetWorkQueueException>(() => send());
+            StringAssert.Contains(error.Message, "already been queued or processed");
         }
 
         /// <summary>A date far from any machine clock, so a timestamp from the wrong source cannot match.</summary>
