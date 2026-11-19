@@ -153,7 +153,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 |---------|-------------|
 | Transport.SqlServer | [Microsoft.Data.SqlClient](https://github.com/dotnet/SqlClient) |
 | Transport.PostgreSQL | [Npgsql](http://www.npgsql.org/) |
-| Transport.Redis | [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis), [MsgPack-CLI](https://github.com/msgpack/msgpack-cli) |
+| Transport.Redis | [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) |
 | Transport.SQLite | [System.Data.SQLite](https://www.sqlite.org/) |
 | Transport.LiteDb | [LiteDb](https://www.litedb.org/) |
 | Dashboard.Api | [Swashbuckle.AspNetCore](https://github.com/domaindrivendev/Swashbuckle.AspNetCore) |

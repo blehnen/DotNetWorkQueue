@@ -20,8 +20,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using MsgPack;
-using MsgPack.Serialization;
 using StackExchange.Redis;
 
 namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
@@ -123,7 +121,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// </summary>
         /// <param name="messages">The messages.</param>
         /// <returns></returns>
-        public List<string> Execute(List<MessageToSend> messages)
+        internal List<string> Execute(List<MessageToSend> messages)
         {
             if (Connection.IsDisposed)
                 return null;
@@ -138,9 +136,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 {
                     var data = (byte[])result;
                     if (data == null || data.Length <= 0) continue;
-                    var serializer = SerializationContext.Default.GetSerializer<List<string>>();
-                    var tempData = serializer.UnpackSingleObject(data);
-                    returnData.AddRange(tempData);
+                    returnData.AddRange(LuaMessagePack.ReadStringArray(data));
                 }
             }
             return returnData;
@@ -151,7 +147,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         /// </summary>
         /// <param name="messages">The messages.</param>
         /// <returns></returns>
-        public async Task<List<string>> ExecuteAsync(List<MessageToSend> messages)
+        internal async Task<List<string>> ExecuteAsync(List<MessageToSend> messages)
         {
             if (Connection.IsDisposed)
                 return null;
@@ -166,9 +162,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
                 {
                     var data = (byte[])result;
                     if (data == null || data.Length <= 0) continue;
-                    var serializer = SerializationContext.Default.GetSerializer<List<string>>();
-                    var tempData = await serializer.UnpackSingleObjectAsync(data).ConfigureAwait(false);
-                    returnData.AddRange(tempData);
+                    returnData.AddRange(LuaMessagePack.ReadStringArray(data));
                 }
             }
             return returnData;
@@ -183,36 +177,54 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
         private object GetParameters(List<MessageToSend> messages, string route)
         {
             var pendingKey = !string.IsNullOrEmpty(route) ? RedisNames.PendingRoute(route) : RedisNames.Pending;
-            // Creates serializer.
-            var serializer = SerializationContext.Default.GetSerializer<List<MessageToSend>>();
+            object rc = new
+            {
+                messages = (RedisValue)Pack(messages),
+                key = (RedisKey)RedisNames.Values,
+                pendingkey = (RedisKey)pendingKey,
+                headerskey = (RedisKey)RedisNames.Headers,
+                channel = RedisNames.Notification,
+                metakey = (RedisKey)RedisNames.MetaData,
+                IDKey = (RedisKey)RedisNames.Id,
+                delaykey = (RedisKey)RedisNames.Delayed,
+                expirekey = (RedisKey)RedisNames.Expiration,
+                StatusKey = (RedisKey)RedisNames.Status,
+                RouteIDKey = (RedisKey)RedisNames.Route
+            };
+            return rc;
+        }
+
+        /// <summary>
+        /// Packs the messages for <c>cmsgpack.unpack</c> in the script: an array with one array per message.
+        /// </summary>
+        /// <param name="messages">The messages.</param>
+        /// <returns>The packed bytes.</returns>
+        internal static byte[] Pack(IReadOnlyCollection<MessageToSend> messages)
+        {
             using (var output = new MemoryStream())
             {
-                serializer.Pack(output, messages, PackerCompatibilityOptions.Classic);
-                object rc = new
+                LuaMessagePack.WriteArrayHeader(output, messages.Count);
+                foreach (var message in messages)
                 {
-                    messages = (RedisValue)output.ToArray(),
-                    key = (RedisKey)RedisNames.Values,
-                    pendingkey = (RedisKey)pendingKey,
-                    headerskey = (RedisKey)RedisNames.Headers,
-                    channel = RedisNames.Notification,
-                    metakey = (RedisKey)RedisNames.MetaData,
-                    IDKey = (RedisKey)RedisNames.Id,
-                    delaykey = (RedisKey)RedisNames.Delayed,
-                    expirekey = (RedisKey)RedisNames.Expiration,
-                    StatusKey = (RedisKey)RedisNames.Status,
-                    RouteIDKey = (RedisKey)RedisNames.Route
-                };
-                return rc;
+                    //the script reads each field by its position, 1 to 8; keep this order in step with it
+                    LuaMessagePack.WriteArrayHeader(output, 8);
+                    LuaMessagePack.WriteString(output, message.CorrelationId);
+                    LuaMessagePack.WriteInt64(output, message.ExpireTimeStamp);
+                    LuaMessagePack.WriteRaw(output, message.Headers);
+                    LuaMessagePack.WriteRaw(output, message.Message);
+                    LuaMessagePack.WriteString(output, message.MessageId);
+                    LuaMessagePack.WriteRaw(output, message.MetaData);
+                    LuaMessagePack.WriteString(output, message.Route);
+                    LuaMessagePack.WriteInt64(output, message.TimeStamp);
+                }
+                return output.ToArray();
             }
         }
 
         /// <summary>
         /// The message and any associated meta data to be passed to the LUA script.
         /// </summary>
-        /// <remarks>
-        /// This class must be public for MsgPack to function
-        /// </remarks>
-        public class MessageToSend
+        internal class MessageToSend
         {
             private string _route;
             /// <summary>
@@ -245,7 +257,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             /// <value>
             /// The message.
             /// </value>
-            public MessagePackObject Message { get; set; }
+            public byte[] Message { get; set; }
 
             /// <summary>
             /// Gets or sets the message identifier.
@@ -260,7 +272,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             /// <value>
             /// The meta data.
             /// </value>
-            public MessagePackObject MetaData { get; set; }
+            public byte[] MetaData { get; set; }
             /// <summary>
             /// Gets or sets the time stamp.
             /// </summary>
@@ -276,7 +288,7 @@ namespace DotNetWorkQueue.Transport.Redis.Basic.Lua
             /// <value>
             /// The headers.
             /// </value>
-            public MessagePackObject Headers { get; set; }
+            public byte[] Headers { get; set; }
 
             /// <summary>
             /// Gets or sets the route.
