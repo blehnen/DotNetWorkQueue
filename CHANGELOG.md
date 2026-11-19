@@ -1,4 +1,7 @@
-﻿### 0.18.0 - 2026-11-19
+﻿### Unreleased
+- The Redis transport no longer depends on `MsgPack.Cli` (no release since 2019). Batch sends store the same data. `EnqueueBatchLua.MessageToSend`, which exposed its types, is now internal (GitHub #416)
+
+### 0.18.0 - 2026-11-19
 - ⚠️ The four `[Obsolete]` expression-tree `Guard` overloads are removed. Use the overloads without the expression. For `IsValid` with format arguments, pass a `string.Format(...)` message (GitHub #418)
 - ⚠️ `DotNetWorkQueue.TaskScheduling.Distributed.TaskScheduler` 0.5.0 calls one of these overloads and fails with `MissingMethodException`. Upgrade it to 0.6.0 together with this release (GitHub #418)
 - ⚠️ On an `IConsumerQueueAsync` consumer, retry rules now match the type of the exception that the handler throws, as on the sync consumer. They used to match the inner exception's type when there was one (GitHub #426)
