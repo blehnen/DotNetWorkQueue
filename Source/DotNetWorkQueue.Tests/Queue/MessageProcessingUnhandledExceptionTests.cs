@@ -60,6 +60,48 @@ namespace DotNetWorkQueue.Tests.Queue
             harness.AssertLoggedAndReported(failure);
         }
 
+        [TestMethod]
+        public async Task Sync_A_Throwing_Subscriber_Does_Not_Skip_The_Backoff()
+        {
+            //the error callback is user code; its own exception used to skip the backoff, and a second
+            //throw from the outer catch's retry of it would end the worker
+            var failure = new InvalidOperationException("the move to the error queue failed");
+            var subscriberError = new InvalidOperationException("the subscriber failed");
+            var harness = new Harness(failure);
+            harness.Receive.ReceiveMessage(Arg.Any<IMessageContext>()).Throws(new PoisonMessageException());
+            harness.PoisonHandler
+                .When(x => x.Handle(Arg.Any<IMessageContext>(), Arg.Any<PoisonMessageException>()))
+                .Do(_ => throw failure);
+            harness.SubscriberThrows(subscriberError);
+
+            await harness.Fixture.Create<MessageProcessing>().HandleAsync().ConfigureAwait(false);
+
+            harness.FatalErrorDelay.Received(1).Wait();
+            harness.AssertBothLogged(failure, subscriberError);
+        }
+
+        [TestMethod]
+        public async Task Async_A_Throwing_Subscriber_Does_Not_Skip_The_Backoff()
+        {
+            var failure = new InvalidOperationException("the move to the error queue failed");
+            var subscriberError = new InvalidOperationException("the subscriber failed");
+            var harness = new Harness(failure);
+#pragma warning disable CA2012
+            harness.Receive.ReceiveMessageAsync(Arg.Any<IMessageContext>(), Arg.Any<CancellationToken>())
+                .Throws(new PoisonMessageException());
+#pragma warning restore CA2012
+            harness.PoisonHandler.HandleAsync(Arg.Any<IMessageContext>(), Arg.Any<PoisonMessageException>())
+                .Returns(Task.FromException(failure));
+            harness.SubscriberThrows(subscriberError);
+
+            await harness.Fixture.Create<MessageProcessingAsync>().HandleAsync().ConfigureAwait(false);
+
+#pragma warning disable CA2012
+            await harness.FatalErrorDelay.Received(1).WaitAsync().ConfigureAwait(false);
+#pragma warning restore CA2012
+            harness.AssertBothLogged(failure, subscriberError);
+        }
+
         private sealed class Harness
         {
             private readonly CapturingLogger _log = new CapturingLogger();
@@ -72,7 +114,11 @@ namespace DotNetWorkQueue.Tests.Queue
                 receiveFactory.Create().Returns(Receive);
                 PoisonHandler = Substitute.For<IReceivePoisonMessage>();
                 ErrorNotification = Substitute.For<IConsumerQueueErrorNotification>();
+                FatalErrorDelay = Substitute.For<IQueueWait>();
+                var waitFactory = Substitute.For<IQueueWaitFactory>();
+                waitFactory.CreateFatalErrorDelay().Returns(FatalErrorDelay);
 
+                Fixture.Inject(waitFactory);
                 Fixture.Inject(receiveFactory);
                 Fixture.Inject(PoisonHandler);
                 Fixture.Inject(ErrorNotification);
@@ -83,6 +129,19 @@ namespace DotNetWorkQueue.Tests.Queue
             public IReceiveMessages Receive { get; }
             public IReceivePoisonMessage PoisonHandler { get; }
             public IConsumerQueueErrorNotification ErrorNotification { get; }
+            public IQueueWait FatalErrorDelay { get; }
+
+            public void SubscriberThrows(Exception subscriberError)
+            {
+                ErrorNotification.When(x => x.InvokeError(Arg.Any<ErrorReceiveNotification>()))
+                    .Do(_ => throw subscriberError);
+            }
+
+            public void AssertBothLogged(Exception failure, Exception subscriberError)
+            {
+                Assert.HasCount(1, _log.Entries.Where(e => e.Level == LogLevel.Error && ReferenceEquals(e.Exception, failure)));
+                Assert.HasCount(1, _log.Entries.Where(e => e.Level == LogLevel.Error && ReferenceEquals(e.Exception, subscriberError)));
+            }
 
             public void AssertLoggedAndReported(Exception failure)
             {

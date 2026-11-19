@@ -158,8 +158,7 @@ namespace DotNetWorkQueue.Queue
                 {
                     //Anything not handled above lands here, including a failure inside the poison or
                     //rollback handling itself. It used to be dropped without a word (GitHub #444).
-                    _log.LogError(error, "An unexpected error occurred while processing a message; processing will back off");
-                    _consumerQueueErrorNotification.InvokeError(new ErrorReceiveNotification(error));
+                    ReportUnhandled(error);
 
                     //generic exceptions tend to indicate a serious problem - lets start delaying processing
                     //this counter will reset once a message has been processed by this thread
@@ -181,6 +180,26 @@ namespace DotNetWorkQueue.Queue
                 Interlocked.Decrement(ref _waitingOnAsyncTasks);
             }
         }
+        /// <summary>
+        /// Logs and reports an exception nothing more specific handled.
+        /// </summary>
+        /// <remarks>
+        /// A subscriber's own exception is logged and contained here, so it cannot skip the backoff that
+        /// follows or end the worker.
+        /// </remarks>
+        private void ReportUnhandled(Exception error)
+        {
+            _log.LogError(error, "An unexpected error occurred while processing a message; processing will back off");
+            try
+            {
+                _consumerQueueErrorNotification.InvokeError(new ErrorReceiveNotification(error));
+            }
+            catch (Exception notificationError)
+            {
+                _log.LogError(notificationError, "The receive-error notification threw while reporting an unexpected error");
+            }
+        }
+
         /// <summary>
         /// Tries the process a new incoming message.
         /// </summary>
