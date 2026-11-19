@@ -52,8 +52,9 @@ namespace DotNetWorkQueue.Queue
         //Ticks of the last beat that actually landed.
         private long _lastGoodBeatUtcTicks;
 
-        //Set only when the transport has told us the claim is gone - never inferred from a clock alone.
-        //0 = still ours, 1 = the message belongs to someone else now.
+        //Set when a beat matched no record after the expiry, or when the claim lapsed with nothing to
+        //prove it by. Never from lateness alone while a beat can still prove it.
+        //0 = still ours, 1 = given up; the message may belong to another worker now.
         private int _lostConfirmed;
 
         //so the "we are running late" warning is logged once per lapse rather than on every tick
@@ -83,9 +84,15 @@ namespace DotNetWorkQueue.Queue
         }
 
         /// <summary>
-        /// Whether the transport has confirmed that the claim is gone. Once true it stays true: there is
-        /// nothing left to renew, because an update cannot match a row this worker no longer owns.
+        /// Whether this worker has given the claim up. Once true it stays true, and no further beats are sent.
         /// </summary>
+        /// <remarks>
+        /// Two things set it. A beat that matched no record after the expiry, when the monitor can have
+        /// reset the message (<see cref="BeatMatchedNoRecord"/>). Or a claim past the expiry that no beat
+        /// can prove, because none has landed and the de-queue stamped nothing (<see cref="TryGiveUpAnUnprovableClaim"/>).
+        /// The second is a precaution: no beat was sent, so it does not show that another worker owns the
+        /// message, only that this one can no longer show it does.
+        /// </remarks>
         public bool IsLost => Interlocked.CompareExchange(ref _lostConfirmed, 0, 0) == 1;
 
         /// <summary>
